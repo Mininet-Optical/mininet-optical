@@ -19,7 +19,7 @@ class Network(object):
         self.transceiver = transceiver  # class of transceiver
         self.roadm = roadm  # class of ROADM
 
-        self.olts = []
+        self.olss = []
         self.roadms = []
         self.links = []
         self.spans = []
@@ -30,34 +30,34 @@ class Network(object):
 
         self.name_to_node = {}
 
-    def add_olt(self, name, **params):
+    def add_ols(self, name, **params):
         """
-        Add OLT node
-        :param name: name of OLT
-        :return: added OLT
+        Add ols node
+        :param name: name of OLS
+        :return: added ols
         """
         if name in self.name_to_node:
-            raise ValueError("Network.add_olt: OLT with this name already exist!")
+            raise ValueError("Network.add_ols: OLS with this name already exist!")
         configs = {'name': name}
         configs.update(params)
-        olt = OpticalLineTerminal(**configs)
-        self.name_to_node[name] = olt
-        self.olts.append(olt)
-        return olt
+        ols = OpticalLineSystem(**configs)
+        self.name_to_node[name] = ols
+        self.olss.append(ols)
+        return ols
 
-    def add_transceiver_to_olt(self, olt, transceiver_name, spectrum_band, **params):
+    def add_transceiver_to_ols(self, ols, transceiver_name, spectrum_band, **params):
         """
-        Add transceiver to OLT node
+        Add transceiver to ols node
         :param transceiver_name: name of transceiver
         :param spectrum_band: configured spectrum band for transceiver
         :return:
         """
-        if olt not in self.olts:
-            raise ValueError("Network.add_transceiver_to_olt: OLT does not exist!")
+        if ols not in self.olss:
+            raise ValueError("Network.add_transceiver_to_ols: ols does not exist!")
         configs = {'transceiver_name': transceiver_name,
                    'spectrum_band': spectrum_band}
         configs.update(params)
-        olt.add_transceiver(**configs)
+        ols.add_transceiver(**configs)
 
     def add_roadm(self, name, **params):
         """

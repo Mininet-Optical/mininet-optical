@@ -34,13 +34,14 @@ class Node(object):
         return new_input_port, new_output_port
 
 
-class OpticalLineTerminal(Node):
+class OpticalLineSystem(Node):
 
     def __init__(self, name):
         Node.__init__(self, name)
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
+        self.operation_power = ''
 
     def add_transceiver(self, transceiver_name, spectrum_band):
         """
@@ -49,20 +50,16 @@ class OpticalLineTerminal(Node):
         :param spectrum_band: spectrum band to function
         :return: added transceiver
         """
-        name = self.name + '-' + transceiver_name
-        if name in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineTerminal.add_transceiver: Transceiver with this name already exist!")
-        new_transceiver = Transceiver(name, spectrum_band)
-        self.name_to_transceivers[name] = new_transceiver
+        if transceiver_name in self.name_to_transceivers:
+            raise ValueError("Node.OpticalLineSystem.add_transceiver: Transceiver with this name already exist!")
+        new_transceiver = Transceiver(transceiver_name, spectrum_band)
+        self.name_to_transceivers[transceiver_name] = new_transceiver
         self.transceivers.append(new_transceiver)
         return new_transceiver
 
-    def update_transceiver(self, transceiver_name, **kwargs):
+    def update_transceiver(self, transceiver_name, args):
         transceiver = self.name_to_transceivers[transceiver_name]
-        if 'operation_power' in kwargs:
-            transceiver.operation_power = kwargs.get('operation_power')
-        if 'spectrum_band' in kwargs:
-            transceiver.spectrum_band = kwargs.get('spectrum_band')
+        transceiver.__dict__.update(args)
 
     def delete_transceiver(self, transceiver_name):
         """
@@ -71,7 +68,7 @@ class OpticalLineTerminal(Node):
         :return:
         """
         if transceiver_name not in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineTerminal.delete_transceiver: transceiver does not exist!")
+            raise ValueError("Node.OpticalLineSystem.delete_transceiver: transceiver does not exist!")
         transceiver = self.name_to_transceivers[transceiver_name]
         self.transceivers.remove(transceiver)
         del self.name_to_transceivers[transceiver_name]
@@ -85,7 +82,7 @@ class OpticalLineTerminal(Node):
         :return:
         """
         if transceiver_name not in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineTerminal.add_signal: transceiver does not exist!")
+            raise ValueError("Node.OpticalLineSystem.add_signal: transceiver does not exist!")
         if transceiver_name not in self.transceiver_to_signals:
             self.transceiver_to_signals[transceiver_name] = []
         self.transceiver_to_signals[transceiver_name].append(optical_signal)
@@ -98,43 +95,44 @@ class OpticalLineTerminal(Node):
         :return:
         """
         if transceiver_name not in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineTerminal.delete_signal: transceiver does not exist!")
+            raise ValueError("Node.OpticalLineSystem.delete_signal: transceiver does not exist!")
         self.transceiver_to_signals[transceiver_name].remove(optical_signal)
 
 
 class Transceiver(object):
-    def __init__(self, name, operation_power=-2, spectrum_band='C'):
-        self.id = id(self)
-        self.name = name
-        self.operation_power = operation_power
-        self.spectrum_band = spectrum_band
-
-"""
-The signal probably don't need to be here once physical effects simulation is distributed.
-"""
-class OpticalSignal(object):
-
-    def __init__(self, index, channel_spacing=0.4*1e-9, launch_power=-2.0,
-                 bandwidth=2.99792458*1e9, modulation_format="16QAM",
-                 bits_per_symbol=4.0, symbol_rate=0.032*1e12):
+    def __init__(self, name, spectrum_band='C', optical_carrier=1550.0,
+                 channel_spacing=0.4*1e-9, bandwidth=2.99792458*1e9, modulation_format='16QAM',
+                 bits_per_symbol=4.0, symbol_rate=0.032 * 1e12):
         """
-        :param index: signal index starting from 1 - int
         :param channel_spacing: channel spacing in nanometers - float
-        :param launch_power: launch power in dBm - float
         :param bandwidth: channel bandwidth in GHz - float
         :param modulation_format: modulation format name - string
         :param bits_per_symbol: bits per symbol according to modulation format = float
         :param symbol_rate: symbol rate in GBaud - float
         """
-        self.index = index
-        self.wavelength = 1529.2 * unit.nm + index * channel_spacing
-        self.frequency = unit.c / self.wavelength
+        self.id = id(self)
+        self.name = name
+        self.spectrum_band = spectrum_band
+        self.optical_carrier = optical_carrier
         self.channel_spacing = channel_spacing
-        self.launch_power = launch_power
         self.bandwidth = bandwidth
         self.modulation_format = modulation_format
         self.bits_per_symbol = bits_per_symbol
         self.symbol_rate = symbol_rate
+
+
+class OpticalSignal(object):
+
+    def __init__(self, index, data=None):
+
+        self.index = index
+        self.wavelength = 1529.2 * unit.nm + index * 0.4
+        self.frequency = unit.c / self.wavelength
+        self.data = data
+
+        self.power_at_interface = {}
+        self.linear_noise_at_interface = {}
+        self.nonlinear_noise_at_interface = {}
 
 
 class Roadm(Node):
