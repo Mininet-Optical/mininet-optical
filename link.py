@@ -1,6 +1,27 @@
 from collections import namedtuple
 import math
 import units as unit
+from pprint import pprint
+import numpy as np
+import scipy.constants as sc
+
+
+def db_to_abs(db_value):
+    """
+    :param db_value: list or float
+    :return: Convert dB to absolute value
+    """
+    absolute_value = 10**(db_value/float(10))
+    return absolute_value
+
+
+def abs_to_db(absolute_value):
+    """
+    :param absolute_value: list or float
+    :return: Convert absolute value to dB
+    """
+    db_value = 10*np.log10(absolute_value)
+    return db_value
 
 
 SpanTuple = namedtuple('Span', 'span amplifier')
@@ -13,7 +34,9 @@ class Link(object):
     connectivity.
     """
 
-    def __init__(self, node1, node2, ports):
+    def __init__(self, node1, node2, new_input_port1,
+                 new_output_port1, new_input_port2, new_output_port2,
+                 preamp):
         """
 
         :param node1: source Node object
@@ -25,7 +48,14 @@ class Link(object):
         self.id = id(self)
         self.node1 = node1
         self.node2 = node2
-        self.ports1, self.ports2 = ports
+        self.input_port1 = new_input_port1
+        self.output_port1 = new_output_port1
+        self.input_port2 = new_input_port2
+        self.output_port2 = new_output_port2
+        self.preamp = preamp
+
+        self.signal_power_in = {}  # dict of ports to signals and power levels
+        self.signal_power_out = {}  # dict of ports to signals and power levels
 
         self.spans = []
 
@@ -41,7 +71,74 @@ class Link(object):
         """
         :return: link length adding up span lengths in spans attribute
         """
-        return sum(span.span.length for span in self.spans)
+        if len(self.spans) > 0:
+            return sum(span.span.length for span in self.spans)
+        return 0
+
+    def describe(self):
+        pprint(vars(self))
+
+    def incoming_transmission(self, node):
+        """
+        INCOMPLETE FUNCTION OCT. 6TH, 2019
+        :param node:
+        :return:
+        """
+        self.signal_power_in.update(node.port_to_signal_power_out[self.output_port1])
+        if self.preamp:
+            for signal, in_power in self.signal_power_in.items():
+                preamp_power = 0
+        self.describe()
+        for span, amplifier in self.spans:
+            pass
+
+    @staticmethod
+    def output_amplified_power(signal_power, target_gain, mode, launch_power, amplifier_wavelength_dependent_gain):
+        """
+        :param signal_power: units: mW - float
+        :param target_gain: units mW (absolute value) - float
+        :param mode: amplifier mode - string
+        :param launch_power: units: mW, only used if mode=AGC - float
+        :param amplifier_wavelength_dependent_gain: units: mW - float
+        :param amplifier_wavelength_dependent_gain: units: mW - float
+        :return: amplification-compensated power levels - float
+        """
+        if mode == 'AGC':
+            # Adjust the gain to keep signal power constant
+            target_gain = db_to_abs(abs(abs_to_db(signal_power) - launch_power))
+        # Conversion from dB to linear
+        target_gain_linear = db_to_abs(target_gain)
+        wavelength_dependent_gain_linear = db_to_abs(amplifier_wavelength_dependent_gain)
+        return signal_power * target_gain_linear * wavelength_dependent_gain_linear
+
+    @staticmethod
+    def stage_amplified_spontaneous_emission_noise(signal_frequency, amplifier_target_gain,
+                                                   amplifier_wavelength_dependent_gain,
+                                                   amplifier_noise_figure, amplifier_bandwidth):
+        """
+        :param signal_frequency: units: THz
+        :param amplifier_target_gain: units: dB
+        :param amplifier_wavelength_dependent_gain: units: dB
+        :param amplifier_noise_figure: units: dB
+        :param amplifier_bandwidth: units: GHz
+        :return: ASE noise in linear form
+        Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
+        """
+
+        # Compute parameters needed for ASE model
+        population_inversion = 0.5 * 10 ** (amplifier_noise_figure / 10.0)
+        amplifier_gain = amplifier_target_gain - 1
+
+        # Conversion from dB to linear
+        gain_linear = db_to_abs(amplifier_gain)
+        wavelength_dependent_gain_linear = db_to_abs(amplifier_wavelength_dependent_gain)
+
+        # Calculation of the amplified spontaneous emission (ASE) noise.
+        # Simpler formula
+        # ase_noise = db_to_abs(amplifier_noise_figure) * sc.h * signal_frequency * amplifier_bandwidth
+        ase_noise = 2 * population_inversion * (gain_linear * wavelength_dependent_gain_linear) * \
+                    sc.h * signal_frequency * amplifier_bandwidth
+        return ase_noise
 
 
 class Span(object):
@@ -64,3 +161,6 @@ class Span(object):
         self.raman_amplification_band = 15 * unit.THz  # Raman amplification band ~15THz
         # Raman coefficient
         self.raman_coefficient = self.raman_gain / (2 * self.effective_area * self.raman_amplification_band)
+
+    def describe(self):
+        pprint(vars(self))

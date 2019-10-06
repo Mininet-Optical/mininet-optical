@@ -1,6 +1,9 @@
 from node import *
 from link import *
 import numpy as np
+import math
+import time
+from pprint import pprint
 
 
 def abs_to_db(absolute_value):
@@ -19,16 +22,18 @@ class Network(object):
         self.transceiver = transceiver  # class of transceiver
         self.roadm = roadm  # class of ROADM
 
-        self.olss = []
+        self.ols = []
         self.roadms = []
         self.links = []
         self.spans = []
         self.amplifiers = []
 
         self.links_to_span = {}
-        self.network = {}
+        self.topology = {}
 
         self.name_to_node = {}
+
+        self.traffic = []
 
     def add_ols(self, name, **params):
         """
@@ -42,17 +47,19 @@ class Network(object):
         configs.update(params)
         ols = OpticalLineSystem(**configs)
         self.name_to_node[name] = ols
-        self.olss.append(ols)
+        self.ols.append(ols)
+        self.topology[ols] = []
         return ols
 
     def add_transceiver_to_ols(self, ols, transceiver_name, spectrum_band, **params):
         """
         Add transceiver to ols node
+        :param ols: OLS object
         :param transceiver_name: name of transceiver
         :param spectrum_band: configured spectrum band for transceiver
         :return:
         """
-        if ols not in self.olss:
+        if ols not in self.ols:
             raise ValueError("Network.add_transceiver_to_ols: ols does not exist!")
         configs = {'transceiver_name': transceiver_name,
                    'spectrum_band': spectrum_band}
@@ -73,6 +80,7 @@ class Network(object):
         roadm = Roadm(**configs)
         self.name_to_node[name] = roadm
         self.roadms.append(roadm)
+        self.topology[roadm] = []
         return roadm
 
     def add_amplifier(self, name, amplifier_type, **params):
@@ -92,21 +100,27 @@ class Network(object):
         self.amplifiers.append(amplifier)
         return amplifier
 
-    def add_link(self, node1, node2, ports=None):
+    def add_link(self, node1, node2, ports=None, preamp=None):
         """
         Add a link between two nodes
         :param node1: node1 in the connection
         :param node2: node1 in the connection
         :param ports: optional
-        :return:
+        :param preamp: optional amplifier to compensate for node
+        :return: added link
         """
         if ports is None:
-            ports1 = node1.new_connection_ports(node2)
-            ports2 = node2.new_connection_ports(node1)
-            ports = (ports1, ports2)
+            new_input_port1, new_output_port1 = node1.new_connection_ports(node2)  # in/out ports of node 1
+            new_input_port2, new_output_port2 = node2.new_connection_ports(node1)  # in/out ports of node 2
+        else:
+            new_input_port1, new_output_port1, new_input_port2, new_output_port2 = ports
 
-        link = Link(node1, node2, ports)
+        link = Link(node1, node2, new_input_port1,
+                    new_output_port1, new_input_port2, new_output_port2,
+                    preamp)
         self.links.append(link)
+        self.topology[node1].append((node2, link))
+        self.topology[node2].append((node1, link))
         return link
 
     def add_span(self, fiber_type, length):
@@ -134,12 +148,34 @@ class Network(object):
 
         link.add_span(span, amplifier)
 
-    # Dijkstra algorithm for finding shortest path
-    def find_path(self, src_node, dst_node):
+    def transmit(self, src_node, dst_node, bit_rate=100*1e9, route=None, resources=None):
         """
+        Create and start a Traffic object
+        :param src_node: OLS transmitter node
+        :param dst_node: OLS receiver node
+        :param bit_rate: bit rate in Gbps
+        :param route: list of tuples (node, link)
+        :param resources: dict with transceiver and wavelength(s) to use !Wavelengths still not specified!
+        :return:
+        """
+        if not route:
+            route = self.routing(src_node, dst_node)
+        if resources:
+            transceiver = resources['transceiver']
+            wavelengths = resources['required_wavelengths']
+        else:
+            transceiver, wavelengths = self.wavelength_allocation(src_node, bit_rate)
+        new_traffic_request = Traffic(src_node, dst_node, bit_rate,
+                                      route, transceiver, wavelengths)
+        self.traffic.append(new_traffic_request)
+        new_traffic_request.start()
+
+    def routing(self, src_node, dst_node):
+        """
+        Dijkstra algorithm for finding shortest path
         :param src_node: source Node() object
         :param dst_node: destination Node() object
-        :return:
+        :return: shortest route from src to dst
         """
         # shortest paths is a dict of nodes
         # whose value is a tuple of (previous node, weight, Link())
@@ -148,11 +184,11 @@ class Network(object):
         visited = set()
         while current_node != dst_node:
             visited.add(current_node)
-            destinations = self.network[current_node]
+            destinations = self.topology[current_node]
             weight_to_current_node = shortest_paths[current_node][1]
-            for node_to_link_relation in destinations:
-                next_node = node_to_link_relation[0]
-                link_to_next_node = node_to_link_relation[1]
+            for node_to_link in destinations:
+                next_node = node_to_link[0]
+                link_to_next_node = node_to_link[1]
                 length_of_link = link_to_next_node.length()
                 weight = length_of_link + weight_to_current_node
                 if next_node not in shortest_paths:
@@ -164,43 +200,66 @@ class Network(object):
 
             next_destinations = {node: shortest_paths[node] for node in shortest_paths if node not in visited}
             if not next_destinations:
-                return "network.find_path: Route Not Possible"
+                return "Network.routing: Route Not Found."
             # next node is the destination with the lowest weight
             current_node = min(next_destinations, key=lambda k: next_destinations[k][1])
 
         # Work back through destinations in shortest path
-        path = []
+        route = []
         link_to_next_node = None
         while current_node is not None:
-            path.append((current_node, link_to_next_node))
+            route.append((current_node, link_to_next_node))
             next_node = shortest_paths[current_node][0]
             link_to_next_node = shortest_paths[current_node][2]
             current_node = next_node
         # Reverse path
-        path = path[::-1]
-        return path
+        route = route[::-1]
+        return route
 
-    def topology(self):
+    @staticmethod
+    def wavelength_allocation(src_node, bit_rate):
         """
-        This function NEEDS fixing.
-        :return: dummy representation of the built network
+        From the transmission OLS select a transceiver suitable for
+        the bit rate request.
+        :param src_node: src_node OLS
+        :param bit_rate: required bit rate
+        :return: transceiver object and wavelengths to use !wavelengths might be extended here!
         """
-        for link in self.links:
-            src_node = link.src_node
-            dst_node = link.dst_node
-            link_string_representation = ""
-            roadm = "ROADM"
-            edfa = "EDFA-"
-            for span_obj in sorted(self.links[link]):
-                span = span_obj[0]
-                span_length = span.length
+        transceiver_to_wavelengths = {}  # dict of available transceivers to needed wavelengths
+        for transceiver in src_node.transceivers:
+            tx_bit_rate = transceiver.gross_bit_rate
+            required_wavelengths = math.ceil(bit_rate / tx_bit_rate)  # required wavelengths for bit rate
+            transceiver_to_wavelengths[transceiver] = required_wavelengths
+        # Select the transceiver that requires the least number of wavelengths
+        transceiver = min(transceiver_to_wavelengths, key=transceiver_to_wavelengths.get)
+        required_wavelengths = transceiver_to_wavelengths[transceiver]
 
-                amplifier = span_obj[1]
-                if amplifier is not None:
-                    link_string_representation += (" ---" + str(span_length) + "km---" +
-                                                   edfa + str(amplifier.target_gain) + "dB")
-                else:
-                    link_string_representation += " ---" + str(span_length) + "km---"
-            str_src_node = roadm + str(src_node.label)
-            str_dst_node = roadm + str(dst_node.label)
-            print(str_src_node + link_string_representation + "> " + str_dst_node)
+        available_wavelengths = src_node.available_wavelengths()
+        # Here we can add an algorithm to select the wavelengths.
+        # At the moment we use first available resources.
+        wavelength_indexes = available_wavelengths[:required_wavelengths]
+        return transceiver, wavelength_indexes
+
+    def describe(self):
+        pprint(vars(self))
+
+
+class Traffic(object):
+    def __init__(self, src_node, dst_node, bit_rate,
+                 route, transceiver, wavelengths):
+        self.id = id(self)
+        self.timestamp = time.time()
+        self.src_node = src_node
+        self.dst_node = dst_node
+        self.bit_rate = bit_rate
+        self.route = route
+        self.transceiver = transceiver
+        self.wavelengths = wavelengths
+
+    def start(self):
+        first_link = self.route[0][1]
+        out_port = first_link.output_port1
+        self.src_node.add_channel(self.transceiver, out_port, first_link, self.wavelengths)
+
+    def describe(self):
+        pprint(vars(self))
