@@ -269,11 +269,15 @@ class Traffic(object):
         self.next_link.incoming_transmission(self, node)
 
     def next_node_in_route(self, link):
-        if self.next_node is self.dst_node:
-            print("Traffic.next_node_in_route: Reached destination point without bugs!")
-            return
         next_node = self.next_node
         next_node_in_port = link.input_port_node2
+
+        if next_node is self.dst_node:
+            next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
+            next_node.describe()
+            print("Traffic.next_node_in_route: Reached destination point without bugs!")
+            return
+
         next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
 
         # Find next two objects in route

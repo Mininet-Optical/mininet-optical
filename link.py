@@ -83,10 +83,11 @@ class Link(object):
 
     def incoming_transmission(self, traffic, node):
         """
-
-        :param traffic
-        :param node:
-        :return:
+        Propagate incoming signals (from a node)
+        across link (spans - amplifiers)
+        :param traffic: Traffic object associated to transmission
+        :param node: node where signals are coming from
+        :return: traffic.next_node_in_route()
         """
         self.traffic.append(traffic)
         # Set output signals from node to input of the link

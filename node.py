@@ -279,10 +279,10 @@ class Amplifier(Node):
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
-        self.balancing_flag_1 = False
+        self.balancing_flag_1 = False  # When both are True system gain balancing is complete
         self.balancing_flag_2 = False
 
-        self.osnr = {}  # dict signal to osnr
+        self.osnr = {}  # dict signal to osnr (temporal for debugging purposes)
 
     def balancing_flags_off(self):
         self.balancing_flag_1 = False
@@ -299,9 +299,18 @@ class Amplifier(Node):
             return [float(line) for line in f]
 
     def get_wavelength_dependent_gain(self, signal_index):
+        """
+        Retrieve WDG by signal index
+        :param signal_index:
+        :return: WDG of signal
+        """
         return self.wavelength_dependent_gain[signal_index - 1]
 
     def active_wavelength_dependent_gain(self):
+        """
+        Retrieve in a list the WDG of the active channels
+        :return: list active channels in amplifier
+        """
         list_wdg = []
         for signal, _power in self.output_power.items():
             list_wdg.append(self.get_wavelength_dependent_gain(signal.index))
@@ -310,6 +319,8 @@ class Amplifier(Node):
     @staticmethod
     def get_noise_figure(noise_figure, noise_figure_function):
         """
+        If noise figure is not passed as a function, create one
+        with constant values from established NF (default value is 6 dB)
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
         :param noise_figure_function: custom NF function with values in dB
         :return:
@@ -383,6 +394,12 @@ class Amplifier(Node):
             self.balancing_flag_1 = True
 
     def set_osnr(self, signal):
+        """
+        Compute OSNR for debugging purposes.
+        Must be relayed to a monitoring procedure/object
+        :param signal:
+        :return:
+        """
         osnr_linear = self.output_power[signal] / self.ase_noise[signal]
         osnr = abs_to_db(osnr_linear)
         self.osnr[signal] = osnr
