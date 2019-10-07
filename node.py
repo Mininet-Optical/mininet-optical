@@ -75,6 +75,8 @@ class OpticalLineSystem(Node):
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per OLS
 
+        self.traffic = []  # list of traffic objects at nodes
+
     def add_transceiver(self, transceiver_name, spectrum_band):
         """
         Add a new transceiver to the OLT
@@ -115,14 +117,14 @@ class OpticalLineSystem(Node):
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_signals[transceiver_name]
 
-    def add_channel(self, transceiver, out_port, first_link, channels):
+    def add_channel(self, traffic, transceiver, out_port, channels):
         """
         Add a reference to an optical signal from a transceiver
         Compute output power levels at port where channel is added
         Propagate transmission through the link passing the info of the node
+        :param traffic
         :param transceiver:
         :param out_port:
-        :param first_link:
         :param channels:
         :return:
         """
@@ -135,8 +137,9 @@ class OpticalLineSystem(Node):
             self.wavelengths[channel] = 'on'
             self.transceiver_to_signals[transceiver].append(new_signal)
         self.compute_output_power_levels(out_port)
-        self.check_output_ports = True
-        first_link.incoming_transmission(self)
+        self.check_output_ports = True  # maybe to be removed
+        self.traffic.append(traffic)
+        traffic.next_link_in_route(self)
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
@@ -157,7 +160,7 @@ class OpticalLineSystem(Node):
         return [key for key, value in self.wavelengths.items() if 'off' in value]
 
     def compute_output_power_levels(self, out_port):
-        # Check all transceiver
+        # Check all transceiver - Maybe this is not correct...
         for transceiver in self.transceivers:
             if len(self.transceiver_to_signals[transceiver]) > 0:
                 for channel in self.transceiver_to_signals[transceiver]:
@@ -237,6 +240,14 @@ class Roadm(Node):
         Node.__init__(self, name)
         self.node_id = id(self)
         self.attenuation = attenuation
+
+        self.traffic = []
+
+    def add_channel(self, traffic, in_port, out_port):
+        self.traffic.append(traffic)
+        for signal, in_power in self.port_to_signal_power_in[in_port].items():
+            self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+        traffic.next_link_in_route(self)
 
 
 description_files_dir = 'description-files/'

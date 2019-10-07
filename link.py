@@ -60,6 +60,8 @@ class Link(object):
 
         self.spans = []
 
+        self.traffic = []
+
     def add_span(self, span, amplifier):
         """
         :param span: Span() object
@@ -79,11 +81,14 @@ class Link(object):
     def describe(self):
         pprint(vars(self))
 
-    def incoming_transmission(self, node):
+    def incoming_transmission(self, traffic, node):
         """
+
+        :param traffic
         :param node:
         :return:
         """
+        self.traffic.append(traffic)
         # Set output signals from node to input of the link
         self.signal_power_in.update(node.port_to_signal_power_out[self.output_port_node1])
         signal_power_progress = self.signal_power_in.copy()  # keep track of the signal power in link
@@ -163,6 +168,7 @@ class Link(object):
                     amplifier.set_osnr(signal)  # not necessary but left for debugging purposes
             prev_amp = amplifier
         # Relay to next node in transmission
+        traffic.next_node_in_route(self)
 
     @staticmethod
     def zirngibl_srs(signals, active_channels, span):

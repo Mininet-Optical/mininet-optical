@@ -256,10 +256,43 @@ class Traffic(object):
         self.transceiver = transceiver
         self.wavelengths = wavelengths
 
+        self.next_link = None
+        self.next_node = None
+
     def start(self):
-        first_link = self.route[0][1]
-        out_port = first_link.output_port_node1
-        self.src_node.add_channel(self.transceiver, out_port, first_link, self.wavelengths)
+        self.next_link = self.route[0][1]
+        self.next_node = self.route[1][0]
+        out_port = self.next_link.output_port_node1
+        self.src_node.add_channel(self, self.transceiver, out_port, self.wavelengths)
+
+    def next_link_in_route(self, node):
+        self.next_link.incoming_transmission(self, node)
+
+    def next_node_in_route(self, link):
+        if self.next_node is self.dst_node:
+            print("Traffic.next_node_in_route: Reached destination point without bugs!")
+            return
+        next_node = self.next_node
+        next_node_in_port = link.input_port_node2
+        next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
+
+        # Find next two objects in route
+        # Retrieving next node here too is a bit confusing.. Revisit and change!
+        self.next_link, self.next_node = self.find_next_in_route()
+        next_node_out_port = self.next_link.output_port_node1
+        next_node.add_channel(self, next_node_in_port, next_node_out_port)
+
+    def find_next_in_route(self):
+        flag = False
+        next_link = None
+        next_node = None
+        for item in self.route:
+            if flag:
+                next_node = item[0]
+            if item[0] is self.next_node:
+                next_link = item[1]
+                flag = True
+        return next_link, next_node
 
     def describe(self):
         pprint(vars(self))
