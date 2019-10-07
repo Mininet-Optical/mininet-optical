@@ -33,7 +33,7 @@ class Network(object):
 
         self.name_to_node = {}
 
-        self.traffic = []
+        self.traffic = []  # list of Traffic objects on the network
 
     def add_ols(self, name, **params):
         """
@@ -258,7 +258,7 @@ class Traffic(object):
 
     def start(self):
         first_link = self.route[0][1]
-        out_port = first_link.output_port1
+        out_port = first_link.output_port_node1
         self.src_node.add_channel(self.transceiver, out_port, first_link, self.wavelengths)
 
     def describe(self):

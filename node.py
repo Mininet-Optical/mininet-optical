@@ -1,6 +1,7 @@
 import units as unit
 from pprint import pprint
 import numpy as np
+import scipy.constants as sc
 
 
 def db_to_abs(db_value):
@@ -66,7 +67,7 @@ class OpticalLineSystem(Node):
 
     def __init__(self, name):
         Node.__init__(self, name)
-        self.wss_attenuation = db_to_abs(6)
+        self.wss_attenuation = db_to_abs(6)  # Might want to enable this for dynamic allocation
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
@@ -117,6 +118,8 @@ class OpticalLineSystem(Node):
     def add_channel(self, transceiver, out_port, first_link, channels):
         """
         Add a reference to an optical signal from a transceiver
+        Compute output power levels at port where channel is added
+        Propagate transmission through the link passing the info of the node
         :param transceiver:
         :param out_port:
         :param first_link:
@@ -125,8 +128,10 @@ class OpticalLineSystem(Node):
         """
         spectrum_band = transceiver.spectrum_band
         channel_spacing = transceiver.channel_spacing
+        symbol_rate = transceiver.symbol_rate
+        bits_per_symbol = transceiver.bits_per_symbol
         for channel in channels:
-            new_signal = OpticalSignal(channel, spectrum_band, channel_spacing)
+            new_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
             self.wavelengths[channel] = 'on'
             self.transceiver_to_signals[transceiver].append(new_signal)
         self.compute_output_power_levels(out_port)
@@ -194,12 +199,15 @@ class OpticalSignal(object):
 
     spectrum_band_init_nm = {'C': 1529.2}
 
-    def __init__(self, index, spectrum_band, channel_spacing, data=None):
+    def __init__(self, index, spectrum_band, channel_spacing,
+                 symbol_rate, bits_per_symbol, data=None):
 
         self.index = index
         self.wavelength = self.spectrum_band_init_nm[spectrum_band] * unit.nm + index * channel_spacing
         self.frequency = unit.c / self.wavelength
         self.data = data
+        self.symbol_rate = symbol_rate
+        self.bits_per_symbol = bits_per_symbol
 
         self.power_at_input_interface = {}
         self.power_at_output_interface = {}
@@ -237,7 +245,8 @@ description_files = {'wdg1': 'wdg1.txt', 'wdg2': 'wdg2.txt'}
 
 class Amplifier(Node):
 
-    def __init__(self, name, amplifier_type='EDFA', target_gain=18.0, noise_figure=(6.0, 90), noise_figure_function=None,
+    def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
+                 noise_figure=(6.0, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id='wdg1'):
         """
         :param target_gain: units: dB - float
@@ -247,15 +256,26 @@ class Amplifier(Node):
         :param wavelength_dependent_gain_id: file name id (see top of script) units: dB - string
         """
         Node.__init__(self, name)
-        self.amplifier_id = id(self)
+        self.id = id(self)
+        self.type = amplifier_type
         self.target_gain = target_gain
         self.system_gain = target_gain
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
-        self.input_power = {}  # dict of port to input power levels
-        self.output_power = {}  # dict of port to output power levels
+        self.input_power = {}  # dict of signal to input power levels
+        self.output_power = {}  # dict of signal to output power levels
+        self.ase_noise = {}
         self.bandwidth = bandwidth
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
+
+        self.balancing_flag_1 = False
+        self.balancing_flag_2 = False
+
+        self.osnr = {}  # dict signal to osnr
+
+    def balancing_flags_off(self):
+        self.balancing_flag_1 = False
+        self.balancing_flag_2 = False
 
     @staticmethod
     def load_wavelength_dependent_gain(wavelength_dependent_gain_id):
@@ -266,6 +286,15 @@ class Amplifier(Node):
         wdg_file = description_files[wavelength_dependent_gain_id]
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]
+
+    def get_wavelength_dependent_gain(self, signal_index):
+        return self.wavelength_dependent_gain[signal_index - 1]
+
+    def active_wavelength_dependent_gain(self):
+        list_wdg = []
+        for signal, _power in self.output_power.items():
+            list_wdg.append(self.get_wavelength_dependent_gain(signal.index))
+        return list_wdg
 
     @staticmethod
     def get_noise_figure(noise_figure, noise_figure_function):
@@ -283,3 +312,66 @@ class Amplifier(Node):
             return noise_figure_function
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
+
+    def output_amplified_power(self, signal, in_power):
+        """
+        Compute the output power levels of each signal after amplification
+        :param signal: signal object
+        :param in_power: input signal power linear (mW)
+        """
+        system_gain = self.system_gain
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
+
+        # Conversion from dB to linear
+        system_gain_linear = db_to_abs(system_gain)
+        wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
+        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
+        self.output_power[signal] = output_power
+        return output_power
+
+    def stage_amplified_spontaneous_emission_noise(self, signal, in_power):
+        """
+        :return:
+        Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
+        """
+        if signal not in self.ase_noise:
+            # set initial noise 50 dB below signal power
+            init_noise = in_power / db_to_abs(40)
+            self.ase_noise[signal] = init_noise
+
+        # Set parameters needed for ASE model
+        noise_figure = self.noise_figure[signal.index]
+        system_gain = self.system_gain - 1
+
+        # Conversion from dB to linear
+        system_gain_linear = db_to_abs(system_gain)
+
+        ase_noise = (self.ase_noise[signal] * system_gain) +\
+                    (noise_figure * sc.h * system_gain_linear * signal.frequency * self.bandwidth * 1000)
+
+        self.ase_noise[signal] = ase_noise
+
+    def balance_system_gain(self):
+        """
+        Balance system gain with respect with the mean
+        gain of the signals in the amplifier
+        :return:
+        """
+        # Convert power levels from linear to dBm
+        output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
+        input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
+        # Mean difference between output and input power levels
+        out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
+        # Compute the balanced system gain
+        system_gain_balance = self.system_gain + (self.target_gain - out_in_difference)
+        self.system_gain = system_gain_balance
+        # Flag check for enabling the repeated computation of balancing
+        if self.balancing_flag_1 and (not self.balancing_flag_2):
+            self.balancing_flag_2 = True
+        if not(self.balancing_flag_1 and self.balancing_flag_2):
+            self.balancing_flag_1 = True
+
+    def set_osnr(self, signal):
+        osnr_linear = self.output_power[signal] / self.ase_noise[signal]
+        osnr = abs_to_db(osnr_linear)
+        self.osnr[signal] = osnr
