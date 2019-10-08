@@ -89,14 +89,17 @@ class Link(object):
         :param node: node where signals are coming from
         :return: traffic.next_node_in_route()
         """
+        # Save traffic instance to list for easy access
         self.traffic.append(traffic)
         # Set output signals from node to input of the link
-        self.signal_power_in.update(node.port_to_signal_power_out[self.output_port_node1])
-        signal_power_progress = self.signal_power_in.copy()  # keep track of the signal power in link
-        # If there is an amplifier compensating for the node,
-        # compute the physical effects
+        for signal, power in node.port_to_signal_power_out[self.output_port_node1].items():
+            self.signal_power_in[signal] = power
+        # keep track of the signal power in link
+        signal_power_progress = self.signal_power_in.copy()
+        # If there is an amplifier compensating for the node
+        # attenuation, compute the physical effects
         if self.preamp:
-            # Enabling balancing check
+            # Enabling amplifier system gain balancing check
             while not(self.preamp.balancing_flag_1 and self.preamp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
                     self.preamp.input_power[signal] = in_power

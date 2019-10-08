@@ -77,6 +77,8 @@ class OpticalLineSystem(Node):
 
         self.traffic = []  # list of traffic objects at nodes
 
+        self.tmp_e2e = 0
+
     def add_transceiver(self, transceiver_name, spectrum_band):
         """
         Add a new transceiver to the OLT
@@ -117,7 +119,13 @@ class OpticalLineSystem(Node):
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_signals[transceiver_name]
 
-    def add_channel(self, traffic, transceiver, out_port, channels):
+    def add_channel_receiver(self, traffic, in_port, link):
+        self.port_to_signal_power_in[in_port].update(link.signal_power_out)
+        for channel, _power in self.port_to_signal_power_in[in_port].items():
+            self.wavelengths[channel.index] = traffic
+        self.tmp_e2e += 1
+
+    def add_channel_transmitter(self, traffic, transceiver, out_port, channels):
         """
         Add a reference to an optical signal from a transceiver
         Compute output power levels at port where channel is added
@@ -128,17 +136,28 @@ class OpticalLineSystem(Node):
         :param channels:
         :return:
         """
+        # Save traffic instance to list for easy access
+        self.traffic.append(traffic)
+        # Retrieve transmission specifications to pass
+        # to the signals to be installed
         spectrum_band = transceiver.spectrum_band
         channel_spacing = transceiver.channel_spacing
         symbol_rate = transceiver.symbol_rate
         bits_per_symbol = transceiver.bits_per_symbol
+        # list containing the new signals
+        signals = []
         for channel in channels:
             new_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
-            self.wavelengths[channel] = 'on'
+            signals.append(new_signal)
+            # Turn on wavelengths for this traffic instance
+            self.wavelengths[channel] = traffic
+            # Associate signals to a transceiver/modulator
             self.transceiver_to_signals[transceiver].append(new_signal)
+        # Compute output power levels at output port
         self.compute_output_power_levels(out_port)
-        self.check_output_ports = True  # maybe to be removed
-        self.traffic.append(traffic)
+        # associate the signal objects to the traffic
+        traffic.signals = signals
+        # Pass transmission to traffic handler
         traffic.next_link_in_route(self)
 
     def delete_channel(self, transceiver_name, optical_signal):
@@ -157,7 +176,7 @@ class OpticalLineSystem(Node):
         Check for wavelengths 'off'
         :return: wavelength indexes where 'off'
         """
-        return [key for key, value in self.wavelengths.items() if 'off' in value]
+        return [key for key, value in self.wavelengths.items() if value is 'off']
 
     def compute_output_power_levels(self, out_port):
         # Check all transceiver - Maybe this is not correct...
@@ -242,11 +261,20 @@ class Roadm(Node):
         self.attenuation = attenuation
 
         self.traffic = []
+        self.traffic_to_out_port = {}
 
-    def add_channel(self, traffic, in_port, out_port):
+    def add_channel_roadm(self, traffic, in_port, out_port):
+        print(self.name)
         self.traffic.append(traffic)
+        self.traffic_to_out_port[traffic] = out_port
         for signal, in_power in self.port_to_signal_power_in[in_port].items():
-            self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+            if signal in traffic.signals:
+                self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+        if len(self.traffic) > 1:
+            for t in self.traffic:
+                # Don't add if traffic follows same port
+                if (t not in traffic.altered_traffic) and (self.traffic_to_out_port[t] != out_port):
+                    traffic.altered_traffic[t] = self
         traffic.next_link_in_route(self)
 
 

@@ -169,6 +169,11 @@ class Network(object):
                                       route, transceiver, wavelengths)
         self.traffic.append(new_traffic_request)
         new_traffic_request.start()
+        for t, n in new_traffic_request.altered_traffic.items():
+            if t is not new_traffic_request:
+                t.revisiting = True
+                t.next_link_in_route(n)
+                print()
 
     def routing(self, src_node, dst_node):
         """
@@ -246,7 +251,7 @@ class Network(object):
 
 class Traffic(object):
     def __init__(self, src_node, dst_node, bit_rate,
-                 route, transceiver, wavelengths):
+                 route, transceiver, wavelength_indexes):
         self.id = id(self)
         self.timestamp = time.time()
         self.src_node = src_node
@@ -254,49 +259,79 @@ class Traffic(object):
         self.bit_rate = bit_rate
         self.route = route
         self.transceiver = transceiver
-        self.wavelengths = wavelengths
+        self.wavelength_indexes = wavelength_indexes
+        self.signals = None
 
         self.next_link = None
         self.next_node = None
 
+        self.altered_traffic = {self: None}
+        self.revisiting = False
+
     def start(self):
+        """
+        Begin transmission simulation from initial
+        node in the given route
+        :return:
+        """
         self.next_link = self.route[0][1]
         self.next_node = self.route[1][0]
         out_port = self.next_link.output_port_node1
-        self.src_node.add_channel(self, self.transceiver, out_port, self.wavelengths)
+        self.src_node.add_channel_transmitter(self, self.transceiver, out_port, self.wavelength_indexes)
 
     def next_link_in_route(self, node):
+        """
+        Continue propagating simulation in the next
+        link of the given route
+        :param node: node1 in link
+        :return:
+        """
+        if self.revisiting:
+            # Go back to save node where incoming
+            # signals have been updated/modified
+            self.next_node = node
+            self.next_link, self.next_node = self.find_next_in_route()
         self.next_link.incoming_transmission(self, node)
 
     def next_node_in_route(self, link):
+        """
+        Contnue propagating simulation in the next
+        node of the given route
+        :param link: link from node1 to current 'next' node
+        :return:
+        """
+        # Get attributes of current 'next' node
         next_node = self.next_node
         next_node_in_port = link.input_port_node2
 
         if next_node is self.dst_node:
-            next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
-            next_node.describe()
-            print("Traffic.next_node_in_route: Reached destination point without bugs!")
+            next_node.add_channel_receiver(self, next_node_in_port, link)
+            # print for debugging purposes
+            print("At RX node %s, tmp_e2e: %i\nRevisit: %s" % (next_node.name, next_node.tmp_e2e, self.revisiting))
             return
 
+        # update node traffic with incoming traffic from link
         next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
 
         # Find next two objects in route
-        # Retrieving next node here too is a bit confusing.. Revisit and change!
         self.next_link, self.next_node = self.find_next_in_route()
         next_node_out_port = self.next_link.output_port_node1
-        next_node.add_channel(self, next_node_in_port, next_node_out_port)
+        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port)
 
     def find_next_in_route(self):
+        """
+        Find next link and node in the route
+        :return: next_link, next_node
+        """
         flag = False
         next_link = None
-        next_node = None
         for item in self.route:
             if flag:
                 next_node = item[0]
+                return next_link, next_node
             if item[0] is self.next_node:
                 next_link = item[1]
                 flag = True
-        return next_link, next_node
 
     def describe(self):
         pprint(vars(self))
