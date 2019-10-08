@@ -173,7 +173,6 @@ class Network(object):
             if t is not new_traffic_request:
                 t.revisiting = True
                 t.next_link_in_route(n)
-                print()
 
     def routing(self, src_node, dst_node):
         """
@@ -307,7 +306,7 @@ class Traffic(object):
         if next_node is self.dst_node:
             next_node.add_channel_receiver(self, next_node_in_port, link)
             # print for debugging purposes
-            print("At RX node %s, tmp_e2e: %i\nRevisit: %s" % (next_node.name, next_node.tmp_e2e, self.revisiting))
+            print("At RX node %s, tmp_e2e: %i\nRevisit: %s\n***" % (next_node.name, next_node.tmp_e2e, self.revisiting))
             return
 
         # update node traffic with incoming traffic from link

@@ -77,7 +77,7 @@ class OpticalLineSystem(Node):
 
         self.traffic = []  # list of traffic objects at nodes
 
-        self.tmp_e2e = 0
+        self.tmp_e2e = 0  # number of invocation of a Node
 
     def add_transceiver(self, transceiver_name, spectrum_band):
         """
