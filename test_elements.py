@@ -1,6 +1,10 @@
 import network
 import time
+from pprint import pprint
 
+"""
+    TOPOLOGY CREATION
+"""
 # Create an optical-network object
 net = network.Network()
 
@@ -65,13 +69,19 @@ edfa3 = net.add_amplifier('edfa3', 'EDFA')
 # Add the fiber span and compensation EDFA to link_roadm1_ols2
 net.add_span_to_link(link_roadm1_ols3, span3, edfa3)
 
+pprint(net.topology)
 
-for i in range(3):
-    if i == 0:
-        net.transmit(ols1, ols2)
-        time.sleep(1)
-    elif i == 1:
-        net.transmit(ols1, ols3)
-        time.sleep(1)
-    else:
-        net.transmit(ols1, ols2)
+"""
+    END TOPOLOGY CREATION
+"""
+tmp = False
+if tmp:
+    for i in range(3):
+        if i == 0:
+            net.transmit(ols1, ols2)
+            time.sleep(1)
+        elif i == 1:
+            net.transmit(ols1, ols3)
+            time.sleep(1)
+        else:
+            net.transmit(ols1, ols2)

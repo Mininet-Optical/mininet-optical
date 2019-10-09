@@ -150,6 +150,8 @@ class Network(object):
 
     def transmit(self, src_node, dst_node, bit_rate=100*1e9, route=None, resources=None):
         """
+        Oct. 9th
+        NEED TO CHANGE THIS IMPLEMENTATION TO COMPLY WITH THE CONTROL SYSTEM BEHAVIOUR
         Create and start a Traffic object
         :param src_node: OLS transmitter node
         :param dst_node: OLS receiver node
@@ -169,6 +171,7 @@ class Network(object):
                                       route, transceiver, wavelengths)
         self.traffic.append(new_traffic_request)
         new_traffic_request.start()
+        # The following might have to be a function on its own
         for t, n in new_traffic_request.altered_traffic.items():
             if t is not new_traffic_request:
                 t.revisiting = True
@@ -264,6 +267,9 @@ class Traffic(object):
         self.next_link = None
         self.next_node = None
 
+        self.next_link_update = None
+        self.next_node_update = None
+
         self.altered_traffic = {self: None}
         self.revisiting = False
 
@@ -292,9 +298,25 @@ class Traffic(object):
             self.next_link, self.next_node = self.find_next_in_route()
         self.next_link.incoming_transmission(self, node)
 
+    def next_link_in_route_rule_update(self, node, rule_id):
+        # Find the next link and node on the route for
+        # this given updated traffic
+        self.next_node_update = node
+        self.next_link_update, self.next_node_update = self.find_next_in_route()
+        self.next_link_update.link_updated_rule(self, rule_id)
+
+    def next_node_in_route_update(self, link, rule_id):
+        # Get attributes of current 'next' node
+        next_node = self.next_node
+        next_node_in_port = link.input_port_node2
+        if next_node is self.dst_node:
+            next_node.update_channel_receiver(self, next_node_in_port, link)
+            return
+        next_node.update_channel_roadm(self, rule_id)
+
     def next_node_in_route(self, link):
         """
-        Contnue propagating simulation in the next
+        Continue propagating simulation in the next
         node of the given route
         :param link: link from node1 to current 'next' node
         :return:

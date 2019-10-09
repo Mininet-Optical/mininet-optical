@@ -81,6 +81,12 @@ class Link(object):
     def describe(self):
         pprint(vars(self))
 
+    def link_updated_rule(self, traffic, rule_id):
+        for signal in traffic.signals:
+            del self.signal_power_in[signal]
+            del self.signal_power_out[signal]
+        traffic.next_node_in_route_update(self, rule_id)
+
     def incoming_transmission(self, traffic, node):
         """
         Propagate incoming signals (from a node)

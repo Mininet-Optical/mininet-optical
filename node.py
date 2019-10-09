@@ -25,17 +25,18 @@ def abs_to_db(absolute_value):
 class Node(object):
 
     input_port_base = 0
-    output_port_base = 100  # higher value to ease debugging
+    output_port_base = 100  # higher value to ease debugging, might need to rethink its scalability
 
     def __init__(self, name):
         self.name = name
+        self.ports_in = []
+        self.ports_out = []
         self.port_to_node_in = {}  # dict of port no. to ingress connecting nodes
         self.port_to_node_out = {}  # dict of port no. to egress connecting nodes
-        self.port_to_signal_power_in = {}  # dict of ports to signals and power levels
-        self.port_to_signal_power_out = {}  # dict of ports to signals and power levels
-
-        self.check_output_ports = False
-        self.check_input_ports = False
+        self.port_to_signal_in = {}  # dict of ports to input signals
+        self.port_to_signal_out = {}  # dict of ports to output signals
+        self.port_to_signal_power_in = {}  # dict of ports to input signals and power levels
+        self.port_to_signal_power_out = {}  # dict of ports to output signals and power levels
 
     def new_connection_ports(self, connected_node):
         """
@@ -47,14 +48,26 @@ class Node(object):
             new_input_port = max(self.port_to_node_in.keys()) + 1
         else:
             new_input_port = self.input_port_base
+        # Enable discovery of input ports
+        self.ports_in.append(new_input_port)
+        # Enable discovery of connected node through input port
         self.port_to_node_in[new_input_port] = connected_node
+        # Enable monitoring of signals at input port
+        self.port_to_signal_in[new_input_port] = []
+        # Enable monitoring of signal power levels at input port
         self.port_to_signal_power_in[new_input_port] = {}
 
         if len(self.port_to_node_out) > 0:
             new_output_port = max(self.port_to_node_out.keys()) + 1
         else:
             new_output_port = self.output_port_base
+        # Enable discovery of output ports
+        self.ports_out.append(new_output_port)
+        # Enable discovery of connected node through output port
         self.port_to_node_out[new_output_port] = connected_node
+        # Enable monitoring of signals at output port
+        self.port_to_signal_out[new_output_port] = []
+        # Enable monitoring of signal power levels at output port
         self.port_to_signal_power_out[new_output_port] = {}
 
         return new_input_port, new_output_port
@@ -124,6 +137,11 @@ class OpticalLineSystem(Node):
         for channel, _power in self.port_to_signal_power_in[in_port].items():
             self.wavelengths[channel.index] = traffic
         self.tmp_e2e += 1
+
+    def update_channel_receiver(self, traffic, in_port):
+        for signal in traffic.signals:
+            self.wavelengths[signal.index] = 'off'
+            del self.port_to_signal_in[in_port][signal]
 
     def add_channel_transmitter(self, traffic, transceiver, out_port, channels):
         """
@@ -246,7 +264,6 @@ class Roadm(Node):
     only common ports. That is, not including the internal connections between reconfiguration
     components (i.e., WSSs).
     """
-    port_base = 1
 
     def __init__(self, name, attenuation=18):
         """
@@ -263,19 +280,127 @@ class Roadm(Node):
         self.traffic = []
         self.traffic_to_out_port = {}
 
+        self.switch_table = {}
+
+    def install_switch_rule(self, rule_id, in_port, out_port, signals):
+        """
+        Switching rule installation, accessible from a Control System
+        :param rule_id: ID of rule (similar to VLAN id)
+        :param in_port: input port for incoming signals
+        :param out_port: switching/output port for incoming signals
+        :param signals: signals involved in switching procedure
+        :return:
+        """
+        self.switch_table[rule_id] = {'in_port': in_port,
+                                      'out_port': out_port,
+                                      'signals': signals}
+        for signal in signals:
+            self.port_to_signal_in[in_port].append(signal)
+            self.port_to_signal_out[out_port].append(signal)
+
+    def update_switch_rule(self, rule_id, in_port, out_port, signals):
+        # Get traffic associated to the rule and its out_port/signals
+        traffic_of_rule = self.get_traffic_from_rule(rule_id, signals)
+        # Ask the Traffic wrapper to update the signals in the "now-previous"
+        # traffic route and propagate
+        traffic_of_rule.next_link_in_route_rule_update(self)
+
+        # Change the rule in the current ROADM
+        self.switch_table[rule_id] = {'in_port': in_port,
+                                      'out_port': out_port,
+                                      'signals': signals}
+        # NEED TO CHANGE THE PREVIOUS STRUCTURES FOR THE SIGNALS
+        # THAT ARE CHANGING DIRECTION
+        for signal in signals:
+            self.port_to_signal_in[in_port].append(signal)
+            self.port_to_signal_out[out_port].append(signal)
+        # TRIGGER RE-COMPUTATIONS NEEDED,
+        # MIGHT BE WORTH MERGING WITH FUNCTION ABOVE
+        # the following actions will be dependent on the NEW ROUTE
+        # which probably has to be passed to this function and or to
+        # the traffic object/wrapper.
+
+    def get_traffic_from_rule(self, rule_id, signals):
+        """
+        Given a rule, find the associated traffic to the
+        output port and the signals
+        :param rule_id: ID of the rule
+        :param signals: signals attributed to both traffic and rule
+        :return: traffic object
+        """
+        # Get the output for the given rule
+        out_port = self.switch_table[rule_id]['out_port']
+        for t, port in self.traffic_to_out_port.items():
+            if port is out_port and t.signals is signals:
+                return t
+        return None
+
+    def delete_switch_rule(self, rule_id):
+        """
+        Switching rule deletion from Control System
+        :param rule_id: ID of rule
+        :return:
+        """
+        in_port = self.switch_table[rule_id]['in_port']
+        out_port = self.switch_table[rule_id]['out_port']
+        signals = self.switch_table[rule_id]['signals']
+
+        for signal in signals:
+            list(filter(signal.__ne__,self.port_to_signal_in[in_port]))
+            list(filter(signal.__ne__,self.port_to_signal_out[out_port]))
+
+            del self.port_to_signal_power_in[in_port][signal]
+            del self.port_to_signal_power_out[out_port][signal]
+
+        del self.switch_table[rule_id]
+
     def add_channel_roadm(self, traffic, in_port, out_port):
-        print(self.name)
+        """
+        Simulation of physical effects of signals traversing
+        a ROADM node with two WSSs (attenuation) values
+        :param traffic:
+        :param in_port:
+        :param out_port:
+        :return:
+        """
         self.traffic.append(traffic)
+        # Create a relation between the current traffic
+        # and the output port that it will follow
         self.traffic_to_out_port[traffic] = out_port
         for signal, in_power in self.port_to_signal_power_in[in_port].items():
             if signal in traffic.signals:
+                # Inflict the ROADM (2xWSS) attenuation to the signals
                 self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
         if len(self.traffic) > 1:
+            # Keep track of the other traffic instances that
+            # will get altered because of this new addition
             for t in self.traffic:
-                # Don't add if traffic follows same port
+                # Don't add if traffic follows same port, because
+                # the computation of the phy-effects is automated
                 if (t not in traffic.altered_traffic) and (self.traffic_to_out_port[t] != out_port):
+                    # update the altered_traffic attribute in
+                    # the Traffic object
                     traffic.altered_traffic[t] = self
+        # Relay next action to the traffic object
         traffic.next_link_in_route(self)
+
+    def update_channel_roadm(self, traffic, rule_id):
+        """
+        Simulation
+        A switching rule changed in a previous ROADM,
+        hence, we need to remove the instances of the previous
+        traffic still allocated at this node.
+        :return:
+        """
+        in_port = self.switch_table[rule_id]['in_port']
+        out_port = self.switch_table[rule_id]['out_port']
+        signals = self.switch_table[rule_id]['signals']
+
+        for signal in signals:
+            list(filter(signal, self.port_to_signal_in[in_port]))
+            list(filter(signal, self.port_to_signal_out[out_port]))
+
+        traffic.next_link_in_route_rule_update(self, rule_id)
 
 
 description_files_dir = 'description-files/'
