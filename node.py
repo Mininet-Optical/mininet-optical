@@ -38,11 +38,33 @@ class Node(object):
         self.port_to_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_signal_power_out = {}  # dict of ports to output signals and power levels
 
-    def new_connection_ports(self, connected_node):
+    def new_output_port(self, connected_node):
         """
-        Create new connection ports between the object node and another one
-        :param connected_node: node to establish connection with
-        :return: created input and output ports
+        Create a new output port for a node
+        to connect to another node
+        :param connected_node:
+        :return: new output port
+        """
+        if len(self.port_to_node_out) > 0:
+            new_output_port = max(self.port_to_node_out.keys()) + 1
+        else:
+            new_output_port = self.output_port_base
+            # Enable discovery of output ports
+        self.ports_out.append(new_output_port)
+        # Enable discovery of connected node through output port
+        self.port_to_node_out[new_output_port] = connected_node
+        # Enable monitoring of signals at output port
+        self.port_to_signal_out[new_output_port] = []
+        # Enable monitoring of signal power levels at output port
+        self.port_to_signal_power_out[new_output_port] = {}
+        return new_output_port
+
+    def new_input_port(self, connected_node):
+        """
+        Create a new input port for a node
+        to connect to another node
+        :param connected_node:
+        :return: new input port
         """
         if len(self.port_to_node_in) > 0:
             new_input_port = max(self.port_to_node_in.keys()) + 1
@@ -56,21 +78,7 @@ class Node(object):
         self.port_to_signal_in[new_input_port] = []
         # Enable monitoring of signal power levels at input port
         self.port_to_signal_power_in[new_input_port] = {}
-
-        if len(self.port_to_node_out) > 0:
-            new_output_port = max(self.port_to_node_out.keys()) + 1
-        else:
-            new_output_port = self.output_port_base
-        # Enable discovery of output ports
-        self.ports_out.append(new_output_port)
-        # Enable discovery of connected node through output port
-        self.port_to_node_out[new_output_port] = connected_node
-        # Enable monitoring of signals at output port
-        self.port_to_signal_out[new_output_port] = []
-        # Enable monitoring of signal power levels at output port
-        self.port_to_signal_power_out[new_output_port] = {}
-
-        return new_input_port, new_output_port
+        return new_input_port
 
     def describe(self):
         pprint(vars(self))
@@ -136,12 +144,14 @@ class OpticalLineSystem(Node):
         self.port_to_signal_power_in[in_port].update(link.signal_power_out)
         for channel, _power in self.port_to_signal_power_in[in_port].items():
             self.wavelengths[channel.index] = traffic
+            self.port_to_signal_in[in_port].append(channel)
         self.tmp_e2e += 1
 
     def update_channel_receiver(self, traffic, in_port):
         for signal in traffic.signals:
             self.wavelengths[signal.index] = 'off'
-            del self.port_to_signal_in[in_port][signal]
+            self.port_to_signal_in[in_port].remove(signal)
+            del self.port_to_signal_power_in[in_port][signal]
 
     def add_channel_transmitter(self, traffic, transceiver, out_port, channels):
         """
@@ -298,22 +308,26 @@ class Roadm(Node):
             self.port_to_signal_in[in_port].append(signal)
             self.port_to_signal_out[out_port].append(signal)
 
-    def update_switch_rule(self, rule_id, in_port, out_port, signals):
-        # Get traffic associated to the rule and its out_port/signals
-        traffic_of_rule = self.get_traffic_from_rule(rule_id, signals)
+    def update_switch_rule(self, prev_rule_id, new_rule_id, in_port, out_port, signals, traffic_of_rule):
+        prev_out_port = self.switch_table[prev_rule_id]['out_port']
+
         # Ask the Traffic wrapper to update the signals in the "now-previous"
         # traffic route and propagate
-        traffic_of_rule.next_link_in_route_rule_update(self)
+        traffic_of_rule.next_link_in_route_rule_update(self, prev_rule_id)
 
         # Change the rule in the current ROADM
-        self.switch_table[rule_id] = {'in_port': in_port,
-                                      'out_port': out_port,
-                                      'signals': signals}
+        self.switch_table[new_rule_id] = {'in_port': in_port,
+                                          'out_port': out_port,
+                                          'signals': signals}
         # NEED TO CHANGE THE PREVIOUS STRUCTURES FOR THE SIGNALS
         # THAT ARE CHANGING DIRECTION
-        for signal in signals:
-            self.port_to_signal_in[in_port].append(signal)
+        for signal in traffic_of_rule.signals:
+            self.port_to_signal_out[prev_out_port].remove(signal.index)
+            del self.port_to_signal_power_out[prev_out_port][signal]
             self.port_to_signal_out[out_port].append(signal)
+        del self.switch_table[prev_rule_id]
+        del self.traffic_to_out_port[traffic_of_rule]
+        self.traffic.remove(traffic_of_rule)
         # TRIGGER RE-COMPUTATIONS NEEDED,
         # MIGHT BE WORTH MERGING WITH FUNCTION ABOVE
         # the following actions will be dependent on the NEW ROUTE
@@ -363,26 +377,49 @@ class Roadm(Node):
         :param out_port:
         :return:
         """
-        self.traffic.append(traffic)
-        # Create a relation between the current traffic
-        # and the output port that it will follow
-        self.traffic_to_out_port[traffic] = out_port
-        for signal, in_power in self.port_to_signal_power_in[in_port].items():
-            if signal in traffic.signals:
-                # Inflict the ROADM (2xWSS) attenuation to the signals
-                self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
-        if len(self.traffic) > 1:
-            # Keep track of the other traffic instances that
-            # will get altered because of this new addition
-            for t in self.traffic:
-                # Don't add if traffic follows same port, because
-                # the computation of the phy-effects is automated
-                if (t not in traffic.altered_traffic) and (self.traffic_to_out_port[t] != out_port):
-                    # update the altered_traffic attribute in
-                    # the Traffic object
-                    traffic.altered_traffic[t] = self
-        # Relay next action to the traffic object
-        traffic.next_link_in_route(self)
+        # First check if there is switching rule
+        if self.switching_rule(traffic, in_port, out_port):
+            self.traffic.append(traffic)
+            # Create a relation between the current traffic
+            # and the output port that it will follow
+            self.traffic_to_out_port[traffic] = out_port
+            for signal, in_power in self.port_to_signal_power_in[in_port].items():
+                if signal in traffic.signals:
+                    # Inflict the ROADM (2xWSS) attenuation to the signals
+                    self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+            if len(self.traffic) > 1:
+                # Keep track of the other traffic instances that
+                # will get altered because of this new addition
+                for t in self.traffic:
+                    # Don't add if traffic follows same port, because
+                    # the computation of the phy-effects is automated
+                    if (t not in traffic.altered_traffic) and (self.traffic_to_out_port[t] != out_port):
+                        # update the altered_traffic attribute in
+                        # the Traffic object
+                        traffic.altered_traffic[t] = self
+            # Relay next action to the traffic object
+            traffic.next_link_in_route(self)
+        else:
+            print("Node.Roadm.add_channel_roadm: There is no rule in %s to handle traffic." % self.name)
+            return
+
+    def switching_rule(self, traffic, in_port, out_port):
+        """
+        Check if there is a rule with the values from
+        the parameters
+        :param traffic: traffic object to check
+        :param in_port: input port in rule
+        :param out_port: output port in rule
+        :return: True|False if found
+        """
+        found = False
+        for rule, items in self.switch_table.items():
+            if (items['in_port'] is in_port)\
+                    and (items['out_port'] is out_port)\
+                    and (items['signals'] is traffic.wavelength_indexes):
+                found = True
+                return found
+        return found
 
     def update_channel_roadm(self, traffic, rule_id):
         """

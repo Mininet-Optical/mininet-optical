@@ -33,8 +33,8 @@ class Link(object):
     connectivity.
     """
 
-    def __init__(self, node1, node2, new_input_port1,
-                 new_output_port1, new_input_port2, new_output_port2,
+    def __init__(self, node1, node2,
+                 output_port_node1, input_port_node2,
                  preamp):
         """
 
@@ -47,10 +47,8 @@ class Link(object):
         self.id = id(self)
         self.node1 = node1
         self.node2 = node2
-        self.input_port_node1 = new_input_port1
-        self.output_port_node1 = new_output_port1
-        self.input_port_node2 = new_input_port2
-        self.output_port_node2 = new_output_port2
+        self.output_port_node1 = output_port_node1
+        self.input_port_node2 = input_port_node2
         self.preamp = preamp
 
         self.signal_power_in = {}  # dict of signals and power levels
@@ -82,15 +80,25 @@ class Link(object):
         pprint(vars(self))
 
     def link_updated_rule(self, traffic, rule_id):
+        """
+        Update structures and invoke propagate_simulation()
+        if there are signals affected
+        :param traffic: Traffic object associated with this transmission
+        :param rule_id: the Rule ID associated with this transmission
+        :return:
+        """
         for signal in traffic.signals:
             del self.signal_power_in[signal]
             del self.signal_power_out[signal]
+        self.traffic.remove(traffic)
+
+        if len(self.signal_power_in) > 0:
+            self.propagate_simulation()
         traffic.next_node_in_route_update(self, rule_id)
 
     def incoming_transmission(self, traffic, node):
         """
-        Propagate incoming signals (from a node)
-        across link (spans - amplifiers)
+        Update structures and invoke propagate_simulation(
         :param traffic: Traffic object associated to transmission
         :param node: node where signals are coming from
         :return: traffic.next_node_in_route()
@@ -100,13 +108,23 @@ class Link(object):
         # Set output signals from node to input of the link
         for signal, power in node.port_to_signal_power_out[self.output_port_node1].items():
             self.signal_power_in[signal] = power
+
+        self.propagate_simulation()
+        # Relay to next node in transmission
+        traffic.next_node_in_route(self)
+
+    def propagate_simulation(self):
+        """
+        Compute the propagation of signals over this link
+        :return:
+        """
         # keep track of the signal power in link
         signal_power_progress = self.signal_power_in.copy()
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.preamp:
             # Enabling amplifier system gain balancing check
-            while not(self.preamp.balancing_flag_1 and self.preamp.balancing_flag_2):
+            while not (self.preamp.balancing_flag_1 and self.preamp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
                     self.preamp.input_power[signal] = in_power
                     output_power = self.preamp.output_amplified_power(signal, in_power)
@@ -177,8 +195,6 @@ class Link(object):
                     amplifier.stage_amplified_spontaneous_emission_noise(signal, in_power)
                     amplifier.set_osnr(signal)  # not necessary but left for debugging purposes
             prev_amp = amplifier
-        # Relay to next node in transmission
-        traffic.next_node_in_route(self)
 
     @staticmethod
     def zirngibl_srs(signals, active_channels, span):
@@ -383,6 +399,7 @@ class Span(object):
         :param fibre_type: optical fiber type - string
         """
         self.span_id = id(self)
+        self.fibre_type = fibre_type
         self.length = length * unit.km
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
         self.loss_coefficient = 1 - 10 ** (self.fibre_attenuation / 10.0)

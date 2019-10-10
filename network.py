@@ -109,12 +109,13 @@ class Network(object):
         :param preamp: optional amplifier object for preamplification
         :return: created and added link
         """
-        if ports:
-            node1_output_port = ports['node1_output_port']
-            node2_input_port = ports['node2_input_port']
-        else:
+        if ports is None:
             node1_output_port = node1.new_output_port(node2)
             node2_input_port = node2.new_input_port(node1)
+        else:
+            node1_output_port = ports['node1_output_port']
+            node2_input_port = ports['node2_input_port']
+
         link = Link(node1, node2, node1_output_port, node2_input_port, preamp=preamp)
         self.links.append(link)
         self.topology[node1].append((node2, link))
@@ -173,6 +174,7 @@ class Network(object):
             if t is not new_traffic_request:
                 t.revisiting = True
                 t.next_link_in_route(n)
+        return new_traffic_request
 
     def routing(self, src_node, dst_node):
         """
@@ -299,7 +301,7 @@ class Traffic(object):
         # Find the next link and node on the route for
         # this given updated traffic
         self.next_node_update = node
-        self.next_link_update, self.next_node_update = self.find_next_in_route()
+        self.next_link_update, self.next_node_update = self.find_next_in_route_update()
         self.next_link_update.link_updated_rule(self, rule_id)
 
     def next_node_in_route_update(self, link, rule_id):
@@ -307,7 +309,7 @@ class Traffic(object):
         next_node = self.next_node
         next_node_in_port = link.input_port_node2
         if next_node is self.dst_node:
-            next_node.update_channel_receiver(self, next_node_in_port, link)
+            next_node.update_channel_receiver(self, next_node_in_port)
             return
         next_node.update_channel_roadm(self, rule_id)
 
@@ -348,6 +350,21 @@ class Traffic(object):
                 next_node = item[0]
                 return next_link, next_node
             if item[0] is self.next_node:
+                next_link = item[1]
+                flag = True
+
+    def find_next_in_route_update(self):
+        """
+        Find next link and node in the route
+        :return: next_link, next_node
+        """
+        flag = False
+        next_link = None
+        for item in self.route:
+            if flag:
+                next_node = item[0]
+                return next_link, next_node
+            if item[0] is self.next_node_update:
                 next_link = item[1]
                 flag = True
 
