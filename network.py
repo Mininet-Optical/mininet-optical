@@ -102,25 +102,22 @@ class Network(object):
 
     def add_link(self, node1, node2, ports=None, preamp=None):
         """
-        Add a link between two nodes
-        :param node1: node1 in the connection
-        :param node2: node1 in the connection
-        :param ports: optional
-        :param preamp: optional amplifier to compensate for node
-        :return: added link
+        Add a uni-directional link
+        :param node1: source node in link
+        :param node2: destination node in link
+        :param ports: optional dict of ports per node
+        :param preamp: optional amplifier object for preamplification
+        :return: created and added link
         """
-        if ports is None:
-            new_input_port1, new_output_port1 = node1.new_connection_ports(node2)  # in/out ports of node 1
-            new_input_port2, new_output_port2 = node2.new_connection_ports(node1)  # in/out ports of node 2
+        if ports:
+            node1_output_port = ports['node1_output_port']
+            node2_input_port = ports['node2_input_port']
         else:
-            new_input_port1, new_output_port1, new_input_port2, new_output_port2 = ports
-
-        link = Link(node1, node2, new_input_port1,
-                    new_output_port1, new_input_port2, new_output_port2,
-                    preamp)
+            node1_output_port = node1.new_output_port(node2)
+            node2_input_port = node2.new_input_port(node1)
+        link = Link(node1, node2, node1_output_port, node2_input_port, preamp=preamp)
         self.links.append(link)
         self.topology[node1].append((node2, link))
-        self.topology[node2].append((node1, link))
         return link
 
     def add_span(self, fiber_type, length):
