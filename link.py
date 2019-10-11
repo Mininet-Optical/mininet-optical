@@ -90,9 +90,11 @@ class Link(object):
         for signal in traffic.signals:
             del self.signal_power_in[signal]
             del self.signal_power_out[signal]
+            del self.nonlinear_interference_noise[signal]
         self.traffic.remove(traffic)
 
         if len(self.signal_power_in) > 0:
+            print("Link entering")
             self.propagate_simulation()
         traffic.next_node_in_route_update(self, rule_id)
 

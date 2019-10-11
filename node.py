@@ -188,6 +188,23 @@ class OpticalLineSystem(Node):
         # Pass transmission to traffic handler
         traffic.next_link_in_route(self)
 
+    def reset(self, traffic, transceiver, out_port, rule_id):
+        """
+        Remove the traces of this traffic in this node
+        :param traffic: traffic being removed
+        :param transceiver: tx-transceiver from traffic
+        :param out_port: output port for transmission
+        :param rule_id: rule associated with traffic
+        :return:
+        """
+        for signal in traffic.signals:
+            self.wavelengths[signal.index] = 'off'
+            self.transceiver_to_signals[transceiver].remove(signal)
+            self.port_to_signal_out[out_port].remove(signal)
+            del self.port_to_signal_power_out[out_port][signal]
+        self.traffic.remove(traffic)
+        traffic.next_link_in_route_rule_update(self, rule_id)
+
     def delete_channel(self, transceiver_name, optical_signal):
         """
         Delete signal reference attributed to a transceiver
@@ -214,6 +231,7 @@ class OpticalLineSystem(Node):
                     output_power = self.operation_power / self.wss_attenuation
                     channel.power_at_output_interface[self] = output_power
                     self.port_to_signal_power_out[out_port][channel] = output_power
+                    self.port_to_signal_out[out_port].append(channel)
 
 
 class Transceiver(object):
@@ -309,30 +327,23 @@ class Roadm(Node):
             self.port_to_signal_out[out_port].append(signal)
 
     def update_switch_rule(self, prev_rule_id, new_rule_id, in_port, out_port, signals, traffic_of_rule):
-        prev_out_port = self.switch_table[prev_rule_id]['out_port']
-
-        # Ask the Traffic wrapper to update the signals in the "now-previous"
-        # traffic route and propagate
-        traffic_of_rule.next_link_in_route_rule_update(self, prev_rule_id)
-
+        """
+        Update/create a new rule for switching
+        :param prev_rule_id: previous rule ID
+        :param new_rule_id: new rule ID
+        :param in_port: input port for new rule (same as in prev rule)
+        :param out_port: output port for new rule
+        :param signals: signals to be switched (same as in prev rule)
+        :param traffic_of_rule: traffic associated with previous rule
+        :return:
+        """
         # Change the rule in the current ROADM
         self.switch_table[new_rule_id] = {'in_port': in_port,
                                           'out_port': out_port,
                                           'signals': signals}
-        # NEED TO CHANGE THE PREVIOUS STRUCTURES FOR THE SIGNALS
-        # THAT ARE CHANGING DIRECTION
-        for signal in traffic_of_rule.signals:
-            self.port_to_signal_out[prev_out_port].remove(signal.index)
-            del self.port_to_signal_power_out[prev_out_port][signal]
-            self.port_to_signal_out[out_port].append(signal)
-        del self.switch_table[prev_rule_id]
-        del self.traffic_to_out_port[traffic_of_rule]
-        self.traffic.remove(traffic_of_rule)
-        # TRIGGER RE-COMPUTATIONS NEEDED,
-        # MIGHT BE WORTH MERGING WITH FUNCTION ABOVE
-        # the following actions will be dependent on the NEW ROUTE
-        # which probably has to be passed to this function and or to
-        # the traffic object/wrapper.
+
+        prev_out_port = self.switch_table[prev_rule_id]['out_port']
+        traffic_of_rule.reset(prev_out_port, prev_rule_id)
 
     def get_traffic_from_rule(self, rule_id, signals):
         """
@@ -433,9 +444,13 @@ class Roadm(Node):
         out_port = self.switch_table[rule_id]['out_port']
         signals = self.switch_table[rule_id]['signals']
 
-        for signal in signals:
-            list(filter(signal, self.port_to_signal_in[in_port]))
-            list(filter(signal, self.port_to_signal_out[out_port]))
+        for signal in traffic.signals:
+            self.port_to_signal_in[in_port].remove(signal.index)
+            self.port_to_signal_out[out_port].remove(signal.index)
+            del self.port_to_signal_power_in[in_port][signal]
+            del self.port_to_signal_power_out[out_port][signal]
+        del self.traffic_to_out_port[traffic]
+        self.traffic.remove(traffic)
 
         traffic.next_link_in_route_rule_update(self, rule_id)
 
