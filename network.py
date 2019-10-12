@@ -283,6 +283,15 @@ class Traffic(object):
         out_port = self.next_link.output_port_node1
         self.src_node.add_channel_transmitter(self, self.transceiver, out_port, self.wavelength_indexes)
 
+    def reset(self, out_port, rule_id):
+        """
+        Remove the traces of this traffic in the network
+        :param out_port: output port of the src node in this traffic
+        :param rule_id: rule ID that will no longer be valid
+        :return:
+        """
+        self.src_node.reset(self, self.transceiver, out_port, rule_id)
+
     def next_link_in_route(self, node):
         """
         Continue propagating simulation in the next
@@ -306,7 +315,7 @@ class Traffic(object):
 
     def next_node_in_route_update(self, link, rule_id):
         # Get attributes of current 'next' node
-        next_node = self.next_node
+        next_node = self.next_node_update
         next_node_in_port = link.input_port_node2
         if next_node is self.dst_node:
             next_node.update_channel_receiver(self, next_node_in_port)
