@@ -35,7 +35,7 @@ class Link(object):
 
     def __init__(self, node1, node2,
                  output_port_node1, input_port_node2,
-                 preamp):
+                 boost_amp):
         """
 
         :param node1: source Node object
@@ -49,7 +49,7 @@ class Link(object):
         self.node2 = node2
         self.output_port_node1 = output_port_node1
         self.input_port_node2 = input_port_node2
-        self.preamp = preamp
+        self.boost_amp = boost_amp
 
         self.signal_power_in = {}  # dict of signals and power levels
         self.signal_power_out = {}  # dict of signals and power levels
@@ -124,24 +124,24 @@ class Link(object):
         signal_power_progress = self.signal_power_in.copy()
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
-        if self.preamp:
+        if self.boost_amp:
             # Enabling amplifier system gain balancing check
-            while not (self.preamp.balancing_flag_1 and self.preamp.balancing_flag_2):
+            while not (self.boost_amp.balancing_flag_1 and self.boost_amp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
-                    self.preamp.input_power[signal] = in_power
-                    output_power = self.preamp.output_amplified_power(signal, in_power)
+                    self.boost_amp.input_power[signal] = in_power
+                    output_power = self.boost_amp.output_amplified_power(signal, in_power)
                     # Update status of signal power in link
                     signal_power_progress[signal] = output_power
-                self.preamp.balance_system_gain()
+                self.boost_amp.balance_system_gain()
             # Reset balancing flags to original settings
-            self.preamp.balancing_flags_off()
+            self.boost_amp.balancing_flags_off()
             # Compute ASE noise
             for signal, in_power in self.signal_power_in.items():
-                self.preamp.stage_amplified_spontaneous_emission_noise(signal, in_power)
-                self.preamp.set_osnr(signal)  # not necessary but for debugging purposes
+                self.boost_amp.stage_amplified_spontaneous_emission_noise(signal, in_power)
+                self.boost_amp.set_osnr(signal)  # not necessary but for debugging purposes
 
         # Needed for the subsequent computations
-        prev_amp = self.preamp
+        prev_amp = self.boost_amp
         for span, amplifier in self.spans:
             span.input_power = signal_power_progress
             # Compute linear effects from the fibre
