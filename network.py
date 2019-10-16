@@ -22,7 +22,7 @@ class Network(object):
         self.transceiver = transceiver  # class of transceiver
         self.roadm = roadm  # class of ROADM
 
-        self.ols = []
+        self.line_terminals = []
         self.roadms = []
         self.links = []
         self.spans = []
@@ -35,36 +35,38 @@ class Network(object):
 
         self.traffic = []  # list of Traffic objects on the network
 
-    def add_ols(self, name, **params):
+    def add_lt(self, name, transceivers=None, **params):
         """
-        Add ols node
-        :param name: name of OLS
-        :return: added ols
+        Add lt node
+        :param name: name of lt
+        :param transceivers: transceivers of LT for automated instantiation
+        :return: added lt
         """
         if name in self.name_to_node:
-            raise ValueError("Network.add_ols: OLS with this name already exist!")
-        configs = {'name': name}
+            raise ValueError("Network.add_lt: lt with this name already exist!")
+        configs = {'name': name,
+                   'transceivers': transceivers}
         configs.update(params)
-        ols = OpticalLineSystem(**configs)
-        self.name_to_node[name] = ols
-        self.ols.append(ols)
-        self.topology[ols] = []
-        return ols
+        lt = LineTerminal(**configs)
+        self.name_to_node[name] = lt
+        self.line_terminals.append(lt)
+        self.topology[lt] = []
+        return lt
 
-    def add_transceiver_to_ols(self, ols, transceiver_name, spectrum_band, **params):
+    def add_transceiver_to_lt(self, lt, transceiver_name, spectrum_band, **params):
         """
-        Add transceiver to ols node
-        :param ols: OLS object
+        Add transceiver to lt node
+        :param lt: lt object
         :param transceiver_name: name of transceiver
         :param spectrum_band: configured spectrum band for transceiver
         :return:
         """
-        if ols not in self.ols:
-            raise ValueError("Network.add_transceiver_to_ols: ols does not exist!")
+        if lt not in self.line_terminals:
+            raise ValueError("Network.add_transceiver_to_lt: lt does not exist!")
         configs = {'transceiver_name': transceiver_name,
                    'spectrum_band': spectrum_band}
         configs.update(params)
-        ols.add_transceiver(**configs)
+        lt.add_transceiver(**configs)
 
     def add_roadm(self, name, **params):
         """
@@ -123,6 +125,7 @@ class Network(object):
 
     def add_span(self, fiber_type, length):
         """
+        OBSOLETE
         Add span
         :param fiber_type: fiber type (currently supporting only SMF)
         :param length: fiber span length (km)
@@ -134,6 +137,7 @@ class Network(object):
 
     def add_span_to_link(self, link, span, amplifier=None):
         """
+        OBSOLETE
         Add span to link in the network and in the link class
         :param link: link to be extended
         :param span: span to be added to link
@@ -151,8 +155,8 @@ class Network(object):
         Oct. 9th
         NEED TO CHANGE THIS IMPLEMENTATION TO COMPLY WITH THE CONTROL SYSTEM BEHAVIOUR
         Create and start a Traffic object
-        :param src_node: OLS transmitter node
-        :param dst_node: OLS receiver node
+        :param src_node: lt transmitter node
+        :param dst_node: lt receiver node
         :param bit_rate: bit rate in Gbps
         :param route: list of tuples (node, link)
         :param resources: dict with transceiver and wavelength(s) to use !Wavelengths still not specified!
@@ -225,9 +229,9 @@ class Network(object):
     @staticmethod
     def wavelength_allocation(src_node, bit_rate):
         """
-        From the transmission OLS select a transceiver suitable for
+        From the transmission lt select a transceiver suitable for
         the bit rate request.
-        :param src_node: src_node OLS
+        :param src_node: src_node lt
         :param bit_rate: required bit rate
         :return: transceiver object and wavelengths to use !wavelengths might be extended here!
         """

@@ -1,5 +1,6 @@
-import deutsche_telekom as dt
+from deutsche_telekom import DeutscheTelekom
 
-topo = dt.DeutscheTelekom()
-print("Number of nodes: %s" % len(topo.nodes))
-print("Number of links: %s" % len(topo.links))
+net = DeutscheTelekom.build()
+print("Number of line terminals: %s" % len(net.line_terminals))
+print("Number of ROAMDs: %s" % len(net.roadms))
+print("Number of links: %s" % len(net.links))

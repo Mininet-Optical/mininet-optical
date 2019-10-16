@@ -21,7 +21,7 @@ ols1_tr2 = ols1.add_transceiver('t2', 'C')
 roadm1 = net.add_roadm('roadm1')
 
 preamp_link_ols1_roadm1 = net.add_amplifier('preamp-edfa1', 'EDFA', target_gain=6)
-link_ols1_roadm1 = net.add_link(ols1, roadm1, preamp=preamp_link_ols1_roadm1)
+link_ols1_roadm1 = net.add_link(ols1, roadm1, boost_amp=preamp_link_ols1_roadm1)
 # Create a fiber span
 span1 = net.add_span('SMF', 100)
 # Create an amplifier (compensating for fiber span)
@@ -32,7 +32,7 @@ net.add_span_to_link(link_ols1_roadm1, span1, edfa1)
 
 roadm2 = net.add_roadm('roadm2')
 preamp_link_roadm1_roadm2 = net.add_amplifier('preamp-edfa4', 'EDFA')
-link_roadm1_roadm2 = net.add_link(roadm1, roadm2, preamp=preamp_link_roadm1_roadm2)
+link_roadm1_roadm2 = net.add_link(roadm1, roadm2, boost_amp=preamp_link_roadm1_roadm2)
 span4 = net.add_span('SMF', 100)
 edfa4 = net.add_amplifier('edfa4', 'EDFA', target_gain=22)
 net.add_span_to_link(link_roadm1_roadm2, span4, edfa4)
@@ -45,7 +45,7 @@ ols2_tr1 = ols2.add_transceiver('t1', 'C')
 
 preamp_link_roadm2_ols2 = net.add_amplifier('preamp-edfa2', 'EDFA')
 # Add a link between ROADM1 and OLS2
-link_roadm2_ols2 = net.add_link(roadm2, ols2, preamp=preamp_link_roadm2_ols2)
+link_roadm2_ols2 = net.add_link(roadm2, ols2, boost_amp=preamp_link_roadm2_ols2)
 # Create a fiber span
 span2 = net.add_span('SMF', 100)
 # Create an amplifier (compensating for fiber span)
@@ -61,7 +61,7 @@ ols3_tr1 = ols3.add_transceiver('t1', 'C')
 
 preamp_link_roadm1_ols3 = net.add_amplifier('preamp-edfa3', 'EDFA')
 # Add a link between ROADM1 and OLS2
-link_roadm1_ols3 = net.add_link(roadm1, ols3, preamp=preamp_link_roadm1_ols3)
+link_roadm1_ols3 = net.add_link(roadm1, ols3, boost_amp=preamp_link_roadm1_ols3)
 # Create a fiber span
 span3 = net.add_span('SMF', 100)
 # Create an amplifier (compensating for fiber span)

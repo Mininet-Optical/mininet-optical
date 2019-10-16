@@ -84,9 +84,9 @@ class Node(object):
         pprint(vars(self))
 
 
-class OpticalLineSystem(Node):
+class LineTerminal(Node):
 
-    def __init__(self, name):
+    def __init__(self, name, transceivers=None):
         Node.__init__(self, name)
         self.wss_attenuation = db_to_abs(6)  # Might want to enable this for dynamic allocation
         self.transceivers = []
@@ -94,11 +94,23 @@ class OpticalLineSystem(Node):
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
         self.operation_power = db_to_abs(-2)  # operation power input in dBm to convert to linear
 
-        self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per OLS
+        self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
         self.traffic = []  # list of traffic objects at nodes
 
         self.tmp_e2e = 0  # number of invocation of a Node
+
+        if transceivers:
+            self.add_transceivers(transceivers)
+
+    def add_transceivers(self, transceivers):
+        """
+        For-loop for adding transceivers to LT
+        :param transceivers: list of tuples (t_name, spectrum band)
+        :return:
+        """
+        for _tuple in transceivers:
+            self.add_transceiver(_tuple[0], _tuple[1])
 
     def add_transceiver(self, transceiver_name, spectrum_band):
         """
@@ -108,7 +120,7 @@ class OpticalLineSystem(Node):
         :return: added transceiver
         """
         if transceiver_name in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineSystem.add_transceiver: Transceiver with this name already exist!")
+            raise ValueError("Node.LineTerminal.add_transceiver: Transceiver with this name already exist!")
         new_transceiver = Transceiver(transceiver_name, spectrum_band)
         self.name_to_transceivers[transceiver_name] = new_transceiver
         self.transceiver_to_signals[new_transceiver] = []
@@ -134,7 +146,7 @@ class OpticalLineSystem(Node):
         :return:
         """
         if transceiver_name not in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineSystem.delete_transceiver: transceiver does not exist!")
+            raise ValueError("Node.LineTerminal.delete_transceiver: transceiver does not exist!")
         transceiver = self.name_to_transceivers[transceiver_name]
         self.transceivers.remove(transceiver)
         del self.name_to_transceivers[transceiver_name]
@@ -213,7 +225,7 @@ class OpticalLineSystem(Node):
         :return:
         """
         if transceiver_name not in self.name_to_transceivers:
-            raise ValueError("Node.OpticalLineSystem.delete_signal: transceiver does not exist!")
+            raise ValueError("Node.LineTerminal.delete_signal: transceiver does not exist!")
         self.transceiver_to_signals[transceiver_name].remove(optical_signal)
 
     def available_wavelengths(self):

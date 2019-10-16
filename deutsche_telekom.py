@@ -1,671 +1,697 @@
 import network
+from link import Span
 
 
 class DeutscheTelekom:
 
-    def __init__(self):
-
+    @staticmethod
+    def build():
         """
             TOPOLOGY CREATION
 
             Nomenclature conventions:
-            OLS follow: olsX - X always a number - (i.e., ols1)
-            ROADMS follow: roadmA - A always a letter - (i.e., roadmA)
-            Amplifiers follow: ampX - X always a number - followed
-            by the name of the link they belong to (i.e., amp1_link_ols1_roadmA)
-            Spans follow: spanX - X always a number - followed by the
-            name of the link they belong to (i.e., span1_link_ols1_roadmA)
+            lt_: Line Terminal
+            roadm_: ROADM node
+            l_: Link between two nodes
+            s_: Span in a Link
+            boost_: Boost amplifier
+            amp: inline amplifier
         """
         # Create an optical-network object
-        self.net = network.Network()
-
-        self.nodes = []
-        self.links = []
-
-        self.name_to_node = {}
+        net = network.Network()
 
         """
-            Create nodes in the topology
+            Create line terminals and their immediate ROADM nodes
+            and create bi-directional links between them.
         """
-        # Create line terminals for each city
-        lt_berlin = self.net.add_ols('lt_berlin')
-        lt_berlin.add_transceiver('t1', 'C')
-        self.add_node(lt_berlin)
+        cities = ['berlin', 'bremen', 'dortmund', 'dusseldorf',
+                  'essen', 'frankfurt', 'hamburg', 'hannover',
+                  'koln', 'leipzig', 'munchen', 'nurnberg',
+                  'stuttgart', 'ulm']
 
-        lt_bremen = self.net.add_ols('lt_bremen')
-        lt_bremen.add_transceiver('t1', 'C')
-        self.add_node(lt_bremen)
+        # Create line terminals
+        transceivers = [('t1', 'C')]
+        line_terminals = [net.add_lt('lt_%s' % s, transceivers=transceivers) for s in cities]
 
-        lt_dortmund = self.net.add_ols('lt_dortmund')
-        lt_dortmund.add_transceiver('t1', 'C')
-        self.add_node(lt_dortmund)
+        # Create ROADMs
+        roadms = [net.add_roadm('roadm_%s' % s) for s in cities]
+        name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
-        lt_dusseldorf = self.net.add_ols('lt_dusseldorf')
-        lt_dusseldorf.add_transceiver('t1', 'C')
-        self.add_node(lt_dusseldorf)
-
-        lt_essen = self.net.add_ols('lt_essen')
-        lt_essen.add_transceiver('t1', 'C')
-        self.add_node(lt_essen)
-
-        lt_frankfurt = self.net.add_ols('lt_frankfurt')
-        lt_frankfurt.add_transceiver('t1', 'C')
-        self.add_node(lt_frankfurt)
-
-        lt_hamburg = self.net.add_ols('lt_hamburg')
-        lt_hamburg.add_transceiver('t1', 'C')
-        self.add_node(lt_hamburg)
-
-        lt_hannover = self.net.add_ols('lt_hannover')
-        lt_hannover.add_transceiver('t1', 'C')
-        self.add_node(lt_hannover)
-
-        lt_koln = self.net.add_ols('lt_koln')
-        lt_koln.add_transceiver('t1', 'C')
-        self.add_node(lt_koln)
-
-        lt_leipzig = self.net.add_ols('lt_leipzig')
-        lt_leipzig.add_transceiver('t1', 'C')
-        self.add_node(lt_leipzig)
-
-        lt_munchen = self.net.add_ols('lt_munchen')
-        lt_munchen.add_transceiver('t1', 'C')
-        self.add_node(lt_munchen)
-
-        lt_nurnberg = self.net.add_ols('lt_nurnberg')
-        lt_nurnberg.add_transceiver('t1', 'C')
-        self.add_node(lt_nurnberg)
-
-        lt_stuttgart = self.net.add_ols('lt_stuttgart')
-        lt_stuttgart.add_transceiver('t1', 'C')
-        self.add_node(lt_stuttgart)
-
-        lt_ulm = self.net.add_ols('lt_ulm')
-        lt_ulm.add_transceiver('t1', 'C')
-        self.add_node(lt_ulm)
-
-        # Create ROADM nodes for each city
-        roadm_berlin = self.net.add_roadm('roadm_berlin')
-        self.add_node(roadm_berlin)
-
-        roadm_bremen = self.net.add_roadm('roadm_bremen')
-        self.add_node(roadm_bremen)
-
-        roadm_dortmund = self.net.add_roadm('roadm_dortmund')
-        self.add_node(roadm_dortmund)
-
-        roadm_dusseldorf = self.net.add_roadm('roadm_dusseldorf')
-        self.add_node(roadm_dusseldorf)
-
-        roadm_essen = self.net.add_roadm('roadm_essen')
-        self.add_node(roadm_essen)
-
-        roadm_frankfurt = self.net.add_roadm('roadm_frankfurt')
-        self.add_node(roadm_frankfurt)
-
-        roadm_hamburg = self.net.add_roadm('roadm_hamburg')
-        self.add_node(roadm_hamburg)
-
-        roadm_hannover = self.net.add_roadm('roadm_hannover')
-        self.add_node(roadm_hannover)
-
-        roadm_koln = self.net.add_roadm('roadm_koln')
-        self.add_node(roadm_koln)
-
-        roadm_leipzig = self.net.add_roadm('roadm_leipzig')
-        self.add_node(roadm_leipzig)
-
-        roadm_munchen = self.net.add_roadm('roadm_munchen')
-        self.add_node(roadm_munchen)
-
-        roadm_nurnberg = self.net.add_roadm('roadm_nurnberg')
-        self.add_node(roadm_nurnberg)
-
-        roadm_stuttgart = self.net.add_roadm('roadm_stuttgart')
-        self.add_node(roadm_stuttgart)
-
-        roadm_ulm = self.net.add_roadm('roadm_ulm')
-        self.add_node(roadm_ulm)
-
-        """
-            Create links between line terminals and immediate ROADM nodes
-        """
-        # Link between lt_berlin and roadm_berlin
-        link_lt_roadm_berlin = self.net.add_link(lt_berlin, roadm_berlin)
-        self.links.append(link_lt_roadm_berlin)
-
-        # Link between lt_bremen and roadm_bremen
-        link_lt_roadm_bremen = self.net.add_link(lt_bremen, roadm_bremen)
-        self.links.append(link_lt_roadm_bremen)
-
-        # Link between lt_dortmund and roadm_dortmund
-        link_lt_roadm_dortmund = self.net.add_link(lt_dortmund, roadm_dortmund)
-        self.links.append(link_lt_roadm_dortmund)
-
-        # Link between lt_dusseldorf and roadm_dusseldorf
-        link_lt_roadm_dusseldorf = self.net.add_link(lt_dusseldorf, roadm_dusseldorf)
-        self.links.append(link_lt_roadm_dusseldorf)
-
-        # Link between lt_essen and roadm_essen
-        link_lt_roadm_essen = self.net.add_link(lt_essen, roadm_essen)
-        self.links.append(link_lt_roadm_essen)
-
-        # Link between lt_frankfurt and roadm_frankfurt
-        link_lt_roadm_frankfurt = self.net.add_link(lt_frankfurt, roadm_frankfurt)
-        self.links.append(link_lt_roadm_frankfurt)
-
-        # Link between lt_hamburg and roadm_hamburg
-        link_lt_roadm_hamburg = self.net.add_link(lt_hamburg, roadm_hamburg)
-        self.links.append(link_lt_roadm_hamburg)
-
-        # Link between lt_hannover and roadm_hannover
-        link_lt_roadm_hannover = self.net.add_link(lt_hannover, roadm_hannover)
-        self.links.append(link_lt_roadm_hannover)
-
-        # Link between lt_koln and roadm_koln
-        link_lt_roadm_koln = self.net.add_link(lt_koln, roadm_koln)
-        self.links.append(link_lt_roadm_koln)
-
-        # Link between lt_leipzig and roadm_leipzig
-        link_lt_roadm_leipzig = self.net.add_link(lt_leipzig, roadm_leipzig)
-        self.links.append(link_lt_roadm_leipzig)
-
-        # Link between lt_munchen and roadm_munchen
-        link_lt_roadm_munchen = self.net.add_link(lt_munchen, roadm_munchen)
-        self.links.append(link_lt_roadm_munchen)
-
-        # Link between lt_nurnberg and roadm_nurnberg
-        link_lt_roadm_nurnberg = self.net.add_link(lt_nurnberg, roadm_nurnberg)
-        self.links.append(link_lt_roadm_nurnberg)
-
-        # Link between lt_stuttgart and roadm_stuttgart
-        link_lt_roadm_stuttgart = self.net.add_link(lt_stuttgart, roadm_stuttgart)
-        self.links.append(link_lt_roadm_stuttgart)
-
-        # Link between lt_ulm and roadm_ulm
-        link_lt_roadm_ulm = self.net.add_link(lt_ulm, roadm_ulm)
-        self.links.append(link_lt_roadm_ulm)
+        # Create bi-directional links between LTs and ROADMs
+        for lt, roadm in zip(line_terminals, roadms):
+            link = net.add_link(lt, roadm)
+            link.add_span(Span('SMF', 0.01), amplifier=None)
+            bi_link = net.add_link(roadm, lt)
+            bi_link.add_span(Span('SMF', 0.01), amplifier=None)
 
         """
             Create links between inter-city ROADM nodes
         """
         # Link between Berlin and Hamburg - 306.3 km
         # and the bidirectional (independent) link
-        boost_amp_berlin_hamburg = self.net.add_amplifier('boost_amp_berlin_hamburg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_berlin_hamburg)
-        link_berlin_hamburg = self.net.add_link(roadm_berlin, roadm_hamburg, boost_amp=boost_amp_berlin_hamburg)
-        self.links.append(link_berlin_hamburg)
-        span1_link_berlin_hamburg = self.net.add_span('SMF', 100)
-        amp1_link_berlin_hamburg = self.net.add_amplifier('amp1_link_berlin_hamburg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_berlin_hamburg)
-        self.net.add_span_to_link(link_berlin_hamburg, span1_link_berlin_hamburg, amp1_link_berlin_hamburg)
+        boost_berlin_hamburg = net.add_amplifier('boost_berlin_hamburg', 'EDFA', target_gain=6)
+        l_berlin_hamburg = net.add_link(name_to_roadm['roadm_berlin'],
+                                        name_to_roadm['roadm_hamburg'],
+                                        boost_amp=boost_berlin_hamburg)
+        s1_l_berlin_hamburg = Span('SMF', 80)
+        amp1_l_berlin_hamburg = net.add_amplifier('amp1_l_berlin_hamburg', 'EDFA', target_gain=17.6)
+        l_berlin_hamburg.add_span(s1_l_berlin_hamburg, amp1_l_berlin_hamburg)
+        s2_l_berlin_hamburg = Span('SMF', 80)
+        amp2_l_berlin_hamburg = net.add_amplifier('amp2_l_berlin_hamburg', 'EDFA', target_gain=17.6)
+        l_berlin_hamburg.add_span(s2_l_berlin_hamburg, amp2_l_berlin_hamburg)
+        s3_l_berlin_hamburg = Span('SMF', 80)
+        amp3_l_berlin_hamburg = net.add_amplifier('amp3_l_berlin_hamburg', 'EDFA', target_gain=17.6)
+        l_berlin_hamburg.add_span(s3_l_berlin_hamburg, amp3_l_berlin_hamburg)
+        s4_l_berlin_hamburg = Span('SMF', 33.7)
+        amp4_l_berlin_hamburg = net.add_amplifier('amp4_l_berlin_hamburg', 'EDFA', target_gain=7.4)
+        l_berlin_hamburg.add_span(s4_l_berlin_hamburg, amp4_l_berlin_hamburg)
 
-        boost_amp_hamburg_berlin = self.net.add_amplifier('boost_amp_hamburg_berlin', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hamburg_berlin)
-        link_hamburg_berlin = self.net.add_link(roadm_berlin, roadm_hamburg, boost_amp=boost_amp_hamburg_berlin)
-        self.links.append(link_hamburg_berlin)
-        span1_link_hamburg_berlin = self.net.add_span('SMF', 100)
-        amp1_link_hamburg_berlin = self.net.add_amplifier('amp1_link_hamburg_berlin', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hamburg_berlin)
-        self.net.add_span_to_link(link_hamburg_berlin, span1_link_hamburg_berlin, amp1_link_hamburg_berlin)
+        boost_hamburg_berlin = net.add_amplifier('boost_hamburg_berlin', 'EDFA', target_gain=6)
+        l_hamburg_berlin = net.add_link(name_to_roadm['roadm_berlin'],
+                                        name_to_roadm['roadm_hamburg'],
+                                        boost_amp=boost_hamburg_berlin)
+        s1_l_hamburg_berlin = Span('SMF', 80)
+        amp1_l_hamburg_berlin = net.add_amplifier('amp1_l_hamburg_berlin', 'EDFA', target_gain=17.6)
+        l_hamburg_berlin.add_span(s1_l_hamburg_berlin, amp1_l_hamburg_berlin)
+        s2_l_hamburg_berlin = Span('SMF', 80)
+        amp2_l_hamburg_berlin = net.add_amplifier('amp2_l_hamburg_berlin', 'EDFA', target_gain=17.6)
+        l_hamburg_berlin.add_span(s2_l_hamburg_berlin, amp2_l_hamburg_berlin)
+        s3_l_hamburg_berlin = Span('SMF', 80)
+        amp3_l_hamburg_berlin = net.add_amplifier('amp3_l_hamburg_berlin', 'EDFA', target_gain=17.6)
+        l_hamburg_berlin.add_span(s3_l_hamburg_berlin, amp3_l_hamburg_berlin)
+        s4_l_hamburg_berlin = Span('SMF', 33.7)
+        amp4_l_hamburg_berlin = net.add_amplifier('amp4_l_hamburg_berlin', 'EDFA', target_gain=7.4)
+        l_hamburg_berlin.add_span(s4_l_hamburg_berlin, amp4_l_hamburg_berlin)
 
         # Link between Berlin and Hannover - 294.9 km
         # and the bidirectional (independent) link
-        boost_amp_berlin_hannover = self.net.add_amplifier('boost_amp_berlin_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_berlin_hannover)
-        link_berlin_hannover = self.net.add_link(roadm_berlin, roadm_hannover, boost_amp=boost_amp_berlin_hannover)
-        self.links.append(link_berlin_hannover)
-        span1_link_berlin_hannover = self.net.add_span('SMF', 100)
-        amp1_link_berlin_hannover = self.net.add_amplifier('amp1_link_berlin_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_berlin_hannover)
-        self.net.add_span_to_link(link_berlin_hannover, span1_link_berlin_hannover, amp1_link_berlin_hannover)
+        boost_berlin_hannover = net.add_amplifier('boost_berlin_hannover', 'EDFA', target_gain=6)
+        l_berlin_hannover = net.add_link(name_to_roadm['roadm_berlin'],
+                                         name_to_roadm['roadm_hannover'],
+                                         boost_amp=boost_berlin_hannover)
+        s1_l_berlin_hannover = Span('SMF', 80)
+        amp1_l_berlin_hannover = net.add_amplifier('amp1_l_berlin_hannover', 'EDFA', target_gain=22)
+        l_berlin_hannover.add_span(s1_l_berlin_hannover, amp1_l_berlin_hannover)
+        s2_l_berlin_hannover = Span('SMF', 80)
+        amp2_l_berlin_hannover = net.add_amplifier('amp2_l_berlin_hannover', 'EDFA', target_gain=17.6)
+        l_berlin_hannover.add_span(s2_l_berlin_hannover, amp2_l_berlin_hannover)
+        s3_l_berlin_hannover = Span('SMF', 80)
+        amp3_l_berlin_hannover = net.add_amplifier('amp3_l_berlin_hannover', 'EDFA', target_gain=17.6)
+        l_berlin_hannover.add_span(s3_l_berlin_hannover, amp3_l_berlin_hannover)
+        s4_l_berlin_hannover = Span('SMF', 54.9)
+        amp4_l_berlin_hannover = net.add_amplifier('amp4_l_berlin_hannover', 'EDFA', target_gain=13.18)
+        l_berlin_hannover.add_span(s4_l_berlin_hannover, amp4_l_berlin_hannover)
 
-        boost_amp_hannover_berlin = self.net.add_amplifier('boost_amp_hannover_berlin', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_berlin)
-        link_hannover_berlin = self.net.add_link(roadm_berlin, roadm_hannover, boost_amp=boost_amp_hannover_berlin)
-        self.links.append(link_hannover_berlin)
-        span1_link_hannover_berlin = self.net.add_span('SMF', 100)
-        amp1_link_hannover_berlin = self.net.add_amplifier('amp1_link_hannover_berlin', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_berlin)
-        self.net.add_span_to_link(link_hannover_berlin, span1_link_hannover_berlin, amp1_link_hannover_berlin)
+        boost_hannover_berlin = net.add_amplifier('boost_hannover_berlin', 'EDFA', target_gain=6)
+        l_hannover_berlin = net.add_link(name_to_roadm['roadm_berlin'],
+                                         name_to_roadm['roadm_hannover'],
+                                         boost_amp=boost_hannover_berlin)
+        s1_l_hannover_berlin = Span('SMF', 80)
+        amp1_l_hannover_berlin = net.add_amplifier('amp1_l_hannover_berlin', 'EDFA', target_gain=17.6)
+        l_hannover_berlin.add_span(s1_l_hannover_berlin, amp1_l_hannover_berlin)
+        s2_l_hannover_berlin = Span('SMF', 80)
+        amp2_l_hannover_berlin = net.add_amplifier('amp2_l_hannover_berlin', 'EDFA', target_gain=17.6)
+        l_hannover_berlin.add_span(s2_l_hannover_berlin, amp2_l_hannover_berlin)
+        s3_l_hannover_berlin = Span('SMF', 80)
+        amp3_l_hannover_berlin = net.add_amplifier('amp3_l_hannover_berlin', 'EDFA', target_gain=17.6)
+        l_hannover_berlin.add_span(s3_l_hannover_berlin, amp3_l_hannover_berlin)
+        s4_l_hannover_berlin = Span('SMF', 54.9)
+        amp4_l_hannover_berlin = net.add_amplifier('amp4_l_hannover_berlin', 'EDFA', target_gain=13.18)
+        l_hannover_berlin.add_span(s4_l_hannover_berlin, amp4_l_hannover_berlin)
 
         # Link between Berlin and Leipzig - 173.3 km
         # and the bidirectional (independent) link
-        boost_amp_berlin_leipzig = self.net.add_amplifier('boost_amp_berlin_leipzig', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_berlin_leipzig)
-        link_berlin_leipzig = self.net.add_link(roadm_berlin, roadm_leipzig, boost_amp=boost_amp_berlin_leipzig)
-        self.links.append(link_berlin_leipzig)
-        span1_link_berlin_leipzig = self.net.add_span('SMF', 100)
-        amp1_link_berlin_leipzig = self.net.add_amplifier('amp1_link_berlin_leipzig', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_berlin_leipzig)
-        self.net.add_span_to_link(link_berlin_leipzig, span1_link_berlin_leipzig, amp1_link_berlin_leipzig)
+        boost_berlin_leipzig = net.add_amplifier('boost_berlin_leipzig', 'EDFA', target_gain=6)
+        l_berlin_leipzig = net.add_link(name_to_roadm['roadm_berlin'],
+                                        name_to_roadm['roadm_leipzig'],
+                                        boost_amp=boost_berlin_leipzig)
+        s1_l_berlin_leipzig = Span('SMF', 80)
+        amp1_l_berlin_leipzig = net.add_amplifier('amp1_l_berlin_leipzig', 'EDFA', target_gain=17.6)
+        l_berlin_leipzig.add_span(s1_l_berlin_leipzig, amp1_l_berlin_leipzig)
+        s2_l_berlin_leipzig = Span('SMF', 80)
+        amp2_l_berlin_leipzig = net.add_amplifier('amp2_l_berlin_leipzig', 'EDFA', target_gain=17.6)
+        l_berlin_leipzig.add_span(s2_l_berlin_leipzig, amp2_l_berlin_leipzig)
+        s3_l_berlin_leipzig = Span('SMF', 13.3)
+        amp3_l_berlin_leipzig = net.add_amplifier('amp3_l_berlin_leipzig', 'EDFA', target_gain=3)
+        l_berlin_leipzig.add_span(s3_l_berlin_leipzig, amp3_l_berlin_leipzig)
 
-        boost_amp_leipzig_berlin = self.net.add_amplifier('boost_amp_leipzig_berlin', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_leipzig_berlin)
-        link_leipzig_berlin = self.net.add_link(roadm_berlin, roadm_leipzig, boost_amp=boost_amp_leipzig_berlin)
-        self.links.append(link_leipzig_berlin)
-        span1_link_leipzig_berlin = self.net.add_span('SMF', 100)
-        amp1_link_leipzig_berlin = self.net.add_amplifier('amp1_link_leipzig_berlin', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_leipzig_berlin)
-        self.net.add_span_to_link(link_leipzig_berlin, span1_link_leipzig_berlin, amp1_link_leipzig_berlin)
+        boost_leipzig_berlin = net.add_amplifier('boost_leipzig_berlin', 'EDFA', target_gain=6)
+        l_leipzig_berlin = net.add_link(name_to_roadm['roadm_berlin'],
+                                        name_to_roadm['roadm_leipzig'],
+                                        boost_amp=boost_leipzig_berlin)
+        s1_l_leipzig_berlin = Span('SMF', 80)
+        amp1_l_leipzig_berlin = net.add_amplifier('amp1_l_leipzig_berlin', 'EDFA', target_gain=17.6)
+        l_leipzig_berlin.add_span(s1_l_leipzig_berlin, amp1_l_leipzig_berlin)
+        s2_l_leipzig_berlin = Span('SMF', 80)
+        amp2_l_leipzig_berlin = net.add_amplifier('amp2_l_leipzig_berlin', 'EDFA', target_gain=17.6)
+        l_leipzig_berlin.add_span(s2_l_leipzig_berlin, amp2_l_leipzig_berlin)
+        s3_l_leipzig_berlin = Span('SMF', 13.3)
+        amp3_l_leipzig_berlin = net.add_amplifier('amp3_l_leipzig_berlin', 'EDFA', target_gain=3)
+        l_leipzig_berlin.add_span(s3_l_leipzig_berlin, amp3_l_leipzig_berlin)
 
         # Link between Bremen and Hamburg - 114.7 km
         # and the bidirectional (independent) link
-        boost_amp_bremen_hamburg = self.net.add_amplifier('boost_amp_bremen_hamburg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_bremen_hamburg)
-        link_bremen_hamburg = self.net.add_link(roadm_bremen, roadm_hamburg, boost_amp=boost_amp_bremen_hamburg)
-        self.links.append(link_bremen_hamburg)
-        span1_link_bremen_hamburg = self.net.add_span('SMF', 100)
-        amp1_link_bremen_hamburg = self.net.add_amplifier('amp1_link_bremen_hamburg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_bremen_hamburg)
-        self.net.add_span_to_link(link_bremen_hamburg, span1_link_bremen_hamburg, amp1_link_bremen_hamburg)
+        boost_bremen_hamburg = net.add_amplifier('boost_bremen_hamburg', 'EDFA', target_gain=6)
+        l_bremen_hamburg = net.add_link(name_to_roadm['roadm_bremen'],
+                                        name_to_roadm['roadm_hamburg'],
+                                        boost_amp=boost_bremen_hamburg)
+        s1_l_bremen_hamburg = Span('SMF', 80)
+        amp1_l_bremen_hamburg = net.add_amplifier('amp1_l_bremen_hamburg', 'EDFA', target_gain=17.6)
+        l_bremen_hamburg.add_span(s1_l_bremen_hamburg, amp1_l_bremen_hamburg)
+        s2_l_bremen_hamburg = Span('SMF', 34.7)
+        amp2_l_bremen_hamburg = net.add_amplifier('amp2_l_bremen_hamburg', 'EDFA', target_gain=7.63)
+        l_bremen_hamburg.add_span(s2_l_bremen_hamburg, amp2_l_bremen_hamburg)
 
-        boost_amp_hamburg_bremen = self.net.add_amplifier('boost_amp_hamburg_bremen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hamburg_bremen)
-        link_hamburg_bremen = self.net.add_link(roadm_bremen, roadm_hamburg, boost_amp=boost_amp_hamburg_bremen)
-        self.links.append(link_hamburg_bremen)
-        span1_link_hamburg_bremen = self.net.add_span('SMF', 100)
-        amp1_link_hamburg_bremen = self.net.add_amplifier('amp1_link_hamburg_bremen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hamburg_bremen)
-        self.net.add_span_to_link(link_hamburg_bremen, span1_link_hamburg_bremen, amp1_link_hamburg_bremen)
+        boost_hamburg_bremen = net.add_amplifier('boost_hamburg_bremen', 'EDFA', target_gain=6)
+        l_hamburg_bremen = net.add_link(name_to_roadm['roadm_bremen'],
+                                        name_to_roadm['roadm_hamburg'],
+                                        boost_amp=boost_hamburg_bremen)
+        s1_l_hamburg_bremen = Span('SMF', 80)
+        amp1_l_hamburg_bremen = net.add_amplifier('amp1_l_hamburg_bremen', 'EDFA', target_gain=17.6)
+        l_hamburg_bremen.add_span(s1_l_hamburg_bremen, amp1_l_hamburg_bremen)
+        s2_l_hamburg_bremen = Span('SMF', 34.7)
+        amp2_l_hamburg_bremen = net.add_amplifier('amp2_l_hamburg_bremen', 'EDFA', target_gain=7.63)
+        l_hamburg_bremen.add_span(s2_l_hamburg_bremen, amp2_l_hamburg_bremen)
 
         # Link between Bremen and Hannover - 121.3 km
         # and the bidirectional (independent) link
-        boost_amp_bremen_hannover = self.net.add_amplifier('boost_amp_bremen_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_bremen_hannover)
-        link_bremen_hannover = self.net.add_link(roadm_bremen, roadm_hannover, boost_amp=boost_amp_bremen_hannover)
-        self.links.append(link_bremen_hannover)
-        span1_link_bremen_hannover = self.net.add_span('SMF', 100)
-        amp1_link_bremen_hannover = self.net.add_amplifier('amp1_link_bremen_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_bremen_hannover)
-        self.net.add_span_to_link(link_bremen_hannover, span1_link_bremen_hannover, amp1_link_bremen_hannover)
+        boost_bremen_hannover = net.add_amplifier('boost_bremen_hannover', 'EDFA', target_gain=6)
+        l_bremen_hannover = net.add_link(name_to_roadm['roadm_bremen'],
+                                         name_to_roadm['roadm_hannover'],
+                                         boost_amp=boost_bremen_hannover)
+        s1_l_bremen_hannover = Span('SMF', 80)
+        amp1_l_bremen_hannover = net.add_amplifier('amp1_l_bremen_hannover', 'EDFA', target_gain=17.6)
+        l_bremen_hannover.add_span(s1_l_bremen_hannover, amp1_l_bremen_hannover)
+        s2_l_bremen_hannover = Span('SMF', 41.3)
+        amp2_l_bremen_hannover = net.add_amplifier('amp2_l_bremen_hannover', 'EDFA', target_gain=9.1)
+        l_bremen_hannover.add_span(s2_l_bremen_hannover, amp2_l_bremen_hannover)
 
-        boost_amp_hannover_bremen = self.net.add_amplifier('boost_amp_hannover_bremen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_bremen)
-        link_hannover_bremen = self.net.add_link(roadm_bremen, roadm_hannover, boost_amp=boost_amp_hannover_bremen)
-        self.links.append(link_hannover_bremen)
-        span1_link_hannover_bremen = self.net.add_span('SMF', 100)
-        amp1_link_hannover_bremen = self.net.add_amplifier('amp1_link_hannover_bremen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_bremen)
-        self.net.add_span_to_link(link_hannover_bremen, span1_link_hannover_bremen, amp1_link_hannover_bremen)
+        boost_hannover_bremen = net.add_amplifier('boost_hannover_bremen', 'EDFA', target_gain=6)
+        l_hannover_bremen = net.add_link(name_to_roadm['roadm_bremen'],
+                                         name_to_roadm['roadm_hannover'],
+                                         boost_amp=boost_hannover_bremen)
+        s1_l_hannover_bremen = Span('SMF', 80)
+        amp1_l_hannover_bremen = net.add_amplifier('amp1_l_hannover_bremen', 'EDFA', target_gain=17.6)
+        l_hannover_bremen.add_span(s1_l_hannover_bremen, amp1_l_hannover_bremen)
+        s2_l_hannover_bremen = Span('SMF', 41.3)
+        amp2_l_hannover_bremen = net.add_amplifier('amp2_l_hannover_bremen', 'EDFA', target_gain=9.1)
+        l_hannover_bremen.add_span(s2_l_hannover_bremen, amp2_l_hannover_bremen)
 
         # Link between Bremen and Essen - 278.5 km
         # and the bidirectional (independent) link
-        boost_amp_bremen_essen = self.net.add_amplifier('boost_amp_bremen_essen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_bremen_essen)
-        link_bremen_essen = self.net.add_link(roadm_bremen, roadm_essen, boost_amp=boost_amp_bremen_essen)
-        self.links.append(link_bremen_essen)
-        span1_link_bremen_essen = self.net.add_span('SMF', 100)
-        amp1_link_bremen_essen = self.net.add_amplifier('amp1_link_bremen_essen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_bremen_essen)
-        self.net.add_span_to_link(link_bremen_essen, span1_link_bremen_essen, amp1_link_bremen_essen)
+        boost_bremen_essen = net.add_amplifier('boost_bremen_essen', 'EDFA', target_gain=6)
+        l_bremen_essen = net.add_link(name_to_roadm['roadm_bremen'],
+                                      name_to_roadm['roadm_essen'],
+                                      boost_amp=boost_bremen_essen)
+        s1_l_bremen_essen = Span('SMF', 80)
+        amp1_l_bremen_essen = net.add_amplifier('amp1_l_bremen_essen', 'EDFA', target_gain=17.6)
+        l_bremen_essen.add_span(s1_l_bremen_essen, amp1_l_bremen_essen)
+        s2_l_bremen_essen = Span('SMF', 80)
+        amp2_l_bremen_essen = net.add_amplifier('amp2_l_bremen_essen', 'EDFA', target_gain=17.6)
+        l_bremen_essen.add_span(s2_l_bremen_essen, amp2_l_bremen_essen)
+        s3_l_bremen_essen = Span('SMF', 80)
+        amp3_l_bremen_essen = net.add_amplifier('amp3_l_bremen_essen', 'EDFA', target_gain=17.6)
+        l_bremen_essen.add_span(s3_l_bremen_essen, amp3_l_bremen_essen)
+        s4_l_bremen_essen = Span('SMF', 38.5)
+        amp4_l_bremen_essen = net.add_amplifier('amp4_l_bremen_essen', 'EDFA', target_gain=8.5)
+        l_bremen_essen.add_span(s4_l_bremen_essen, amp4_l_bremen_essen)
 
-        boost_amp_essen_bremen = self.net.add_amplifier('boost_amp_essen_bremen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_essen_bremen)
-        link_essen_bremen = self.net.add_link(roadm_bremen, roadm_essen, boost_amp=boost_amp_essen_bremen)
-        self.links.append(link_essen_bremen)
-        span1_link_essen_bremen = self.net.add_span('SMF', 100)
-        amp1_link_essen_bremen = self.net.add_amplifier('amp1_link_essen_bremen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_essen_bremen)
-        self.net.add_span_to_link(link_essen_bremen, span1_link_essen_bremen, amp1_link_essen_bremen)
+        boost_essen_bremen = net.add_amplifier('boost_essen_bremen', 'EDFA', target_gain=6)
+        l_essen_bremen = net.add_link(name_to_roadm['roadm_bremen'],
+                                      name_to_roadm['roadm_essen'],
+                                      boost_amp=boost_essen_bremen)
+        s1_l_essen_bremen = Span('SMF', 80)
+        amp1_l_essen_bremen = net.add_amplifier('amp1_l_essen_bremen', 'EDFA', target_gain=17.6)
+        l_essen_bremen.add_span(s1_l_essen_bremen, amp1_l_essen_bremen)
+        s2_l_essen_bremen = Span('SMF', 80)
+        amp2_l_essen_bremen = net.add_amplifier('amp2_l_essen_bremen', 'EDFA', target_gain=17.6)
+        l_essen_bremen.add_span(s2_l_essen_bremen, amp2_l_essen_bremen)
+        s3_l_essen_bremen = Span('SMF', 80)
+        amp3_l_essen_bremen = net.add_amplifier('amp3_l_essen_bremen', 'EDFA', target_gain=17.6)
+        l_essen_bremen.add_span(s3_l_essen_bremen, amp3_l_essen_bremen)
+        s4_l_essen_bremen = Span('SMF', 38.5)
+        amp4_l_essen_bremen = net.add_amplifier('amp4_l_essen_bremen', 'EDFA', target_gain=8.5)
+        l_essen_bremen.add_span(s4_l_essen_bremen, amp4_l_essen_bremen)
 
         # Link between Dortmund and Essen - 37.4 km
         # and the bidirectional (independent) link
-        boost_amp_dortmund_essen = self.net.add_amplifier('boost_amp_dortmund_essen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_dortmund_essen)
-        link_dortmund_essen = self.net.add_link(roadm_dortmund, roadm_essen, boost_amp=boost_amp_dortmund_essen)
-        self.links.append(link_dortmund_essen)
-        span1_link_dortmund_essen = self.net.add_span('SMF', 100)
-        amp1_link_dortmund_essen = self.net.add_amplifier('amp1_link_dortmund_essen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_dortmund_essen)
-        self.net.add_span_to_link(link_dortmund_essen, span1_link_dortmund_essen, amp1_link_dortmund_essen)
+        boost_dortmund_essen = net.add_amplifier('boost_dortmund_essen', 'EDFA', target_gain=6)
+        l_dortmund_essen = net.add_link(name_to_roadm['roadm_dortmund'],
+                                        name_to_roadm['roadm_essen'],
+                                        boost_amp=boost_dortmund_essen)
+        s1_l_dortmund_essen = Span('SMF', 37.4)
+        amp1_l_dortmund_essen = net.add_amplifier('amp1_l_dortmund_essen', 'EDFA', target_gain=8.2)
+        l_dortmund_essen.add_span(s1_l_dortmund_essen, amp1_l_dortmund_essen)
 
-        boost_amp_essen_dortmund = self.net.add_amplifier('boost_amp_essen_dortmund', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_essen_dortmund)
-        link_essen_dortmund = self.net.add_link(roadm_dortmund, roadm_essen, boost_amp=boost_amp_essen_dortmund)
-        self.links.append(link_essen_dortmund)
-        span1_link_essen_dortmund = self.net.add_span('SMF', 100)
-        amp1_link_essen_dortmund = self.net.add_amplifier('amp1_link_essen_dortmund', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_essen_dortmund)
-        self.net.add_span_to_link(link_essen_dortmund, span1_link_essen_dortmund, amp1_link_essen_dortmund)
+        boost_essen_dortmund = net.add_amplifier('boost_essen_dortmund', 'EDFA', target_gain=6)
+        l_essen_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
+                                        name_to_roadm['roadm_essen'],
+                                        boost_amp=boost_essen_dortmund)
+        s1_l_essen_dortmund = Span('SMF', 37.4)
+        amp1_l_essen_dortmund = net.add_amplifier('amp1_l_essen_dortmund', 'EDFA', target_gain=8.2)
+        l_essen_dortmund.add_span(s1_l_essen_dortmund, amp1_l_essen_dortmund)
 
         # Link between Dortmund and Hannover - 220.4 km
         # and the bidirectional (independent) link
-        boost_amp_dortmund_hannover = self.net.add_amplifier('boost_amp_dortmund_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_dortmund_hannover)
-        link_dortmund_hannover = self.net.add_link(roadm_dortmund, roadm_hannover,
-                                                   boost_amp=boost_amp_dortmund_hannover)
-        self.links.append(link_dortmund_hannover)
-        span1_link_dortmund_hannover = self.net.add_span('SMF', 100)
-        amp1_link_dortmund_hannover = self.net.add_amplifier('amp1_link_dortmund_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_dortmund_hannover)
-        self.net.add_span_to_link(link_dortmund_hannover, span1_link_dortmund_hannover, amp1_link_dortmund_hannover)
+        boost_dortmund_hannover = net.add_amplifier('boost_dortmund_hannover', 'EDFA', target_gain=6)
+        l_dortmund_hannover = net.add_link(name_to_roadm['roadm_dortmund'],
+                                           name_to_roadm['roadm_hannover'],
+                                           boost_amp=boost_dortmund_hannover)
+        s1_l_dortmund_hannover = Span('SMF', 80)
+        amp1_l_dortmund_hannover = net.add_amplifier('amp1_l_dortmund_hannover', 'EDFA', target_gain=17.6)
+        l_dortmund_hannover.add_span(s1_l_dortmund_hannover, amp1_l_dortmund_hannover)
+        s2_l_dortmund_hannover = Span('SMF', 80)
+        amp2_l_dortmund_hannover = net.add_amplifier('amp2_l_dortmund_hannover', 'EDFA', target_gain=17.6)
+        l_dortmund_hannover.add_span(s2_l_dortmund_hannover, amp2_l_dortmund_hannover)
+        s3_l_dortmund_hannover = Span('SMF', 60.4)
+        amp3_l_dortmund_hannover = net.add_amplifier('amp3_l_dortmund_hannover', 'EDFA', target_gain=13.3)
+        l_dortmund_hannover.add_span(s3_l_dortmund_hannover, amp3_l_dortmund_hannover)
 
-        boost_amp_hannover_dortmund = self.net.add_amplifier('boost_amp_hannover_dortmund', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_dortmund)
-        link_hannover_dortmund = self.net.add_link(roadm_dortmund, roadm_hannover,
-                                                   boost_amp=boost_amp_hannover_dortmund)
-        self.links.append(link_hannover_dortmund)
-        span1_link_hannover_dortmund = self.net.add_span('SMF', 100)
-        amp1_link_hannover_dortmund = self.net.add_amplifier('amp1_link_hannover_dortmund', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_dortmund)
-        self.net.add_span_to_link(link_hannover_dortmund, span1_link_hannover_dortmund, amp1_link_hannover_dortmund)
+        boost_hannover_dortmund = net.add_amplifier('boost_hannover_dortmund', 'EDFA', target_gain=6)
+        l_hannover_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
+                                           name_to_roadm['roadm_hannover'],
+                                           boost_amp=boost_hannover_dortmund)
+        s1_l_hannover_dortmund = Span('SMF', 80)
+        amp1_l_hannover_dortmund = net.add_amplifier('amp1_l_hannover_dortmund', 'EDFA', target_gain=17.6)
+        l_hannover_dortmund.add_span(s1_l_hannover_dortmund, amp1_l_hannover_dortmund)
+        s2_l_hannover_dortmund = Span('SMF', 80)
+        amp2_l_hannover_dortmund = net.add_amplifier('amp2_l_hannover_dortmund', 'EDFA', target_gain=17.6)
+        l_hannover_dortmund.add_span(s2_l_hannover_dortmund, amp2_l_hannover_dortmund)
+        s3_l_hannover_dortmund = Span('SMF', 60.4)
+        amp3_l_hannover_dortmund = net.add_amplifier('amp3_l_hannover_dortmund', 'EDFA', target_gain=13.3)
+        l_hannover_dortmund.add_span(s3_l_hannover_dortmund, amp3_l_hannover_dortmund)
 
         # Link between Dortmund and Koln - 84.3 km
         # and the bidirectional (independent) link
-        boost_amp_dortmund_koln = self.net.add_amplifier('boost_amp_dortmund_koln', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_dortmund_koln)
-        link_dortmund_koln = self.net.add_link(roadm_dortmund, roadm_koln, boost_amp=boost_amp_dortmund_koln)
-        self.links.append(link_dortmund_koln)
-        span1_link_dortmund_koln = self.net.add_span('SMF', 100)
-        amp1_link_dortmund_koln = self.net.add_amplifier('amp1_link_dortmund_koln', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_dortmund_koln)
-        self.net.add_span_to_link(link_dortmund_koln, span1_link_dortmund_koln, amp1_link_dortmund_koln)
+        boost_dortmund_koln = net.add_amplifier('boost_dortmund_koln', 'EDFA', target_gain=6)
+        l_dortmund_koln = net.add_link(name_to_roadm['roadm_dortmund'],
+                                       name_to_roadm['roadm_koln'],
+                                       boost_amp=boost_dortmund_koln)
+        s1_l_dortmund_koln = Span('SMF', 84.3)
+        amp1_l_dortmund_koln = net.add_amplifier('amp1_l_dortmund_koln', 'EDFA', target_gain=18.6)
+        l_dortmund_koln.add_span(s1_l_dortmund_koln, amp1_l_dortmund_koln)
 
-        boost_amp_koln_dortmund = self.net.add_amplifier('boost_amp_koln_dortmund', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_koln_dortmund)
-        link_koln_dortmund = self.net.add_link(roadm_dortmund, roadm_koln, boost_amp=boost_amp_koln_dortmund)
-        self.links.append(link_koln_dortmund)
-        span1_link_koln_dortmund = self.net.add_span('SMF', 100)
-        amp1_link_koln_dortmund = self.net.add_amplifier('amp1_link_koln_dortmund', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_koln_dortmund)
-        self.net.add_span_to_link(link_koln_dortmund, span1_link_koln_dortmund, amp1_link_koln_dortmund)
+        boost_koln_dortmund = net.add_amplifier('boost_koln_dortmund', 'EDFA', target_gain=6)
+        l_koln_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
+                                       name_to_roadm['roadm_koln'],
+                                       boost_amp=boost_koln_dortmund)
+        s1_l_koln_dortmund = Span('SMF', 84.3)
+        amp1_l_koln_dortmund = net.add_amplifier('amp1_l_koln_dortmund', 'EDFA', target_gain=18.6)
+        l_koln_dortmund.add_span(s1_l_koln_dortmund, amp1_l_koln_dortmund)
 
         # Link between Dusseldorf and Essen - 36.9 km
         # and the bidirectional (independent) link
-        boost_amp_dusseldorf_essen = self.net.add_amplifier('boost_amp_dusseldorf_essen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_dusseldorf_essen)
-        link_dusseldorf_essen = self.net.add_link(roadm_dusseldorf, roadm_essen, boost_amp=boost_amp_dusseldorf_essen)
-        self.links.append(link_dusseldorf_essen)
-        span1_link_dusseldorf_essen = self.net.add_span('SMF', 100)
-        amp1_link_dusseldorf_essen = self.net.add_amplifier('amp1_link_dusseldorf_essen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_dusseldorf_essen)
-        self.net.add_span_to_link(link_dusseldorf_essen, span1_link_dusseldorf_essen, amp1_link_dusseldorf_essen)
+        boost_dusseldorf_essen = net.add_amplifier('boost_dusseldorf_essen', 'EDFA', target_gain=6)
+        l_dusseldorf_essen = net.add_link(name_to_roadm['roadm_dusseldorf'],
+                                          name_to_roadm['roadm_essen'],
+                                          boost_amp=boost_dusseldorf_essen)
+        s1_l_dusseldorf_essen = Span('SMF', 36.9)
+        amp1_l_dusseldorf_essen = net.add_amplifier('amp1_l_dusseldorf_essen', 'EDFA', target_gain=8.1)
+        l_dusseldorf_essen.add_span(s1_l_dusseldorf_essen, amp1_l_dusseldorf_essen)
 
-        boost_amp_essen_dusseldorf = self.net.add_amplifier('boost_amp_essen_dusseldorf', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_essen_dusseldorf)
-        link_essen_dusseldorf = self.net.add_link(roadm_dusseldorf, roadm_essen, boost_amp=boost_amp_essen_dusseldorf)
-        self.links.append(link_essen_dusseldorf)
-        span1_link_essen_dusseldorf = self.net.add_span('SMF', 100)
-        amp1_link_essen_dusseldorf = self.net.add_amplifier('amp1_link_essen_dusseldorf', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_essen_dusseldorf)
-        self.net.add_span_to_link(link_essen_dusseldorf, span1_link_essen_dusseldorf, amp1_link_essen_dusseldorf)
+        boost_essen_dusseldorf = net.add_amplifier('boost_essen_dusseldorf', 'EDFA', target_gain=6)
+        l_essen_dusseldorf = net.add_link(name_to_roadm['roadm_dusseldorf'],
+                                          name_to_roadm['roadm_essen'],
+                                          boost_amp=boost_essen_dusseldorf)
+        s1_l_essen_dusseldorf = Span('SMF', 36.9)
+        amp1_l_essen_dusseldorf = net.add_amplifier('amp1_l_essen_dusseldorf', 'EDFA', target_gain=8.1)
+        l_essen_dusseldorf.add_span(s1_l_essen_dusseldorf, amp1_l_essen_dusseldorf)
 
         # Link between Dusseldorf and Koln - 40.9 km
         # and the bidirectional (independent) link
-        boost_amp_dusseldorf_koln = self.net.add_amplifier('boost_amp_dusseldorf_koln', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_dusseldorf_koln)
-        link_dusseldorf_koln = self.net.add_link(roadm_dusseldorf, roadm_koln, boost_amp=boost_amp_dusseldorf_koln)
-        self.links.append(link_dusseldorf_koln)
-        span1_link_dusseldorf_koln = self.net.add_span('SMF', 100)
-        amp1_link_dusseldorf_koln = self.net.add_amplifier('amp1_link_dusseldorf_koln', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_dusseldorf_koln)
-        self.net.add_span_to_link(link_dusseldorf_koln, span1_link_dusseldorf_koln, amp1_link_dusseldorf_koln)
+        boost_dusseldorf_koln = net.add_amplifier('boost_dusseldorf_koln', 'EDFA', target_gain=6)
+        l_dusseldorf_koln = net.add_link(name_to_roadm['roadm_dusseldorf'],
+                                         name_to_roadm['roadm_koln'],
+                                         boost_amp=boost_dusseldorf_koln)
+        s1_l_dusseldorf_koln = Span('SMF', 40.9)
+        amp1_l_dusseldorf_koln = net.add_amplifier('amp1_l_dusseldorf_koln', 'EDFA', target_gain=9)
+        l_dusseldorf_koln.add_span(s1_l_dusseldorf_koln, amp1_l_dusseldorf_koln)
 
-        boost_amp_koln_dusseldorf = self.net.add_amplifier('boost_amp_koln_dusseldorf', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_koln_dusseldorf)
-        link_koln_dusseldorf = self.net.add_link(roadm_dusseldorf, roadm_koln, boost_amp=boost_amp_koln_dusseldorf)
-        self.links.append(link_koln_dusseldorf)
-        span1_link_koln_dusseldorf = self.net.add_span('SMF', 100)
-        amp1_link_koln_dusseldorf = self.net.add_amplifier('amp1_link_koln_dusseldorf', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_koln_dusseldorf)
-        self.net.add_span_to_link(link_koln_dusseldorf, span1_link_koln_dusseldorf, amp1_link_koln_dusseldorf)
+        boost_koln_dusseldorf = net.add_amplifier('boost_koln_dusseldorf', 'EDFA', target_gain=6)
+        l_koln_dusseldorf = net.add_link(name_to_roadm['roadm_dusseldorf'],
+                                         name_to_roadm['roadm_koln'],
+                                         boost_amp=boost_koln_dusseldorf)
+        s1_l_koln_dusseldorf = Span('SMF', 40.9)
+        amp1_l_koln_dusseldorf = net.add_amplifier('amp1_l_koln_dusseldorf', 'EDFA', target_gain=9)
+        l_koln_dusseldorf.add_span(s1_l_koln_dusseldorf, amp1_l_koln_dusseldorf)
 
         # Link between Frankfurt and Hannover - 313.9 km
         # and the bidirectional (independent) link
-        boost_amp_frankfurt_hannover = self.net.add_amplifier('boost_amp_frankfurt_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_frankfurt_hannover)
-        link_frankfurt_hannover = self.net.add_link(roadm_frankfurt, roadm_hannover,
-                                                    boost_amp=boost_amp_frankfurt_hannover)
-        self.links.append(link_frankfurt_hannover)
-        span1_link_frankfurt_hannover = self.net.add_span('SMF', 100)
-        amp1_link_frankfurt_hannover = self.net.add_amplifier('amp1_link_frankfurt_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_frankfurt_hannover)
-        self.net.add_span_to_link(link_frankfurt_hannover, span1_link_frankfurt_hannover, amp1_link_frankfurt_hannover)
+        boost_frankfurt_hannover = net.add_amplifier('boost_frankfurt_hannover', 'EDFA', target_gain=6)
+        l_frankfurt_hannover = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                            name_to_roadm['roadm_hannover'],
+                                            boost_amp=boost_frankfurt_hannover)
+        s1_l_frankfurt_hannover = Span('SMF', 80)
+        amp1_l_frankfurt_hannover = net.add_amplifier('amp1_l_frankfurt_hannover', 'EDFA', target_gain=17.6)
+        l_frankfurt_hannover.add_span(s1_l_frankfurt_hannover, amp1_l_frankfurt_hannover)
+        s2_l_frankfurt_hannover = Span('SMF', 80)
+        amp2_l_frankfurt_hannover = net.add_amplifier('amp2_l_frankfurt_hannover', 'EDFA', target_gain=17.6)
+        l_frankfurt_hannover.add_span(s2_l_frankfurt_hannover, amp2_l_frankfurt_hannover)
+        s3_l_frankfurt_hannover = Span('SMF', 80)
+        amp3_l_frankfurt_hannover = net.add_amplifier('amp3_l_frankfurt_hannover', 'EDFA', target_gain=17.6)
+        l_frankfurt_hannover.add_span(s3_l_frankfurt_hannover, amp3_l_frankfurt_hannover)
+        s4_l_frankfurt_hannover = Span('SMF', 73.9)
+        amp4_l_frankfurt_hannover = net.add_amplifier('amp4_l_frankfurt_hannover', 'EDFA', target_gain=16.3)
+        l_frankfurt_hannover.add_span(s4_l_frankfurt_hannover, amp4_l_frankfurt_hannover)
 
-        boost_amp_hannover_frankfurt = self.net.add_amplifier('boost_amp_hannover_frankfurt', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_frankfurt)
-        link_hannover_frankfurt = self.net.add_link(roadm_frankfurt, roadm_hannover,
-                                                    boost_amp=boost_amp_hannover_frankfurt)
-        self.links.append(link_hannover_frankfurt)
-        span1_link_hannover_frankfurt = self.net.add_span('SMF', 100)
-        amp1_link_hannover_frankfurt = self.net.add_amplifier('amp1_link_hannover_frankfurt', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_frankfurt)
-        self.net.add_span_to_link(link_hannover_frankfurt, span1_link_hannover_frankfurt, amp1_link_hannover_frankfurt)
+        boost_hannover_frankfurt = net.add_amplifier('boost_hannover_frankfurt', 'EDFA', target_gain=6)
+        l_hannover_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                            name_to_roadm['roadm_hannover'],
+                                            boost_amp=boost_hannover_frankfurt)
+        s1_l_hannover_frankfurt = Span('SMF', 80)
+        amp1_l_hannover_frankfurt = net.add_amplifier('amp1_l_hannover_frankfurt', 'EDFA', target_gain=17.6)
+        l_hannover_frankfurt.add_span(s1_l_hannover_frankfurt, amp1_l_hannover_frankfurt)
+        s2_l_hannover_frankfurt = Span('SMF', 80)
+        amp2_l_hannover_frankfurt = net.add_amplifier('amp2_l_hannover_frankfurt', 'EDFA', target_gain=17.6)
+        l_hannover_frankfurt.add_span(s2_l_hannover_frankfurt, amp2_l_hannover_frankfurt)
+        s3_l_hannover_frankfurt = Span('SMF', 80)
+        amp3_l_hannover_frankfurt = net.add_amplifier('amp3_l_hannover_frankfurt', 'EDFA', target_gain=17.6)
+        l_hannover_frankfurt.add_span(s3_l_hannover_frankfurt, amp3_l_hannover_frankfurt)
+        s4_l_hannover_frankfurt = Span('SMF', 73.9)
+        amp4_l_hannover_frankfurt = net.add_amplifier('amp4_l_hannover_frankfurt', 'EDFA', target_gain=16.3)
+        l_hannover_frankfurt.add_span(s4_l_hannover_frankfurt, amp4_l_hannover_frankfurt)
 
         # Link between Frankfurt and Koln - 182 km
         # and the bidirectional (independent) link
-        boost_amp_frankfurt_koln = self.net.add_amplifier('boost_amp_frankfurt_koln', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_frankfurt_koln)
-        link_frankfurt_koln = self.net.add_link(roadm_frankfurt, roadm_koln, boost_amp=boost_amp_frankfurt_koln)
-        self.links.append(link_frankfurt_koln)
-        span1_link_frankfurt_koln = self.net.add_span('SMF', 100)
-        amp1_link_frankfurt_koln = self.net.add_amplifier('amp1_link_frankfurt_koln', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_frankfurt_koln)
-        self.net.add_span_to_link(link_frankfurt_koln, span1_link_frankfurt_koln, amp1_link_frankfurt_koln)
+        boost_frankfurt_koln = net.add_amplifier('boost_frankfurt_koln', 'EDFA', target_gain=6)
+        l_frankfurt_koln = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                        name_to_roadm['roadm_koln'],
+                                        boost_amp=boost_frankfurt_koln)
+        s1_l_frankfurt_koln = Span('SMF', 80)
+        amp1_l_frankfurt_koln = net.add_amplifier('amp1_l_frankfurt_koln', 'EDFA', target_gain=17.6)
+        l_frankfurt_koln.add_span(s1_l_frankfurt_koln, amp1_l_frankfurt_koln)
+        s2_l_frankfurt_koln = Span('SMF', 80)
+        amp2_l_frankfurt_koln = net.add_amplifier('amp2_l_frankfurt_koln', 'EDFA', target_gain=17.6)
+        l_frankfurt_koln.add_span(s2_l_frankfurt_koln, amp2_l_frankfurt_koln)
+        s3_l_frankfurt_koln = Span('SMF', 22)
+        amp3_l_frankfurt_koln = net.add_amplifier('amp3_l_frankfurt_koln', 'EDFA', target_gain=4.9)
+        l_frankfurt_koln.add_span(s3_l_frankfurt_koln, amp3_l_frankfurt_koln)
 
-        boost_amp_koln_frankfurt = self.net.add_amplifier('boost_amp_koln_frankfurt', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_koln_frankfurt)
-        link_koln_frankfurt = self.net.add_link(roadm_frankfurt, roadm_koln, boost_amp=boost_amp_koln_frankfurt)
-        self.links.append(link_koln_frankfurt)
-        span1_link_koln_frankfurt = self.net.add_span('SMF', 100)
-        amp1_link_koln_frankfurt = self.net.add_amplifier('amp1_link_koln_frankfurt', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_koln_frankfurt)
-        self.net.add_span_to_link(link_koln_frankfurt, span1_link_koln_frankfurt, amp1_link_koln_frankfurt)
+        boost_koln_frankfurt = net.add_amplifier('boost_koln_frankfurt', 'EDFA', target_gain=6)
+        l_koln_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                        name_to_roadm['roadm_koln'],
+                                        boost_amp=boost_koln_frankfurt)
+        s1_l_koln_frankfurt = Span('SMF', 80)
+        amp1_l_koln_frankfurt = net.add_amplifier('amp1_l_koln_frankfurt', 'EDFA', target_gain=17.6)
+        l_koln_frankfurt.add_span(s1_l_koln_frankfurt, amp1_l_koln_frankfurt)
+        s2_l_koln_frankfurt = Span('SMF', 80)
+        amp2_l_koln_frankfurt = net.add_amplifier('amp2_l_koln_frankfurt', 'EDFA', target_gain=17.6)
+        l_koln_frankfurt.add_span(s2_l_koln_frankfurt, amp2_l_koln_frankfurt)
+        s3_l_koln_frankfurt = Span('SMF', 22)
+        amp3_l_koln_frankfurt = net.add_amplifier('amp3_l_koln_frankfurt', 'EDFA', target_gain=4.9)
+        l_koln_frankfurt.add_span(s3_l_koln_frankfurt, amp3_l_koln_frankfurt)
 
         # Link between Frankfurt and Leipzig - 313.9 km
         # and the bidirectional (independent) link
-        boost_amp_frankfurt_leipzig = self.net.add_amplifier('boost_amp_frankfurt_leipzig', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_frankfurt_leipzig)
-        link_frankfurt_leipzig = self.net.add_link(roadm_frankfurt, roadm_leipzig,
-                                                   boost_amp=boost_amp_frankfurt_leipzig)
-        self.links.append(link_frankfurt_leipzig)
-        span1_link_frankfurt_leipzig = self.net.add_span('SMF', 100)
-        amp1_link_frankfurt_leipzig = self.net.add_amplifier('amp1_link_frankfurt_leipzig', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_frankfurt_leipzig)
-        self.net.add_span_to_link(link_frankfurt_leipzig, span1_link_frankfurt_leipzig, amp1_link_frankfurt_leipzig)
+        boost_frankfurt_leipzig = net.add_amplifier('boost_frankfurt_leipzig', 'EDFA', target_gain=6)
+        l_frankfurt_leipzig = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                           name_to_roadm['roadm_leipzig'],
+                                           boost_amp=boost_frankfurt_leipzig)
+        s1_l_frankfurt_leipzig = Span('SMF', 80)
+        amp1_l_frankfurt_leipzig = net.add_amplifier('amp1_l_frankfurt_leipzig', 'EDFA', target_gain=17.6)
+        l_frankfurt_leipzig.add_span(s1_l_frankfurt_leipzig, amp1_l_frankfurt_leipzig)
+        s2_l_frankfurt_leipzig = Span('SMF', 80)
+        amp2_l_frankfurt_leipzig = net.add_amplifier('amp2_l_frankfurt_leipzig', 'EDFA', target_gain=17.6)
+        l_frankfurt_leipzig.add_span(s2_l_frankfurt_leipzig, amp2_l_frankfurt_leipzig)
+        s3_l_frankfurt_leipzig = Span('SMF', 80)
+        amp3_l_frankfurt_leipzig = net.add_amplifier('amp3_l_frankfurt_leipzig', 'EDFA', target_gain=17.6)
+        l_frankfurt_leipzig.add_span(s3_l_frankfurt_leipzig, amp3_l_frankfurt_leipzig)
+        s4_l_frankfurt_leipzig = Span('SMF', 73.9)
+        amp4_l_frankfurt_leipzig = net.add_amplifier('amp4_l_frankfurt_leipzig', 'EDFA', target_gain=16.3)
+        l_frankfurt_leipzig.add_span(s4_l_frankfurt_leipzig, amp4_l_frankfurt_leipzig)
 
-        boost_amp_leipzig_frankfurt = self.net.add_amplifier('boost_amp_leipzig_frankfurt', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_leipzig_frankfurt)
-        link_leipzig_frankfurt = self.net.add_link(roadm_frankfurt, roadm_leipzig,
-                                                   boost_amp=boost_amp_leipzig_frankfurt)
-        self.links.append(link_leipzig_frankfurt)
-        span1_link_leipzig_frankfurt = self.net.add_span('SMF', 100)
-        amp1_link_leipzig_frankfurt = self.net.add_amplifier('amp1_link_leipzig_frankfurt', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_leipzig_frankfurt)
-        self.net.add_span_to_link(link_leipzig_frankfurt, span1_link_leipzig_frankfurt, amp1_link_leipzig_frankfurt)
+        boost_leipzig_frankfurt = net.add_amplifier('boost_leipzig_frankfurt', 'EDFA', target_gain=6)
+        l_leipzig_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                           name_to_roadm['roadm_leipzig'],
+                                           boost_amp=boost_leipzig_frankfurt)
+        s1_l_leipzig_frankfurt = Span('SMF', 80)
+        amp1_l_leipzig_frankfurt = net.add_amplifier('amp1_l_leipzig_frankfurt', 'EDFA', target_gain=17.6)
+        l_leipzig_frankfurt.add_span(s1_l_leipzig_frankfurt, amp1_l_leipzig_frankfurt)
+        s2_l_leipzig_frankfurt = Span('SMF', 80)
+        amp2_l_leipzig_frankfurt = net.add_amplifier('amp2_l_leipzig_frankfurt', 'EDFA', target_gain=17.6)
+        l_leipzig_frankfurt.add_span(s2_l_leipzig_frankfurt, amp2_l_leipzig_frankfurt)
+        s3_l_leipzig_frankfurt = Span('SMF', 80)
+        amp3_l_leipzig_frankfurt = net.add_amplifier('amp3_l_leipzig_frankfurt', 'EDFA', target_gain=17.6)
+        l_leipzig_frankfurt.add_span(s3_l_leipzig_frankfurt, amp3_l_leipzig_frankfurt)
+        s4_l_leipzig_frankfurt = Span('SMF', 73.9)
+        amp4_l_leipzig_frankfurt = net.add_amplifier('amp4_l_leipzig_frankfurt', 'EDFA', target_gain=16.3)
+        l_leipzig_frankfurt.add_span(s4_l_leipzig_frankfurt, amp4_l_leipzig_frankfurt)
 
         # Link between Frankfurt and Nurnberg - 224.1 km
         # and the bidirectional (independent) link
-        boost_amp_frankfurt_nurnberg = self.net.add_amplifier('boost_amp_frankfurt_nurnberg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_frankfurt_nurnberg)
-        link_frankfurt_nurnberg = self.net.add_link(roadm_frankfurt, roadm_nurnberg,
-                                                    boost_amp=boost_amp_frankfurt_nurnberg)
-        self.links.append(link_frankfurt_nurnberg)
-        span1_link_frankfurt_nurnberg = self.net.add_span('SMF', 100)
-        amp1_link_frankfurt_nurnberg = self.net.add_amplifier('amp1_link_frankfurt_nurnberg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_frankfurt_nurnberg)
-        self.net.add_span_to_link(link_frankfurt_nurnberg, span1_link_frankfurt_nurnberg, amp1_link_frankfurt_nurnberg)
+        boost_frankfurt_nurnberg = net.add_amplifier('boost_frankfurt_nurnberg', 'EDFA', target_gain=6)
+        l_frankfurt_nurnberg = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                            name_to_roadm['roadm_nurnberg'],
+                                            boost_amp=boost_frankfurt_nurnberg)
+        s1_l_frankfurt_nurnberg = Span('SMF', 80)
+        amp1_l_frankfurt_nurnberg = net.add_amplifier('amp1_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
+        l_frankfurt_nurnberg.add_span(s1_l_frankfurt_nurnberg, amp1_l_frankfurt_nurnberg)
+        s2_l_frankfurt_nurnberg = Span('SMF', 80)
+        amp2_l_frankfurt_nurnberg = net.add_amplifier('amp2_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
+        l_frankfurt_nurnberg.add_span(s2_l_frankfurt_nurnberg, amp2_l_frankfurt_nurnberg)
+        s3_l_frankfurt_nurnberg = Span('SMF', 64.1)
+        amp3_l_frankfurt_nurnberg = net.add_amplifier('amp3_l_frankfurt_nurnberg', 'EDFA', target_gain=14.1)
+        l_frankfurt_nurnberg.add_span(s3_l_frankfurt_nurnberg, amp3_l_frankfurt_nurnberg)
 
-        boost_amp_nurnberg_frankfurt = self.net.add_amplifier('boost_amp_nurnberg_frankfurt', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_nurnberg_frankfurt)
-        link_nurnberg_frankfurt = self.net.add_link(roadm_frankfurt, roadm_nurnberg,
-                                                    boost_amp=boost_amp_nurnberg_frankfurt)
-        self.links.append(link_nurnberg_frankfurt)
-        span1_link_nurnberg_frankfurt = self.net.add_span('SMF', 100)
-        amp1_link_nurnberg_frankfurt = self.net.add_amplifier('amp1_link_nurnberg_frankfurt', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_nurnberg_frankfurt)
-        self.net.add_span_to_link(link_nurnberg_frankfurt, span1_link_nurnberg_frankfurt, amp1_link_nurnberg_frankfurt)
+        boost_nurnberg_frankfurt = net.add_amplifier('boost_nurnberg_frankfurt', 'EDFA', target_gain=6)
+        l_nurnberg_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                            name_to_roadm['roadm_nurnberg'],
+                                            boost_amp=boost_nurnberg_frankfurt)
+        s1_l_nurnberg_frankfurt = Span('SMF', 80)
+        amp1_l_nurnberg_frankfurt = net.add_amplifier('amp1_l_nurnberg_frankfurt', 'EDFA', target_gain=17.6)
+        l_nurnberg_frankfurt.add_span(s1_l_nurnberg_frankfurt, amp1_l_nurnberg_frankfurt)
+        s2_l_nurnberg_frankfurt = Span('SMF', 80)
+        amp2_l_nurnberg_frankfurt = net.add_amplifier('amp2_l_nurnberg_frankfurt', 'EDFA', target_gain=17.6)
+        l_nurnberg_frankfurt.add_span(s2_l_nurnberg_frankfurt, amp2_l_nurnberg_frankfurt)
+        s3_l_nurnberg_frankfurt = Span('SMF', 64.1)
+        amp3_l_nurnberg_frankfurt = net.add_amplifier('amp3_l_nurnberg_frankfurt', 'EDFA', target_gain=14.1)
+        l_nurnberg_frankfurt.add_span(s3_l_nurnberg_frankfurt, amp3_l_nurnberg_frankfurt)
 
         # Link between Frankfurt and Stuttgart - 207.4 km
         # and the bidirectional (independent) link
-        boost_amp_frankfurt_stuttgart = self.net.add_amplifier('boost_amp_frankfurt_stuttgart', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_frankfurt_stuttgart)
-        link_frankfurt_stuttgart = self.net.add_link(roadm_frankfurt, roadm_stuttgart,
-                                                     boost_amp=boost_amp_frankfurt_stuttgart)
-        self.links.append(link_frankfurt_stuttgart)
-        span1_link_frankfurt_stuttgart = self.net.add_span('SMF', 100)
-        amp1_link_frankfurt_stuttgart = self.net.add_amplifier('amp1_link_frankfurt_stuttgart', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_frankfurt_stuttgart)
-        self.net.add_span_to_link(link_frankfurt_stuttgart, span1_link_frankfurt_stuttgart,
-                                  amp1_link_frankfurt_stuttgart)
+        boost_frankfurt_stuttgart = net.add_amplifier('boost_frankfurt_stuttgart', 'EDFA', target_gain=6)
+        l_frankfurt_stuttgart = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                             name_to_roadm['roadm_stuttgart'],
+                                             boost_amp=boost_frankfurt_stuttgart)
+        s1_l_frankfurt_stuttgart = Span('SMF', 80)
+        amp1_l_frankfurt_stuttgart = net.add_amplifier('amp1_l_frankfurt_stuttgart', 'EDFA', target_gain=17.6)
+        l_frankfurt_stuttgart.add_span(s1_l_frankfurt_stuttgart, amp1_l_frankfurt_stuttgart)
+        s2_l_frankfurt_stuttgart = Span('SMF', 80)
+        amp2_l_frankfurt_stuttgart = net.add_amplifier('amp2_l_frankfurt_stuttgart', 'EDFA', target_gain=17.6)
+        l_frankfurt_stuttgart.add_span(s2_l_frankfurt_stuttgart, amp2_l_frankfurt_stuttgart)
+        s3_l_frankfurt_stuttgart = Span('SMF', 47.4)
+        amp3_l_frankfurt_stuttgart = net.add_amplifier('amp3_l_frankfurt_stuttgart', 'EDFA', target_gain=10.4)
+        l_frankfurt_stuttgart.add_span(s3_l_frankfurt_stuttgart, amp3_l_frankfurt_stuttgart)
 
-        boost_amp_stuttgart_frankfurt = self.net.add_amplifier('boost_amp_stuttgart_frankfurt', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_stuttgart_frankfurt)
-        link_stuttgart_frankfurt = self.net.add_link(roadm_frankfurt, roadm_stuttgart,
-                                                     boost_amp=boost_amp_stuttgart_frankfurt)
-        self.links.append(link_stuttgart_frankfurt)
-        span1_link_stuttgart_frankfurt = self.net.add_span('SMF', 100)
-        amp1_link_stuttgart_frankfurt = self.net.add_amplifier('amp1_link_stuttgart_frankfurt', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_stuttgart_frankfurt)
-        self.net.add_span_to_link(link_stuttgart_frankfurt, span1_link_stuttgart_frankfurt,
-                                  amp1_link_stuttgart_frankfurt)
+        boost_stuttgart_frankfurt = net.add_amplifier('boost_stuttgart_frankfurt', 'EDFA', target_gain=6)
+        l_stuttgart_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
+                                             name_to_roadm['roadm_stuttgart'],
+                                             boost_amp=boost_stuttgart_frankfurt)
+        s1_l_stuttgart_frankfurt = Span('SMF', 80)
+        amp1_l_stuttgart_frankfurt = net.add_amplifier('amp1_l_stuttgart_frankfurt', 'EDFA', target_gain=17.6)
+        l_stuttgart_frankfurt.add_span(s1_l_stuttgart_frankfurt, amp1_l_stuttgart_frankfurt)
+        s2_l_stuttgart_frankfurt = Span('SMF', 80)
+        amp2_l_stuttgart_frankfurt = net.add_amplifier('amp2_l_stuttgart_frankfurt', 'EDFA', target_gain=17.6)
+        l_stuttgart_frankfurt.add_span(s2_l_stuttgart_frankfurt, amp2_l_stuttgart_frankfurt)
+        s3_l_stuttgart_frankfurt = Span('SMF', 47.4)
+        amp3_l_stuttgart_frankfurt = net.add_amplifier('amp3_l_stuttgart_frankfurt', 'EDFA', target_gain=10.4)
+        l_stuttgart_frankfurt.add_span(s3_l_stuttgart_frankfurt, amp3_l_stuttgart_frankfurt)
 
         # Link between Hamburg and Hannover - 160.9 km
         # and the bidirectional (independent) link
-        boost_amp_hamburg_hannover = self.net.add_amplifier('boost_amp_hamburg_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hamburg_hannover)
-        link_hamburg_hannover = self.net.add_link(roadm_hamburg, roadm_hannover, boost_amp=boost_amp_hamburg_hannover)
-        self.links.append(link_hamburg_hannover)
-        span1_link_hamburg_hannover = self.net.add_span('SMF', 100)
-        amp1_link_hamburg_hannover = self.net.add_amplifier('amp1_link_hamburg_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hamburg_hannover)
-        self.net.add_span_to_link(link_hamburg_hannover, span1_link_hamburg_hannover, amp1_link_hamburg_hannover)
+        boost_hamburg_hannover = net.add_amplifier('boost_hamburg_hannover', 'EDFA', target_gain=6)
+        l_hamburg_hannover = net.add_link(name_to_roadm['roadm_hamburg'],
+                                          name_to_roadm['roadm_hannover'],
+                                          boost_amp=boost_hamburg_hannover)
+        s1_l_hamburg_hannover = Span('SMF', 80)
+        amp1_l_hamburg_hannover = net.add_amplifier('amp1_l_hamburg_hannover', 'EDFA', target_gain=17.6)
+        l_hamburg_hannover.add_span(s1_l_hamburg_hannover, amp1_l_hamburg_hannover)
+        s2_l_hamburg_hannover = Span('SMF', 80.9)
+        amp2_l_hamburg_hannover = net.add_amplifier('amp2_l_hamburg_hannover', 'EDFA', target_gain=17.8)
+        l_hamburg_hannover.add_span(s2_l_hamburg_hannover, amp2_l_hamburg_hannover)
 
-        boost_amp_hannover_hamburg = self.net.add_amplifier('boost_amp_hannover_hamburg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_hamburg)
-        link_hannover_hamburg = self.net.add_link(roadm_hamburg, roadm_hannover, boost_amp=boost_amp_hannover_hamburg)
-        self.links.append(link_hannover_hamburg)
-        span1_link_hannover_hamburg = self.net.add_span('SMF', 100)
-        amp1_link_hannover_hamburg = self.net.add_amplifier('amp1_link_hannover_hamburg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_hamburg)
-        self.net.add_span_to_link(link_hannover_hamburg, span1_link_hannover_hamburg, amp1_link_hannover_hamburg)
+        boost_hannover_hamburg = net.add_amplifier('boost_hannover_hamburg', 'EDFA', target_gain=6)
+        l_hannover_hamburg = net.add_link(name_to_roadm['roadm_hamburg'],
+                                          name_to_roadm['roadm_hannover'],
+                                          boost_amp=boost_hannover_hamburg)
+        s1_l_hannover_hamburg = Span('SMF', 80)
+        amp1_l_hannover_hamburg = net.add_amplifier('amp1_l_hannover_hamburg', 'EDFA', target_gain=17.6)
+        l_hannover_hamburg.add_span(s1_l_hannover_hamburg, amp1_l_hannover_hamburg)
+        s2_l_hannover_hamburg = Span('SMF', 80.9)
+        amp2_l_hannover_hamburg = net.add_amplifier('amp2_l_hannover_hamburg', 'EDFA', target_gain=17.8)
+        l_hannover_hamburg.add_span(s2_l_hannover_hamburg, amp2_l_hannover_hamburg)
 
         # Link between Hannover and Leipzig - 257.2 km
         # and the bidirectional (independent) link
-        boost_amp_hannover_leipzig = self.net.add_amplifier('boost_amp_hannover_leipzig', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_hannover_leipzig)
-        link_hannover_leipzig = self.net.add_link(roadm_hannover, roadm_leipzig, boost_amp=boost_amp_hannover_leipzig)
-        self.links.append(link_hannover_leipzig)
-        span1_link_hannover_leipzig = self.net.add_span('SMF', 100)
-        amp1_link_hannover_leipzig = self.net.add_amplifier('amp1_link_hannover_leipzig', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_hannover_leipzig)
-        self.net.add_span_to_link(link_hannover_leipzig, span1_link_hannover_leipzig, amp1_link_hannover_leipzig)
+        boost_hannover_leipzig = net.add_amplifier('boost_hannover_leipzig', 'EDFA', target_gain=6)
+        l_hannover_leipzig = net.add_link(name_to_roadm['roadm_hannover'],
+                                          name_to_roadm['roadm_leipzig'],
+                                          boost_amp=boost_hannover_leipzig)
+        s1_l_hannover_leipzig = Span('SMF', 80)
+        amp1_l_hannover_leipzig = net.add_amplifier('amp1_l_hannover_leipzig', 'EDFA', target_gain=17.6)
+        l_hannover_leipzig.add_span(s1_l_hannover_leipzig, amp1_l_hannover_leipzig)
+        s2_l_hannover_leipzig = Span('SMF', 80)
+        amp2_l_hannover_leipzig = net.add_amplifier('amp2_l_hannover_leipzig', 'EDFA', target_gain=17.6)
+        l_hannover_leipzig.add_span(s2_l_hannover_leipzig, amp2_l_hannover_leipzig)
+        s3_l_hannover_leipzig = Span('SMF', 80)
+        amp3_l_hannover_leipzig = net.add_amplifier('amp3_l_hannover_leipzig', 'EDFA', target_gain=17.6)
+        l_hannover_leipzig.add_span(s3_l_hannover_leipzig, amp3_l_hannover_leipzig)
+        s4_l_hannover_leipzig = Span('SMF', 17.2)
+        amp4_l_hannover_leipzig = net.add_amplifier('amp4_l_hannover_leipzig', 'EDFA', target_gain=3.8)
+        l_hannover_leipzig.add_span(s4_l_hannover_leipzig, amp4_l_hannover_leipzig)
 
-        boost_amp_leipzig_hannover = self.net.add_amplifier('boost_amp_leipzig_hannover', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_leipzig_hannover)
-        link_leipzig_hannover = self.net.add_link(roadm_hannover, roadm_leipzig, boost_amp=boost_amp_leipzig_hannover)
-        self.links.append(link_leipzig_hannover)
-        span1_link_leipzig_hannover = self.net.add_span('SMF', 100)
-        amp1_link_leipzig_hannover = self.net.add_amplifier('amp1_link_leipzig_hannover', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_leipzig_hannover)
-        self.net.add_span_to_link(link_leipzig_hannover, span1_link_leipzig_hannover, amp1_link_leipzig_hannover)
+        boost_leipzig_hannover = net.add_amplifier('boost_leipzig_hannover', 'EDFA', target_gain=6)
+        l_leipzig_hannover = net.add_link(name_to_roadm['roadm_hannover'],
+                                          name_to_roadm['roadm_leipzig'],
+                                          boost_amp=boost_leipzig_hannover)
+        s1_l_leipzig_hannover = Span('SMF', 80)
+        amp1_l_leipzig_hannover = net.add_amplifier('amp1_l_leipzig_hannover', 'EDFA', target_gain=17.6)
+        l_leipzig_hannover.add_span(s1_l_leipzig_hannover, amp1_l_leipzig_hannover)
+        s2_l_leipzig_hannover = Span('SMF', 80)
+        amp2_l_leipzig_hannover = net.add_amplifier('amp2_l_leipzig_hannover', 'EDFA', target_gain=17.6)
+        l_leipzig_hannover.add_span(s2_l_leipzig_hannover, amp2_l_leipzig_hannover)
+        s3_l_leipzig_hannover = Span('SMF', 80)
+        amp3_l_leipzig_hannover = net.add_amplifier('amp3_l_leipzig_hannover', 'EDFA', target_gain=17.6)
+        l_leipzig_hannover.add_span(s3_l_leipzig_hannover, amp3_l_leipzig_hannover)
+        s4_l_leipzig_hannover = Span('SMF', 17.2)
+        amp4_l_leipzig_hannover = net.add_amplifier('amp4_l_leipzig_hannover', 'EDFA', target_gain=3.8)
+        l_leipzig_hannover.add_span(s4_l_leipzig_hannover, amp4_l_leipzig_hannover)
 
         # Link between Leipzig and Nurnberg - 274.7 km
         # and the bidirectional (independent) link
-        boost_amp_leipzig_nurnberg = self.net.add_amplifier('boost_amp_leipzig_nurnberg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_leipzig_nurnberg)
-        link_leipzig_nurnberg = self.net.add_link(roadm_leipzig, roadm_nurnberg, boost_amp=boost_amp_leipzig_nurnberg)
-        self.links.append(link_leipzig_nurnberg)
-        span1_link_leipzig_nurnberg = self.net.add_span('SMF', 100)
-        amp1_link_leipzig_nurnberg = self.net.add_amplifier('amp1_link_leipzig_nurnberg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_leipzig_nurnberg)
-        self.net.add_span_to_link(link_leipzig_nurnberg, span1_link_leipzig_nurnberg, amp1_link_leipzig_nurnberg)
+        boost_leipzig_nurnberg = net.add_amplifier('boost_leipzig_nurnberg', 'EDFA', target_gain=6)
+        l_leipzig_nurnberg = net.add_link(name_to_roadm['roadm_leipzig'],
+                                          name_to_roadm['roadm_nurnberg'],
+                                          boost_amp=boost_leipzig_nurnberg)
+        s1_l_leipzig_nurnberg = Span('SMF', 80)
+        amp1_l_leipzig_nurnberg = net.add_amplifier('amp1_l_leipzig_nurnberg', 'EDFA', target_gain=17.6)
+        l_leipzig_nurnberg.add_span(s1_l_leipzig_nurnberg, amp1_l_leipzig_nurnberg)
+        s2_l_leipzig_nurnberg = Span('SMF', 80)
+        amp2_l_leipzig_nurnberg = net.add_amplifier('amp2_l_leipzig_nurnberg', 'EDFA', target_gain=17.6)
+        l_leipzig_nurnberg.add_span(s2_l_leipzig_nurnberg, amp2_l_leipzig_nurnberg)
+        s3_l_leipzig_nurnberg = Span('SMF', 80)
+        amp3_l_leipzig_nurnberg = net.add_amplifier('amp3_l_leipzig_nurnberg', 'EDFA', target_gain=17.6)
+        l_leipzig_nurnberg.add_span(s3_l_leipzig_nurnberg, amp3_l_leipzig_nurnberg)
+        s4_l_leipzig_nurnberg = Span('SMF', 34.7)
+        amp4_l_leipzig_nurnberg = net.add_amplifier('amp4_l_leipzig_nurnberg', 'EDFA', target_gain=7.6)
+        l_leipzig_nurnberg.add_span(s4_l_leipzig_nurnberg, amp4_l_leipzig_nurnberg)
 
-        boost_amp_nurnberg_leipzig = self.net.add_amplifier('boost_amp_nurnberg_leipzig', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_nurnberg_leipzig)
-        link_nurnberg_leipzig = self.net.add_link(roadm_leipzig, roadm_nurnberg, boost_amp=boost_amp_nurnberg_leipzig)
-        self.links.append(link_nurnberg_leipzig)
-        span1_link_nurnberg_leipzig = self.net.add_span('SMF', 100)
-        amp1_link_nurnberg_leipzig = self.net.add_amplifier('amp1_link_nurnberg_leipzig', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_nurnberg_leipzig)
-        self.net.add_span_to_link(link_nurnberg_leipzig, span1_link_nurnberg_leipzig, amp1_link_nurnberg_leipzig)
+        boost_nurnberg_leipzig = net.add_amplifier('boost_nurnberg_leipzig', 'EDFA', target_gain=6)
+        l_nurnberg_leipzig = net.add_link(name_to_roadm['roadm_leipzig'],
+                                          name_to_roadm['roadm_nurnberg'],
+                                          boost_amp=boost_nurnberg_leipzig)
+        s1_l_nurnberg_leipzig = Span('SMF', 80)
+        amp1_l_nurnberg_leipzig = net.add_amplifier('amp1_l_nurnberg_leipzig', 'EDFA', target_gain=17.6)
+        l_nurnberg_leipzig.add_span(s1_l_nurnberg_leipzig, amp1_l_nurnberg_leipzig)
+        s2_l_nurnberg_leipzig = Span('SMF', 80)
+        amp2_l_nurnberg_leipzig = net.add_amplifier('amp2_l_nurnberg_leipzig', 'EDFA', target_gain=17.6)
+        l_nurnberg_leipzig.add_span(s2_l_nurnberg_leipzig, amp2_l_nurnberg_leipzig)
+        s3_l_nurnberg_leipzig = Span('SMF', 80)
+        amp3_l_nurnberg_leipzig = net.add_amplifier('amp3_l_nurnberg_leipzig', 'EDFA', target_gain=17.6)
+        l_nurnberg_leipzig.add_span(s3_l_nurnberg_leipzig, amp3_l_nurnberg_leipzig)
+        s4_l_nurnberg_leipzig = Span('SMF', 34.7)
+        amp4_l_nurnberg_leipzig = net.add_amplifier('amp4_l_nurnberg_leipzig', 'EDFA', target_gain=7.6)
+        l_nurnberg_leipzig.add_span(s4_l_nurnberg_leipzig, amp4_l_nurnberg_leipzig)
 
         # Link between Munchen and Nurnberg - 180.8 km
         # and the bidirectional (independent) link
-        boost_amp_munchen_nurnberg = self.net.add_amplifier('boost_amp_munchen_nurnberg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_munchen_nurnberg)
-        link_munchen_nurnberg = self.net.add_link(roadm_munchen, roadm_nurnberg, boost_amp=boost_amp_munchen_nurnberg)
-        self.links.append(link_munchen_nurnberg)
-        span1_link_munchen_nurnberg = self.net.add_span('SMF', 100)
-        amp1_link_munchen_nurnberg = self.net.add_amplifier('amp1_link_munchen_nurnberg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_munchen_nurnberg)
-        self.net.add_span_to_link(link_munchen_nurnberg, span1_link_munchen_nurnberg, amp1_link_munchen_nurnberg)
+        boost_munchen_nurnberg = net.add_amplifier('boost_munchen_nurnberg', 'EDFA', target_gain=6)
+        l_munchen_nurnberg = net.add_link(name_to_roadm['roadm_munchen'],
+                                          name_to_roadm['roadm_nurnberg'],
+                                          boost_amp=boost_munchen_nurnberg)
+        s1_l_munchen_nurnberg = Span('SMF', 80)
+        amp1_l_munchen_nurnberg = net.add_amplifier('amp1_l_munchen_nurnberg', 'EDFA', target_gain=17.6)
+        l_munchen_nurnberg.add_span(s1_l_munchen_nurnberg, amp1_l_munchen_nurnberg)
+        s2_l_munchen_nurnberg = Span('SMF', 80)
+        amp2_l_munchen_nurnberg = net.add_amplifier('amp2_l_munchen_nurnberg', 'EDFA', target_gain=17.6)
+        l_munchen_nurnberg.add_span(s2_l_munchen_nurnberg, amp2_l_munchen_nurnberg)
+        s3_l_munchen_nurnberg = Span('SMF', 20.8)
+        amp3_l_munchen_nurnberg = net.add_amplifier('amp3_l_munchen_nurnberg', 'EDFA', target_gain=4.6)
+        l_munchen_nurnberg.add_span(s3_l_munchen_nurnberg, amp3_l_munchen_nurnberg)
 
-        boost_amp_nurnberg_munchen = self.net.add_amplifier('boost_amp_nurnberg_munchen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_nurnberg_munchen)
-        link_nurnberg_munchen = self.net.add_link(roadm_munchen, roadm_nurnberg, boost_amp=boost_amp_nurnberg_munchen)
-        self.links.append(link_nurnberg_munchen)
-        span1_link_nurnberg_munchen = self.net.add_span('SMF', 100)
-        amp1_link_nurnberg_munchen = self.net.add_amplifier('amp1_link_nurnberg_munchen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_nurnberg_munchen)
-        self.net.add_span_to_link(link_nurnberg_munchen, span1_link_nurnberg_munchen, amp1_link_nurnberg_munchen)
+        boost_nurnberg_munchen = net.add_amplifier('boost_nurnberg_munchen', 'EDFA', target_gain=6)
+        l_nurnberg_munchen = net.add_link(name_to_roadm['roadm_munchen'],
+                                          name_to_roadm['roadm_nurnberg'],
+                                          boost_amp=boost_nurnberg_munchen)
+        s1_l_nurnberg_munchen = Span('SMF', 80)
+        amp1_l_nurnberg_munchen = net.add_amplifier('amp1_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
+        l_nurnberg_munchen.add_span(s1_l_nurnberg_munchen, amp1_l_nurnberg_munchen)
+        s2_l_nurnberg_munchen = Span('SMF', 80)
+        amp2_l_nurnberg_munchen = net.add_amplifier('amp2_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
+        l_nurnberg_munchen.add_span(s2_l_nurnberg_munchen, amp2_l_nurnberg_munchen)
+        s3_l_nurnberg_munchen = Span('SMF', 20.8)
+        amp3_l_nurnberg_munchen = net.add_amplifier('amp3_l_nurnberg_munchen', 'EDFA', target_gain=4.6)
+        l_nurnberg_munchen.add_span(s3_l_nurnberg_munchen, amp3_l_nurnberg_munchen)
 
         # Link between Munchen and Ulm - 145.6 km
         # and the bidirectional (independent) link
-        boost_amp_munchen_ulm = self.net.add_amplifier('boost_amp_munchen_ulm', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_munchen_ulm)
-        link_munchen_ulm = self.net.add_link(roadm_munchen, roadm_ulm, boost_amp=boost_amp_munchen_ulm)
-        self.links.append(link_munchen_ulm)
-        span1_link_munchen_ulm = self.net.add_span('SMF', 100)
-        amp1_link_munchen_ulm = self.net.add_amplifier('amp1_link_munchen_ulm', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_munchen_ulm)
-        self.net.add_span_to_link(link_munchen_ulm, span1_link_munchen_ulm, amp1_link_munchen_ulm)
+        boost_munchen_ulm = net.add_amplifier('boost_munchen_ulm', 'EDFA', target_gain=6)
+        l_munchen_ulm = net.add_link(name_to_roadm['roadm_munchen'],
+                                     name_to_roadm['roadm_ulm'],
+                                     boost_amp=boost_munchen_ulm)
+        s1_l_munchen_ulm = Span('SMF', 80)
+        amp1_l_munchen_ulm = net.add_amplifier('amp1_l_munchen_ulm', 'EDFA', target_gain=17.6)
+        l_munchen_ulm.add_span(s1_l_munchen_ulm, amp1_l_munchen_ulm)
+        s2_l_munchen_ulm = Span('SMF', 65.6)
+        amp2_l_munchen_ulm = net.add_amplifier('amp2_l_munchen_ulm', 'EDFA', target_gain=14.4)
+        l_munchen_ulm.add_span(s2_l_munchen_ulm, amp2_l_munchen_ulm)
 
-        boost_amp_ulm_munchen = self.net.add_amplifier('boost_amp_ulm_munchen', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_ulm_munchen)
-        link_ulm_munchen = self.net.add_link(roadm_munchen, roadm_ulm, boost_amp=boost_amp_ulm_munchen)
-        self.links.append(link_ulm_munchen)
-        span1_link_ulm_munchen = self.net.add_span('SMF', 100)
-        amp1_link_ulm_munchen = self.net.add_amplifier('amp1_link_ulm_munchen', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_ulm_munchen)
-        self.net.add_span_to_link(link_ulm_munchen, span1_link_ulm_munchen, amp1_link_ulm_munchen)
+        boost_ulm_munchen = net.add_amplifier('boost_ulm_munchen', 'EDFA', target_gain=6)
+        l_ulm_munchen = net.add_link(name_to_roadm['roadm_munchen'],
+                                     name_to_roadm['roadm_ulm'],
+                                     boost_amp=boost_ulm_munchen)
+        s1_l_ulm_munchen = Span('SMF', 80)
+        amp1_l_ulm_munchen = net.add_amplifier('amp1_l_ulm_munchen', 'EDFA', target_gain=17.6)
+        l_ulm_munchen.add_span(s1_l_ulm_munchen, amp1_l_ulm_munchen)
+        s2_l_ulm_munchen = Span('SMF', 65.6)
+        amp2_l_ulm_munchen = net.add_amplifier('amp2_l_ulm_munchen', 'EDFA', target_gain=14.4)
+        l_ulm_munchen.add_span(s2_l_ulm_munchen, amp2_l_ulm_munchen)
 
         # Link between Nurnberg and Stuttgart - 188.7 km
         # and the bidirectional (independent) link
-        boost_amp_nurnberg_stuttgart = self.net.add_amplifier('boost_amp_nurnberg_stuttgart', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_nurnberg_stuttgart)
-        link_nurnberg_stuttgart = self.net.add_link(roadm_nurnberg, roadm_stuttgart,
-                                                    boost_amp=boost_amp_nurnberg_stuttgart)
-        self.links.append(link_nurnberg_stuttgart)
-        span1_link_nurnberg_stuttgart = self.net.add_span('SMF', 100)
-        amp1_link_nurnberg_stuttgart = self.net.add_amplifier('amp1_link_nurnberg_stuttgart', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_nurnberg_stuttgart)
-        self.net.add_span_to_link(link_nurnberg_stuttgart, span1_link_nurnberg_stuttgart, amp1_link_nurnberg_stuttgart)
+        boost_nurnberg_stuttgart = net.add_amplifier('boost_nurnberg_stuttgart', 'EDFA', target_gain=6)
+        l_nurnberg_stuttgart = net.add_link(name_to_roadm['roadm_nurnberg'],
+                                            name_to_roadm['roadm_stuttgart'],
+                                            boost_amp=boost_nurnberg_stuttgart)
+        s1_l_nurnberg_stuttgart = Span('SMF', 80)
+        amp1_l_nurnberg_stuttgart = net.add_amplifier('amp1_l_nurnberg_stuttgart', 'EDFA', target_gain=17.6)
+        l_nurnberg_stuttgart.add_span(s1_l_nurnberg_stuttgart, amp1_l_nurnberg_stuttgart)
+        s2_l_nurnberg_stuttgart = Span('SMF', 80)
+        amp2_l_nurnberg_stuttgart = net.add_amplifier('amp2_l_nurnberg_stuttgart', 'EDFA', target_gain=17.6)
+        l_nurnberg_stuttgart.add_span(s2_l_nurnberg_stuttgart, amp2_l_nurnberg_stuttgart)
+        s3_l_nurnberg_stuttgart = Span('SMF', 28.7)
+        amp3_l_nurnberg_stuttgart = net.add_amplifier('amp3_l_nurnberg_stuttgart', 'EDFA', target_gain=6.3)
+        l_nurnberg_stuttgart.add_span(s3_l_nurnberg_stuttgart, amp3_l_nurnberg_stuttgart)
 
-        boost_amp_stuttgart_nurnberg = self.net.add_amplifier('boost_amp_stuttgart_nurnberg', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_stuttgart_nurnberg)
-        link_stuttgart_nurnberg = self.net.add_link(roadm_nurnberg, roadm_stuttgart,
-                                                    boost_amp=boost_amp_stuttgart_nurnberg)
-        self.links.append(link_stuttgart_nurnberg)
-        span1_link_stuttgart_nurnberg = self.net.add_span('SMF', 100)
-        amp1_link_stuttgart_nurnberg = self.net.add_amplifier('amp1_link_stuttgart_nurnberg', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_stuttgart_nurnberg)
-        self.net.add_span_to_link(link_stuttgart_nurnberg, span1_link_stuttgart_nurnberg, amp1_link_stuttgart_nurnberg)
+        boost_stuttgart_nurnberg = net.add_amplifier('boost_stuttgart_nurnberg', 'EDFA', target_gain=6)
+        l_stuttgart_nurnberg = net.add_link(name_to_roadm['roadm_nurnberg'],
+                                            name_to_roadm['roadm_stuttgart'],
+                                            boost_amp=boost_stuttgart_nurnberg)
+        s1_l_stuttgart_nurnberg = Span('SMF', 80)
+        amp1_l_stuttgart_nurnberg = net.add_amplifier('amp1_l_stuttgart_nurnberg', 'EDFA', target_gain=17.6)
+        l_stuttgart_nurnberg.add_span(s1_l_stuttgart_nurnberg, amp1_l_stuttgart_nurnberg)
+        s2_l_stuttgart_nurnberg = Span('SMF', 80)
+        amp2_l_stuttgart_nurnberg = net.add_amplifier('amp2_l_stuttgart_nurnberg', 'EDFA', target_gain=17.6)
+        l_stuttgart_nurnberg.add_span(s2_l_stuttgart_nurnberg, amp2_l_stuttgart_nurnberg)
+        s3_l_stuttgart_nurnberg = Span('SMF', 28.7)
+        amp3_l_stuttgart_nurnberg = net.add_amplifier('amp3_l_stuttgart_nurnberg', 'EDFA', target_gain=6.3)
+        l_stuttgart_nurnberg.add_span(s3_l_stuttgart_nurnberg, amp3_l_stuttgart_nurnberg)
 
         # Link between Stuttgart and Ulm - 87.1 km
         # and the bidirectional (independent) link
-        boost_amp_stuttgart_ulm = self.net.add_amplifier('boost_amp_stuttgart_ulm', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_stuttgart_ulm)
-        link_stuttgart_ulm = self.net.add_link(roadm_stuttgart, roadm_ulm, boost_amp=boost_amp_stuttgart_ulm)
-        self.links.append(link_stuttgart_ulm)
-        span1_link_stuttgart_ulm = self.net.add_span('SMF', 100)
-        amp1_link_stuttgart_ulm = self.net.add_amplifier('amp1_link_stuttgart_ulm', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_stuttgart_ulm)
-        self.net.add_span_to_link(link_stuttgart_ulm, span1_link_stuttgart_ulm, amp1_link_stuttgart_ulm)
+        boost_stuttgart_ulm = net.add_amplifier('boost_stuttgart_ulm', 'EDFA', target_gain=6)
+        l_stuttgart_ulm = net.add_link(name_to_roadm['roadm_stuttgart'],
+                                       name_to_roadm['roadm_ulm'], boost_amp=boost_stuttgart_ulm)
+        s1_l_stuttgart_ulm = Span('SMF', 87.1)
+        amp1_l_stuttgart_ulm = net.add_amplifier('amp1_l_stuttgart_ulm', 'EDFA', target_gain=22)
+        l_stuttgart_ulm.add_span(s1_l_stuttgart_ulm, amp1_l_stuttgart_ulm)
 
-        boost_amp_ulm_stuttgart = self.net.add_amplifier('boost_amp_ulm_stuttgart', 'EDFA', target_gain=6)
-        self.add_node(boost_amp_ulm_stuttgart)
-        link_ulm_stuttgart = self.net.add_link(roadm_stuttgart, roadm_ulm, boost_amp=boost_amp_ulm_stuttgart)
-        self.links.append(link_ulm_stuttgart)
-        span1_link_ulm_stuttgart = self.net.add_span('SMF', 100)
-        amp1_link_ulm_stuttgart = self.net.add_amplifier('amp1_link_ulm_stuttgart', 'EDFA', target_gain=22)
-        self.add_node(amp1_link_ulm_stuttgart)
-        self.net.add_span_to_link(link_ulm_stuttgart, span1_link_ulm_stuttgart, amp1_link_ulm_stuttgart)
-        
-    def add_node(self, node):
-        self.nodes.append(node)
-        self.name_to_node[node.name] = node
+        boost_ulm_stuttgart = net.add_amplifier('boost_ulm_stuttgart', 'EDFA', target_gain=6)
+        l_ulm_stuttgart = net.add_link(name_to_roadm['roadm_stuttgart'],
+                                       name_to_roadm['roadm_ulm'],
+                                       boost_amp=boost_ulm_stuttgart)
+        s1_l_ulm_stuttgart = Span('SMF', 87.1)
+        amp1_l_ulm_stuttgart = net.add_amplifier('amp1_l_ulm_stuttgart', 'EDFA', target_gain=19.2)
+        l_ulm_stuttgart.add_span(s1_l_ulm_stuttgart, amp1_l_ulm_stuttgart)
 
-    def add_link(self, link):
-        self.links.append(link)
+        return net
