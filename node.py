@@ -2,6 +2,7 @@ import units as unit
 from pprint import pprint
 import numpy as np
 import scipy.constants as sc
+import random
 
 
 def db_to_abs(db_value):
@@ -92,7 +93,7 @@ class LineTerminal(Node):
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
-        self.operation_power = db_to_abs(-2)  # operation power input in dBm to convert to linear
+        self.operation_power = db_to_abs(1)  # operation power input in dBm to convert to linear
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
@@ -467,14 +468,17 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-description_files = {'wdg1': 'wdg1.txt', 'wdg2': 'wdg2.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(6.0, 90), noise_figure_function=None,
-                 bandwidth=12.5e9, wavelength_dependent_gain_id='wdg1'):
+                 bandwidth=12.5e9, wavelength_dependent_gain_id=None):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -508,6 +512,8 @@ class Amplifier(Node):
         :param wavelength_dependent_gain_id: file name id (see top of script) - string
         :return: Return wavelength dependent gain array
         """
+        if wavelength_dependent_gain_id is None:
+            wavelength_dependent_gain_id = random.choice(list(description_files.keys()))
         wdg_file = description_files[wavelength_dependent_gain_id]
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]
@@ -630,20 +636,16 @@ class Monitor(Node):
         self.amplifier = amplifier
 
     def get_osnr(self, signal):
-        output_power = self.amplifier.output_power[signal]
-        ase_noise = self.amplifier.ase_noise[signal]
+        output_power = self.amplifier.output_power[signal] * 1000
+        ase_noise = self.amplifier.ase_noise[signal] * 1000
         osnr_linear = output_power / ase_noise
         osnr = abs_to_db(osnr_linear)
         return osnr
 
     def get_gosnr(self, signal):
-        output_power = self.amplifier.output_power[signal]
-        ase_noise = self.amplifier.ase_noise[signal]
-        nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
-
-        print(ase_noise)
-        print(nli_noise)
-
+        output_power = self.amplifier.output_power[signal] * 1000
+        ase_noise = self.amplifier.ase_noise[signal] * 1000
+        nli_noise = self.link.nonlinear_interference_noise[self.span][signal] * 1000
         gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr

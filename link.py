@@ -174,6 +174,7 @@ class Link(object):
 
                 # Store not normalized power and noise levels
                 # to be considered in the power excursion calculation
+
                 not_normalized_power = signal_power_progress
                 not_normalized_noise = prev_amp.ase_noise
 
