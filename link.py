@@ -54,7 +54,7 @@ class Link(object):
         self.signal_power_in = {}  # dict of signals and power levels
         self.signal_power_out = {}  # dict of signals and power levels
 
-        self.nonlinear_interference_noise = {}  # dict of signals to nonlinear noise
+        self.nonlinear_interference_noise = {}  # dict of spans to signals to nonlinear noise
 
         self.spans = []
 
@@ -90,7 +90,9 @@ class Link(object):
         for signal in traffic.signals:
             del self.signal_power_in[signal]
             del self.signal_power_out[signal]
-            del self.nonlinear_interference_noise[signal]
+        for span in self.spans:
+            for signal in traffic.signals:
+                del self.nonlinear_interference_noise[span][signal]
         self.traffic.remove(traffic)
 
         if len(self.signal_power_in) > 0:
@@ -153,12 +155,12 @@ class Link(object):
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(signal,
                                                                           in_power,
                                                                           aggregated_noise=aggregated_ASE_noise)
-                self.boost_amp.set_osnr(signal)  # not necessary but for debugging purposes
             aggregated_ASE_noise = self.boost_amp.ase_noise.copy()
-            pprint(self.boost_amp.osnr)
 
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
+        nonlinear_interference_noise = {}
+        nonlinear_noise = self.init_nonlinear_noise()
         for span, amplifier in self.spans:
             span.input_power = signal_power_progress
             # Compute linear effects from the fibre
@@ -188,14 +190,18 @@ class Link(object):
                 # Compute nonlinear interference noise, passing the node_amplifier
                 # because its amplification gain impacts negatively the nonlinear
                 # interference.
-                nonlinear_interference_noise = self.output_nonlinear_noise(
+                nonlinear_interference_noise[span] = self.output_nonlinear_noise(
+                    nonlinear_noise,
                     signals_list,
                     span,
                     prev_amp)
-                self.nonlinear_interference_noise = nonlinear_interference_noise
+                self.nonlinear_interference_noise[span] = nonlinear_interference_noise[span]
+                nonlinear_noise = nonlinear_interference_noise[span]
+                """
+                pprint("nonlinear_interference_noise")
                 pprint(nonlinear_interference_noise)
-                print("%%%")
-
+                print("¢¢¢")
+                """
             # Compute amplifier compensation
             if amplifier:
                 # Enabling balancing check
@@ -215,7 +221,7 @@ class Link(object):
                     amplifier.stage_amplified_spontaneous_emission_noise(signal,
                                                                          in_power,
                                                                          aggregated_noise=aggregated_ASE_noise)
-                    amplifier.set_osnr(signal)  # not necessary but left for debugging purposes
+                    nonlinear_noise[signal] = nonlinear_noise[signal] * amplifier.system_gain
                 aggregated_ASE_noise.update(amplifier.ase_noise)
             else:
                 for signal, in_power in signal_power_progress.items():
@@ -321,18 +327,26 @@ class Link(object):
         # update current power levels with the excursion propagation
         return power_excursion_prop
 
-    def output_nonlinear_noise(self, signals, span, amplifier):
+    def init_nonlinear_noise(self):
+        nonlinear_noise = {}
+        for signal, in_power in self.signal_power_in.items():
+            nonlinear_noise[signal] = in_power / db_to_abs(50)
+        return nonlinear_noise
+
+    def output_nonlinear_noise(self, nonlinear_noise, signals, span, amplifier):
         """
+        :param nonlinear_noise:
         :param signals: signals interacting at given transmission - list[Signal() object]
         :param span: Span() object
         :param amplifier: Amplifier() object at beginning of span
         :return: dict{signal_index: accumulated NLI noise levels}
         """
         amplifier_gain = db_to_abs(amplifier.system_gain)
-        nonlinear_noise = self.nonlinear_noise(signals, span, amplifier_gain)
+        nonlinear_noise_new = self.nonlinear_noise(signals, span, amplifier_gain)
         out_noise = {}
         for signal, value in nonlinear_noise.items():
-            out_noise[signal] = nonlinear_noise[signal] + nonlinear_noise[signal]
+            pprint("Adding %s with %s" % (nonlinear_noise[signal], nonlinear_noise_new[signal]))
+            out_noise[signal] = nonlinear_noise[signal] + nonlinear_noise_new[signal]
         return out_noise
 
     def nonlinear_noise(self, signals, span, lump_gain):

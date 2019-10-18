@@ -131,9 +131,11 @@ class DeutscheTelekom:
         s2_l_berlin_leipzig = Span('SMF', 80)
         amp2_l_berlin_leipzig = net.add_amplifier('amp2_l_berlin_leipzig', 'EDFA', target_gain=17.6)
         l_berlin_leipzig.add_span(s2_l_berlin_leipzig, amp2_l_berlin_leipzig)
+        net.add_monitor('opm1', l_berlin_leipzig, s2_l_berlin_leipzig, amp2_l_berlin_leipzig)
         s3_l_berlin_leipzig = Span('SMF', 13.3)
         amp3_l_berlin_leipzig = net.add_amplifier('amp3_l_berlin_leipzig', 'EDFA', target_gain=2.9)
         l_berlin_leipzig.add_span(s3_l_berlin_leipzig, amp3_l_berlin_leipzig)
+        net.add_monitor('opm2', l_berlin_leipzig, s3_l_berlin_leipzig, amp3_l_berlin_leipzig)
 
         boost_leipzig_berlin = net.add_amplifier('boost_leipzig_berlin', 'EDFA', target_gain=6)
         l_leipzig_berlin = net.add_link(name_to_roadm['roadm_leipzig'],

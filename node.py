@@ -498,8 +498,6 @@ class Amplifier(Node):
         self.balancing_flag_1 = False  # When both are True system gain balancing is complete
         self.balancing_flag_2 = False
 
-        self.osnr = {}  # dict signal to osnr (temporal for debugging purposes)
-
     def balancing_flags_off(self):
         self.balancing_flag_1 = False
         self.balancing_flag_2 = False
@@ -611,13 +609,42 @@ class Amplifier(Node):
         if not(self.balancing_flag_1 and self.balancing_flag_2):
             self.balancing_flag_1 = True
 
-    def set_osnr(self, signal):
+
+class Monitor(Node):
+    """
+    This implementation of Reconfigurable Optical Add/Drop Multiplexing nodes considers
+    only common ports. That is, not including the internal connections between reconfiguration
+    components (i.e., WSSs).
+    """
+
+    def __init__(self, name, link, span, amplifier):
         """
-        Compute OSNR for debugging purposes.
-        Must be relayed to a monitoring procedure/object
-        :param signal:
-        :return:
+
+        :param name:
+        set to 6 dB per task needed (Add/Drop/Pass-through).
         """
-        osnr_linear = self.output_power[signal] / self.ase_noise[signal]
+        Node.__init__(self, name)
+        self.node_id = id(self)
+        self.link = link
+        self.span = span
+        self.amplifier = amplifier
+
+    def get_osnr(self, signal):
+        output_power = self.amplifier.output_power[signal]
+        ase_noise = self.amplifier.ase_noise[signal]
+        osnr_linear = output_power / ase_noise
         osnr = abs_to_db(osnr_linear)
-        self.osnr[signal] = osnr
+        return osnr
+
+    def get_gosnr(self, signal):
+        output_power = self.amplifier.output_power[signal]
+        ase_noise = self.amplifier.ase_noise[signal]
+        nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
+
+        print(ase_noise)
+        print(nli_noise)
+
+        gosnr_linear = output_power / (ase_noise + nli_noise)
+        gosnr = abs_to_db(gosnr_linear)
+        return gosnr
+

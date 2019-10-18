@@ -122,6 +122,10 @@ class Network(object):
         self.topology[node1].append((node2, link))
         return link
 
+    def add_monitor(self, name, link, span, amplifier):
+        monitor = Monitor(name, link, span, amplifier)
+        self.name_to_node[name] = monitor
+
     def add_span(self, fiber_type, length):
         """
         OBSOLETE
@@ -379,6 +383,12 @@ class Traffic(object):
             if item[0] is self.next_node_update:
                 next_link = item[1]
                 flag = True
+
+    def get_signal(self, signal_index):
+        for signal in self.signals:
+            if signal.index == signal_index:
+                return signal
+        return None
 
     def describe(self):
         pprint(vars(self))
