@@ -49,7 +49,7 @@ class Node(object):
             new_output_port = max(self.port_to_node_out.keys()) + 1
         else:
             new_output_port = self.output_port_base
-            # Enable discovery of output ports
+        # Enable discovery of output ports
         self.ports_out.append(new_output_port)
         # Enable discovery of connected node through output port
         self.port_to_node_out[new_output_port] = connected_node
@@ -195,6 +195,7 @@ class LineTerminal(Node):
             self.transceiver_to_signals[transceiver].append(new_signal)
         # Compute output power levels at output port
         self.compute_output_power_levels(out_port)
+
         # associate the signal objects to the traffic
         traffic.signals = signals
         # Pass transmission to traffic handler
@@ -240,7 +241,7 @@ class LineTerminal(Node):
         for transceiver in self.transceivers:
             if len(self.transceiver_to_signals[transceiver]) > 0:
                 for channel in self.transceiver_to_signals[transceiver]:
-                    output_power = self.operation_power / self.wss_attenuation
+                    output_power = self.operation_power  # / self.wss_attenuation
                     channel.power_at_output_interface[self] = output_power
                     self.port_to_signal_power_out[out_port][channel] = output_power
                     self.port_to_signal_out[out_port].append(channel)
@@ -305,18 +306,16 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, attenuation=18):
+    def __init__(self, name, attenuation=6):
         """
 
         :param name:
         :param attenuation: total attenuation at the node. Default
-        set to 18 dB since we are considering 9 dB per WSS, and 2 WSSs
-        per task needed (Add/Drop/Pass-through).
+        set to 6 dB per task needed (Add/Drop/Pass-through).
         """
         Node.__init__(self, name)
         self.node_id = id(self)
         self.attenuation = attenuation
-
         self.traffic = []
         self.traffic_to_out_port = {}
 
@@ -383,8 +382,8 @@ class Roadm(Node):
         signals = self.switch_table[rule_id]['signals']
 
         for signal in signals:
-            list(filter(signal.__ne__,self.port_to_signal_in[in_port]))
-            list(filter(signal.__ne__,self.port_to_signal_out[out_port]))
+            list(filter(signal.__ne__, self.port_to_signal_in[in_port]))
+            list(filter(signal.__ne__, self.port_to_signal_out[out_port]))
 
             del self.port_to_signal_power_in[in_port][signal]
             del self.port_to_signal_power_out[out_port][signal]
@@ -408,7 +407,7 @@ class Roadm(Node):
             self.traffic_to_out_port[traffic] = out_port
             for signal, in_power in self.port_to_signal_power_in[in_port].items():
                 if signal in traffic.signals:
-                    # Inflict the ROADM (2xWSS) attenuation to the signals
+                    # Inflict the ROADM (1xWSS) attenuation to the signals
                     self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
             if len(self.traffic) > 1:
                 # Keep track of the other traffic instances that
@@ -437,9 +436,9 @@ class Roadm(Node):
         """
         found = False
         for rule, items in self.switch_table.items():
-            if (items['in_port'] is in_port)\
-                    and (items['out_port'] is out_port)\
-                    and (items['signals'] is traffic.wavelength_indexes):
+            if (items['in_port'] == in_port)\
+                    and (items['out_port'] == out_port)\
+                    and (items['signals'] == traffic.wavelength_indexes):
                 found = True
                 return found
         return found
@@ -568,25 +567,27 @@ class Amplifier(Node):
         self.output_power[signal] = output_power
         return output_power
 
-    def stage_amplified_spontaneous_emission_noise(self, signal, in_power):
+    def stage_amplified_spontaneous_emission_noise(self, signal, in_power, aggregated_noise=None):
         """
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
         """
+        if aggregated_noise:
+            self.ase_noise[signal] = aggregated_noise[signal]
+
         if signal not in self.ase_noise:
             # set initial noise 50 dB below signal power
-            init_noise = in_power / db_to_abs(40)
+            init_noise = in_power / db_to_abs(50)
             self.ase_noise[signal] = init_noise
 
         # Set parameters needed for ASE model
-        noise_figure = self.noise_figure[signal.index]
+        noise_figure_linear = db_to_abs(self.noise_figure[signal.index])
         system_gain = self.system_gain - 1
 
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(system_gain)
-
-        ase_noise = (self.ase_noise[signal] * system_gain) +\
-                    (noise_figure * sc.h * system_gain_linear * signal.frequency * self.bandwidth * 1000)
+        ase_noise = (self.ase_noise[signal] * system_gain_linear) +\
+                    (noise_figure_linear * sc.h * system_gain_linear * signal.frequency * self.bandwidth)
 
         self.ase_noise[signal] = ase_noise
 

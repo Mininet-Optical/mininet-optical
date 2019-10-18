@@ -76,8 +76,7 @@ class Network(object):
         """
         if name in self.name_to_node:
             raise ValueError("Network.add_roadm: ROADM with this name already exist!!")
-        configs = {'name': name,
-                   'attenuation': 18}
+        configs = {'name': name}
         configs.update(params)
         roadm = Roadm(**configs)
         self.name_to_node[name] = roadm

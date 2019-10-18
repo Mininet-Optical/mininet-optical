@@ -40,9 +40,9 @@ class DeutscheTelekom:
         # Create bi-directional links between LTs and ROADMs
         for lt, roadm in zip(line_terminals, roadms):
             link = net.add_link(lt, roadm)
-            link.add_span(Span('SMF', 0.01), amplifier=None)
+            link.add_span(Span('SMF', 0.001), amplifier=None)
             bi_link = net.add_link(roadm, lt)
-            bi_link.add_span(Span('SMF', 0.01), amplifier=None)
+            bi_link.add_span(Span('SMF', 0.001), amplifier=None)
 
         """
             Create links between inter-city ROADM nodes
@@ -67,8 +67,8 @@ class DeutscheTelekom:
         l_berlin_hamburg.add_span(s4_l_berlin_hamburg, amp4_l_berlin_hamburg)
 
         boost_hamburg_berlin = net.add_amplifier('boost_hamburg_berlin', 'EDFA', target_gain=6)
-        l_hamburg_berlin = net.add_link(name_to_roadm['roadm_berlin'],
-                                        name_to_roadm['roadm_hamburg'],
+        l_hamburg_berlin = net.add_link(name_to_roadm['roadm_hamburg'],
+                                        name_to_roadm['roadm_berlin'],
                                         boost_amp=boost_hamburg_berlin)
         s1_l_hamburg_berlin = Span('SMF', 80)
         amp1_l_hamburg_berlin = net.add_amplifier('amp1_l_hamburg_berlin', 'EDFA', target_gain=17.6)
@@ -103,8 +103,8 @@ class DeutscheTelekom:
         l_berlin_hannover.add_span(s4_l_berlin_hannover, amp4_l_berlin_hannover)
 
         boost_hannover_berlin = net.add_amplifier('boost_hannover_berlin', 'EDFA', target_gain=6)
-        l_hannover_berlin = net.add_link(name_to_roadm['roadm_berlin'],
-                                         name_to_roadm['roadm_hannover'],
+        l_hannover_berlin = net.add_link(name_to_roadm['roadm_hannover'],
+                                         name_to_roadm['roadm_berlin'],
                                          boost_amp=boost_hannover_berlin)
         s1_l_hannover_berlin = Span('SMF', 80)
         amp1_l_hannover_berlin = net.add_amplifier('amp1_l_hannover_berlin', 'EDFA', target_gain=17.6)
@@ -132,12 +132,12 @@ class DeutscheTelekom:
         amp2_l_berlin_leipzig = net.add_amplifier('amp2_l_berlin_leipzig', 'EDFA', target_gain=17.6)
         l_berlin_leipzig.add_span(s2_l_berlin_leipzig, amp2_l_berlin_leipzig)
         s3_l_berlin_leipzig = Span('SMF', 13.3)
-        amp3_l_berlin_leipzig = net.add_amplifier('amp3_l_berlin_leipzig', 'EDFA', target_gain=3)
+        amp3_l_berlin_leipzig = net.add_amplifier('amp3_l_berlin_leipzig', 'EDFA', target_gain=2.9)
         l_berlin_leipzig.add_span(s3_l_berlin_leipzig, amp3_l_berlin_leipzig)
 
         boost_leipzig_berlin = net.add_amplifier('boost_leipzig_berlin', 'EDFA', target_gain=6)
-        l_leipzig_berlin = net.add_link(name_to_roadm['roadm_berlin'],
-                                        name_to_roadm['roadm_leipzig'],
+        l_leipzig_berlin = net.add_link(name_to_roadm['roadm_leipzig'],
+                                        name_to_roadm['roadm_berlin'],
                                         boost_amp=boost_leipzig_berlin)
         s1_l_leipzig_berlin = Span('SMF', 80)
         amp1_l_leipzig_berlin = net.add_amplifier('amp1_l_leipzig_berlin', 'EDFA', target_gain=17.6)
@@ -163,8 +163,8 @@ class DeutscheTelekom:
         l_bremen_hamburg.add_span(s2_l_bremen_hamburg, amp2_l_bremen_hamburg)
 
         boost_hamburg_bremen = net.add_amplifier('boost_hamburg_bremen', 'EDFA', target_gain=6)
-        l_hamburg_bremen = net.add_link(name_to_roadm['roadm_bremen'],
-                                        name_to_roadm['roadm_hamburg'],
+        l_hamburg_bremen = net.add_link(name_to_roadm['roadm_hamburg'],
+                                        name_to_roadm['roadm_bremen'],
                                         boost_amp=boost_hamburg_bremen)
         s1_l_hamburg_bremen = Span('SMF', 80)
         amp1_l_hamburg_bremen = net.add_amplifier('amp1_l_hamburg_bremen', 'EDFA', target_gain=17.6)
@@ -187,8 +187,8 @@ class DeutscheTelekom:
         l_bremen_hannover.add_span(s2_l_bremen_hannover, amp2_l_bremen_hannover)
 
         boost_hannover_bremen = net.add_amplifier('boost_hannover_bremen', 'EDFA', target_gain=6)
-        l_hannover_bremen = net.add_link(name_to_roadm['roadm_bremen'],
-                                         name_to_roadm['roadm_hannover'],
+        l_hannover_bremen = net.add_link(name_to_roadm['roadm_hannover'],
+                                         name_to_roadm['roadm_bremen'],
                                          boost_amp=boost_hannover_bremen)
         s1_l_hannover_bremen = Span('SMF', 80)
         amp1_l_hannover_bremen = net.add_amplifier('amp1_l_hannover_bremen', 'EDFA', target_gain=17.6)
@@ -217,8 +217,8 @@ class DeutscheTelekom:
         l_bremen_essen.add_span(s4_l_bremen_essen, amp4_l_bremen_essen)
 
         boost_essen_bremen = net.add_amplifier('boost_essen_bremen', 'EDFA', target_gain=6)
-        l_essen_bremen = net.add_link(name_to_roadm['roadm_bremen'],
-                                      name_to_roadm['roadm_essen'],
+        l_essen_bremen = net.add_link(name_to_roadm['roadm_essen'],
+                                      name_to_roadm['roadm_bremen'],
                                       boost_amp=boost_essen_bremen)
         s1_l_essen_bremen = Span('SMF', 80)
         amp1_l_essen_bremen = net.add_amplifier('amp1_l_essen_bremen', 'EDFA', target_gain=17.6)
@@ -244,8 +244,8 @@ class DeutscheTelekom:
         l_dortmund_essen.add_span(s1_l_dortmund_essen, amp1_l_dortmund_essen)
 
         boost_essen_dortmund = net.add_amplifier('boost_essen_dortmund', 'EDFA', target_gain=6)
-        l_essen_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
-                                        name_to_roadm['roadm_essen'],
+        l_essen_dortmund = net.add_link(name_to_roadm['roadm_essen'],
+                                        name_to_roadm['roadm_dortmund'],
                                         boost_amp=boost_essen_dortmund)
         s1_l_essen_dortmund = Span('SMF', 37.4)
         amp1_l_essen_dortmund = net.add_amplifier('amp1_l_essen_dortmund', 'EDFA', target_gain=8.2)
@@ -268,8 +268,8 @@ class DeutscheTelekom:
         l_dortmund_hannover.add_span(s3_l_dortmund_hannover, amp3_l_dortmund_hannover)
 
         boost_hannover_dortmund = net.add_amplifier('boost_hannover_dortmund', 'EDFA', target_gain=6)
-        l_hannover_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
-                                           name_to_roadm['roadm_hannover'],
+        l_hannover_dortmund = net.add_link(name_to_roadm['roadm_hannover'],
+                                           name_to_roadm['roadm_dortmund'],
                                            boost_amp=boost_hannover_dortmund)
         s1_l_hannover_dortmund = Span('SMF', 80)
         amp1_l_hannover_dortmund = net.add_amplifier('amp1_l_hannover_dortmund', 'EDFA', target_gain=17.6)
@@ -292,8 +292,8 @@ class DeutscheTelekom:
         l_dortmund_koln.add_span(s1_l_dortmund_koln, amp1_l_dortmund_koln)
 
         boost_koln_dortmund = net.add_amplifier('boost_koln_dortmund', 'EDFA', target_gain=6)
-        l_koln_dortmund = net.add_link(name_to_roadm['roadm_dortmund'],
-                                       name_to_roadm['roadm_koln'],
+        l_koln_dortmund = net.add_link(name_to_roadm['roadm_koln'],
+                                       name_to_roadm['roadm_dortmund'],
                                        boost_amp=boost_koln_dortmund)
         s1_l_koln_dortmund = Span('SMF', 84.3)
         amp1_l_koln_dortmund = net.add_amplifier('amp1_l_koln_dortmund', 'EDFA', target_gain=18.6)
@@ -310,8 +310,8 @@ class DeutscheTelekom:
         l_dusseldorf_essen.add_span(s1_l_dusseldorf_essen, amp1_l_dusseldorf_essen)
 
         boost_essen_dusseldorf = net.add_amplifier('boost_essen_dusseldorf', 'EDFA', target_gain=6)
-        l_essen_dusseldorf = net.add_link(name_to_roadm['roadm_dusseldorf'],
-                                          name_to_roadm['roadm_essen'],
+        l_essen_dusseldorf = net.add_link(name_to_roadm['roadm_essen'],
+                                          name_to_roadm['roadm_dusseldorf'],
                                           boost_amp=boost_essen_dusseldorf)
         s1_l_essen_dusseldorf = Span('SMF', 36.9)
         amp1_l_essen_dusseldorf = net.add_amplifier('amp1_l_essen_dusseldorf', 'EDFA', target_gain=8.1)
@@ -328,8 +328,8 @@ class DeutscheTelekom:
         l_dusseldorf_koln.add_span(s1_l_dusseldorf_koln, amp1_l_dusseldorf_koln)
 
         boost_koln_dusseldorf = net.add_amplifier('boost_koln_dusseldorf', 'EDFA', target_gain=6)
-        l_koln_dusseldorf = net.add_link(name_to_roadm['roadm_dusseldorf'],
-                                         name_to_roadm['roadm_koln'],
+        l_koln_dusseldorf = net.add_link(name_to_roadm['roadm_koln'],
+                                         name_to_roadm['roadm_dusseldorf'],
                                          boost_amp=boost_koln_dusseldorf)
         s1_l_koln_dusseldorf = Span('SMF', 40.9)
         amp1_l_koln_dusseldorf = net.add_amplifier('amp1_l_koln_dusseldorf', 'EDFA', target_gain=9)
@@ -355,8 +355,8 @@ class DeutscheTelekom:
         l_frankfurt_hannover.add_span(s4_l_frankfurt_hannover, amp4_l_frankfurt_hannover)
 
         boost_hannover_frankfurt = net.add_amplifier('boost_hannover_frankfurt', 'EDFA', target_gain=6)
-        l_hannover_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
-                                            name_to_roadm['roadm_hannover'],
+        l_hannover_frankfurt = net.add_link(name_to_roadm['roadm_hannover'],
+                                            name_to_roadm['roadm_frankfurt'],
                                             boost_amp=boost_hannover_frankfurt)
         s1_l_hannover_frankfurt = Span('SMF', 80)
         amp1_l_hannover_frankfurt = net.add_amplifier('amp1_l_hannover_frankfurt', 'EDFA', target_gain=17.6)
@@ -388,8 +388,8 @@ class DeutscheTelekom:
         l_frankfurt_koln.add_span(s3_l_frankfurt_koln, amp3_l_frankfurt_koln)
 
         boost_koln_frankfurt = net.add_amplifier('boost_koln_frankfurt', 'EDFA', target_gain=6)
-        l_koln_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
-                                        name_to_roadm['roadm_koln'],
+        l_koln_frankfurt = net.add_link(name_to_roadm['roadm_koln'],
+                                        name_to_roadm['roadm_frankfurt'],
                                         boost_amp=boost_koln_frankfurt)
         s1_l_koln_frankfurt = Span('SMF', 80)
         amp1_l_koln_frankfurt = net.add_amplifier('amp1_l_koln_frankfurt', 'EDFA', target_gain=17.6)
@@ -421,8 +421,8 @@ class DeutscheTelekom:
         l_frankfurt_leipzig.add_span(s4_l_frankfurt_leipzig, amp4_l_frankfurt_leipzig)
 
         boost_leipzig_frankfurt = net.add_amplifier('boost_leipzig_frankfurt', 'EDFA', target_gain=6)
-        l_leipzig_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
-                                           name_to_roadm['roadm_leipzig'],
+        l_leipzig_frankfurt = net.add_link(name_to_roadm['roadm_leipzig'],
+                                           name_to_roadm['roadm_frankfurt'],
                                            boost_amp=boost_leipzig_frankfurt)
         s1_l_leipzig_frankfurt = Span('SMF', 80)
         amp1_l_leipzig_frankfurt = net.add_amplifier('amp1_l_leipzig_frankfurt', 'EDFA', target_gain=17.6)
@@ -454,8 +454,8 @@ class DeutscheTelekom:
         l_frankfurt_nurnberg.add_span(s3_l_frankfurt_nurnberg, amp3_l_frankfurt_nurnberg)
 
         boost_nurnberg_frankfurt = net.add_amplifier('boost_nurnberg_frankfurt', 'EDFA', target_gain=6)
-        l_nurnberg_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
-                                            name_to_roadm['roadm_nurnberg'],
+        l_nurnberg_frankfurt = net.add_link(name_to_roadm['roadm_nurnberg'],
+                                            name_to_roadm['roadm_frankfurt'],
                                             boost_amp=boost_nurnberg_frankfurt)
         s1_l_nurnberg_frankfurt = Span('SMF', 80)
         amp1_l_nurnberg_frankfurt = net.add_amplifier('amp1_l_nurnberg_frankfurt', 'EDFA', target_gain=17.6)
@@ -484,8 +484,8 @@ class DeutscheTelekom:
         l_frankfurt_stuttgart.add_span(s3_l_frankfurt_stuttgart, amp3_l_frankfurt_stuttgart)
 
         boost_stuttgart_frankfurt = net.add_amplifier('boost_stuttgart_frankfurt', 'EDFA', target_gain=6)
-        l_stuttgart_frankfurt = net.add_link(name_to_roadm['roadm_frankfurt'],
-                                             name_to_roadm['roadm_stuttgart'],
+        l_stuttgart_frankfurt = net.add_link(name_to_roadm['roadm_stuttgart'],
+                                             name_to_roadm['roadm_frankfurt'],
                                              boost_amp=boost_stuttgart_frankfurt)
         s1_l_stuttgart_frankfurt = Span('SMF', 80)
         amp1_l_stuttgart_frankfurt = net.add_amplifier('amp1_l_stuttgart_frankfurt', 'EDFA', target_gain=17.6)
@@ -511,8 +511,8 @@ class DeutscheTelekom:
         l_hamburg_hannover.add_span(s2_l_hamburg_hannover, amp2_l_hamburg_hannover)
 
         boost_hannover_hamburg = net.add_amplifier('boost_hannover_hamburg', 'EDFA', target_gain=6)
-        l_hannover_hamburg = net.add_link(name_to_roadm['roadm_hamburg'],
-                                          name_to_roadm['roadm_hannover'],
+        l_hannover_hamburg = net.add_link(name_to_roadm['roadm_hannover'],
+                                          name_to_roadm['roadm_hamburg'],
                                           boost_amp=boost_hannover_hamburg)
         s1_l_hannover_hamburg = Span('SMF', 80)
         amp1_l_hannover_hamburg = net.add_amplifier('amp1_l_hannover_hamburg', 'EDFA', target_gain=17.6)
@@ -541,8 +541,8 @@ class DeutscheTelekom:
         l_hannover_leipzig.add_span(s4_l_hannover_leipzig, amp4_l_hannover_leipzig)
 
         boost_leipzig_hannover = net.add_amplifier('boost_leipzig_hannover', 'EDFA', target_gain=6)
-        l_leipzig_hannover = net.add_link(name_to_roadm['roadm_hannover'],
-                                          name_to_roadm['roadm_leipzig'],
+        l_leipzig_hannover = net.add_link(name_to_roadm['roadm_leipzig'],
+                                          name_to_roadm['roadm_hannover'],
                                           boost_amp=boost_leipzig_hannover)
         s1_l_leipzig_hannover = Span('SMF', 80)
         amp1_l_leipzig_hannover = net.add_amplifier('amp1_l_leipzig_hannover', 'EDFA', target_gain=17.6)
@@ -577,8 +577,8 @@ class DeutscheTelekom:
         l_leipzig_nurnberg.add_span(s4_l_leipzig_nurnberg, amp4_l_leipzig_nurnberg)
 
         boost_nurnberg_leipzig = net.add_amplifier('boost_nurnberg_leipzig', 'EDFA', target_gain=6)
-        l_nurnberg_leipzig = net.add_link(name_to_roadm['roadm_leipzig'],
-                                          name_to_roadm['roadm_nurnberg'],
+        l_nurnberg_leipzig = net.add_link(name_to_roadm['roadm_nurnberg'],
+                                          name_to_roadm['roadm_leipzig'],
                                           boost_amp=boost_nurnberg_leipzig)
         s1_l_nurnberg_leipzig = Span('SMF', 80)
         amp1_l_nurnberg_leipzig = net.add_amplifier('amp1_l_nurnberg_leipzig', 'EDFA', target_gain=17.6)
@@ -610,8 +610,8 @@ class DeutscheTelekom:
         l_munchen_nurnberg.add_span(s3_l_munchen_nurnberg, amp3_l_munchen_nurnberg)
 
         boost_nurnberg_munchen = net.add_amplifier('boost_nurnberg_munchen', 'EDFA', target_gain=6)
-        l_nurnberg_munchen = net.add_link(name_to_roadm['roadm_munchen'],
-                                          name_to_roadm['roadm_nurnberg'],
+        l_nurnberg_munchen = net.add_link(name_to_roadm['roadm_nurnberg'],
+                                          name_to_roadm['roadm_munchen'],
                                           boost_amp=boost_nurnberg_munchen)
         s1_l_nurnberg_munchen = Span('SMF', 80)
         amp1_l_nurnberg_munchen = net.add_amplifier('amp1_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
@@ -637,8 +637,8 @@ class DeutscheTelekom:
         l_munchen_ulm.add_span(s2_l_munchen_ulm, amp2_l_munchen_ulm)
 
         boost_ulm_munchen = net.add_amplifier('boost_ulm_munchen', 'EDFA', target_gain=6)
-        l_ulm_munchen = net.add_link(name_to_roadm['roadm_munchen'],
-                                     name_to_roadm['roadm_ulm'],
+        l_ulm_munchen = net.add_link(name_to_roadm['roadm_ulm'],
+                                     name_to_roadm['roadm_munchen'],
                                      boost_amp=boost_ulm_munchen)
         s1_l_ulm_munchen = Span('SMF', 80)
         amp1_l_ulm_munchen = net.add_amplifier('amp1_l_ulm_munchen', 'EDFA', target_gain=17.6)
@@ -664,8 +664,8 @@ class DeutscheTelekom:
         l_nurnberg_stuttgart.add_span(s3_l_nurnberg_stuttgart, amp3_l_nurnberg_stuttgart)
 
         boost_stuttgart_nurnberg = net.add_amplifier('boost_stuttgart_nurnberg', 'EDFA', target_gain=6)
-        l_stuttgart_nurnberg = net.add_link(name_to_roadm['roadm_nurnberg'],
-                                            name_to_roadm['roadm_stuttgart'],
+        l_stuttgart_nurnberg = net.add_link(name_to_roadm['roadm_stuttgart'],
+                                            name_to_roadm['roadm_nurnberg'],
                                             boost_amp=boost_stuttgart_nurnberg)
         s1_l_stuttgart_nurnberg = Span('SMF', 80)
         amp1_l_stuttgart_nurnberg = net.add_amplifier('amp1_l_stuttgart_nurnberg', 'EDFA', target_gain=17.6)
@@ -687,8 +687,8 @@ class DeutscheTelekom:
         l_stuttgart_ulm.add_span(s1_l_stuttgart_ulm, amp1_l_stuttgart_ulm)
 
         boost_ulm_stuttgart = net.add_amplifier('boost_ulm_stuttgart', 'EDFA', target_gain=6)
-        l_ulm_stuttgart = net.add_link(name_to_roadm['roadm_stuttgart'],
-                                       name_to_roadm['roadm_ulm'],
+        l_ulm_stuttgart = net.add_link(name_to_roadm['roadm_ulm'],
+                                       name_to_roadm['roadm_stuttgart'],
                                        boost_amp=boost_ulm_stuttgart)
         s1_l_ulm_stuttgart = Span('SMF', 87.1)
         amp1_l_ulm_stuttgart = net.add_amplifier('amp1_l_ulm_stuttgart', 'EDFA', target_gain=19.2)

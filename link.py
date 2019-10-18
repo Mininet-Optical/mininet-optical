@@ -112,6 +112,18 @@ class Link(object):
             self.signal_power_in[signal] = power
 
         self.propagate_simulation()
+        """
+            DEBUGGING
+        """
+        print("Debugging at Link between %s and %s" % (self.node1.name, self.node2.name))
+        print("Signals in")
+        pprint(self.signal_power_in)
+        print("Signals out")
+        pprint(self.signal_power_out)
+        print("FIN")
+        """
+            END DEBUGGING
+        """
         # Relay to next node in transmission
         traffic.next_node_in_route(self)
 
@@ -122,6 +134,7 @@ class Link(object):
         """
         # keep track of the signal power in link
         signal_power_progress = self.signal_power_in.copy()
+        aggregated_ASE_noise = None
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
@@ -137,8 +150,12 @@ class Link(object):
             self.boost_amp.balancing_flags_off()
             # Compute ASE noise
             for signal, in_power in self.signal_power_in.items():
-                self.boost_amp.stage_amplified_spontaneous_emission_noise(signal, in_power)
+                self.boost_amp.stage_amplified_spontaneous_emission_noise(signal,
+                                                                          in_power,
+                                                                          aggregated_noise=aggregated_ASE_noise)
                 self.boost_amp.set_osnr(signal)  # not necessary but for debugging purposes
+            aggregated_ASE_noise = self.boost_amp.ase_noise.copy()
+            pprint(self.boost_amp.osnr)
 
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
@@ -150,34 +167,34 @@ class Link(object):
 
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
-            if len(signal_power_progress) > 1:
+            if len(signal_power_progress) > 1 and prev_amp:
                 signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
 
-                if prev_amp:
-                    # Store not normalized power and noise levels
-                    # to be considered in the power excursion calculation
-                    not_normalized_power = signal_power_progress
-                    not_normalized_noise = prev_amp.ase_noise
+                # Store not normalized power and noise levels
+                # to be considered in the power excursion calculation
+                not_normalized_power = signal_power_progress
+                not_normalized_noise = prev_amp.ase_noise
 
-                    normalized_power, normalized_noise = self.normalize_channel_levels(
-                        signal_power_progress,
-                        prev_amp.ase_noise,
-                        prev_amp.active_wavelength_dependent_gain())
-                    # Consider power excursion and propagation per-span
-                    signal_power_progress = self.power_excursion_propagation(
-                        normalized_power, normalized_noise,
-                        not_normalized_power, not_normalized_noise)
+                normalized_power, normalized_noise = self.normalize_channel_levels(
+                    signal_power_progress,
+                    prev_amp.ase_noise,
+                    prev_amp.active_wavelength_dependent_gain())
+                # Consider power excursion and propagation per-span
+                signal_power_progress = self.power_excursion_propagation(
+                    normalized_power, normalized_noise,
+                    not_normalized_power, not_normalized_noise)
 
-            if len(signal_power_progress) > 2:
+            if len(signal_power_progress) > 2 and prev_amp:
                 # Compute nonlinear interference noise, passing the node_amplifier
                 # because its amplification gain impacts negatively the nonlinear
                 # interference.
-                if prev_amp:
-                    nonlinear_interference_noise = self.output_nonlinear_noise(
-                        signals_list,
-                        span,
-                        prev_amp)
-                    self.nonlinear_interference_noise = nonlinear_interference_noise
+                nonlinear_interference_noise = self.output_nonlinear_noise(
+                    signals_list,
+                    span,
+                    prev_amp)
+                self.nonlinear_interference_noise = nonlinear_interference_noise
+                pprint(nonlinear_interference_noise)
+                print("%%%")
 
             # Compute amplifier compensation
             if amplifier:
@@ -191,11 +208,20 @@ class Link(object):
                     amplifier.balance_system_gain()
                 # Reset balancing flags to original settings
                 amplifier.balancing_flags_off()
+                signal_power_progress = self.signal_power_out.copy()
 
                 # Compute ASE noise
                 for signal, in_power in self.signal_power_in.items():
-                    amplifier.stage_amplified_spontaneous_emission_noise(signal, in_power)
+                    amplifier.stage_amplified_spontaneous_emission_noise(signal,
+                                                                         in_power,
+                                                                         aggregated_noise=aggregated_ASE_noise)
                     amplifier.set_osnr(signal)  # not necessary but left for debugging purposes
+                aggregated_ASE_noise.update(amplifier.ase_noise)
+            else:
+                for signal, in_power in signal_power_progress.items():
+                    # Update status of signal power in link
+                    self.signal_power_out[signal] = in_power
+
             prev_amp = amplifier
 
     @staticmethod
