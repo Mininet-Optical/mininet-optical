@@ -149,7 +149,7 @@ class DeutscheTelekom:
         amp2_l_leipzig_berlin = net.add_amplifier('amp2_l_leipzig_berlin', 'EDFA', target_gain=17.6)
         l_leipzig_berlin.add_span(s2_l_leipzig_berlin, amp2_l_leipzig_berlin)
         s3_l_leipzig_berlin = Span('SMF', 13.3)
-        amp3_l_leipzig_berlin = net.add_amplifier('amp3_l_leipzig_berlin', 'EDFA', target_gain=3)
+        amp3_l_leipzig_berlin = net.add_amplifier('amp3_l_leipzig_berlin', 'EDFA', target_gain=6)
         l_leipzig_berlin.add_span(s3_l_leipzig_berlin, amp3_l_leipzig_berlin)
 
         # Link between Bremen and Hamburg - 114.7 km
@@ -625,6 +625,7 @@ class DeutscheTelekom:
         s3_l_nurnberg_munchen = Span('SMF', 20.8)
         amp3_l_nurnberg_munchen = net.add_amplifier('amp3_l_nurnberg_munchen', 'EDFA', target_gain=4.6)
         l_nurnberg_munchen.add_span(s3_l_nurnberg_munchen, amp3_l_nurnberg_munchen)
+        net.add_monitor('opm5', l_nurnberg_munchen, s3_l_nurnberg_munchen, amp3_l_nurnberg_munchen)
 
         # Link between Munchen and Ulm - 145.6 km
         # and the bidirectional (independent) link
@@ -663,7 +664,7 @@ class DeutscheTelekom:
         amp2_l_nurnberg_stuttgart = net.add_amplifier('amp2_l_nurnberg_stuttgart', 'EDFA', target_gain=17.6)
         l_nurnberg_stuttgart.add_span(s2_l_nurnberg_stuttgart, amp2_l_nurnberg_stuttgart)
         s3_l_nurnberg_stuttgart = Span('SMF', 28.7)
-        amp3_l_nurnberg_stuttgart = net.add_amplifier('amp3_l_nurnberg_stuttgart', 'EDFA', target_gain=6.3)
+        amp3_l_nurnberg_stuttgart = net.add_amplifier('amp3_l_nurnberg_stuttgart', 'EDFA', target_gain=3.3)
         l_nurnberg_stuttgart.add_span(s3_l_nurnberg_stuttgart, amp3_l_nurnberg_stuttgart)
 
         boost_stuttgart_nurnberg = net.add_amplifier('boost_stuttgart_nurnberg', 'EDFA', target_gain=6)
@@ -677,7 +678,7 @@ class DeutscheTelekom:
         amp2_l_stuttgart_nurnberg = net.add_amplifier('amp2_l_stuttgart_nurnberg', 'EDFA', target_gain=17.6)
         l_stuttgart_nurnberg.add_span(s2_l_stuttgart_nurnberg, amp2_l_stuttgart_nurnberg)
         s3_l_stuttgart_nurnberg = Span('SMF', 28.7)
-        amp3_l_stuttgart_nurnberg = net.add_amplifier('amp3_l_stuttgart_nurnberg', 'EDFA', target_gain=6.3)
+        amp3_l_stuttgart_nurnberg = net.add_amplifier('amp3_l_stuttgart_nurnberg', 'EDFA', target_gain=3.3)
         l_stuttgart_nurnberg.add_span(s3_l_stuttgart_nurnberg, amp3_l_stuttgart_nurnberg)
 
         # Link between Stuttgart and Ulm - 87.1 km
@@ -686,8 +687,9 @@ class DeutscheTelekom:
         l_stuttgart_ulm = net.add_link(name_to_roadm['roadm_stuttgart'],
                                        name_to_roadm['roadm_ulm'], boost_amp=boost_stuttgart_ulm)
         s1_l_stuttgart_ulm = Span('SMF', 87.1)
-        amp1_l_stuttgart_ulm = net.add_amplifier('amp1_l_stuttgart_ulm', 'EDFA', target_gain=22)
+        amp1_l_stuttgart_ulm = net.add_amplifier('amp1_l_stuttgart_ulm', 'EDFA', target_gain=19.2)
         l_stuttgart_ulm.add_span(s1_l_stuttgart_ulm, amp1_l_stuttgart_ulm)
+        net.add_monitor('opm4', l_stuttgart_ulm, s1_l_stuttgart_ulm, amp1_l_stuttgart_ulm)
 
         boost_ulm_stuttgart = net.add_amplifier('boost_ulm_stuttgart', 'EDFA', target_gain=6)
         l_ulm_stuttgart = net.add_link(name_to_roadm['roadm_ulm'],

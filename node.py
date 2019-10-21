@@ -10,7 +10,7 @@ def db_to_abs(db_value):
     :param db_value: list or float
     :return: Convert dB to absolute value
     """
-    absolute_value = 10**(db_value/float(10))
+    absolute_value = 10 ** (db_value / float(10))
     return absolute_value
 
 
@@ -19,12 +19,11 @@ def abs_to_db(absolute_value):
     :param absolute_value: list or float
     :return: Convert absolute value to dB
     """
-    db_value = 10*np.log10(absolute_value)
+    db_value = 10 * np.log10(absolute_value)
     return db_value
 
 
 class Node(object):
-
     input_port_base = 0
     output_port_base = 100  # higher value to ease debugging, might need to rethink its scalability
 
@@ -89,11 +88,10 @@ class LineTerminal(Node):
 
     def __init__(self, name, transceivers=None):
         Node.__init__(self, name)
-        self.wss_attenuation = db_to_abs(6)  # Might want to enable this for dynamic allocation
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
-        self.operation_power = db_to_abs(1)  # operation power input in dBm to convert to linear
+        self.operation_power = db_to_abs(-2)  # operation power input in dBm to convert to linear
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
@@ -200,7 +198,7 @@ class LineTerminal(Node):
         # associate the signal objects to the traffic
         traffic.signals = signals
         # Pass transmission to traffic handler
-        traffic.next_link_in_route(self)
+        traffic.next_link_in_route(self, aggregated_ASE_noise=None)
 
     def reset(self, traffic, transceiver, out_port, rule_id):
         """
@@ -242,7 +240,7 @@ class LineTerminal(Node):
         for transceiver in self.transceivers:
             if len(self.transceiver_to_signals[transceiver]) > 0:
                 for channel in self.transceiver_to_signals[transceiver]:
-                    output_power = self.operation_power  # / self.wss_attenuation
+                    output_power = self.operation_power
                     channel.power_at_output_interface[self] = output_power
                     self.port_to_signal_power_out[out_port][channel] = output_power
                     self.port_to_signal_out[out_port].append(channel)
@@ -250,7 +248,7 @@ class LineTerminal(Node):
 
 class Transceiver(object):
     def __init__(self, name, spectrum_band='C', optical_carrier=1550.0,
-                 channel_spacing=0.4*1e-9, bandwidth=2.99792458*1e9, modulation_format='PM-QPSK',
+                 channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
                  bits_per_symbol=2.0, symbol_rate=0.025 * 1e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
@@ -278,12 +276,10 @@ class Transceiver(object):
 
 
 class OpticalSignal(object):
-
     spectrum_band_init_nm = {'C': 1529.2}
 
     def __init__(self, index, spectrum_band, channel_spacing,
                  symbol_rate, bits_per_symbol, data=None):
-
         self.index = index
         self.wavelength = self.spectrum_band_init_nm[spectrum_band] * unit.nm + index * channel_spacing
         self.frequency = unit.c / self.wavelength
@@ -391,13 +387,14 @@ class Roadm(Node):
 
         del self.switch_table[rule_id]
 
-    def add_channel_roadm(self, traffic, in_port, out_port):
+    def add_channel_roadm(self, traffic, in_port, out_port, aggregated_ASE_noise):
         """
         Simulation of physical effects of signals traversing
         a ROADM node with two WSSs (attenuation) values
         :param traffic:
         :param in_port:
         :param out_port:
+        :param aggregated_ASE_noise:
         :return:
         """
         # First check if there is switching rule
@@ -421,7 +418,7 @@ class Roadm(Node):
                         # the Traffic object
                         traffic.altered_traffic[t] = self
             # Relay next action to the traffic object
-            traffic.next_link_in_route(self)
+            traffic.next_link_in_route(self, aggregated_ASE_noise)
         else:
             print("Node.Roadm.add_channel_roadm: There is no rule in %s to handle traffic." % self.name)
             return
@@ -437,8 +434,8 @@ class Roadm(Node):
         """
         found = False
         for rule, items in self.switch_table.items():
-            if (items['in_port'] == in_port)\
-                    and (items['out_port'] == out_port)\
+            if (items['in_port'] == in_port) \
+                    and (items['out_port'] == out_port) \
                     and (items['signals'] == traffic.wavelength_indexes):
                 found = True
                 return found
@@ -589,10 +586,11 @@ class Amplifier(Node):
         system_gain = self.system_gain - 1
 
         # Conversion from dB to linear
-        system_gain_linear = db_to_abs(system_gain)
-        ase_noise = (self.ase_noise[signal] * system_gain_linear) +\
-                    (noise_figure_linear * sc.h * system_gain_linear * signal.frequency * self.bandwidth)
-
+        # Justifying the division by 1000 below:
+        # balancing the units for computation.
+        ase_noise = self.ase_noise[signal] + \
+                    (noise_figure_linear * sc.h * signal.frequency *
+                     self.bandwidth * db_to_abs(system_gain) * 1000)
         self.ase_noise[signal] = ase_noise
 
     def balance_system_gain(self):
@@ -612,7 +610,7 @@ class Amplifier(Node):
         # Flag check for enabling the repeated computation of balancing
         if self.balancing_flag_1 and (not self.balancing_flag_2):
             self.balancing_flag_2 = True
-        if not(self.balancing_flag_1 and self.balancing_flag_2):
+        if not (self.balancing_flag_1 and self.balancing_flag_2):
             self.balancing_flag_1 = True
 
 
@@ -636,17 +634,16 @@ class Monitor(Node):
         self.amplifier = amplifier
 
     def get_osnr(self, signal):
-        output_power = self.amplifier.output_power[signal] * 1000
-        ase_noise = self.amplifier.ase_noise[signal] * 1000
+        output_power = self.amplifier.output_power[signal]
+        ase_noise = self.amplifier.ase_noise[signal]
         osnr_linear = output_power / ase_noise
         osnr = abs_to_db(osnr_linear)
         return osnr
 
     def get_gosnr(self, signal):
-        output_power = self.amplifier.output_power[signal] * 1000
-        ase_noise = self.amplifier.ase_noise[signal] * 1000
-        nli_noise = self.link.nonlinear_interference_noise[self.span][signal] * 1000
+        output_power = self.amplifier.output_power[signal]
+        ase_noise = self.amplifier.ase_noise[signal]
+        nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
         gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
-
