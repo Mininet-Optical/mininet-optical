@@ -216,7 +216,6 @@ class Network(object):
                 return "Network.routing: Route Not Found."
             # next node is the destination with the lowest weight
             current_node = min(next_destinations, key=lambda k: next_destinations[k][1])
-
         # Work back through destinations in shortest path
         route = []
         link_to_next_node = None
@@ -299,11 +298,12 @@ class Traffic(object):
         """
         self.src_node.reset(self, self.transceiver, out_port, rule_id)
 
-    def next_link_in_route(self, node):
+    def next_link_in_route(self, node, aggregated_ASE_noise):
         """
         Continue propagating simulation in the next
         link of the given route
         :param node: node1 in link
+        :param aggregated_ASE_noise:
         :return:
         """
         if self.revisiting:
@@ -311,7 +311,7 @@ class Traffic(object):
             # signals have been updated/modified
             self.next_node = node
             self.next_link, self.next_node = self.find_next_in_route()
-        self.next_link.incoming_transmission(self, node)
+        self.next_link.incoming_transmission(self, node, aggregated_ASE_noise)
 
     def next_link_in_route_rule_update(self, node, rule_id):
         # Find the next link and node on the route for
@@ -343,7 +343,8 @@ class Traffic(object):
         if next_node is self.dst_node:
             next_node.add_channel_receiver(self, next_node_in_port, link)
             # print for debugging purposes
-            print("At RX node %s, tmp_e2e: %i\nRevisit: %s\n***" % (next_node.name, next_node.tmp_e2e, self.revisiting))
+            # print("At RX node %s, tmp_e2e: %i\nRevisit: %s\n***" %
+            #       (next_node.name, next_node.tmp_e2e, self.revisiting))
             return
 
         # update node traffic with incoming traffic from link
@@ -352,7 +353,7 @@ class Traffic(object):
         # Find next two objects in route
         self.next_link, self.next_node = self.find_next_in_route()
         next_node_out_port = self.next_link.output_port_node1
-        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port)
+        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port, link.aggregated_ASE_noise)
 
     def find_next_in_route(self):
         """

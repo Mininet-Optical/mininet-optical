@@ -55,6 +55,7 @@ class Link(object):
         self.signal_power_out = {}  # dict of signals and power levels
 
         self.nonlinear_interference_noise = {}  # dict of spans to signals to nonlinear noise
+        self.aggregated_ASE_noise = {}
 
         self.spans = []
 
@@ -96,15 +97,16 @@ class Link(object):
         self.traffic.remove(traffic)
 
         if len(self.signal_power_in) > 0:
-            print("Link entering")
+            # print("Link entering")
             self.propagate_simulation()
         traffic.next_node_in_route_update(self, rule_id)
 
-    def incoming_transmission(self, traffic, node):
+    def incoming_transmission(self, traffic, node, aggregated_ASE_noise):
         """
         Update structures and invoke propagate_simulation(
         :param traffic: Traffic object associated to transmission
         :param node: node where signals are coming from
+        :param aggregated_ASE_noise: carried ASE noise until this point
         :return: traffic.next_node_in_route()
         """
         # Save traffic instance to list for easy access
@@ -113,30 +115,18 @@ class Link(object):
         for signal, power in node.port_to_signal_power_out[self.output_port_node1].items():
             self.signal_power_in[signal] = power
 
-        self.propagate_simulation()
-        """
-            DEBUGGING
-        """
-        print("Debugging at Link between %s and %s" % (self.node1.name, self.node2.name))
-        print("Signals in")
-        pprint(self.signal_power_in)
-        print("Signals out")
-        pprint(self.signal_power_out)
-        print("FIN")
-        """
-            END DEBUGGING
-        """
+        self.propagate_simulation(aggregated_ASE_noise)
         # Relay to next node in transmission
         traffic.next_node_in_route(self)
 
-    def propagate_simulation(self):
+    def propagate_simulation(self, aggregated_ASE_noise=None):
         """
         Compute the propagation of signals over this link
         :return:
         """
         # keep track of the signal power in link
         signal_power_progress = self.signal_power_in.copy()
-        aggregated_ASE_noise = None
+        # aggregated_ASE_noise = None
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
@@ -230,6 +220,8 @@ class Link(object):
                     self.signal_power_out[signal] = in_power
 
             prev_amp = amplifier
+            if aggregated_ASE_noise:
+                self.aggregated_ASE_noise.update(aggregated_ASE_noise)
 
     @staticmethod
     def zirngibl_srs(signals, active_channels, span):
@@ -346,7 +338,7 @@ class Link(object):
         nonlinear_noise_new = self.nonlinear_noise(signals, span, amplifier_gain)
         out_noise = {}
         for signal, value in nonlinear_noise.items():
-            pprint("Adding %s with %s" % (nonlinear_noise[signal], nonlinear_noise_new[signal]))
+            # pprint("Adding %s with %s" % (nonlinear_noise[signal], nonlinear_noise_new[signal]))
             out_noise[signal] = nonlinear_noise[signal] + nonlinear_noise_new[signal]
         return out_noise
 
@@ -428,6 +420,8 @@ class Link(object):
                 nonlinear_noise_term2 += (2 * g_ch ** 2 * _nch + g_cut ** 2 * _cut)
 
             nonlinear_noise_term1 = 16 / 27.0 * gamma ** 2 * lump_gain * math.e ** (-2 * alpha * span_length) * g_cut
+            # Justify the multiplication by 10 below:
+            # balancing units
             nonlinear_noise = nonlinear_noise_term1 * nonlinear_noise_term2
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = abs(nonlinear_noise)
