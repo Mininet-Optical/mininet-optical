@@ -198,7 +198,7 @@ class LineTerminal(Node):
         # associate the signal objects to the traffic
         traffic.signals = signals
         # Pass transmission to traffic handler
-        traffic.next_link_in_route(self, aggregated_ASE_noise=None)
+        traffic.next_link_in_route(self, aggregated_ASE_noise=None, aggregated_NLI_noise=None)
 
     def reset(self, traffic, transceiver, out_port, rule_id):
         """
@@ -387,7 +387,7 @@ class Roadm(Node):
 
         del self.switch_table[rule_id]
 
-    def add_channel_roadm(self, traffic, in_port, out_port, aggregated_ASE_noise):
+    def add_channel_roadm(self, traffic, in_port, out_port, aggregated_ASE_noise, aggregated_NLI_noise):
         """
         Simulation of physical effects of signals traversing
         a ROADM node with two WSSs (attenuation) values
@@ -395,6 +395,7 @@ class Roadm(Node):
         :param in_port:
         :param out_port:
         :param aggregated_ASE_noise:
+        :param aggregated_NLI_noise:
         :return:
         """
         # First check if there is switching rule
@@ -407,6 +408,8 @@ class Roadm(Node):
                 if signal in traffic.signals:
                     # Inflict the ROADM (1xWSS) attenuation to the signals
                     self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+                    if aggregated_ASE_noise:
+                        aggregated_ASE_noise[signal] /= db_to_abs(self.attenuation)
             if len(self.traffic) > 1:
                 # Keep track of the other traffic instances that
                 # will get altered because of this new addition
@@ -418,7 +421,7 @@ class Roadm(Node):
                         # the Traffic object
                         traffic.altered_traffic[t] = self
             # Relay next action to the traffic object
-            traffic.next_link_in_route(self, aggregated_ASE_noise)
+            traffic.next_link_in_route(self, aggregated_ASE_noise, aggregated_NLI_noise)
         else:
             print("Node.Roadm.add_channel_roadm: There is no rule in %s to handle traffic." % self.name)
             return
@@ -475,7 +478,8 @@ class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(6.0, 90), noise_figure_function=None,
-                 bandwidth=12.5e9, wavelength_dependent_gain_id=None):
+                 bandwidth=12.5e9, wavelength_dependent_gain_id=None,
+                 boost=False):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -498,6 +502,9 @@ class Amplifier(Node):
 
         self.balancing_flag_1 = False  # When both are True system gain balancing is complete
         self.balancing_flag_2 = False
+
+        self.boost = boost
+        self.nonlinear_noise = {}  # aggregated NLI noise to be used only in boost = True
 
     def balancing_flags_off(self):
         self.balancing_flag_1 = False
@@ -560,7 +567,6 @@ class Amplifier(Node):
         """
         system_gain = self.system_gain
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
-
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
@@ -576,21 +582,18 @@ class Amplifier(Node):
         if aggregated_noise:
             self.ase_noise[signal] = aggregated_noise[signal]
 
+        # Set parameters needed for ASE model
+        noise_figure_linear = db_to_abs(self.noise_figure[signal.index])
+        system_gain = self.system_gain
+
         if signal not in self.ase_noise:
             # set initial noise 50 dB below signal power
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[signal] = init_noise
-
-        # Set parameters needed for ASE model
-        noise_figure_linear = db_to_abs(self.noise_figure[signal.index])
-        system_gain = self.system_gain - 1
-
         # Conversion from dB to linear
-        # Justifying the division by 1000 below:
-        # balancing the units for computation.
-        ase_noise = self.ase_noise[signal] + \
-                    (noise_figure_linear * sc.h * signal.frequency *
-                     self.bandwidth * db_to_abs(system_gain) * 1000)
+        gain_linear = db_to_abs(system_gain)
+        ase_noise = self.ase_noise[signal] * gain_linear + (noise_figure_linear * sc.h * signal.frequency *
+                                                            self.bandwidth * (gain_linear-1) * 1000)
         self.ase_noise[signal] = ase_noise
 
     def balance_system_gain(self):
@@ -621,7 +624,7 @@ class Monitor(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, link, span, amplifier):
+    def __init__(self, name, link=None, span=None, amplifier=None):
         """
 
         :param name:
@@ -643,7 +646,10 @@ class Monitor(Node):
     def get_gosnr(self, signal):
         output_power = self.amplifier.output_power[signal]
         ase_noise = self.amplifier.ase_noise[signal]
-        nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
+        if self.amplifier.boost:
+            nli_noise = self.amplifier.nonlinear_noise[signal]
+        else:
+            nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
         gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr

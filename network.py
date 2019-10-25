@@ -298,12 +298,13 @@ class Traffic(object):
         """
         self.src_node.reset(self, self.transceiver, out_port, rule_id)
 
-    def next_link_in_route(self, node, aggregated_ASE_noise):
+    def next_link_in_route(self, node, aggregated_ASE_noise, aggregated_NLI_noise):
         """
         Continue propagating simulation in the next
         link of the given route
         :param node: node1 in link
         :param aggregated_ASE_noise:
+        :param aggregated_NLI_noise:
         :return:
         """
         if self.revisiting:
@@ -311,7 +312,7 @@ class Traffic(object):
             # signals have been updated/modified
             self.next_node = node
             self.next_link, self.next_node = self.find_next_in_route()
-        self.next_link.incoming_transmission(self, node, aggregated_ASE_noise)
+        self.next_link.incoming_transmission(self, node, aggregated_ASE_noise, aggregated_NLI_noise)
 
     def next_link_in_route_rule_update(self, node, rule_id):
         # Find the next link and node on the route for
@@ -347,13 +348,13 @@ class Traffic(object):
             #       (next_node.name, next_node.tmp_e2e, self.revisiting))
             return
 
-        # update node traffic with incoming traffic from link
-        next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
-
         # Find next two objects in route
         self.next_link, self.next_node = self.find_next_in_route()
         next_node_out_port = self.next_link.output_port_node1
-        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port, link.aggregated_ASE_noise)
+        # update node traffic with incoming traffic from link
+        next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
+        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port,
+                                    link.aggregated_ASE_noise, link.aggregated_NLI_noise)
 
     def find_next_in_route(self):
         """
