@@ -1,7 +1,6 @@
-from deutsche_telekom import DeutscheTelekom
+from topo.deutsche_telekom import DeutscheTelekom
 import numpy as np
-import json
-from pprint import pprint
+# import json
 
 
 def db_to_abs(db_value):
@@ -74,7 +73,8 @@ while test_run <= 1:
         # roadm_stuttgart.install_switch_rule(1, 1, 103, wavelength_indexes)
         # roadm_ulm.install_switch_rule(1, 2, 100, wavelength_indexes)
         #
-        # resources = {'transceiver': lt_frankfurt.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
+        # resources = {'transceiver': lt_frankfurt.name_to_transceivers['t1'],
+        #              'required_wavelengths': wavelength_indexes}
         # traffic_req1 = net.transmit(lt_frankfurt, lt_ulm, resources=resources)
 
         # 4-hop analysis: Koln to Frankfurt to Nurnberg to Munchen
@@ -138,7 +138,7 @@ while test_run <= 1:
         json_struct['tests'].append({_osnr_id: osnrs})
         json_struct['tests'].append({_gosnr_id: gosnrs})
         json_file_name = '../test-loads-qot/4_hop/' + test_id + '_4_hop_load_' + str(load_id) + '.json'
-        with open(json_file_name, 'w+') as outfile:
-            json.dump(json_struct, outfile)
+        # with open(json_file_name, 'w+') as outfile:
+        #     json.dump(json_struct, outfile)
         j += 1
     test_run += 1
