@@ -1,3 +1,16 @@
+"""
+    This script will build the Deutsche Telekom topology and run a single
+    81-channel transmission with the default configuration of the simulator,
+    and will monitor six channels. The latter, will then be plotted.
+
+    For different distances and monitoring points one needs to edit the
+    Deutsche Telekom declaration in ../topo/deutsche_telekom.py
+
+    Date: November 11th, 2019
+
+"""
+
+
 from topo.deutsche_telekom import DeutscheTelekom
 import matplotlib.pyplot as plt
 import numpy as np
