@@ -17,7 +17,7 @@ import numpy as np
 from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
-figure(num=None, figsize=(8,6), dpi=256)
+figure(num=None, figsize=(8, 6), dpi=256)
 matplotlib.font_manager._rebuild()
 
 
@@ -124,7 +124,7 @@ theo = []
 init = osnr_c76[0]
 theo.append(init)
 for i in range(1, 19):
-    theo.append(-2 + 58 - 0.22*60 - 6 - 10*np.log10(i))
+    theo.append(-2 + 58 - 0.22*80 - 6 - 10*np.log10(i))
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
