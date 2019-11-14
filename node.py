@@ -3,6 +3,7 @@ from pprint import pprint
 import numpy as np
 import scipy.constants as sc
 import random
+import json
 
 
 def db_to_abs(db_value):
@@ -398,8 +399,18 @@ class Roadm(Node):
         :param aggregated_NLI_noise:
         :return:
         """
+        json_struct = {'tests': []}
+        power_in = 'power_in'
+        power_out = 'power_out'
+        ase_noise_in = 'ase_noise_in'
+        ase_noise_out = 'ase_noise_out'
+
+        if aggregated_ASE_noise:
+            json_struct['tests'].append({ase_noise_in: list(aggregated_ASE_noise.values())})
+
         # First check if there is switching rule
         if self.switching_rule(traffic, in_port, out_port):
+            json_struct['tests'].append({power_in: list(self.port_to_signal_power_in[in_port].values())})
             self.traffic.append(traffic)
             # Create a relation between the current traffic
             # and the output port that it will follow
@@ -410,6 +421,14 @@ class Roadm(Node):
                     self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
                     if aggregated_ASE_noise:
                         aggregated_ASE_noise[signal] /= db_to_abs(self.attenuation)
+
+            json_struct['tests'].append({power_out: list(self.port_to_signal_power_out[out_port].values())})
+            if aggregated_ASE_noise:
+                json_struct['tests'].append({ase_noise_out: list(aggregated_ASE_noise.values())})
+            json_file_name = '../monitoring-power-noise/' + self.name + '.json'
+            with open(json_file_name, 'w+') as outfile:
+                json.dump(json_struct, outfile)
+
             if len(self.traffic) > 1:
                 # Keep track of the other traffic instances that
                 # will get altered because of this new addition
@@ -469,10 +488,12 @@ class Roadm(Node):
 
 description_files_dir = 'description-files/'
 description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt'}
+"""
                      'wdg2': 'wdg2.txt',
                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
-
+"""
 
 class Amplifier(Node):
 
@@ -497,6 +518,7 @@ class Amplifier(Node):
         self.output_power = {}  # dict of signal to output power levels
         self.ase_noise = {}
         self.bandwidth = bandwidth
+        self.wdgfunc = None
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
@@ -510,14 +532,15 @@ class Amplifier(Node):
         self.balancing_flag_1 = False
         self.balancing_flag_2 = False
 
-    @staticmethod
-    def load_wavelength_dependent_gain(wavelength_dependent_gain_id):
+    def load_wavelength_dependent_gain(self, wavelength_dependent_gain_id):
         """
         :param wavelength_dependent_gain_id: file name id (see top of script) - string
         :return: Return wavelength dependent gain array
         """
         if wavelength_dependent_gain_id is None:
-            wavelength_dependent_gain_id = random.choice(list(description_files.keys()))
+            k = random.choice(list(description_files.keys()))
+            self.wdgfunc = k
+            wavelength_dependent_gain_id = k
         wdg_file = description_files[wavelength_dependent_gain_id]
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]

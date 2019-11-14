@@ -130,6 +130,7 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
+            print("WDG Func in %s : %s" % (self.boost_amp.name, self.boost_amp.wdgfunc))
             # For monitoring purposes
             if aggregated_NLI_noise:
                 self.boost_amp.nonlinear_noise.update(aggregated_NLI_noise)
@@ -141,8 +142,17 @@ class Link(object):
                     # Update status of signal power in link
                     signal_power_progress[signal] = output_power
                 self.boost_amp.balance_system_gain()
+
             # Reset balancing flags to original settings
             self.boost_amp.balancing_flags_off()
+
+            # Compute for the power
+            for signal, in_power in self.signal_power_in.items():
+                self.boost_amp.input_power[signal] = in_power
+                output_power = self.boost_amp.output_amplified_power(signal, in_power)
+                # Update status of signal power in link
+                signal_power_progress[signal] = output_power
+
             # Compute ASE noise
             for signal, in_power in self.signal_power_in.items():
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(signal,
@@ -184,6 +194,7 @@ class Link(object):
 
             # Compute amplifier compensation
             if amplifier:
+                print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear
@@ -201,11 +212,20 @@ class Link(object):
                     for signal, in_power in signal_power_progress.items():
                         amplifier.input_power[signal] = in_power
                         output_power = amplifier.output_amplified_power(signal, in_power)
-                        # Update status of signal power in link
-                        self.signal_power_out[signal] = output_power
+                        # # Update status of signal power in link
+                        # self.signal_power_out[signal] = output_power
                     amplifier.balance_system_gain()
                 # Reset balancing flags to original settings
                 amplifier.balancing_flags_off()
+
+                # Compute for the power
+                for signal, in_power in self.signal_power_in.items():
+                    self.boost_amp.input_power[signal] = in_power
+                    output_power = self.boost_amp.output_amplified_power(signal, in_power)
+                    # Update status of signal power in link
+                    signal_power_progress[signal] = output_power
+                    # Update status of signal power in link
+                    self.signal_power_out[signal] = output_power
 
                 # Compute ASE noise
                 for signal, in_power in signal_power_progress.items():
@@ -213,7 +233,7 @@ class Link(object):
                                                                          in_power,
                                                                          aggregated_noise=aggregated_ASE_noise)
                 aggregated_ASE_noise.update(amplifier.ase_noise)
-                signal_power_progress = self.signal_power_out.copy()
+                signal_power_progress.update(self.signal_power_out)
             else:
                 for signal, in_power in signal_power_progress.items():
                     # Update status of signal power in link
