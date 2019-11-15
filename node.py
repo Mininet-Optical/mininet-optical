@@ -488,12 +488,10 @@ class Roadm(Node):
 
 description_files_dir = 'description-files/'
 description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt'}
-"""
                      'wdg2': 'wdg2.txt',
                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
-"""
+
 
 class Amplifier(Node):
 
@@ -607,6 +605,7 @@ class Amplifier(Node):
 
         # Set parameters needed for ASE model
         noise_figure_linear = db_to_abs(self.noise_figure[signal.index])
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
         system_gain = self.system_gain
 
         if signal not in self.ase_noise:
@@ -614,7 +613,7 @@ class Amplifier(Node):
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[signal] = init_noise
         # Conversion from dB to linear
-        gain_linear = db_to_abs(system_gain)
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise = self.ase_noise[signal] * gain_linear + (noise_figure_linear * sc.h * signal.frequency *
                                                             self.bandwidth * (gain_linear-1) * 1000)
         self.ase_noise[signal] = ase_noise
@@ -631,7 +630,7 @@ class Amplifier(Node):
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
-        system_gain_balance = self.system_gain + (self.target_gain - out_in_difference)
+        system_gain_balance = self.system_gain + (out_in_difference - self.target_gain)
         self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.balancing_flag_1 and (not self.balancing_flag_2):

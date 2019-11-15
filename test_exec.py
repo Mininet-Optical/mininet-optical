@@ -5,6 +5,7 @@
     for the EDFA nodes).
 """
 
-import tests.monitoring_4_hop_transmission
+# import tests.monitoring_4_hop_transmission
 # import tests.monitoring_multiple_hop_transmission
 # import tests.monitoring_power_noise_roadm
+import tests.monitoring_nli_noise

@@ -3,6 +3,8 @@ import math
 import units as unit
 from pprint import pprint
 import numpy as np
+import json
+import sys
 
 
 def db_to_abs(db_value):
@@ -55,6 +57,7 @@ class Link(object):
         self.signal_power_out = {}  # dict of signals and power levels
 
         self.nonlinear_interference_noise = {}  # dict of spans to signals to nonlinear noise
+        self.nli_id = 1
         self.aggregated_ASE_noise = {}
         self.aggregated_NLI_noise = {}
 
@@ -177,9 +180,8 @@ class Link(object):
             if len(signal_power_progress) < 1 and prev_amp:
                 signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
 
-                ##  Store not normalized power and noise levels
-                ##  to be considered in the power excursion calculation
-
+                #  Store not normalized power and noise levels
+                #  to be considered in the power excursion calculation
                 not_normalized_power = signal_power_progress
                 not_normalized_noise = prev_amp.ase_noise
 
@@ -205,25 +207,22 @@ class Link(object):
                         span,
                         amplifier)
                     self.nonlinear_interference_noise[span] = nonlinear_interference_noise[span]
-                    aggregated_NLI_noise = nonlinear_interference_noise[span]
+                    aggregated_NLI_noise.update(nonlinear_interference_noise[span])
                     self.aggregated_NLI_noise.update(aggregated_NLI_noise)
+                    # sys.exit(0)
                 # Enabling balancing check
                 while not (amplifier.balancing_flag_1 and amplifier.balancing_flag_2):
                     for signal, in_power in signal_power_progress.items():
                         amplifier.input_power[signal] = in_power
-                        output_power = amplifier.output_amplified_power(signal, in_power)
-                        # # Update status of signal power in link
-                        # self.signal_power_out[signal] = output_power
+                        amplifier.output_amplified_power(signal, in_power)
                     amplifier.balance_system_gain()
                 # Reset balancing flags to original settings
                 amplifier.balancing_flags_off()
 
                 # Compute for the power
-                for signal, in_power in self.signal_power_in.items():
-                    self.boost_amp.input_power[signal] = in_power
-                    output_power = self.boost_amp.output_amplified_power(signal, in_power)
-                    # Update status of signal power in link
-                    signal_power_progress[signal] = output_power
+                for signal, in_power in signal_power_progress.items():
+                    amplifier.input_power[signal] = in_power
+                    output_power = amplifier.output_amplified_power(signal, in_power)
                     # Update status of signal power in link
                     self.signal_power_out[signal] = output_power
 
@@ -354,12 +353,19 @@ class Link(object):
         :param amplifier: Amplifier() object at beginning of span
         :return: dict{signal_index: accumulated NLI noise levels}
         """
+        json_struct = {'tests': []}
+        nli_id = 'nli_' + str(self.nli_id)
         amplifier_gain = db_to_abs(amplifier.system_gain)
         nonlinear_noise_new = self.nonlinear_noise(signals, span, amplifier_gain)
+        json_struct['tests'].append({nli_id: list(nonlinear_noise_new.values())})
+        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        with open(json_file_name, 'w+') as outfile:
+            json.dump(json_struct, outfile)
         out_noise = {}
         for signal, value in _nonlinear_noise.items():
-            out_noise[signal] = value + nonlinear_noise_new[signal]
+            out_noise[signal] = nonlinear_noise_new[signal]
 
+        self.nli_id += 1
         return out_noise
 
     def nonlinear_noise(self, signals, span, lump_gain):
@@ -440,8 +446,6 @@ class Link(object):
                 nonlinear_noise_term2 += (2 * g_ch ** 2 * _nch + g_cut ** 2 * _cut)
 
             nonlinear_noise_term1 = 16 / 27.0 * gamma ** 2 * lump_gain * math.e ** (-2 * alpha * span_length) * g_cut
-            # Justify the multiplication by 10 below:
-            # balancing units
             nonlinear_noise = nonlinear_noise_term1 * nonlinear_noise_term2
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = abs(nonlinear_noise)

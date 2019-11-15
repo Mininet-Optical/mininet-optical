@@ -423,36 +423,6 @@ class DeutscheTelekom:
         l_koln_frankfurt.add_span(s5_l_koln_frankfurt, amp5_l_koln_frankfurt)
         net.add_monitor('verification_opm5', link=l_koln_frankfurt,
                         span=s5_l_koln_frankfurt, amplifier=amp5_l_koln_frankfurt)
-        
-        s6_l_koln_frankfurt = Span('SMF', 80)
-        amp6_l_koln_frankfurt = net.add_amplifier('amp6_l_koln_frankfurt', 'EDFA', target_gain=17.6)
-        l_koln_frankfurt.add_span(s6_l_koln_frankfurt, amp6_l_koln_frankfurt)
-        net.add_monitor('verification_opm6', link=l_koln_frankfurt,
-                        span=s6_l_koln_frankfurt, amplifier=amp6_l_koln_frankfurt)
-        
-        s7_l_koln_frankfurt = Span('SMF', 80)
-        amp7_l_koln_frankfurt = net.add_amplifier('amp7_l_koln_frankfurt', 'EDFA', target_gain=17.6)
-        l_koln_frankfurt.add_span(s7_l_koln_frankfurt, amp7_l_koln_frankfurt)
-        net.add_monitor('verification_opm7', link=l_koln_frankfurt,
-                        span=s7_l_koln_frankfurt, amplifier=amp7_l_koln_frankfurt)
-        
-        s8_l_koln_frankfurt = Span('SMF', 80)
-        amp8_l_koln_frankfurt = net.add_amplifier('amp8_l_koln_frankfurt', 'EDFA', target_gain=17.6)
-        l_koln_frankfurt.add_span(s8_l_koln_frankfurt, amp8_l_koln_frankfurt)
-        net.add_monitor('verification_opm8', link=l_koln_frankfurt,
-                        span=s8_l_koln_frankfurt, amplifier=amp8_l_koln_frankfurt)
-
-        s9_l_koln_frankfurt = Span('SMF', 80)
-        amp9_l_koln_frankfurt = net.add_amplifier('amp9_l_koln_frankfurt', 'EDFA', target_gain=17.6)
-        l_koln_frankfurt.add_span(s9_l_koln_frankfurt, amp9_l_koln_frankfurt)
-        net.add_monitor('verification_opm9', link=l_koln_frankfurt,
-                        span=s9_l_koln_frankfurt, amplifier=amp9_l_koln_frankfurt)
-
-        s10_l_koln_frankfurt = Span('SMF', 80)
-        amp10_l_koln_frankfurt = net.add_amplifier('amp10_l_koln_frankfurt', 'EDFA', target_gain=17.6)
-        l_koln_frankfurt.add_span(s10_l_koln_frankfurt, amp10_l_koln_frankfurt)
-        net.add_monitor('verification_opm10', link=l_koln_frankfurt,
-                        span=s10_l_koln_frankfurt, amplifier=amp10_l_koln_frankfurt)
 
         # Link between Frankfurt and Leipzig - 313.9 km
         # and the bidirectional (independent) link
@@ -496,23 +466,33 @@ class DeutscheTelekom:
         l_frankfurt_nurnberg = net.add_link(name_to_roadm['roadm_frankfurt'],
                                             name_to_roadm['roadm_nurnberg'],
                                             boost_amp=boost_frankfurt_nurnberg)
-        net.add_monitor('verification_opm11', link=None,
+        net.add_monitor('verification_opm6', link=None,
                         span=None, amplifier=boost_frankfurt_nurnberg)
         s1_l_frankfurt_nurnberg = Span('SMF', 80)
         amp1_l_frankfurt_nurnberg = net.add_amplifier('amp1_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
         l_frankfurt_nurnberg.add_span(s1_l_frankfurt_nurnberg, amp1_l_frankfurt_nurnberg)
-        net.add_monitor('verification_opm12', link=l_frankfurt_nurnberg,
+        net.add_monitor('verification_opm7', link=l_frankfurt_nurnberg,
                         span=s1_l_frankfurt_nurnberg, amplifier=amp1_l_frankfurt_nurnberg)
         s2_l_frankfurt_nurnberg = Span('SMF', 80)
         amp2_l_frankfurt_nurnberg = net.add_amplifier('amp2_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
         l_frankfurt_nurnberg.add_span(s2_l_frankfurt_nurnberg, amp2_l_frankfurt_nurnberg)
-        net.add_monitor('verification_opm13', link=l_frankfurt_nurnberg,
+        net.add_monitor('verification_opm8', link=l_frankfurt_nurnberg,
                         span=s2_l_frankfurt_nurnberg, amplifier=amp2_l_frankfurt_nurnberg)
         s3_l_frankfurt_nurnberg = Span('SMF', 80)
         amp3_l_frankfurt_nurnberg = net.add_amplifier('amp3_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
         l_frankfurt_nurnberg.add_span(s3_l_frankfurt_nurnberg, amp3_l_frankfurt_nurnberg)
-        net.add_monitor('verification_opm14', link=l_frankfurt_nurnberg,
+        net.add_monitor('verification_opm9', link=l_frankfurt_nurnberg,
                         span=s3_l_frankfurt_nurnberg, amplifier=amp3_l_frankfurt_nurnberg)
+        s4_l_frankfurt_nurnberg = Span('SMF', 80)
+        amp4_l_frankfurt_nurnberg = net.add_amplifier('amp4_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
+        l_frankfurt_nurnberg.add_span(s4_l_frankfurt_nurnberg, amp4_l_frankfurt_nurnberg)
+        net.add_monitor('verification_opm10', link=l_frankfurt_nurnberg,
+                        span=s4_l_frankfurt_nurnberg, amplifier=amp4_l_frankfurt_nurnberg)
+        s5_l_frankfurt_nurnberg = Span('SMF', 80)
+        amp5_l_frankfurt_nurnberg = net.add_amplifier('amp5_l_frankfurt_nurnberg', 'EDFA', target_gain=17.6)
+        l_frankfurt_nurnberg.add_span(s5_l_frankfurt_nurnberg, amp5_l_frankfurt_nurnberg)
+        net.add_monitor('verification_opm11', link=l_frankfurt_nurnberg,
+                        span=s5_l_frankfurt_nurnberg, amplifier=amp5_l_frankfurt_nurnberg)
 
         boost_nurnberg_frankfurt = net.add_amplifier('boost_nurnberg_frankfurt', 'EDFA', target_gain=6, boost=True)
         l_nurnberg_frankfurt = net.add_link(name_to_roadm['roadm_nurnberg'],
@@ -674,23 +654,33 @@ class DeutscheTelekom:
         l_nurnberg_munchen = net.add_link(name_to_roadm['roadm_nurnberg'],
                                           name_to_roadm['roadm_munchen'],
                                           boost_amp=boost_nurnberg_munchen)
-        net.add_monitor('verification_opm15', link=None,
+        net.add_monitor('verification_opm12', link=None,
                         span=None, amplifier=boost_nurnberg_munchen)
         s1_l_nurnberg_munchen = Span('SMF', 80)
         amp1_l_nurnberg_munchen = net.add_amplifier('amp1_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
         l_nurnberg_munchen.add_span(s1_l_nurnberg_munchen, amp1_l_nurnberg_munchen)
-        net.add_monitor('verification_opm16', link=l_nurnberg_munchen,
+        net.add_monitor('verification_opm13', link=l_nurnberg_munchen,
                         span=s1_l_nurnberg_munchen, amplifier=amp1_l_nurnberg_munchen)
         s2_l_nurnberg_munchen = Span('SMF', 80)
         amp2_l_nurnberg_munchen = net.add_amplifier('amp2_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
         l_nurnberg_munchen.add_span(s2_l_nurnberg_munchen, amp2_l_nurnberg_munchen)
-        net.add_monitor('verification_opm17', link=l_nurnberg_munchen,
+        net.add_monitor('verification_opm14', link=l_nurnberg_munchen,
                         span=s2_l_nurnberg_munchen, amplifier=amp2_l_nurnberg_munchen)
         s3_l_nurnberg_munchen = Span('SMF', 80)
         amp3_l_nurnberg_munchen = net.add_amplifier('amp3_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
         l_nurnberg_munchen.add_span(s3_l_nurnberg_munchen, amp3_l_nurnberg_munchen)
-        net.add_monitor('verification_opm18', link=l_nurnberg_munchen,
+        net.add_monitor('verification_opm15', link=l_nurnberg_munchen,
                         span=s3_l_nurnberg_munchen, amplifier=amp3_l_nurnberg_munchen)
+        s4_l_nurnberg_munchen = Span('SMF', 80)
+        amp4_l_nurnberg_munchen = net.add_amplifier('amp4_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
+        l_nurnberg_munchen.add_span(s4_l_nurnberg_munchen, amp4_l_nurnberg_munchen)
+        net.add_monitor('verification_opm16', link=l_nurnberg_munchen,
+                        span=s4_l_nurnberg_munchen, amplifier=amp4_l_nurnberg_munchen)
+        s5_l_nurnberg_munchen = Span('SMF', 80)
+        amp5_l_nurnberg_munchen = net.add_amplifier('amp5_l_nurnberg_munchen', 'EDFA', target_gain=17.6)
+        l_nurnberg_munchen.add_span(s5_l_nurnberg_munchen, amp5_l_nurnberg_munchen)
+        net.add_monitor('verification_opm17', link=l_nurnberg_munchen,
+                        span=s5_l_nurnberg_munchen, amplifier=amp5_l_nurnberg_munchen)
 
         # Link between Munchen and Ulm - 145.6 km
         # and the bidirectional (independent) link
