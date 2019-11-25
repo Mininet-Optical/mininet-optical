@@ -17,8 +17,13 @@ import numpy as np
 from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
+# Plot configuration parameters
 figure(num=None, figsize=(8, 6), dpi=256)
+del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 20
 
 
 def db_to_abs(db_value):
@@ -59,21 +64,27 @@ roadm_munchen = net.name_to_node['roadm_munchen']
 # for port, node in roadm_koln.port_to_node_in.items():
 #     print("roadm_munchen reachable by %s through port %s" % (node.name, port))
 
+# Install switch rules into the ROADM nodes
 wavelength_indexes = range(1, 82)
 roadm_koln.install_switch_rule(1, 0, 103, wavelength_indexes)
 roadm_frankfurt.install_switch_rule(1, 2, 104, wavelength_indexes)
 roadm_nurnberg.install_switch_rule(1, 1, 103, wavelength_indexes)
 roadm_munchen.install_switch_rule(1, 1, 100, wavelength_indexes)
 
+# Set resources to use and initiate transmission
 resources = {'transceiver': lt_koln.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
 traffic_req1 = net.transmit(lt_koln, lt_munchen, resources=resources)
 
+# Structures for the number of EDFA output ports in the link
+# (this could be automated)
 osnrs = {}
 gosnrs = {}
-for i in range(0, 19):
+for i in range(0, 13):
     osnrs[i] = []
     gosnrs[i] = []
 
+# Retrieve from each monitoring points the
+# OSNR and gOSNR of all the channels
 opm_name_base = 'verification_opm'
 for key, _ in osnrs.items():
     opm_name = opm_name_base + str(key)
@@ -86,6 +97,7 @@ for key, _ in osnrs.items():
         else:
             gosnrs[key].append(opm.get_gosnr(signal))
 
+# Retrieve only the channels of interest
 channels = [1, 16, 31, 46, 61, 76]
 osnr_c1 = []
 osnr_c16 = []
@@ -116,20 +128,19 @@ for span, _list in gosnrs.items():
     gosnr_c61.append(_list[60])
     gosnr_c76.append(_list[75])
 
-sim = osnr_c76
-all_channels_sim = [osnr_c1, osnr_c16, osnr_c31, osnr_c46, osnr_c61, osnr_c76]
-simg = gosnr_c76
-all_channels_simg = [gosnr_c1, gosnr_c16, gosnr_c31, gosnr_c46, gosnr_c61, gosnr_c76]
+# Create structure and compute OSNR with the analytical model
 theo = []
 init = osnr_c76[0]
 theo.append(init)
-for i in range(1, 19):
+for i in range(1, 13):
     theo.append(-2 + 58 - 0.22*80 - 6 - 10*np.log10(i))
 
-plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 20
+# Structures for plotting purposes of OSNR
+all_channels_sim = [osnr_c1, osnr_c16, osnr_c31, osnr_c46, osnr_c61, osnr_c76]
+# Structures for plotting purposes of gOSNR
+all_channels_simg = [gosnr_c1, gosnr_c16, gosnr_c31, gosnr_c46, gosnr_c61, gosnr_c76]
 
-boost_keys = [11, 15]
+# Just include one label for the OSNR channels
 tmp = False
 for s in all_channels_sim:
     if not tmp:
@@ -138,6 +149,7 @@ for s in all_channels_sim:
     else:
         plt.plot(s, color='green', marker='*')
 
+# Just include one label for the gOSNR channels
 tmp2 = False
 for s in all_channels_simg:
     if not tmp2:
@@ -146,13 +158,16 @@ for s in all_channels_simg:
     else:
         plt.plot(s, '--', color='green', marker='*')
 
+# Plot the analytical model
 plt.plot(theo, '--', color='red', label="OSNR-Analytical model", marker='o')
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
-ticks = [str(i) for i in range(0, 19)]
-plt.xticks((range(19)), ticks)
+ticks = [str(i) for i in range(0, 13)]
+plt.xticks((range(13)), ticks)
 plt.yticks(np.arange(13, 47, 2))
 plt.grid(True)
 plt.legend()
-plt.show()
+# Uncomment for showing or saving the plot
+# plt.show()
+# plt.savefig('../figures/4_hop_transmission.eps', format='eps')
