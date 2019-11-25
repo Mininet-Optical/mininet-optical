@@ -73,7 +73,9 @@ roadm_munchen.install_switch_rule(1, 1, 100, wavelength_indexes)
 
 # Set resources to use and initiate transmission
 resources = {'transceiver': lt_koln.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
+print("*** Initializing end-to-end transmission from %s to %s" % (roadm_koln.name, roadm_munchen.name))
 traffic_req1 = net.transmit(lt_koln, lt_munchen, resources=resources)
+print("*** Transmission successful!")
 
 # Structures for the number of EDFA output ports in the link
 # (this could be automated)
