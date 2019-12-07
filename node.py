@@ -3,7 +3,6 @@ from pprint import pprint
 import numpy as np
 import scipy.constants as sc
 import random
-import json
 
 
 def db_to_abs(db_value):
@@ -38,6 +37,7 @@ class Node(object):
         self.port_to_signal_out = {}  # dict of ports to output signals
         self.port_to_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_signal_power_out = {}  # dict of ports to output signals and power levels
+        self.out_port_to_link = {}
 
     def new_output_port(self, connected_node):
         """
@@ -96,10 +96,6 @@ class LineTerminal(Node):
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
-        self.traffic = []  # list of traffic objects at nodes
-
-        self.tmp_e2e = 0  # number of invocation of a Node
-
         if transceivers:
             self.add_transceivers(transceivers)
 
@@ -152,32 +148,14 @@ class LineTerminal(Node):
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_signals[transceiver_name]
 
-    def add_channel_receiver(self, traffic, in_port, link):
-        self.port_to_signal_power_in[in_port].update(link.signal_power_out)
-        for channel, _power in self.port_to_signal_power_in[in_port].items():
-            self.wavelengths[channel.index] = traffic
-            self.port_to_signal_in[in_port].append(channel)
-        self.tmp_e2e += 1
-
-    def update_channel_receiver(self, traffic, in_port):
-        for signal in traffic.signals:
-            self.wavelengths[signal.index] = 'off'
-            self.port_to_signal_in[in_port].remove(signal)
-            del self.port_to_signal_power_in[in_port][signal]
-
-    def add_channel_transmitter(self, traffic, transceiver, out_port, channels):
+    def transmit(self, transceiver, out_port, channels):
         """
-        Add a reference to an optical signal from a transceiver
-        Compute output power levels at port where channel is added
-        Propagate transmission through the link passing the info of the node
-        :param traffic
-        :param transceiver:
-        :param out_port:
-        :param channels:
+        Begin a transmission from the LT to the connected ROADM
+        :param transceiver: transceiver to use for transmission
+        :param out_port: output port for transmission
+        :param channels: the channels to be transmitted
         :return:
         """
-        # Save traffic instance to list for easy access
-        self.traffic.append(traffic)
         # Retrieve transmission specifications to pass
         # to the signals to be installed
         spectrum_band = transceiver.spectrum_band
@@ -189,34 +167,16 @@ class LineTerminal(Node):
         for channel in channels:
             new_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
             signals.append(new_signal)
-            # Turn on wavelengths for this traffic instance
-            self.wavelengths[channel] = traffic
             # Associate signals to a transceiver/modulator
             self.transceiver_to_signals[transceiver].append(new_signal)
-        # Compute output power levels at output port
-        self.compute_output_power_levels(out_port)
+        # Start transmission
+        self.start(transceiver, out_port)
+        link = self.out_port_to_link[out_port]
+        link.propagate(self.port_to_signal_power_out[out_port], accumulated_ASE_noise=None, accumulated_NLI_noise=None)
 
-        # associate the signal objects to the traffic
-        traffic.signals = signals
-        # Pass transmission to traffic handler
-        traffic.next_link_in_route(self, aggregated_ASE_noise=None, aggregated_NLI_noise=None)
-
-    def reset(self, traffic, transceiver, out_port, rule_id):
-        """
-        Remove the traces of this traffic in this node
-        :param traffic: traffic being removed
-        :param transceiver: tx-transceiver from traffic
-        :param out_port: output port for transmission
-        :param rule_id: rule associated with traffic
-        :return:
-        """
-        for signal in traffic.signals:
-            self.wavelengths[signal.index] = 'off'
-            self.transceiver_to_signals[transceiver].remove(signal)
-            self.port_to_signal_out[out_port].remove(signal)
-            del self.port_to_signal_power_out[out_port][signal]
-        self.traffic.remove(traffic)
-        traffic.next_link_in_route_rule_update(self, rule_id)
+    def receiver(self, in_port, signal_power):
+        self.port_to_signal_power_in[in_port].update(signal_power)
+        print("%s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
@@ -236,21 +196,24 @@ class LineTerminal(Node):
         """
         return [key for key, value in self.wavelengths.items() if value is 'off']
 
-    def compute_output_power_levels(self, out_port):
-        # Check all transceiver - Maybe this is not correct...
-        for transceiver in self.transceivers:
-            if len(self.transceiver_to_signals[transceiver]) > 0:
-                for channel in self.transceiver_to_signals[transceiver]:
-                    output_power = self.operation_power
-                    channel.power_at_output_interface[self] = output_power
-                    self.port_to_signal_power_out[out_port][channel] = output_power
-                    self.port_to_signal_out[out_port].append(channel)
+    def start(self, transceiver, out_port):
+        """
+        Begin transmission and assign the operational power to the signals
+        :param transceiver: transceiver used for transmission
+        :param out_port: output port where signals are transmitted
+        :return:
+        """
+        for channel in self.transceiver_to_signals[transceiver]:
+            output_power = self.operation_power
+            channel.power_at_output_interface[self] = output_power
+            self.port_to_signal_power_out[out_port][channel] = output_power
+            self.port_to_signal_out[out_port].append(channel)
 
 
 class Transceiver(object):
     def __init__(self, name, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
-                 bits_per_symbol=2.0, symbol_rate=0.025 * 1e12):
+                 bits_per_symbol=2.0, symbol_rate=0.032e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -314,10 +277,12 @@ class Roadm(Node):
         Node.__init__(self, name)
         self.node_id = id(self)
         self.attenuation = attenuation
-        self.traffic = []
-        self.traffic_to_out_port = {}
 
-        self.switch_table = {}
+        self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indexes
+        self.signal_to_out_port = {}  # dict OpticalSignal to output port in ROADM
+
+        self.port_to_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
+        self.port_to_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
 
     def install_switch_rule(self, rule_id, in_port, out_port, signals):
         """
@@ -332,42 +297,53 @@ class Roadm(Node):
                                       'out_port': out_port,
                                       'signals': signals}
         for signal in signals:
-            self.port_to_signal_in[in_port].append(signal)
-            self.port_to_signal_out[out_port].append(signal)
+            self.signal_to_out_port[signal] = out_port
 
-    def update_switch_rule(self, prev_rule_id, new_rule_id, in_port, out_port, signals, traffic_of_rule):
+    def update_switch_rule(self, rule_id, new_out_port):
         """
         Update/create a new rule for switching
-        :param prev_rule_id: previous rule ID
-        :param new_rule_id: new rule ID
-        :param in_port: input port for new rule (same as in prev rule)
-        :param out_port: output port for new rule
-        :param signals: signals to be switched (same as in prev rule)
-        :param traffic_of_rule: traffic associated with previous rule
+        :param rule_id: rule ID
+        :param new_out_port: new output port for rule
         :return:
         """
-        # Change the rule in the current ROADM
-        self.switch_table[new_rule_id] = {'in_port': in_port,
-                                          'out_port': out_port,
-                                          'signals': signals}
+        in_port = self.switch_table[rule_id]['in_port']
+        prev_out_port = self.switch_table[rule_id]['out_port']
+        signals = self.switch_table[rule_id]['signals']
 
-        prev_out_port = self.switch_table[prev_rule_id]['out_port']
-        traffic_of_rule.reset(prev_out_port, prev_rule_id)
+        self.switch_table[rule_id]['out_port'] = new_out_port
 
-    def get_traffic_from_rule(self, rule_id, signals):
-        """
-        Given a rule, find the associated traffic to the
-        output port and the signals
-        :param rule_id: ID of the rule
-        :param signals: signals attributed to both traffic and rule
-        :return: traffic object
-        """
-        # Get the output for the given rule
-        out_port = self.switch_table[rule_id]['out_port']
-        for t, port in self.traffic_to_out_port.items():
-            if port is out_port and t.signals is signals:
-                return t
-        return None
+        for signal in signals:
+            self.signal_to_out_port[signal] = new_out_port
+
+        # Clean the output port instances of the signals
+        optical_signals = []
+        for optical_signal, _power in self.port_to_signal_power_out[prev_out_port].items():
+            if optical_signal.index in signals:
+                optical_signals.append(optical_signal)
+
+        # Clean and prevent signals from link propagation
+        link = self.out_port_to_link[prev_out_port]
+        link.clean_signals(optical_signals)
+
+        for optical_signal in optical_signals:
+            # Delete from structures in ROADM node
+            del self.port_to_signal_power_out[prev_out_port][optical_signal]
+
+            if prev_out_port in self.port_to_signal_ase_noise_out.keys() and \
+                    prev_out_port in self.port_to_signal_nli_noise_out.keys():
+                del self.port_to_signal_ase_noise_out[prev_out_port][optical_signal]
+                del self.port_to_signal_nli_noise_out[prev_out_port][optical_signal]
+
+        if prev_out_port in self.port_to_signal_ase_noise_out.keys() and \
+                prev_out_port in self.port_to_signal_nli_noise_out.keys():
+            ase = self.port_to_signal_ase_noise_out[prev_out_port].copy()
+            nli = self.port_to_signal_nli_noise_out[prev_out_port].copy()
+        else:
+            ase = {}
+            nli = {}
+
+        # Propagate the changes in the switch by switching
+        self.switch(in_port, self.port_to_signal_power_in[in_port], ase, nli)
 
     def delete_switch_rule(self, rule_id):
         """
@@ -375,122 +351,108 @@ class Roadm(Node):
         :param rule_id: ID of rule
         :return:
         """
+
         in_port = self.switch_table[rule_id]['in_port']
         out_port = self.switch_table[rule_id]['out_port']
         signals = self.switch_table[rule_id]['signals']
 
         for signal in signals:
+            # Delete rule indication of output port
+            del self.signal_to_out_port[signal]
+
+        optical_signals = []
+        # get the signal objects to be removed
+        for signal in self.port_to_signal_power_out[out_port]:
+            if signal.index in signals:
+                optical_signals.append(signal)
+
+        for signal in optical_signals:
+            # delete signals from structures in the switch
             list(filter(signal.__ne__, self.port_to_signal_in[in_port]))
             list(filter(signal.__ne__, self.port_to_signal_out[out_port]))
 
             del self.port_to_signal_power_in[in_port][signal]
             del self.port_to_signal_power_out[out_port][signal]
 
+            if out_port in self.port_to_signal_ase_noise_out.keys() and \
+                    out_port in self.port_to_signal_nli_noise_out.keys():
+                del self.port_to_signal_ase_noise_out[out_port][signal]
+                del self.port_to_signal_nli_noise_out[out_port][signal]
+
         del self.switch_table[rule_id]
 
-    def add_channel_roadm(self, traffic, in_port, out_port, aggregated_ASE_noise, aggregated_NLI_noise):
+        # Clean signals from link propagation
+        link = self.out_port_to_link[out_port]
+        link.clean_signals(optical_signals)
+
+    def switch(self, in_port, link_signals, accumulated_ASE_noise, accumulated_NLI_noise):
         """
-        Simulation of physical effects of signals traversing
-        a ROADM node with two WSSs (attenuation) values
-        :param traffic:
-        :param in_port:
-        :param out_port:
-        :param aggregated_ASE_noise:
-        :param aggregated_NLI_noise:
+        Switch the input signals to the appropriate output ports as established
+        by the switching rules in the switch table (if any).
+        :param in_port: input port where signals are being transmitted
+        :param link_signals: the signals being transmitted
+        :param accumulated_ASE_noise: ASE noise (if any)
+        :param accumulated_NLI_noise: NLI noise (if any)
         :return:
         """
-        json_struct = {'tests': []}
-        power_in = 'power_in'
-        power_out = 'power_out'
-        ase_noise_in = 'ase_noise_in'
-        ase_noise_out = 'ase_noise_out'
+        # Keep track of in which ports there are signals
+        out_ports_to_links = {}
+        # Update input port structure for monitoring purposes
+        self.port_to_signal_power_in[in_port].update(link_signals)
+        for signal, in_power in self.port_to_signal_power_in[in_port].items():
+            # Iterate through all signals since they all might have changed
+            if signal.index in self.signal_to_out_port:
+                # Find the output port as established when installing a rule
+                out_port = self.signal_to_out_port[signal.index]
+                # Attenuate signals power
+                self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
+                if accumulated_ASE_noise:
+                    # Attenuate signals noise power
+                    accumulated_ASE_noise[signal] /= db_to_abs(self.attenuation)
 
-        if aggregated_ASE_noise:
-            json_struct['tests'].append({ase_noise_in: list(aggregated_ASE_noise.values())})
+                    if out_port not in self.port_to_signal_ase_noise_out.keys():
+                        # Create an entry for the output port
+                        self.port_to_signal_ase_noise_out[out_port] = {}
+                    # Update structure
+                    self.port_to_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
 
-        # First check if there is switching rule
-        if self.switching_rule(traffic, in_port, out_port):
-            json_struct['tests'].append({power_in: list(self.port_to_signal_power_in[in_port].values())})
-            self.traffic.append(traffic)
-            # Create a relation between the current traffic
-            # and the output port that it will follow
-            self.traffic_to_out_port[traffic] = out_port
-            for signal, in_power in self.port_to_signal_power_in[in_port].items():
-                if signal in traffic.signals:
-                    # Inflict the ROADM (1xWSS) attenuation to the signals
-                    self.port_to_signal_power_out[out_port][signal] = in_power / db_to_abs(self.attenuation)
-                    if aggregated_ASE_noise:
-                        aggregated_ASE_noise[signal] /= db_to_abs(self.attenuation)
+                if accumulated_NLI_noise:
+                    if out_port not in self.port_to_signal_nli_noise_out.keys():
+                        # Create an entry for the output port
+                        self.port_to_signal_nli_noise_out[out_port] = {}
+                    # Update structure
+                    self.port_to_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
 
-            json_struct['tests'].append({power_out: list(self.port_to_signal_power_out[out_port].values())})
-            if aggregated_ASE_noise:
-                json_struct['tests'].append({ase_noise_out: list(aggregated_ASE_noise.values())})
-            json_file_name = '../monitoring-power-noise/' + self.name + '.json'
-            with open(json_file_name, 'w+') as outfile:
-                json.dump(json_struct, outfile)
+                if out_port not in out_ports_to_links.keys():
+                    # keep track of the ports where signals will passed through
+                    out_ports_to_links[out_port] = self.out_port_to_link[out_port]
+            else:
+                # We can trigger an Exception, but the signals wouldn't be propagated anyway
+                print("%s.%s.switch unable to find rule for signal %s" % (self.__class__.__name__,
+                                                                          self.name, signal.index))
 
-            if len(self.traffic) > 1:
-                # Keep track of the other traffic instances that
-                # will get altered because of this new addition
-                for t in self.traffic:
-                    # Don't add if traffic follows same port, because
-                    # the computation of the phy-effects is automated
-                    if (t not in traffic.altered_traffic) and (self.traffic_to_out_port[t] != out_port):
-                        # update the altered_traffic attribute in
-                        # the Traffic object
-                        traffic.altered_traffic[t] = self
-            # Relay next action to the traffic object
-            traffic.next_link_in_route(self, aggregated_ASE_noise, aggregated_NLI_noise)
-        else:
-            print("Node.Roadm.add_channel_roadm: There is no rule in %s to handle traffic." % self.name)
-            return
+        for op, link in out_ports_to_links.items():
+            # Pass only the signals corresponding to the output port
+            pass_through_signals = self.port_to_signal_power_out[op]
+            if op in self.port_to_signal_ase_noise_out.keys():
+                ase = self.port_to_signal_ase_noise_out[op].copy()
+            else:
+                ase = accumulated_ASE_noise.copy()
 
-    def switching_rule(self, traffic, in_port, out_port):
-        """
-        Check if there is a rule with the values from
-        the parameters
-        :param traffic: traffic object to check
-        :param in_port: input port in rule
-        :param out_port: output port in rule
-        :return: True|False if found
-        """
-        found = False
-        for rule, items in self.switch_table.items():
-            if (items['in_port'] == in_port) \
-                    and (items['out_port'] == out_port) \
-                    and (items['signals'] == traffic.wavelength_indexes):
-                found = True
-                return found
-        return found
-
-    def update_channel_roadm(self, traffic, rule_id):
-        """
-        Simulation
-        A switching rule changed in a previous ROADM,
-        hence, we need to remove the instances of the previous
-        traffic still allocated at this node.
-        :return:
-        """
-        in_port = self.switch_table[rule_id]['in_port']
-        out_port = self.switch_table[rule_id]['out_port']
-        signals = self.switch_table[rule_id]['signals']
-
-        for signal in traffic.signals:
-            self.port_to_signal_in[in_port].remove(signal.index)
-            self.port_to_signal_out[out_port].remove(signal.index)
-            del self.port_to_signal_power_in[in_port][signal]
-            del self.port_to_signal_power_out[out_port][signal]
-        del self.traffic_to_out_port[traffic]
-        self.traffic.remove(traffic)
-
-        traffic.next_link_in_route_rule_update(self, rule_id)
+            if op in self.port_to_signal_nli_noise_out.keys():
+                nli = self.port_to_signal_nli_noise_out[op].copy()
+            else:
+                nli = accumulated_NLI_noise.copy()
+            # Propagate signals through link
+            link.propagate(pass_through_signals, ase, nli)
 
 
 description_files_dir = 'description-files/'
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt',
-                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg1.txt',
+#                      'wdg2': 'wdg2.txt',
+#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
+#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -524,7 +486,7 @@ class Amplifier(Node):
         self.balancing_flag_2 = False
 
         self.boost = boost
-        self.nonlinear_noise = {}  # aggregated NLI noise to be used only in boost = True
+        self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
 
     def balancing_flags_off(self):
         self.balancing_flag_1 = False
@@ -595,13 +557,13 @@ class Amplifier(Node):
         self.output_power[signal] = output_power
         return output_power
 
-    def stage_amplified_spontaneous_emission_noise(self, signal, in_power, aggregated_noise=None):
+    def stage_amplified_spontaneous_emission_noise(self, signal, in_power, accumulated_noise=None):
         """
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
         """
-        if aggregated_noise:
-            self.ase_noise[signal] = aggregated_noise[signal]
+        if accumulated_noise:
+            self.ase_noise[signal] = accumulated_noise[signal]
 
         # Set parameters needed for ASE model
         noise_figure_linear = db_to_abs(self.noise_figure[signal.index])
@@ -638,6 +600,14 @@ class Amplifier(Node):
         if not (self.balancing_flag_1 and self.balancing_flag_2):
             self.balancing_flag_1 = True
 
+    def clean_signals(self, signals):
+        for signal in signals:
+            del self.input_power[signal]
+            del self.output_power[signal]
+            del self.ase_noise[signal]
+            if signal in self.nonlinear_noise.keys():
+                del self.nonlinear_noise[signal]
+
 
 class Monitor(Node):
     """
@@ -658,7 +628,34 @@ class Monitor(Node):
         self.span = span
         self.amplifier = amplifier
 
+    def get_list_osnr(self):
+        """
+        Get the OSNR values at this OPM as a list
+        :return: OSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        signals_list = []
+        for signal in optical_signals:
+            signals_list.append(self.get_osnr(signal))
+        return signals_list
+
+    def get_list_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        signals_list = []
+        for signal in optical_signals:
+            signals_list.append(self.get_gosnr(signal))
+        return signals_list
+
     def get_osnr(self, signal):
+        """
+        Compute OSNR levels of the signal
+        :param signal: OpticalSignal object
+        :return: OSNR (linear)
+        """
         output_power = self.amplifier.output_power[signal]
         ase_noise = self.amplifier.ase_noise[signal]
         osnr_linear = output_power / ase_noise
@@ -666,12 +663,19 @@ class Monitor(Node):
         return osnr
 
     def get_gosnr(self, signal):
+        """
+        Compute gOSNR levels of the signal
+        :param signal: OpticalSignal object
+        :return: gOSNR (linear)
+        """
         output_power = self.amplifier.output_power[signal]
         ase_noise = self.amplifier.ase_noise[signal]
         if self.amplifier.boost:
             nli_noise = self.amplifier.nonlinear_noise[signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
-        gosnr_linear = output_power / (ase_noise + nli_noise)
+        print("%s.get_osnr span: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
+                                                                    self.span, str(ase_noise), str(nli_noise * 1.0e3)))
+        gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e3))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr

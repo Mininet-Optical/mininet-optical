@@ -23,11 +23,11 @@ for file in os.listdir(dir):
             for _dict in data['tests']:
                 nli.append(list(_dict.values())[0])
 
-# a = nli[0]
-# b = nli[1]
-# # d = nli[2]
-# c = [x + y for x, y in zip(a, b)]
-# plt.plot(c)
-for v in nli:
+db_nli = []
+for n in nli:
+    tmp = [abs_to_db(i * 1e3) for i in n]
+    db_nli.append(tmp)
+
+for v in db_nli:
     plt.plot(v)
 plt.show()

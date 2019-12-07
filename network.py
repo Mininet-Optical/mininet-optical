@@ -2,7 +2,6 @@ from node import *
 from link import *
 import numpy as np
 import math
-import time
 from pprint import pprint
 
 
@@ -32,8 +31,6 @@ class Network(object):
         self.topology = {}
 
         self.name_to_node = {}
-
-        self.traffic = []  # list of Traffic objects on the network
 
     def add_lt(self, name, transceivers=None, **params):
         """
@@ -118,6 +115,7 @@ class Network(object):
             node2_input_port = ports['node2_input_port']
 
         link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp)
+        node1.out_port_to_link[node1_output_port] = link
         self.links.append(link)
         self.topology[node1].append((node2, link))
         return link
@@ -153,35 +151,22 @@ class Network(object):
 
         link.add_span(span, amplifier)
 
-    def transmit(self, src_node, dst_node, bit_rate=100*1e9, route=None, resources=None):
-        """
-        Oct. 9th
-        NEED TO CHANGE THIS IMPLEMENTATION TO COMPLY WITH THE CONTROL SYSTEM BEHAVIOUR
-        Create and start a Traffic object
-        :param src_node: lt transmitter node
-        :param dst_node: lt receiver node
-        :param bit_rate: bit rate in Gbps
-        :param route: list of tuples (node, link)
-        :param resources: dict with transceiver and wavelength(s) to use !Wavelengths still not specified!
-        :return:
-        """
-        if not route:
-            route = self.routing(src_node, dst_node)
+    def transmit(self, src_node, dst_node, bit_rate=100*1e9, resources=None):
         if resources:
             transceiver = resources['transceiver']
             wavelengths = resources['required_wavelengths']
         else:
             transceiver, wavelengths = self.wavelength_allocation(src_node, bit_rate)
-        new_traffic_request = Traffic(src_node, dst_node, bit_rate,
-                                      route, transceiver, wavelengths)
-        self.traffic.append(new_traffic_request)
-        new_traffic_request.start()
-        # The following might have to be a function on its own
-        for t, n in new_traffic_request.altered_traffic.items():
-            if t is not new_traffic_request:
-                t.revisiting = True
-                t.next_link_in_route(n)
-        return new_traffic_request
+
+        out_port = self.find_link_and_out_port_from_nodes(src_node, dst_node)
+        src_node.transmit(transceiver, out_port, wavelengths)
+
+    def find_link_and_out_port_from_nodes(self, src_node, dst_node):
+        out_port = None
+        for l in self.links:
+            if l.node1 == src_node and l.node2 == dst_node:
+                out_port = l.output_port_node1
+        return out_port
 
     def routing(self, src_node, dst_node):
         """
@@ -251,146 +236,6 @@ class Network(object):
         # At the moment we use first available resources.
         wavelength_indexes = available_wavelengths[:required_wavelengths]
         return transceiver, wavelength_indexes
-
-    def describe(self):
-        pprint(vars(self))
-
-
-class Traffic(object):
-    def __init__(self, src_node, dst_node, bit_rate,
-                 route, transceiver, wavelength_indexes):
-        self.id = id(self)
-        self.timestamp = time.time()
-        self.src_node = src_node
-        self.dst_node = dst_node
-        self.bit_rate = bit_rate
-        self.route = route
-        self.transceiver = transceiver
-        self.wavelength_indexes = wavelength_indexes
-        self.signals = None
-
-        self.next_link = None
-        self.next_node = None
-
-        self.next_link_update = None
-        self.next_node_update = None
-
-        self.altered_traffic = {self: None}
-        self.revisiting = False
-
-    def start(self):
-        """
-        Begin transmission simulation from initial
-        node in the given route
-        :return:
-        """
-        self.next_link = self.route[0][1]
-        self.next_node = self.route[1][0]
-        out_port = self.next_link.output_port_node1
-        self.src_node.add_channel_transmitter(self, self.transceiver, out_port, self.wavelength_indexes)
-
-    def reset(self, out_port, rule_id):
-        """
-        Remove the traces of this traffic in the network
-        :param out_port: output port of the src node in this traffic
-        :param rule_id: rule ID that will no longer be valid
-        :return:
-        """
-        self.src_node.reset(self, self.transceiver, out_port, rule_id)
-
-    def next_link_in_route(self, node, aggregated_ASE_noise, aggregated_NLI_noise):
-        """
-        Continue propagating simulation in the next
-        link of the given route
-        :param node: node1 in link
-        :param aggregated_ASE_noise:
-        :param aggregated_NLI_noise:
-        :return:
-        """
-        if self.revisiting:
-            # Go back to save node where incoming
-            # signals have been updated/modified
-            self.next_node = node
-            self.next_link, self.next_node = self.find_next_in_route()
-        self.next_link.incoming_transmission(self, node, aggregated_ASE_noise, aggregated_NLI_noise)
-
-    def next_link_in_route_rule_update(self, node, rule_id):
-        # Find the next link and node on the route for
-        # this given updated traffic
-        self.next_node_update = node
-        self.next_link_update, self.next_node_update = self.find_next_in_route_update()
-        self.next_link_update.link_updated_rule(self, rule_id)
-
-    def next_node_in_route_update(self, link, rule_id):
-        # Get attributes of current 'next' node
-        next_node = self.next_node_update
-        next_node_in_port = link.input_port_node2
-        if next_node is self.dst_node:
-            next_node.update_channel_receiver(self, next_node_in_port)
-            return
-        next_node.update_channel_roadm(self, rule_id)
-
-    def next_node_in_route(self, link):
-        """
-        Continue propagating simulation in the next
-        node of the given route
-        :param link: link from node1 to current 'next' node
-        :return:
-        """
-        # Get attributes of current 'next' node
-        next_node = self.next_node
-        next_node_in_port = link.input_port_node2
-
-        if next_node is self.dst_node:
-            next_node.add_channel_receiver(self, next_node_in_port, link)
-            # print for debugging purposes
-            # print("At RX node %s, tmp_e2e: %i\nRevisit: %s\n***" %
-            #       (next_node.name, next_node.tmp_e2e, self.revisiting))
-            return
-
-        # Find next two objects in route
-        self.next_link, self.next_node = self.find_next_in_route()
-        next_node_out_port = self.next_link.output_port_node1
-        # update node traffic with incoming traffic from link
-        next_node.port_to_signal_power_in[next_node_in_port].update(link.signal_power_out)
-        next_node.add_channel_roadm(self, next_node_in_port, next_node_out_port,
-                                    link.aggregated_ASE_noise, link.aggregated_NLI_noise)
-
-    def find_next_in_route(self):
-        """
-        Find next link and node in the route
-        :return: next_link, next_node
-        """
-        flag = False
-        next_link = None
-        for item in self.route:
-            if flag:
-                next_node = item[0]
-                return next_link, next_node
-            if item[0] is self.next_node:
-                next_link = item[1]
-                flag = True
-
-    def find_next_in_route_update(self):
-        """
-        Find next link and node in the route
-        :return: next_link, next_node
-        """
-        flag = False
-        next_link = None
-        for item in self.route:
-            if flag:
-                next_node = item[0]
-                return next_link, next_node
-            if item[0] is self.next_node_update:
-                next_link = item[1]
-                flag = True
-
-    def get_signal(self, signal_index):
-        for signal in self.signals:
-            if signal.index == signal_index:
-                return signal
-        return None
 
     def describe(self):
         pprint(vars(self))
