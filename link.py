@@ -487,30 +487,30 @@ class Link(object):
             nonlinear_noise_struct[channel] = None
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
-
-        alpha = span.loss_coefficient
+        _alpha = span.fibre_attenuation
+        alpha = _alpha / (20 * math.log10(np.exp(1)))
         beta2 = span.dispersion_coefficient
         gamma = span.non_linear_coefficient
         length = span.length
-        # effective_length = (1 - np.exp(-2 * alpha * length)) / (2 * alpha)
-        effective_length = span.effective_length
+        effective_length = (1 - np.exp(-alpha * length)) / alpha
+        # effective_length = span.effective_length
         asymptotic_length = 1 / alpha
 
         for signal in signals:
             channel_under_test = signal.index
             symbol_rate_cut = signal.symbol_rate
             bw_cut = symbol_rate_cut
-            pwr_cut = signal_power_progress[signal] * unit.mW
+            pwr_cut = signal_power_progress[signal]
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             g_nli = 0
             for ch in signals:
                 symbol_rate_ch = ch.symbol_rate
                 bw_ch = symbol_rate_ch
-                pwr_ch = signal_power_progress[ch] * unit.mW
+                pwr_ch = signal_power_progress[ch]
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                g_nli += g_ch ** 2 * g_cut * self._psi(signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
+                g_nli += g_ch ** 2 * g_cut * self._psi(signal, ch, beta2=beta2, asymptotic_length=1/alpha)
 
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * unit.pi * abs(beta2) * asymptotic_length)
             signal_under_test = index_to_signal[channel_under_test]
@@ -551,8 +551,8 @@ class Span(object):
         self.fibre_type = fibre_type
         self.length = length * unit.km
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
-        self.loss_coefficient = 0.22 / unit.km  # 1 - 10 ** (self.fibre_attenuation / 10.0)
-        self.effective_length = (1 - math.e ** (-self.loss_coefficient * self.length)) / self.loss_coefficient
+        # self.loss_coefficient = math.e ** (self.fibre_attenuation * self.length)
+        self.effective_length = (1 - math.e ** (-self.fibre_attenuation * self.length)) / self.fibre_attenuation
         self.non_linear_coefficient = 1.3 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
         self.dispersion_coefficient = -21 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
