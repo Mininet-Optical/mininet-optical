@@ -1,11 +1,20 @@
+"""
+    This script will build the Linear topology and run a single
+    81-channel transmission with the default configuration of the simulator,
+    and will monitor 1 channel when launched at different power levels.
+    The latter, will then be plotted.
+
+    For different distances and monitoring points one needs to edit the
+    LinearTopology declaration in ../topo/linear.py
+
+"""
+
 from topo.linear import LinearTopology
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -47,11 +56,6 @@ for p in power_levels:
     roadm_1 = net.name_to_node['roadm_1']
     roadm_2 = net.name_to_node['roadm_2']
     roadm_3 = net.name_to_node['roadm_3']
-
-    # for port, node in roadm_3.port_to_node_out.items():
-    #     print("%s reachable through port %s" % (node.name, port))
-    # for port, node in roadm_3.port_to_node_in.items():
-    #     print("roadm_3 reachable by %s through port %s" % (node.name, port))
 
     # Install switch rules into the ROADM nodes
     wavelength_indexes = range(1, 82)
@@ -113,14 +117,6 @@ for p in power_levels:
     del gosnrs
     del theo
 
-# colors = ['r', 'g', 'b', 'y', 'k', 'm', 'c', 'r', 'g', 'b', 'y', 'k']
-# op = list(np.arange(-10, 12, 2)[::-1])
-# for o, g, t in zip(plotting_osnr, plotting_gosnr, plotting_theo):
-#     l = 'Launch power: ' + str(op.pop()) + 'dBm'
-#     c = colors.pop()
-#     plt.plot(o, marker='o', color=c)
-#     plt.plot(g, '--', marker='*', color=c, label=l)
-#     plt.plot(t, '-.', marker='^', color=c)
 plt_osnr = []
 plt_gosnr = []
 for o, g in zip(plotting_osnr, plotting_gosnr):
@@ -132,14 +128,12 @@ plt.plot(plt_gosnr, color='r', label='gOSNR')
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Launch power (dBm)")
-# plt.yticks(np.arange(0, 52, 2))
 ticks = []
 for i in np.arange(-40, 16, 1):
     if i % 5 == 0:
         ticks.append(i)
     else:
         ticks.append('')
-    # [str(i) for i in np.arange(-38, 14, 1)]
 plt.xticks((range(len(ticks))), ticks)
 plt.xticks()
 plt.legend(loc=2)

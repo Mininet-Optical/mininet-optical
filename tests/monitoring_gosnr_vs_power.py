@@ -1,11 +1,20 @@
+"""
+    This script will build the Linear topology and run a single
+    81-channel transmission with the default configuration of the simulator,
+    and will monitor 1 channel when launched at different distances and
+    power levels.
+    The latter, will then be plotted.
+
+    For different distances and monitoring points one needs to edit the
+    LinearTopology declaration in ../topo/linear.py
+
+"""
+
 from topo.deutsche_telekom import DeutscheTelekom
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
-# Plot configuration parameters
-# figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -114,11 +123,11 @@ for p in power_levels:
 colors = ['r', 'g', 'b', 'y', 'k']
 op = list(np.arange(-4, 6, 2)[::-1])
 for o, g, t in zip(plotting_osnr, plotting_gosnr, plotting_theo):
-    l = 'Launch power: ' + str(op.pop()) + 'dBm'
-    c = colors.pop()
-    plt.plot(o, marker='o', color=c)
-    plt.plot(g, '--', marker='*', color=c, label=l)
-    plt.plot(t, '-.', marker='^', color=c)
+    label = 'Launch power: ' + str(op.pop()) + 'dBm'
+    color = colors.pop()
+    plt.plot(o, marker='o', color=color)
+    plt.plot(g, '--', marker='*', color=color, label=label)
+    plt.plot(t, '-.', marker='^', color=color)
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
