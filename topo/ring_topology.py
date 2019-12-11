@@ -12,7 +12,8 @@ class RingTopology:
         non = 3  # number of nodes
 
         # Create line terminals
-        transceivers = [('t1', 'C')]
+        operational_power = -2  # power in dBm
+        transceivers = [('t1', operational_power, 'C')]
         line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs

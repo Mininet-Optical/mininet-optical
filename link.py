@@ -124,6 +124,7 @@ class Link(object):
 
         self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise)
 
+        # use is instance instead of checking the class
         if self.node2.__class__.__name__ is 'LineTerminal':
             self.node2.receiver(self.input_port_node2, self.signal_power_out)
         else:
@@ -376,8 +377,8 @@ class Link(object):
         nli_id = 'nli_' + str(self.nli_id)
         json_struct['tests'].append({nli_id: list(out_noise.values())})
         json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        with open(json_file_name, 'w+') as outfile:
-            json.dump(json_struct, outfile)
+        # with open(json_file_name, 'w+') as outfile:
+        #     json.dump(json_struct, outfile)
         self.nli_id += 1
         return out_noise
 

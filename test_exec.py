@@ -9,4 +9,6 @@
 # import tests.monitoring_multiple_hop_transmission
 # import tests.monitoring_power_noise_roadm
 # import tests.monitoring_nli_noise
-import tests.update_rule_roadm
+# import tests.update_rule_roadm
+# import tests.monitoring_gosnr_vs_power
+import tests.monitoring_gosnr_vs_distance_power

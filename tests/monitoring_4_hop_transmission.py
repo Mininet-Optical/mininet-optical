@@ -18,7 +18,7 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-figure(num=None, figsize=(8, 6), dpi=256)
+# figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -123,9 +123,17 @@ for span, _list in gosnrs.items():
 theo = []
 init = osnr_c76[0]
 theo.append(init)
+prev_value = 0
 for i in range(1, 13):
-    # include previous value for hop increments
-    theo.append(-2 + 58 - 0.22*80 - 6 - 10*np.log10(i))
+    if i == 6 or i == 12:
+        theo.append(prev_value)
+    elif i > 6:
+        prev_value = -2 + 58 - 0.22 * 80 - 6 - 10 * np.log10(i - 1)
+        theo.append(prev_value)
+    else:
+        prev_value = -2 + 58 - 0.22 * 80 - 6 - 10 * np.log10(i)
+        theo.append(prev_value)
+
 
 # Structures for plotting purposes of OSNR
 all_channels_sim = [osnr_c1, osnr_c16, osnr_c31, osnr_c46, osnr_c61, osnr_c76]
@@ -152,7 +160,7 @@ for s in all_channels_simg:
 
 # Plot the analytical model
 plt.plot(theo, '--', color='red', label="OSNR-Analytical model", marker='o')
-
+plt.title('Launch power: -2 dBm')
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
 ticks = [str(i) for i in range(0, 13)]

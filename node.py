@@ -92,7 +92,6 @@ class LineTerminal(Node):
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
-        self.operation_power = db_to_abs(-2)  # operation power input in dBm to convert to linear
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
@@ -102,22 +101,23 @@ class LineTerminal(Node):
     def add_transceivers(self, transceivers):
         """
         For-loop for adding transceivers to LT
-        :param transceivers: list of tuples (t_name, spectrum band)
+        :param transceivers: list of tuples (t_name, operational_power, spectrum band)
         :return:
         """
         for _tuple in transceivers:
-            self.add_transceiver(_tuple[0], _tuple[1])
+            self.add_transceiver(_tuple[0], _tuple[1], _tuple[2])
 
-    def add_transceiver(self, transceiver_name, spectrum_band):
+    def add_transceiver(self, transceiver_name, operational_power, spectrum_band):
         """
         Add a new transceiver to the OLT
         :param transceiver_name: name of transceiver to add
+        :param operational_power: name of transceiver to add
         :param spectrum_band: spectrum band to function
         :return: added transceiver
         """
         if transceiver_name in self.name_to_transceivers:
             raise ValueError("Node.LineTerminal.add_transceiver: Transceiver with this name already exist!")
-        new_transceiver = Transceiver(transceiver_name, spectrum_band)
+        new_transceiver = Transceiver(transceiver_name, operational_power, spectrum_band)
         self.name_to_transceivers[transceiver_name] = new_transceiver
         self.transceiver_to_signals[new_transceiver] = []
         self.transceivers.append(new_transceiver)
@@ -204,14 +204,14 @@ class LineTerminal(Node):
         :return:
         """
         for channel in self.transceiver_to_signals[transceiver]:
-            output_power = self.operation_power
+            output_power = transceiver.operation_power
             channel.power_at_output_interface[self] = output_power
             self.port_to_signal_power_out[out_port][channel] = output_power
             self.port_to_signal_out[out_port].append(channel)
 
 
 class Transceiver(object):
-    def __init__(self, name, spectrum_band='C', optical_carrier=1550.0,
+    def __init__(self, name, operation_power=-2, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
                  bits_per_symbol=2.0, symbol_rate=0.032e12):
         """
@@ -223,6 +223,7 @@ class Transceiver(object):
         """
         self.id = id(self)
         self.name = name
+        self.operation_power = db_to_abs(operation_power)  # operation power input in dBm to convert to linear
         self.spectrum_band = spectrum_band
         self.optical_carrier = optical_carrier
         self.channel_spacing = channel_spacing
@@ -293,6 +294,7 @@ class Roadm(Node):
         :param signals: signals involved in switching procedure
         :return:
         """
+        # arbitrary rule identifier
         self.switch_table[rule_id] = {'in_port': in_port,
                                       'out_port': out_port,
                                       'signals': signals}
@@ -644,6 +646,7 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
+        print("Monitor.get_list_gosnr.%s" % self.name)
         optical_signals = self.amplifier.output_power.keys()
         signals_list = []
         for signal in optical_signals:
@@ -674,8 +677,10 @@ class Monitor(Node):
             nli_noise = self.amplifier.nonlinear_noise[signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
-        print("%s.get_osnr span: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
-                                                                    self.span, str(ase_noise), str(nli_noise * 1.0e3)))
-        gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e3))
+        # print("%s.get_osnr span: %s ; power: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
+        #                                                                         self.span, str(output_power),
+        #                                                                         str(ase_noise),
+        #                                                                         str(nli_noise * 1.0e0)))
+        gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e0))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
