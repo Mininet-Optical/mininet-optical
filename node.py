@@ -646,7 +646,6 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
-        print("Monitor.get_list_gosnr.%s" % self.name)
         optical_signals = self.amplifier.output_power.keys()
         signals_list = []
         for signal in optical_signals:
@@ -677,10 +676,6 @@ class Monitor(Node):
             nli_noise = self.amplifier.nonlinear_noise[signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
-        # print("%s.get_osnr span: %s ; power: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
-        #                                                                         self.span, str(output_power),
-        #                                                                         str(ase_noise),
-        #                                                                         str(nli_noise * 1.0e0)))
         gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e0))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr

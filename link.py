@@ -365,25 +365,18 @@ class Link(object):
         :return: dict{signal_index: accumulated NLI noise levels}
         """
 
-        amplifier_gain = db_to_abs(amplifier.system_gain)
         nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
-        # nonlinear_noise_new = self.nonlinear_noise(signals, signal_power_progress, span, amplifier_gain)
 
         out_noise = {}
         for signal, value in _nonlinear_noise.items():
             out_noise[signal] = value + nonlinear_noise_new[signal]
 
-        json_struct = {'tests': []}
-        nli_id = 'nli_' + str(self.nli_id)
-        json_struct['tests'].append({nli_id: list(out_noise.values())})
-        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        # with open(json_file_name, 'w+') as outfile:
-        #     json.dump(json_struct, outfile)
-        self.nli_id += 1
         return out_noise
 
     def nonlinear_noise(self, signals, signal_power_progress, span, lump_gain):
         """
+        not correct, needs to be fixed! Nov. 28th 2019
+
         Computation taken from: Poggiolini, P., et al. "Accurate Non-Linearity Fully-Closed-Form Formula
         based on the GN/EGN Model and Large-Data-Set Fitting." Optical Fiber Communication Conference.
         Optical Society of America, 2019. Equations 1-4
@@ -391,8 +384,6 @@ class Link(object):
         :param span: Span() object
         :param lump_gain: EDFA target gain + wavelength dependent gain - float
         :return: Nonlinear Interference noise - dictionary{signal_index: NLI}
-
-        not correct! Nov. 28th 2019
         """
         nonlinear_noise_struct = {}
         channels_index = []
