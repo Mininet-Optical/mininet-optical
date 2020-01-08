@@ -117,9 +117,9 @@ for k in w_num:
     lab = labs.pop()
     lab2 = labs2.pop()
     m = markers.pop()
-    # plt.plot(plotting_gosnr[k], color=c, label='OSNR', linewidth=4)
-    plt.plot(gosnr[k], color=c, label=lab, marker=m, linewidth=4)
-    plt.plot(gosnr2[k], color=c2, label=lab2, marker=m, linewidth=4)
+    plt.plot(plotting_gosnr[k], color=c, label='OSNR', linewidth=4)
+    # plt.plot(gosnr[k], color=c, label=lab, marker=m, linewidth=4)
+    # plt.plot(gosnr2[k], color=c2, label=lab2, marker=m, linewidth=4)
 
 plt.ylabel("gOSNR (dB)")
 plt.xlabel("Launch power (dBm)")

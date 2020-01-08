@@ -6,11 +6,15 @@ import numpy as np
 class LinearTopology:
 
     @staticmethod
-    def build(op=-2):
+    def build(op=-2, non=3):
+        """
+
+        :param op: operational power in dBm
+        :param non: number of nodes (integer)
+        :return: Network object
+        """
         # Create an optical-network object
         net = network.Network()
-
-        non = 3  # number of nodes
 
         # Create line terminals
         operational_power = op  # power in dBm

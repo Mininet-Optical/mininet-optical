@@ -2,6 +2,7 @@
 from topo.linear import LinearTopology
 import numpy as np
 import json
+from pprint import pprint
 
 
 def db_to_abs(db_value):
@@ -24,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 1000:
+while test_run <= 2:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -35,7 +36,10 @@ while test_run <= 1000:
         json_struct = {'tests': []}
         load = _load[j]
         load_id = str(load)
-        net = LinearTopology.build()
+        net = LinearTopology.build(non=15)
+
+        # pprint(net.name_to_node)
+        # print()
 
         # # 2-hop analysis: Berlin to Leipzig
         # lt_berlin = net.name_to_node['lt_berlin']
@@ -138,6 +142,11 @@ while test_run <= 1000:
         roadm_8 = net.name_to_node['roadm_8']
         roadm_9 = net.name_to_node['roadm_9']
         roadm_10 = net.name_to_node['roadm_10']
+        roadm_11 = net.name_to_node['roadm_11']
+        roadm_12 = net.name_to_node['roadm_12']
+        roadm_13 = net.name_to_node['roadm_13']
+        roadm_14 = net.name_to_node['roadm_14']
+        roadm_15 = net.name_to_node['roadm_15']
 
         # Install switch rules into the ROADM nodes
         wavelength_indexes = range(1, 82)
@@ -150,22 +159,27 @@ while test_run <= 1000:
         roadm_7.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_8.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_9.install_switch_rule(1, 1, 102, wavelength_indexes)
-        roadm_10.install_switch_rule(1, 1, 100, wavelength_indexes)
+        roadm_10.install_switch_rule(1, 1, 102, wavelength_indexes)
+        roadm_11.install_switch_rule(1, 1, 102, wavelength_indexes)
+        roadm_12.install_switch_rule(1, 1, 102, wavelength_indexes)
+        roadm_13.install_switch_rule(1, 1, 102, wavelength_indexes)
+        roadm_14.install_switch_rule(1, 1, 102, wavelength_indexes)
+        roadm_15.install_switch_rule(1, 1, 100, wavelength_indexes)
 
         rw = wavelength_indexes
         # Set resources to use and initiate transmission
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        opm_36 = net.name_to_node['opm_36']
-        osnrs = opm_36.get_list_osnr()
-        gosnrs = opm_36.get_list_gosnr()
+        opm_98 = net.name_to_node['opm_98']
+        osnrs = opm_98.get_list_osnr()
+        gosnrs = opm_98.get_list_gosnr()
 
         _osnr_id = 'osnr_load_' + load_id
         _gosnr_id = 'gosnr_load_' + load_id
         json_struct['tests'].append({_osnr_id: osnrs})
         json_struct['tests'].append({_gosnr_id: gosnrs})
-        json_file_name = '../figures/test-loads-sim/10_hop/' + test_id + '_10_hop_load_' + str(load_id) + '.json'
+        json_file_name = '../test-loads-sim/15_hop/' + test_id + '_15_hop_load_' + str(load_id) + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
         j += 1

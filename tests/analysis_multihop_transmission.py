@@ -141,5 +141,5 @@ for patch, color in zip(bx['boxes'], colors):
 plt.ylabel("gOSNR Error (dB)")
 # plt.legend([bx['boxes'][0], bx['boxes'][1]], ['RMSE', 'MAE'], loc='upper center', edgecolor='k')
 plt.xticks(range(1, 7), ('RMSE', 'MAE', 'RMSE', 'MAE', 'RMSE', 'MAE',))
-plt.yticks(np.arange(0, 2.75, 0.25))
+# plt.yticks(np.arange(0, 2.75, 0.25))
 plt.show()
