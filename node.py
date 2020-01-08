@@ -213,7 +213,7 @@ class LineTerminal(Node):
 class Transceiver(object):
     def __init__(self, name, operation_power=-2, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
-                 bits_per_symbol=2.0, symbol_rate=0.032e12):
+                 bits_per_symbol=2.0, symbol_rate=0.025e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -460,7 +460,7 @@ description_files = {'linear': 'linear.txt'}
 class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
-                 noise_figure=(6.0, 90), noise_figure_function=None,
+                 noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
                  boost=False):
         """
@@ -646,7 +646,7 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
-        print("Monitor.get_list_gosnr.%s" % self.name)
+        # print("Monitor.get_list_gosnr.%s" % self.name)
         optical_signals = self.amplifier.output_power.keys()
         signals_list = []
         for signal in optical_signals:

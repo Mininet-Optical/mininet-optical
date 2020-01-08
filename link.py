@@ -554,7 +554,7 @@ class Span(object):
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
         # self.loss_coefficient = math.e ** (self.fibre_attenuation * self.length)
         self.effective_length = (1 - math.e ** (-self.fibre_attenuation * self.length)) / self.fibre_attenuation
-        self.non_linear_coefficient = 1.3 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.non_linear_coefficient = 0.78 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
         self.dispersion_coefficient = -21 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
         self.effective_area = 80 * unit.um * unit.um  # Aeff - SMF effective area
