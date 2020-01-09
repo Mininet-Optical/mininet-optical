@@ -150,9 +150,7 @@ class Link(object):
             while not (self.boost_amp.balancing_flag_1 and self.boost_amp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
                     self.boost_amp.input_power[signal] = in_power
-                    output_power = self.boost_amp.output_amplified_power(signal, in_power)
-                    # Update status of signal power in link
-                    signal_power_progress[signal] = output_power
+                    self.boost_amp.output_amplified_power(signal, in_power)
                 self.boost_amp.balance_system_gain()
 
             # Reset balancing flags to original settings
@@ -206,7 +204,6 @@ class Link(object):
             # Compute amplifier compensation
             if amplifier:
                 # Debugging which WDG function was assigned to this EDFA
-                # print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear
