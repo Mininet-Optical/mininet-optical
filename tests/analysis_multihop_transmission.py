@@ -14,7 +14,7 @@ from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
 
-hop = '10_hop/'
+hop = '15_hop/'
 directory = '../test-loads-sim/' + hop
 
 osnr_load_keys = ['osnr_load_27', 'osnr_load_54', 'osnr_load_81']

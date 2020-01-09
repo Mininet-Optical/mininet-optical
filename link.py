@@ -204,7 +204,6 @@ class Link(object):
             # Compute amplifier compensation
             if amplifier:
                 # Debugging which WDG function was assigned to this EDFA
-                # print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear

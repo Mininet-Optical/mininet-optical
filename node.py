@@ -450,11 +450,11 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt',
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+# description_files = {'linear': 'linear.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -591,10 +591,16 @@ class Amplifier(Node):
         # Convert power levels from linear to dBm
         output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
         input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
+        # print(self.name + " output_power_dBm: %s" % str(output_power_dBm))
+        # print(self.name + " input_power_dBm: %s" % str(input_power_dBm))
+
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
-        system_gain_balance = self.system_gain + (out_in_difference - self.target_gain)
+        gain_difference = out_in_difference - self.target_gain
+        system_gain_balance = self.system_gain - gain_difference
+        # print(self.name + " system_gain_balance: %s" % str(system_gain_balance))
+        # print()
         self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.balancing_flag_1 and (not self.balancing_flag_2):
