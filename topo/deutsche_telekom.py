@@ -5,7 +5,7 @@ from link import Span
 class DeutscheTelekom:
 
     @staticmethod
-    def build():
+    def build(op=-2):
         """
             TOPOLOGY CREATION
 
@@ -30,7 +30,8 @@ class DeutscheTelekom:
                   'stuttgart', 'ulm']
 
         # Create line terminals
-        transceivers = [('t1', 'C')]
+        operational_power = op  # power in dBm
+        transceivers = [('t1', operational_power, 'C')]
         line_terminals = [net.add_lt('lt_%s' % s, transceivers=transceivers) for s in cities]
 
         # Create ROADMs

@@ -12,11 +12,12 @@ class RingTopology:
         non = 3  # number of nodes
 
         # Create line terminals
-        transceivers = [('t1', 'C')]
-        line_terminals = [net.add_lt('lt_%s' % i, transceivers=transceivers) for i in range(non + 1)]
+        operational_power = -2  # power in dBm
+        transceivers = [('t1', operational_power, 'C')]
+        line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs
-        roadms = [net.add_roadm('roadm_%s' % i) for i in range(non + 1)]
+        roadms = [net.add_roadm('roadm_%s' % (i + 1)) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
@@ -106,3 +107,5 @@ class RingTopology:
         l_roadm3_roadm2.add_span(s1_l_roadm3_roadm2, amp1_l_roadm3_roadm2)
         net.add_monitor('opm_s1_roadm3_roadm2', link=l_roadm3_roadm2,
                         span=s1_l_roadm3_roadm2, amplifier=amp1_l_roadm3_roadm2)
+
+        return net

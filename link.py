@@ -4,7 +4,6 @@ import units as unit
 from pprint import pprint
 import numpy as np
 import json
-import sys
 
 
 def db_to_abs(db_value):
@@ -12,7 +11,7 @@ def db_to_abs(db_value):
     :param db_value: list or float
     :return: Convert dB to absolute value
     """
-    absolute_value = 10**(db_value/float(10))
+    absolute_value = 10 ** (db_value / float(10))
     return absolute_value
 
 
@@ -21,7 +20,7 @@ def abs_to_db(absolute_value):
     :param absolute_value: list or float
     :return: Convert absolute value to dB
     """
-    db_value = 10*np.log10(absolute_value)
+    db_value = 10 * np.log10(absolute_value)
     return db_value
 
 
@@ -57,9 +56,9 @@ class Link(object):
         self.signal_power_out = {}  # dict of signals and power levels
 
         self.nonlinear_interference_noise = {}  # dict of spans to signals to nonlinear noise
-        self.nli_id = 1
-        self.aggregated_ASE_noise = {}
-        self.aggregated_NLI_noise = {}
+        self.nli_id = 1  # For debugging purposes of NLI noise aggregation
+        self.accumulated_ASE_noise = {}
+        self.accumulated_NLI_noise = {}
 
         self.spans = []
 
@@ -84,46 +83,55 @@ class Link(object):
     def describe(self):
         pprint(vars(self))
 
-    def link_updated_rule(self, traffic, rule_id):
+    def clean_signals(self, signals):
         """
-        Update structures and invoke propagate_simulation()
-        if there are signals affected
-        :param traffic: Traffic object associated with this transmission
-        :param rule_id: the Rule ID associated with this transmission
+        A rule deletion or update has been called. Hence, remove the
+        instances of signals in the link structure where the previously
+        used signals in those ports were.
+        :param signals: signals to be removed on this link
         :return:
         """
-        for signal in traffic.signals:
+        for signal in signals:
             del self.signal_power_in[signal]
             del self.signal_power_out[signal]
-        for span in self.spans:
-            for signal in traffic.signals:
-                del self.nonlinear_interference_noise[span][signal]
-        self.traffic.remove(traffic)
+            if signal in self.accumulated_ASE_noise.keys() and \
+                    signal in self.accumulated_NLI_noise.keys():
+                del self.accumulated_ASE_noise[signal]
+                del self.accumulated_NLI_noise[signal]
 
-        if len(self.signal_power_in) > 0:
-            self.propagate_simulation()
-        traffic.next_node_in_route_update(self, rule_id)
+        if self.boost_amp:
+            self.boost_amp.clean_signals(signals)
 
-    def incoming_transmission(self, traffic, node, aggregated_ASE_noise, aggregated_NLI_noise):
+        for span, amplifier in self.spans:
+            for signal in signals:
+                if span in self.nonlinear_interference_noise.keys():
+                    if signal in self.nonlinear_interference_noise[span].keys():
+                        del self.nonlinear_interference_noise[span][signal]
+            if amplifier:
+                amplifier.clean_signals(signals)
+
+    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise):
         """
-        Update structures and invoke propagate_simulation(
-        :param traffic: Traffic object associated to transmission
-        :param node: node where signals are coming from
-        :param aggregated_ASE_noise: carried ASE noise until this point
-        :param aggregated_NLI_noise: carried NLI noise until this point
-        :return: traffic.next_node_in_route()
+        Propagate the signals across the link
+        :param pass_through_signals:
+        :param accumulated_ASE_noise:
+        :param accumulated_NLI_noise:
+        :return:
         """
-        # Save traffic instance to list for easy access
-        self.traffic.append(traffic)
         # Set output signals from node to input of the link
-        for signal, power in node.port_to_signal_power_out[self.output_port_node1].items():
+        for signal, power in pass_through_signals.items():
             self.signal_power_in[signal] = power
 
-        self.propagate_simulation(aggregated_ASE_noise, aggregated_NLI_noise)
-        # Relay to next node in transmission
-        traffic.next_node_in_route(self)
+        self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise)
 
-    def propagate_simulation(self, aggregated_ASE_noise, aggregated_NLI_noise):
+        # use is instance instead of checking the class
+        if self.node2.__class__.__name__ is 'LineTerminal':
+            self.node2.receiver(self.input_port_node2, self.signal_power_out)
+        else:
+            self.node2.switch(self.input_port_node2, self.signal_power_out,
+                                    self.accumulated_ASE_noise, self.accumulated_NLI_noise)
+
+    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise):
         """
         Compute the propagation of signals over this link
         :return:
@@ -133,10 +141,11 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-            print("WDG Func in %s : %s" % (self.boost_amp.name, self.boost_amp.wdgfunc))
+            # Debugging which WDG function was assigned to this EDFA
+            # print("WDG Func in %s : %s" % (self.boost_amp.name, self.boost_amp.wdgfunc))
             # For monitoring purposes
-            if aggregated_NLI_noise:
-                self.boost_amp.nonlinear_noise.update(aggregated_NLI_noise)
+            if accumulated_NLI_noise:
+                self.boost_amp.nonlinear_noise.update(accumulated_NLI_noise)
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.balancing_flag_1 and self.boost_amp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
@@ -160,21 +169,21 @@ class Link(object):
             for signal, in_power in self.signal_power_in.items():
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(signal,
                                                                           in_power,
-                                                                          aggregated_noise=aggregated_ASE_noise)
-            aggregated_ASE_noise.update(self.boost_amp.ase_noise)
+                                                                          accumulated_noise=accumulated_ASE_noise)
+            accumulated_ASE_noise.update(self.boost_amp.ase_noise)
 
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
-        if not aggregated_NLI_noise:
-            aggregated_NLI_noise = self.init_nonlinear_noise()
+        if not accumulated_NLI_noise:
+            accumulated_NLI_noise = self.init_nonlinear_noise()
         for span, amplifier in self.spans:
             span.input_power = signal_power_progress
             # Compute linear effects from the fibre
             for signal, power in signal_power_progress.items():
                 signal_power_progress[signal] = power / span.attenuation()
-                if aggregated_ASE_noise:
-                    aggregated_ASE_noise[signal] /= span.attenuation()
+                if accumulated_ASE_noise:
+                    accumulated_ASE_noise[signal] /= span.attenuation()
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
             if len(signal_power_progress) < 1 and prev_amp:
@@ -196,20 +205,21 @@ class Link(object):
 
             # Compute amplifier compensation
             if amplifier:
-                print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
+                # Debugging which WDG function was assigned to this EDFA
+                # print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear
                     # interference.
                     nonlinear_interference_noise[span] = self.output_nonlinear_noise(
-                        aggregated_NLI_noise,
+                        accumulated_NLI_noise,
+                        signal_power_progress,
                         signals_list,
                         span,
                         amplifier)
                     self.nonlinear_interference_noise[span] = nonlinear_interference_noise[span]
-                    aggregated_NLI_noise.update(nonlinear_interference_noise[span])
-                    self.aggregated_NLI_noise.update(aggregated_NLI_noise)
-                    # sys.exit(0)
+                    accumulated_NLI_noise.update(nonlinear_interference_noise[span])
+                    self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
                 # Enabling balancing check
                 while not (amplifier.balancing_flag_1 and amplifier.balancing_flag_2):
                     for signal, in_power in signal_power_progress.items():
@@ -230,8 +240,8 @@ class Link(object):
                 for signal, in_power in signal_power_progress.items():
                     amplifier.stage_amplified_spontaneous_emission_noise(signal,
                                                                          in_power,
-                                                                         aggregated_noise=aggregated_ASE_noise)
-                aggregated_ASE_noise.update(amplifier.ase_noise)
+                                                                         accumulated_noise=accumulated_ASE_noise)
+                accumulated_ASE_noise.update(amplifier.ase_noise)
                 signal_power_progress.update(self.signal_power_out)
             else:
                 for signal, in_power in signal_power_progress.items():
@@ -239,8 +249,8 @@ class Link(object):
                     self.signal_power_out[signal] = in_power
 
             prev_amp = amplifier
-            if aggregated_ASE_noise:
-                self.aggregated_ASE_noise.update(aggregated_ASE_noise)
+            if accumulated_ASE_noise:
+                self.accumulated_ASE_noise.update(accumulated_ASE_noise)
 
     @staticmethod
     def zirngibl_srs(signals, active_channels, span):
@@ -345,31 +355,28 @@ class Link(object):
             nonlinear_noise[signal] = in_power / db_to_abs(50)
         return nonlinear_noise
 
-    def output_nonlinear_noise(self, _nonlinear_noise, signals, span, amplifier):
+    def output_nonlinear_noise(self, _nonlinear_noise, signal_power_progress, signals, span, amplifier):
         """
         :param _nonlinear_noise:
+        :param signal_power_progress:
         :param signals: signals interacting at given transmission - list[Signal() object]
         :param span: Span() object
         :param amplifier: Amplifier() object at beginning of span
         :return: dict{signal_index: accumulated NLI noise levels}
         """
-        json_struct = {'tests': []}
-        nli_id = 'nli_' + str(self.nli_id)
-        amplifier_gain = db_to_abs(amplifier.system_gain)
-        nonlinear_noise_new = self.nonlinear_noise(signals, span, amplifier_gain)
-        json_struct['tests'].append({nli_id: list(nonlinear_noise_new.values())})
-        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        with open(json_file_name, 'w+') as outfile:
-            json.dump(json_struct, outfile)
+
+        nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
+
         out_noise = {}
         for signal, value in _nonlinear_noise.items():
-            out_noise[signal] = nonlinear_noise_new[signal]
+            out_noise[signal] = value + nonlinear_noise_new[signal]
 
-        self.nli_id += 1
         return out_noise
 
-    def nonlinear_noise(self, signals, span, lump_gain):
+    def nonlinear_noise(self, signals, signal_power_progress, span, lump_gain):
         """
+        not correct, needs to be fixed! Nov. 28th 2019
+
         Computation taken from: Poggiolini, P., et al. "Accurate Non-Linearity Fully-Closed-Form Formula
         based on the GN/EGN Model and Large-Data-Set Fitting." Optical Fiber Communication Conference.
         Optical Society of America, 2019. Equations 1-4
@@ -386,7 +393,7 @@ class Link(object):
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
         sorted(channels_index)
-        channel_center = channels_index[int(math.floor(len(self.signal_power_in.keys()) / 2))]
+        channel_center = channels_index[int(math.floor(len(signal_power_progress.keys()) / 2))]
         frequency_center = index_to_signal[channel_center].frequency
 
         # Retrieve fiber properties from span
@@ -402,54 +409,127 @@ class Link(object):
             symbol_rate_cut = signal.symbol_rate
             bits_per_symbol_cut = signal.bits_per_symbol
             gross_bit_rate_cut = symbol_rate_cut * np.log2(bits_per_symbol_cut)
-            bw_cut = gross_bit_rate_cut / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
-            pwr_cut = self.signal_power_in[signal]
+            # bw_cut = gross_bit_rate_cut / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
+            bw_cut = symbol_rate_cut
+            pwr_cut = signal_power_progress[signal] * unit.mW
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             nonlinear_noise_term2 = 0
 
             for ch in signals:
-                # omit channel under test
-                if ch == channel_under_test:
-                    continue
 
                 frequency_ch = ch.frequency
-                symbol_rate_ch = signal.symbol_rate
-                bits_per_symbol_ch = signal.bits_per_symbol
+                symbol_rate_ch = ch.symbol_rate
+                bits_per_symbol_ch = ch.bits_per_symbol
                 gross_bit_rate_ch = symbol_rate_ch * np.log2(bits_per_symbol_ch)
-                bw_ch = gross_bit_rate_ch / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
-                pwr_ch = self.signal_power_in[ch]
+                # bw_ch = gross_bit_rate_ch / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
+                bw_ch = symbol_rate_ch
+                pwr_ch = signal_power_progress[ch] * unit.mW
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                b2_eff_nch = b2 + unit.pi * b3 * (
-                        frequency_ch + frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (5)
-                b2_eff_ncut = b2 + unit.pi * b3 * (
-                        2 * frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (6)
+                if ch == channel_under_test:
+                    continue
+                else:
 
-                nch_dividend1 = math.asinh(
-                    (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
-                    (frequency_ch - frequency_cut + (bw_ch / 2)) * bw_cut)
-                nch_divisor1 = 8 * unit.pi * abs(b2_eff_nch) * alpha
+                    b2_eff_nch = b2 + unit.pi * b3 * (
+                            frequency_ch + frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (5)
+                    b2_eff_ncut = b2 + unit.pi * b3 * (
+                            2 * frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (6)
 
-                nch_dividend2 = math.asinh(
-                    (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
-                    (frequency_ch - frequency_cut - (bw_ch / 2)) * bw_cut)
-                nch_divisor2 = 8 * unit.pi * abs(b2_eff_nch) * alpha
+                    nch_dividend1 = math.asinh(
+                        (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
+                        (frequency_ch - frequency_cut + (bw_ch / 2)) * bw_cut)
+                    nch_divisor1 = 8 * unit.pi * abs(b2_eff_nch) * alpha
 
-                _nch = (nch_dividend1 / float(nch_divisor1)) - (
-                        nch_dividend2 / float(nch_divisor2))  # [1], Eq. (3)
+                    nch_dividend2 = np.arcsinh(
+                        (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
+                        (frequency_ch - frequency_cut - (bw_ch / 2)) * bw_cut)
+                    nch_divisor2 = 8 * unit.pi * abs(b2_eff_nch) * alpha
 
-                cut_dividend = math.asinh((unit.pi ** 2 / 2) * abs(b2_eff_ncut / (2 * alpha)) * bw_cut ** 2)
-                cut_divisor = 4 * unit.pi * abs(b2_eff_ncut) * alpha
-                _cut = cut_dividend / float(cut_divisor)  # [1], Eq. (4)
+                    _nch = (nch_dividend1 / float(nch_divisor1)) - (
+                            nch_dividend2 / float(nch_divisor2))  # [1], Eq. (3)
 
-                nonlinear_noise_term2 += (2 * g_ch ** 2 * _nch + g_cut ** 2 * _cut)
+                    cut_dividend = np.arcsinh((unit.pi ** 2 / 2) * abs(b2_eff_ncut / (2 * alpha)) * bw_cut ** 2)
+                    cut_divisor = 4 * unit.pi * abs(b2_eff_ncut) * alpha
+                    _cut = cut_dividend / float(cut_divisor)  # [1], Eq. (4)
 
-            nonlinear_noise_term1 = 16 / 27.0 * gamma ** 2 * lump_gain * math.e ** (-2 * alpha * span_length) * g_cut
+                    nonlinear_noise_term2 += (2 * g_ch ** 2 * _nch + g_cut ** 2 * _cut)
+
+            nonlinear_noise_term1 = 16 / 27.0 * gamma ** 2 * lump_gain * \
+                                    math.e ** (-2 * alpha * span_length) * g_cut
             nonlinear_noise = nonlinear_noise_term1 * nonlinear_noise_term2
             signal_under_test = index_to_signal[channel_under_test]
-            nonlinear_noise_struct[signal_under_test] = abs(nonlinear_noise)
+            nonlinear_noise_struct[signal_under_test] = nonlinear_noise * bw_cut
         return nonlinear_noise_struct
+
+    def gn_analytic(self, signals, signal_power_progress, span):
+        """ Computes the nonlinear interference power on a single carrier.
+        Translated from the GNPy project source code
+        The method uses eq. 120 from arXiv:1209.0394.
+        :param signals:
+        :param signal_power_progress:
+        :param span:
+        :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
+        """
+
+        nonlinear_noise_struct = {}
+        channels_index = []
+        index_to_signal = {}
+        for channel in signals:
+            nonlinear_noise_struct[channel] = None
+            channels_index.append(channel.index)
+            index_to_signal[channel.index] = channel
+        _alpha = span.fibre_attenuation
+        alpha = _alpha / (20 * math.log10(np.exp(1)))
+        beta2 = span.dispersion_coefficient
+        gamma = span.non_linear_coefficient
+        length = span.length
+        effective_length = (1 - np.exp(-alpha * length)) / alpha
+        # effective_length = span.effective_length
+        asymptotic_length = 1 / alpha
+
+        for signal in signals:
+            channel_under_test = signal.index
+            symbol_rate_cut = signal.symbol_rate
+            bw_cut = symbol_rate_cut
+            pwr_cut = signal_power_progress[signal]
+            g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
+
+            g_nli = 0
+            for ch in signals:
+                symbol_rate_ch = ch.symbol_rate
+                bw_ch = symbol_rate_ch
+                pwr_ch = signal_power_progress[ch]
+                g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
+
+                g_nli += g_ch ** 2 * g_cut * self._psi(signal, ch, beta2=beta2, asymptotic_length=1/alpha)
+
+            g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * unit.pi * abs(beta2) * asymptotic_length)
+            signal_under_test = index_to_signal[channel_under_test]
+            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
+
+        return nonlinear_noise_struct
+
+    @staticmethod
+    def _psi(carrier, interfering_carrier, beta2, asymptotic_length):
+        """Calculates eq. 123 from `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`__
+        Translated from the GNPy project source code
+        """
+        symbol_rate_cut = carrier.symbol_rate
+        bw_cut = symbol_rate_cut
+
+        symbol_rate_ch = interfering_carrier.symbol_rate
+        bw_ch = symbol_rate_ch
+
+        if carrier.index == interfering_carrier.index:  # SCI, SPM
+            psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
+        else:  # XCI, XPM
+            delta_f = carrier.frequency - interfering_carrier.frequency
+            psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
+                             bw_cut * (delta_f + 0.5 * bw_ch))
+            psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
+                              bw_cut * (delta_f - 0.5 * bw_ch))
+        return psi
 
 
 class Span(object):
@@ -463,13 +543,13 @@ class Span(object):
         self.fibre_type = fibre_type
         self.length = length * unit.km
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
-        self.loss_coefficient = 1 - 10 ** (self.fibre_attenuation / 10.0)
-        self.effective_length = (1 - math.e ** (-self.loss_coefficient * self.length)) / self.loss_coefficient
+        # self.loss_coefficient = math.e ** (self.fibre_attenuation * self.length)
+        self.effective_length = (1 - math.e ** (-self.fibre_attenuation * self.length)) / self.fibre_attenuation
         self.non_linear_coefficient = 1.3 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
         self.dispersion_coefficient = -21 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
         self.effective_area = 80 * unit.um * unit.um  # Aeff - SMF effective area
-        self.raman_gain = 7.0*1e-12 * unit.cm / unit.W  # r - Raman Gain in SMF
+        self.raman_gain = 7.0 * 1e-12 * unit.cm / unit.W  # r - Raman Gain in SMF
         self.raman_amplification_band = 15 * unit.THz  # Raman amplification band ~15THz
         # Raman coefficient
         self.raman_coefficient = self.raman_gain / (2 * self.effective_area * self.raman_amplification_band)

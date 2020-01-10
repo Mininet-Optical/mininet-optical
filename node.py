@@ -272,7 +272,6 @@ class Roadm(Node):
 
     def __init__(self, name, attenuation=6):
         """
-
         :param name:
         :param attenuation: total attenuation at the node. Default
         set to 6 dB per task needed (Add/Drop/Pass-through).
@@ -629,7 +628,6 @@ class Monitor(Node):
 
     def __init__(self, name, link=None, span=None, amplifier=None):
         """
-
         :param name:
         set to 6 dB per task needed (Add/Drop/Pass-through).
         """

@@ -1,3 +1,7 @@
+"""
+Development testing file.
+"""
+
 from topo.deutsche_telekom import DeutscheTelekom
 import numpy as np
 # import json
@@ -53,7 +57,7 @@ while test_run <= 1:
         # roadm_leipzig.install_switch_rule(1, 1, 100, wavelength_indexes)
         #
         # resources = {'transceiver': lt_berlin.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
-        # traffic_req1 = net.transmit(lt_berlin, lt_leipzig, resources=resources)
+        # net.transmit(lt_berlin, roadm_berlin, resources=resources)
         #
         # 3-hop analysis: Frankfurt to Stuttgart to Ulm
         # lt_frankfurt = net.name_to_node['lt_frankfurt']
@@ -75,7 +79,7 @@ while test_run <= 1:
         #
         # resources = {'transceiver': lt_frankfurt.name_to_transceivers['t1'],
         #              'required_wavelengths': wavelength_indexes}
-        # traffic_req1 = net.transmit(lt_frankfurt, lt_ulm, resources=resources)
+        # net.transmit(lt_frankfurt, roadm_frankfurt, resources=resources)
 
         # 4-hop analysis: Koln to Frankfurt to Nurnberg to Munchen
         # lt_koln = net.name_to_node['lt_koln']
@@ -98,7 +102,7 @@ while test_run <= 1:
         # roadm_munchen.install_switch_rule(1, 1, 100, wavelength_indexes)
         #
         # resources = {'transceiver': lt_koln.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
-        # traffic_req1 = net.transmit(lt_koln, lt_munchen, resources=resources)
+        # net.transmit(lt_koln, roadm_koln, resources=resources)
 
         # 5-hop analysis: Hamburg to Munchen
         lt_hamburg = net.name_to_node['lt_hamburg']
@@ -123,15 +127,11 @@ while test_run <= 1:
         roadm_munchen.install_switch_rule(1, 1, 100, wavelength_indexes)
 
         resources = {'transceiver': lt_hamburg.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
-        traffic_req1 = net.transmit(lt_hamburg, lt_munchen, resources=resources)
-        #
-        osnrs = []
-        gosnrs = []
-        opm3 = net.name_to_node['opm3']
-        for i in wavelength_indexes:
-            signal = traffic_req1.get_signal(i)
-            osnrs.append(opm3.get_osnr(signal))
-            gosnrs.append(opm3.get_gosnr(signal))
+        net.transmit(lt_hamburg, roadm_hamburg, resources=resources)
+
+        verification_opm17 = net.name_to_node['verification_opm17']
+        osnrs = verification_opm17.get_list_osnr()
+        gosnrs = verification_opm17.get_list_gosnr()
 
         _osnr_id = 'osnr_load_' + load_id
         _gosnr_id = 'gosnr_load_' + load_id
