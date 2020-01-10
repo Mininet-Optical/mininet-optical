@@ -35,11 +35,14 @@ class Node(object):
         self.port_to_node_in = {}  # dict of port no. to ingress connecting nodes
         self.port_to_node_out = {}  # dict of port no. to egress connecting nodes
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.port_to_signal_in = {}  # dict of ports to input signals
         self.port_to_signal_out = {}  # dict of ports to output signals
         self.port_to_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_signal_power_out = {}  # dict of ports to output signals and power levels
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
         self.port_to_optical_signal_in = {}  # dict of ports to input signals
         self.port_to_optical_signal_out = {}  # dict of ports to output signals
         self.port_to_optical_signal_power_in = {}  # dict of ports to input signals and power levels
@@ -100,8 +103,12 @@ class LineTerminal(Node):
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.transceiver_to_signals = {}  # dict of transceivers name to list of optical signal objects
         self.operation_power = db_to_abs(-2)  # operation power input in dBm to convert to linear
+=======
+        self.transceiver_to_optical_signals = {}  # dict of transceivers name to list of optical signal objects
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 =======
         self.transceiver_to_optical_signals = {}  # dict of transceivers name to list of optical signal objects
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
@@ -163,6 +170,7 @@ class LineTerminal(Node):
         self.transceivers.remove(transceiver)
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_optical_signals[transceiver_name]
+<<<<<<< HEAD
 
     def add_channel_receiver(self, traffic, in_port, link):
         self.port_to_signal_power_in[in_port].update(link.signal_power_out)
@@ -176,6 +184,8 @@ class LineTerminal(Node):
             self.wavelengths[signal.index] = 'off'
             self.port_to_signal_in[in_port].remove(signal)
             del self.port_to_signal_power_in[in_port][signal]
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
     def add_channel_transmitter(self, traffic, transceiver, out_port, channels):
         """
@@ -199,6 +209,7 @@ class LineTerminal(Node):
         # list containing the new signals
         signals = []
         for channel in channels:
+<<<<<<< HEAD
 <<<<<<< HEAD
             new_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
             signals.append(new_signal)
@@ -234,6 +245,11 @@ class LineTerminal(Node):
             new_optical_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
             signals.append(new_optical_signal)
             # Associate signals to a transceiver/modulator
+=======
+            new_optical_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
+            signals.append(new_optical_signal)
+            # Associate signals to a transceiver/modulator
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
             self.transceiver_to_optical_signals[transceiver].append(new_optical_signal)
         # Start transmission
         self.start(transceiver, out_port)
@@ -288,6 +304,9 @@ class LineTerminal(Node):
             channel.power_at_output_interface[self] = output_power
             self.port_to_optical_signal_power_out[out_port][channel] = output_power
             self.port_to_optical_signal_out[out_port].append(channel)
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
 
@@ -362,13 +381,19 @@ class Roadm(Node):
         self.traffic_to_out_port = {}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.switch_table = {}
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict signal_index to output port in ROADM
 
         self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
@@ -383,10 +408,16 @@ class Roadm(Node):
         self.switch_table[rule_id] = {'in_port': in_port,
                                       'out_port': out_port,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                       'signals': signals}
         for signal in signals:
             self.port_to_signal_in[in_port].append(signal)
             self.port_to_signal_out[out_port].append(signal)
+=======
+                                      'signal_indices': signal_indices}
+        for signal_index in signal_indices:
+            self.signal_index_to_out_port[signal_index] = out_port
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 =======
                                       'signal_indices': signal_indices}
         for signal_index in signal_indices:
@@ -466,6 +497,9 @@ class Roadm(Node):
 
         # Propagate the changes in the switch by switching
         self.switch(in_port, self.port_to_optical_signal_power_in[in_port], ase, nli)
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
     def delete_switch_rule(self, rule_id):
@@ -479,10 +513,13 @@ class Roadm(Node):
         signal_indices = self.switch_table[rule_id]['signal_indices']
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         for signal in signals:
             list(filter(signal.__ne__, self.port_to_signal_in[in_port]))
             list(filter(signal.__ne__, self.port_to_signal_out[out_port]))
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
         for signal_index in signal_indices:
             # Delete rule indication of output port
             del self.signal_index_to_out_port[signal_index]
@@ -497,13 +534,19 @@ class Roadm(Node):
             # delete signals from structures in the switch
             list(filter(optical_signal.__ne__, self.port_to_optical_signal_in[in_port]))
             list(filter(optical_signal.__ne__, self.port_to_optical_signal_out[out_port]))
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
             del self.port_to_optical_signal_power_in[in_port][optical_signal]
             del self.port_to_optical_signal_power_out[out_port][optical_signal]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
             if out_port in self.port_to_optical_signal_ase_noise_out.keys() and \
                     out_port in self.port_to_optical_signal_nli_noise_out.keys():
                 del self.port_to_optical_signal_ase_noise_out[out_port][optical_signal]
@@ -773,7 +816,11 @@ class Amplifier(Node):
         return output_power
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def stage_amplified_spontaneous_emission_noise(self, signal, in_power, aggregated_noise=None):
+=======
+    def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 =======
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
@@ -787,6 +834,9 @@ class Amplifier(Node):
 =======
         if accumulated_noise:
             self.ase_noise[optical_signal] = accumulated_noise[optical_signal]
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
 
         # Set parameters needed for ASE model
@@ -826,7 +876,10 @@ class Amplifier(Node):
             self.balancing_flag_1 = True
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
     def clean_signals(self, optical_signals):
         for optical_signal in optical_signals:
             del self.input_power[optical_signal]
@@ -892,16 +945,22 @@ class Monitor(Node):
         """
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
+<<<<<<< HEAD
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
+=======
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
         osnr_linear = output_power / ase_noise
         osnr = abs_to_db(osnr_linear)
         return osnr
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def get_gosnr(self, signal):
         output_power = self.amplifier.output_power[signal]
         ase_noise = self.amplifier.ase_noise[signal]
 =======
+=======
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
     def get_gosnr(self, optical_signal):
         """
         Compute gOSNR levels of the signal
@@ -910,6 +969,7 @@ class Monitor(Node):
         """
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
+<<<<<<< HEAD
 >>>>>>> d4f14ec... fixed inconsistencies with signal labelling
         if self.amplifier.boost:
             nli_noise = self.amplifier.nonlinear_noise[optical_signal]
@@ -918,6 +978,11 @@ class Monitor(Node):
             nli_noise = self.link.nonlinear_interference_noise[self.span][signal]
         gosnr_linear = output_power / (ase_noise + nli_noise)
 =======
+=======
+        if self.amplifier.boost:
+            nli_noise = self.amplifier.nonlinear_noise[optical_signal]
+        else:
+>>>>>>> d4f14ec... fixed inconsistencies with signal labelling
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
         # print("%s.get_osnr span: %s ; power: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
         #                                                                         self.span, str(output_power),
