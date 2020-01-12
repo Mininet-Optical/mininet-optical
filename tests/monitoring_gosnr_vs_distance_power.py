@@ -31,23 +31,23 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-power_levels = list(np.arange(-10, 5, 1))
-plotting_osnr = {8: [], 64: []}
-plotting_gosnr = {8: [], 64: []}
+power_levels = list(np.arange(-14, 4, 1))
+plotting_osnr = {4: [], 10: []}
+plotting_gosnr = {4: [], 10: []}
 
 
-w_num = [8, 64]
+w_num = [4, 10]
 
 for wnm in w_num:
     for p in power_levels:
         print("*** Building Linear network topology for operational power: %s" % p)
-        net = LinearTopology.build(op=p)
+        net = LinearTopology.build(op=p, non=2)
 
         lt_1 = net.name_to_node['lt_1']
 
         roadm_1 = net.name_to_node['roadm_1']
         roadm_2 = net.name_to_node['roadm_2']
-        roadm_3 = net.name_to_node['roadm_3']
+        # roadm_3 = net.name_to_node['roadm_3']
         # roadm_4 = net.name_to_node['roadm_4']
         # roadm_5 = net.name_to_node['roadm_5']
         # roadm_6 = net.name_to_node['roadm_6']
@@ -58,8 +58,8 @@ for wnm in w_num:
         # Install switch rules into the ROADM nodes
         wavelength_indexes = range(1, wnm)
         roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
-        roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
-        roadm_3.install_switch_rule(1, 1, 100, wavelength_indexes)
+        roadm_2.install_switch_rule(1, 1, 100, wavelength_indexes)
+        # roadm_3.install_switch_rule(1, 1, 100, wavelength_indexes)
         # roadm_4.install_switch_rule(1, 1, 102, wavelength_indexes)
         # roadm_5.install_switch_rule(1, 1, 102, wavelength_indexes)
         # roadm_6.install_switch_rule(1, 1, 102, wavelength_indexes)
@@ -72,7 +72,7 @@ for wnm in w_num:
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        opm = net.name_to_node['opm_14']
+        opm = net.name_to_node['opm_7']
         osnrs = opm.get_list_osnr()
         gosnrs = opm.get_list_gosnr()
 
@@ -117,7 +117,7 @@ for k in w_num:
     lab = labs.pop()
     lab2 = labs2.pop()
     m = markers.pop()
-    plt.plot(plotting_gosnr[k], color=c, label='OSNR', linewidth=4)
+    plt.plot(plotting_gosnr[k], color=c, label='gOSNR', linewidth=4)
     # plt.plot(gosnr[k], color=c, label=lab, marker=m, linewidth=4)
     # plt.plot(gosnr2[k], color=c2, label=lab2, marker=m, linewidth=4)
 

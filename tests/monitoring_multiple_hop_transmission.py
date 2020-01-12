@@ -149,7 +149,7 @@ while test_run <= 1000:
         roadm_15 = net.name_to_node['roadm_15']
 
         # Install switch rules into the ROADM nodes
-        wavelength_indexes = range(1, 82)
+        wavelength_indexes = range(1, load + 1)
         roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
         roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
@@ -171,15 +171,18 @@ while test_run <= 1000:
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        opm_98 = net.name_to_node['opm_98']
-        osnrs = opm_98.get_list_osnr()
-        gosnrs = opm_98.get_list_gosnr()
+        # THIS CAN BE IMPROVED IF ALSO CHECKING THE LAT OPM
+        # AND THEN SAVE TO A FILE.
+        # SAVING HALF THE TIME.
+        opm_63 = net.name_to_node['opm_63']
+        osnrs = opm_63.get_list_osnr()
+        gosnrs = opm_63.get_list_gosnr()
 
         _osnr_id = 'osnr_load_' + load_id
         _gosnr_id = 'gosnr_load_' + load_id
         json_struct['tests'].append({_osnr_id: osnrs})
         json_struct['tests'].append({_gosnr_id: gosnrs})
-        json_file_name = '../test-loads-sim/15_hop/' + test_id + '_15_hop_load_' + str(load_id) + '.json'
+        json_file_name = '../test-loads-sim/10_hop/' + test_id + '_10_hop_load_' + str(load_id) + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
         j += 1
