@@ -38,7 +38,7 @@ plotting_theo = []
 
 for p in power_levels:
     print("*** Building Linear network topology for operational power: %s" % p)
-    net = LinearTopology.build(op=p)
+    net = LinearTopology.build(op=p, non=5)
 
     lt_1 = net.name_to_node['lt_1']
     lt_2 = net.name_to_node['lt_2']
@@ -107,7 +107,7 @@ for o, g in zip(plotting_osnr, plotting_gosnr):
     l = 'Launch power: ' + str(op.pop()) + 'dBm'
     c = colors.pop()
     plt.plot(o, marker='o', color=c)
-    plt.plot(g, '--', marker='*', color=c, label=l)
+    plt.plot(g, '--', marker='x', color=c, label=l, linewidth=2)
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops (km)")
