@@ -131,8 +131,25 @@ for o, g, t in zip(plotting_osnr, plotting_gosnr, plotting_theo):
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
+<<<<<<< HEAD
 plt.yticks(np.arange(0, 52, 2))
 plt.xticks(np.arange(0, 13, 1))
 plt.legend(loc=1)
 plt.grid(True)
 plt.show()
+=======
+plt.yticks(np.arange(12, 50, 2))
+ticks = []
+s = 0
+for i in range(17):
+    ticks.append(s)
+    if i == 5 or i == 11:
+        continue
+    else:
+        s += 8
+plt.xticks(np.arange(16))
+plt.legend(loc=1)
+plt.grid(True)
+plt.savefig('../gosnr_vs_power.eps', format='eps')
+# plt.show()
+>>>>>>> c2a2354... minor changes for PTL paper

@@ -214,8 +214,8 @@ class LineTerminal(Node):
 
 class Transceiver(object):
     def __init__(self, name, operation_power=-2, spectrum_band='C', optical_carrier=1550.0,
-                 channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
-                 bits_per_symbol=2.0, symbol_rate=0.025e12):
+                 channel_spacing=0.3 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='PM-QPSK',
+                 bits_per_symbol=2.0, symbol_rate=0.032e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -451,11 +451,11 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-# description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt',
-                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg1.txt',
+#                      'wdg2': 'wdg2.txt',
+#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
+#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
