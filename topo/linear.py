@@ -42,7 +42,7 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 3
+        span_no = 48
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
             r1 = i + 1  # ROADM 1 index
