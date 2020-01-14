@@ -43,7 +43,7 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 6
+        span_no = 3
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
             r1 = i + 1  # ROADM 1 index
@@ -67,10 +67,10 @@ class LinearTopology:
             for sp in range(span_no):
                 # Iterate through number of spans in link
                 # span object
-                span = Span('SMF', 60)
+                span = Span('SMF', 80)
                 in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
                 # in-line amplifier object
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=13.2)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
                 opm_l = opm_lab + us + str(opm_no + 1)  # label OPM
@@ -90,9 +90,9 @@ class LinearTopology:
                                       boost_amp=boost_amp)
             in_apm_no = 0
             for sp in range(span_no):
-                span = Span('SMF', 60)
+                span = Span('SMF', 80)
                 in_l = amp_lab + str(in_apm_no + 1) + us + 'l' + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=13.2)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6)
                 link_r2_r1.add_span(span, in_line_amp)
                 in_apm_no = in_apm_no + 1
 

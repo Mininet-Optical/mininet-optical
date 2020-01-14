@@ -13,8 +13,18 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.pyplot import figure
+import matplotlib.font_manager
 
-hop = '10_hop/'
+# Plot configuration parameters
+figure(num=None, figsize=(7, 6), dpi=256)
+del matplotlib.font_manager.weight_dict['roman']
+matplotlib.font_manager._rebuild()
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 20
+
+hop = '15_hop/'
 directory = '../test-loads-sim/' + hop
 
 osnr_load_keys = ['osnr_load_27', 'osnr_load_54', 'osnr_load_81']
@@ -132,14 +142,18 @@ print("osnr load-90%% min RMSE over 81,000 comparisons: %f" % min(gosnr_81_rmse)
 # print("osnrs load-90%% Found %d >= than 1 dB in %d checks" % (round_diff, checked_comp))
 
 
-plt.rcParams["font.size"] = 22
+# plt.rcParams["font.size"] = 22
 box = [gosnr_27_rmse, gosnr_27_mae, gosnr_54_rmse, gosnr_54_mae, gosnr_81_rmse, gosnr_81_mae]
+# box = [gosnr_27_rmse, gosnr_54_rmse, gosnr_81_rmse]
 bx = plt.boxplot(box, notch=True, patch_artist=True)
 colors = ['hotpink', 'pink', 'cyan', 'darkturquoise', 'springgreen', 'mediumseagreen']
+# colors = ['pink', 'darkturquoise', 'mediumseagreen']
 for patch, color in zip(bx['boxes'], colors):
     patch.set_facecolor(color)
 plt.ylabel("gOSNR Error (dB)")
 # plt.legend([bx['boxes'][0], bx['boxes'][1]], ['RMSE', 'MAE'], loc='upper center', edgecolor='k')
-plt.xticks(range(1, 7), ('RMSE', 'MAE', 'RMSE', 'MAE', 'RMSE', 'MAE',))
-# plt.yticks(np.arange(0, 2.75, 0.25))
-plt.show()
+plt.xticks(range(1, 7), ('RMSE\n30%', 'MAE\n30%', 'RMSE\n60%', 'MAE\n60%', 'RMSE\n90%', 'MAE\n90%',))
+# plt.xticks(range(1, 4), ('RMSE-30%', 'RMSE-60%', 'RMSE-90%',))
+plt.yticks(np.arange(4, 13, 1))
+plt.savefig('../gOSNR_RMSE_15_hop.eps', format='eps')
+# plt.show()

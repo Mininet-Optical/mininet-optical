@@ -110,7 +110,7 @@ for o, g in zip(plotting_osnr, plotting_gosnr):
     plt.plot(g, '--', marker='x', color=c, label=l, linewidth=2)
 
 plt.ylabel("OSNR/gOSNR (dB)")
-plt.xlabel("Spans and hops (km)")
+plt.xlabel("Spans and hops")
 plt.yticks(np.arange(12, 50, 2))
 ticks = []
 s = 0
@@ -123,5 +123,5 @@ for i in range(17):
 plt.xticks(np.arange(16))
 plt.legend(loc=1)
 plt.grid(True)
-# plt.savefig('../gosnr_vs_power.eps', format='eps')
-plt.show()
+plt.savefig('../gosnr_vs_power.eps', format='eps')
+# plt.show()
