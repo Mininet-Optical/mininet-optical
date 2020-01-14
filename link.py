@@ -38,7 +38,6 @@ class Link(object):
                  output_port_node1, input_port_node2,
                  boost_amp):
         """
-
         :param node1: source Node object
         :param node2: destination Node object
         """
@@ -150,9 +149,7 @@ class Link(object):
             while not (self.boost_amp.balancing_flag_1 and self.boost_amp.balancing_flag_2):
                 for signal, in_power in self.signal_power_in.items():
                     self.boost_amp.input_power[signal] = in_power
-                    output_power = self.boost_amp.output_amplified_power(signal, in_power)
-                    # Update status of signal power in link
-                    signal_power_progress[signal] = output_power
+                    self.boost_amp.output_amplified_power(signal, in_power)
                 self.boost_amp.balance_system_gain()
 
             # Reset balancing flags to original settings
@@ -206,7 +203,6 @@ class Link(object):
             # Compute amplifier compensation
             if amplifier:
                 # Debugging which WDG function was assigned to this EDFA
-                # print("WDG Func in %s : %s" % (amplifier.name, amplifier.wdgfunc))
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear
@@ -365,18 +361,25 @@ class Link(object):
         :return: dict{signal_index: accumulated NLI noise levels}
         """
 
+        amplifier_gain = db_to_abs(amplifier.system_gain)
         nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
+        # nonlinear_noise_new = self.nonlinear_noise(signals, signal_power_progress, span, amplifier_gain)
 
         out_noise = {}
         for signal, value in _nonlinear_noise.items():
             out_noise[signal] = value + nonlinear_noise_new[signal]
 
+        json_struct = {'tests': []}
+        nli_id = 'nli_' + str(self.nli_id)
+        json_struct['tests'].append({nli_id: list(out_noise.values())})
+        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        # with open(json_file_name, 'w+') as outfile:
+        #     json.dump(json_struct, outfile)
+        self.nli_id += 1
         return out_noise
 
     def nonlinear_noise(self, signals, signal_power_progress, span, lump_gain):
         """
-        not correct, needs to be fixed! Nov. 28th 2019
-
         Computation taken from: Poggiolini, P., et al. "Accurate Non-Linearity Fully-Closed-Form Formula
         based on the GN/EGN Model and Large-Data-Set Fitting." Optical Fiber Communication Conference.
         Optical Society of America, 2019. Equations 1-4
@@ -384,6 +387,7 @@ class Link(object):
         :param span: Span() object
         :param lump_gain: EDFA target gain + wavelength dependent gain - float
         :return: Nonlinear Interference noise - dictionary{signal_index: NLI}
+        not correct! Nov. 28th 2019
         """
         nonlinear_noise_struct = {}
         channels_index = []
@@ -545,7 +549,7 @@ class Span(object):
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
         # self.loss_coefficient = math.e ** (self.fibre_attenuation * self.length)
         self.effective_length = (1 - math.e ** (-self.fibre_attenuation * self.length)) / self.fibre_attenuation
-        self.non_linear_coefficient = 1.3 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.non_linear_coefficient = 0.78 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
         self.dispersion_coefficient = -21 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
         self.effective_area = 80 * unit.um * unit.um  # Aeff - SMF effective area

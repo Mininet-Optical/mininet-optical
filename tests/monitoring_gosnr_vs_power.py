@@ -1,20 +1,11 @@
-"""
-    This script will build the Linear topology and run a single
-    81-channel transmission with the default configuration of the simulator,
-    and will monitor 1 channel when launched at different distances and
-    power levels.
-    The latter, will then be plotted.
-
-    For different distances and monitoring points one needs to edit the
-    LinearTopology declaration in ../topo/linear.py
-
-"""
-
-from topo.deutsche_telekom import DeutscheTelekom
+from topo.linear import LinearTopology
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
+# Plot configuration parameters
+figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -40,48 +31,55 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-power_levels = list(np.arange(-4, 6, 2))
+power_levels = list(np.arange(-4, 2, 2))
 plotting_osnr = []
 plotting_gosnr = []
 plotting_theo = []
 
 for p in power_levels:
-    print("*** Building Deutsche Telekom network topology for operational power: %s" % p)
-    net = DeutscheTelekom.build(op=p)
+    print("*** Building Linear network topology for operational power: %s" % p)
+    net = LinearTopology.build(op=p, non=5)
 
-    lt_koln = net.name_to_node['lt_koln']
-    lt_munchen = net.name_to_node['lt_munchen']
+    lt_1 = net.name_to_node['lt_1']
+    lt_2 = net.name_to_node['lt_2']
+    lt_3 = net.name_to_node['lt_3']
 
-    roadm_koln = net.name_to_node['roadm_koln']
-    roadm_frankfurt = net.name_to_node['roadm_frankfurt']
-    roadm_nurnberg = net.name_to_node['roadm_nurnberg']
-    roadm_munchen = net.name_to_node['roadm_munchen']
+    roadm_1 = net.name_to_node['roadm_1']
+    roadm_2 = net.name_to_node['roadm_2']
+    roadm_3 = net.name_to_node['roadm_3']
+    roadm_4 = net.name_to_node['roadm_4']
+    roadm_5 = net.name_to_node['roadm_5']
+
+    # for port, node in roadm_3.port_to_node_out.items():
+    #     print("%s reachable through port %s" % (node.name, port))
+    # for port, node in roadm_3.port_to_node_in.items():
+    #     print("roadm_3 reachable by %s through port %s" % (node.name, port))
 
     # Install switch rules into the ROADM nodes
     wavelength_indexes = range(1, 82)
-    roadm_koln.install_switch_rule(1, 0, 103, wavelength_indexes)
-    roadm_frankfurt.install_switch_rule(1, 2, 104, wavelength_indexes)
-    roadm_nurnberg.install_switch_rule(1, 1, 103, wavelength_indexes)
-    roadm_munchen.install_switch_rule(1, 1, 100, wavelength_indexes)
+    roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
+    roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
+    roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
+    roadm_4.install_switch_rule(1, 1, 102, wavelength_indexes)
+    roadm_5.install_switch_rule(1, 1, 100, wavelength_indexes)
 
+    rw = wavelength_indexes
     # Set resources to use and initiate transmission
-    resources = {'transceiver': lt_koln.name_to_transceivers['t1'], 'required_wavelengths': wavelength_indexes}
-    print("*** Initializing end-to-end transmission from %s to %s" % (lt_koln.name, lt_munchen.name))
-    net.transmit(lt_koln, roadm_koln, resources=resources)
-    print("*** Transmission successful!")
+    resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
+    net.transmit(lt_1, roadm_1, resources=resources)
 
     print("*** Monitoring interfaces")
-    osnrs = {i: [] for i in range(0, 13)}
-    gosnrs = {i: [] for i in range(0, 13)}
+    osnrs = {i: [] for i in range(1, 17)}
+    gosnrs = {i: [] for i in range(1, 17)}
 
     # Retrieve from each monitoring points the
     # OSNR and gOSNR of all the channels
-    opm_name_base = 'verification_opm'
+    opm_name_base = 'opm_'
     for key, _ in osnrs.items():
         opm_name = opm_name_base + str(key)
         opm = net.name_to_node[opm_name]
         osnrs[key] = opm.get_list_osnr()
-        if key == 0:
+        if key == 1:
             gosnrs[key] = opm.get_list_osnr()
         else:
             gosnrs[key] = opm.get_list_gosnr()
@@ -98,49 +96,21 @@ for p in power_levels:
         gosnr_c46.append(_list[45])
     plotting_gosnr.append(gosnr_c46)
 
-    # Create structure and compute OSNR with the analytical model
-    theo = []
-    init = osnr_c46[0]
-    theo.append(init)
-    prev_value = 0
-    for i in range(1, 13):
-        if i == 6 or i == 12:
-            theo.append(prev_value)
-        elif i > 6:
-            prev_value = p + 58 - 0.22 * 80 - 6 - 10 * np.log10(i - 1)
-            theo.append(prev_value)
-        else:
-            prev_value = p + 58 - 0.22 * 80 - 6 - 10 * np.log10(i)
-            theo.append(prev_value)
-    plotting_theo.append(theo)
-
     print("*** Destroying objects")
     del net
     del osnrs
     del gosnrs
-    del theo
 
 colors = ['r', 'g', 'b', 'y', 'k']
 op = list(np.arange(-4, 6, 2)[::-1])
-for o, g, t in zip(plotting_osnr, plotting_gosnr, plotting_theo):
-    label = 'Launch power: ' + str(op.pop()) + 'dBm'
-    color = colors.pop()
-    plt.plot(o, marker='o', color=color)
-    plt.plot(g, '--', marker='*', color=color, label=label)
-    plt.plot(t, '-.', marker='^', color=color)
+for o, g in zip(plotting_osnr, plotting_gosnr):
+    l = 'Launch power: ' + str(op.pop()) + 'dBm'
+    c = colors.pop()
+    plt.plot(o, marker='o', color=c)
+    plt.plot(g, '--', marker='x', color=c, label=l, linewidth=2)
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
-<<<<<<< HEAD
-<<<<<<< HEAD
-plt.yticks(np.arange(0, 52, 2))
-plt.xticks(np.arange(0, 13, 1))
-plt.legend(loc=1)
-plt.grid(True)
-plt.show()
-=======
-=======
->>>>>>> c2a2354... minor changes for PTL paper
 plt.yticks(np.arange(12, 50, 2))
 ticks = []
 s = 0
@@ -155,7 +125,3 @@ plt.legend(loc=1)
 plt.grid(True)
 plt.savefig('../gosnr_vs_power.eps', format='eps')
 # plt.show()
-<<<<<<< HEAD
->>>>>>> c2a2354... minor changes for PTL paper
-=======
->>>>>>> c2a2354... minor changes for PTL paper

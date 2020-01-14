@@ -1,20 +1,11 @@
-"""
-    This script will build the Linear topology and run a single
-    81-channel transmission with the default configuration of the simulator,
-    and will monitor 1 channel when launched at different power levels.
-    The latter, will then be plotted.
-
-    For different distances and monitoring points one needs to edit the
-    LinearTopology declaration in ../topo/linear.py
-
-"""
-
 from topo.linear import LinearTopology
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
+figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -40,102 +31,77 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-power_levels = list(np.arange(-40, 16, 1))
-plotting_osnr = []
-plotting_gosnr = []
-plotting_theo = []
+power_levels = list(np.arange(-7, 3, 1))
+plotting_osnr = {4: [], 32: []}
+plotting_gosnr = {4: [], 32: []}
+plotting_gosnr_4000 = {4: [], 32: []}
+plotting_theo = {4: [], 32: []}
 
-for p in power_levels:
-    print("*** Building Linear network topology for operational power: %s" % p)
-    net = LinearTopology.build(op=p)
 
-    lt_1 = net.name_to_node['lt_1']
-    lt_2 = net.name_to_node['lt_2']
-    lt_3 = net.name_to_node['lt_3']
+w_num = [4, 32]
 
-    roadm_1 = net.name_to_node['roadm_1']
-    roadm_2 = net.name_to_node['roadm_2']
-    roadm_3 = net.name_to_node['roadm_3']
+for wnm in w_num:
+    for p in power_levels:
+        print("*** Building Linear network topology for operational power: %s" % p)
+        net = LinearTopology.build(op=p, non=2)
 
-    # Install switch rules into the ROADM nodes
-    wavelength_indexes = range(1, 82)
-    roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
-    roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
-    roadm_3.install_switch_rule(1, 1, 100, wavelength_indexes)
+        lt_1 = net.name_to_node['lt_1']
 
-    rw = wavelength_indexes
-    # Set resources to use and initiate transmission
-    resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
-    net.transmit(lt_1, roadm_1, resources=resources)
+        roadm_1 = net.name_to_node['roadm_1']
+        roadm_2 = net.name_to_node['roadm_2']
 
-    print("*** Monitoring interfaces")
-    osnrs = {i: [] for i in range(1, 5)}
-    gosnrs = {i: [] for i in range(1, 5)}
+        # Install switch rules into the ROADM nodes
+        wavelength_indexes = range(1, wnm)
+        roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
+        roadm_2.install_switch_rule(1, 1, 100, wavelength_indexes)
 
-    # Retrieve from each monitoring points the
-    # OSNR and gOSNR of all the channels
-    opm_name_base = 'opm_'
-    for key, _ in osnrs.items():
-        opm_name = opm_name_base + str(key)
-        opm = net.name_to_node[opm_name]
-        osnrs[key] = opm.get_list_osnr()
-        if key == 1:
-            gosnrs[key] = opm.get_list_osnr()
-        else:
-            gosnrs[key] = opm.get_list_gosnr()
+        rw = wavelength_indexes
+        # Set resources to use and initiate transmission
+        resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
+        net.transmit(lt_1, roadm_1, resources=resources)
 
-    # Retrieve only the channels of interest
-    osnr_c46 = []
-    for span, _list in osnrs.items():
-        osnr_c46.append(_list[45])
-    plotting_osnr.append(osnr_c46)
+        opm = net.name_to_node['opm_25']
+        osnrs = opm.get_list_osnr()
+        gosnrs = opm.get_list_gosnr()
 
-    gosnr_c46 = []
-    for span, _list in gosnrs.items():
-        gosnr_c46.append(_list[45])
-    plotting_gosnr.append(gosnr_c46)
+        opm = net.name_to_node['opm_48']
+        osnrs_4000 = opm.get_list_osnr()
+        gosnrs_4000 = opm.get_list_gosnr()
 
-    # Create structure and compute OSNR with the analytical model
-    theo = []
-    init = osnr_c46[0]
-    theo.append(init)
-    prev_value = 0
-    for i in range(1, 4):
-        if i == 2:
-            theo.append(prev_value)
-        elif i > 2:
-            prev_value = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(i - 1)
-            theo.append(prev_value)
-        else:
-            prev_value = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(i)
-            theo.append(prev_value)
-    plotting_theo.append(theo)
+        plotting_osnr[wnm].append(osnrs[int(np.floor(wnm/2))])
+        plotting_gosnr[wnm].append(gosnrs[int(np.floor(wnm/2))])
+        plotting_gosnr_4000[wnm].append(gosnrs_4000[int(np.floor(wnm/2))])
 
-    print("*** Destroying objects")
-    del net
-    del osnrs
-    del gosnrs
-    del theo
+        # Create structure and compute OSNR with the analytical model
+        t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(48)
+        plotting_theo[wnm].append(t_osnr)
 
-plt_osnr = []
-plt_gosnr = []
-for o, g in zip(plotting_osnr, plotting_gosnr):
-    plt_osnr.append(o[-1])
-    plt_gosnr.append(g[-1])
+        print("*** Destroying objects")
+        del net
+        del osnrs
+        del gosnrs
 
-plt.plot(plt_osnr, color='b', label='OSNR')
-plt.plot(plt_gosnr, color='r', label='gOSNR')
+labs = ['2000km 32ch', '2000km 4ch']
+labs2 = ['4000km 32ch', '4000km 4ch']
+colors = ['b', 'r']
+colors2 = ['k', 'y']
+markers = ['*', 'v']
+for k in w_num:
+    c = colors.pop()
+    c2 = colors2.pop()
+    lab = labs.pop()
+    lab2 = labs2.pop()
+    m = markers.pop()
+    plt.plot(plotting_gosnr[k], color=c, label=lab, linewidth=2, marker='x')
+    plt.plot(plotting_gosnr_4000[k], color=c2, label=lab2, linewidth=2, marker='x')
+    # plt.plot(plotting_theo[k])
 
-plt.ylabel("OSNR/gOSNR (dB)")
+plt.ylabel("gOSNR (dB)")
 plt.xlabel("Launch power (dBm)")
-ticks = []
-for i in np.arange(-40, 16, 1):
-    if i % 5 == 0:
-        ticks.append(i)
-    else:
-        ticks.append('')
-plt.xticks((range(len(ticks))), ticks)
-plt.xticks()
-plt.legend(loc=2)
+# plt.yticks(np.arange(4, 16, 1))
+plt.xticks((range(len(power_levels))), power_levels)
+# plt.xticks()
+plt.legend(loc='lower left')
 plt.grid(True)
+# plt.savefig('../gosnr_vs_distance_power.eps', format='eps')
 plt.show()
