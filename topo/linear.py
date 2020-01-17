@@ -8,6 +8,7 @@ class LinearTopology:
     @staticmethod
     def build(op=-2, non=3):
         """
+
         :param op: operational power in dBm
         :param non: number of nodes (integer)
         :return: Network object
@@ -42,14 +43,15 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 48
+        span_no = 6
+        tmp_qot_id = 1
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
             r1 = i + 1  # ROADM 1 index
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True)
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, tmp_qot_id=tmp_qot_id)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
             # link object
@@ -63,13 +65,14 @@ class LinearTopology:
 
             in_apm_no = 0  # id of in line amplifiers
             opm_no = opm_i + 1  # id of OPM at end of spans
+            tmp_qot_id += 1
             for sp in range(span_no):
                 # Iterate through number of spans in link
                 # span object
                 span = Span('SMF', 80)
                 in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
                 # in-line amplifier object
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6, tmp_qot_id=tmp_qot_id)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
                 opm_l = opm_lab + us + str(opm_no + 1)  # label OPM
@@ -80,6 +83,7 @@ class LinearTopology:
                 in_apm_no = in_apm_no + 1
                 # increment OPM count
                 opm_no = opm_no + 1
+                tmp_qot_id += 1
 
             # bidirectional
             boost_label = boost_lab + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)

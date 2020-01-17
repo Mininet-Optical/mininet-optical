@@ -5,9 +5,9 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-figure(num=None, figsize=(7, 6), dpi=256)
-del matplotlib.font_manager.weight_dict['roman']
-matplotlib.font_manager._rebuild()
+# figure(num=None, figsize=(7, 6), dpi=256)
+# del matplotlib.font_manager.weight_dict['roman']
+# matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
@@ -96,6 +96,12 @@ for p in power_levels:
         gosnr_c46.append(_list[45])
     plotting_gosnr.append(gosnr_c46)
 
+    an_osnr = []
+    for s in range(16):
+        t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
+        an_osnr.append(t_osnr)
+    plotting_theo.append(an_osnr)
+
     print("*** Destroying objects")
     del net
     del osnrs
@@ -103,11 +109,12 @@ for p in power_levels:
 
 colors = ['r', 'g', 'b', 'y', 'k']
 op = list(np.arange(-4, 6, 2)[::-1])
-for o, g in zip(plotting_osnr, plotting_gosnr):
+for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     l = 'Launch power: ' + str(op.pop()) + 'dBm'
     c = colors.pop()
     plt.plot(o, marker='o', color=c)
     plt.plot(g, '--', marker='x', color=c, label=l, linewidth=2)
+    plt.plot(o, marker='v', color='r')
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
@@ -123,5 +130,5 @@ for i in range(17):
 plt.xticks(np.arange(16))
 plt.legend(loc=1)
 plt.grid(True)
-plt.savefig('../gosnr_vs_power.eps', format='eps')
-# plt.show()
+# plt.savefig('../gosnr_vs_power.eps', format='eps')
+plt.show()

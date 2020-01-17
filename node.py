@@ -174,7 +174,9 @@ class LineTerminal(Node):
         link = self.out_port_to_link[out_port]
         link.propagate(self.port_to_optical_signal_power_out[out_port],
                        accumulated_ASE_noise=None,
-                       accumulated_NLI_noise=None)
+                       accumulated_NLI_noise=None,
+                       accumulated_ASE_noise_qot=None,
+                       accumulated_NLI_noise_qot=None)
 
     def receiver(self, in_port, signal_power):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
@@ -272,6 +274,7 @@ class Roadm(Node):
 
     def __init__(self, name, attenuation=6):
         """
+
         :param name:
         :param attenuation: total attenuation at the node. Default
         set to 6 dB per task needed (Add/Drop/Pass-through).
@@ -393,7 +396,7 @@ class Roadm(Node):
         Switch the input signals to the appropriate output ports as established
         by the switching rules in the switch table (if any).
         :param in_port: input port where signals are being transmitted
-        :param link_signals: the signals being transmitted
+        :param link_signals: the signals being transmitted NOT REALLY, PASSING: self.optical_signal_power_out
         :param accumulated_ASE_noise: ASE noise (if any)
         :param accumulated_NLI_noise: NLI noise (if any)
         :return:
@@ -451,11 +454,11 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt',
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files_qot = {'linear': 'linear.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -463,7 +466,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False):
+                 boost=False, tmp_qot_id=1):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -476,24 +479,39 @@ class Amplifier(Node):
         self.type = amplifier_type
         self.target_gain = target_gain
         self.system_gain = target_gain
+        self.system_gain_qot = target_gain
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
         self.input_power = {}  # dict of OpticalSignal to input power levels
+        self.input_power_qot = {}  # dict of OpticalSignal to input power levels
         self.output_power = {}  # dict of OpticalSignal to output power levels
+        self.output_power_qot = {}  # dict of OpticalSignal to output power levels
         self.ase_noise = {}
+        self.ase_noise_qot = {}
         self.bandwidth = bandwidth
         self.wdgfunc = None
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
+        self.wavelength_dependent_gain_qot = (self.load_wavelength_dependent_gain_qot())
+
         self.balancing_flag_1 = False  # When both are True system gain balancing is complete
         self.balancing_flag_2 = False
 
+        self.balancing_flag_1_qot = False  # When both are True system gain balancing is complete
+        self.balancing_flag_2_qot = False
+
         self.boost = boost
         self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
+        self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
+
+        self.tmp_qot_id = tmp_qot_id
+        print("Amplifier tmp_qot_id: %s" % str(self.tmp_qot_id))
 
     def balancing_flags_off(self):
         self.balancing_flag_1 = False
         self.balancing_flag_2 = False
+        self.balancing_flag_1_qot = False
+        self.balancing_flag_2_qot = False
 
     def load_wavelength_dependent_gain(self, wavelength_dependent_gain_id):
         """
@@ -508,6 +526,14 @@ class Amplifier(Node):
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]
 
+    @staticmethod
+    def load_wavelength_dependent_gain_qot():
+        """
+        :return: Return wavelength dependent gain array
+        """
+        with open(description_files_dir + 'linear.txt', "r") as f:
+            return [float(line) for line in f]
+
     def get_wavelength_dependent_gain(self, signal_index):
         """
         Retrieve WDG by signal index
@@ -515,6 +541,14 @@ class Amplifier(Node):
         :return: WDG of signal
         """
         return self.wavelength_dependent_gain[signal_index - 1]
+
+    def get_wavelength_dependent_gain_qot(self, signal_index):
+        """
+        Retrieve WDG by signal index
+        :param signal_index:
+        :return: WDG of signal
+        """
+        return self.wavelength_dependent_gain_qot[signal_index - 1]
 
     def active_wavelength_dependent_gain(self):
         """
@@ -524,6 +558,16 @@ class Amplifier(Node):
         list_wdg = []
         for optical_signal, _power in self.output_power.items():
             list_wdg.append(self.get_wavelength_dependent_gain(optical_signal.index))
+        return list_wdg
+
+    def active_wavelength_dependent_gain_qot(self):
+        """
+        Retrieve in a list the WDG of the active channels
+        :return: list active channels in amplifier
+        """
+        list_wdg = []
+        for optical_signal, _power in self.output_power_qot.items():
+            list_wdg.append(self.get_wavelength_dependent_gain_qot(optical_signal.index))
         return list_wdg
 
     @staticmethod
@@ -560,6 +604,29 @@ class Amplifier(Node):
         self.output_power[signal] = output_power
         return output_power
 
+    def output_amplified_power_qot(self, signal, in_power):
+        """
+        Compute the output power levels of each signal after amplification
+        :param signal: signal object
+        :param in_power: input signal power linear (mW)
+        """
+        system_gain = self.system_gain
+        system_gain_qot = self.system_gain_qot
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
+        wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain(signal.index)
+        # Conversion from dB to linear
+        system_gain_linear = db_to_abs(system_gain)
+        system_gain_linear_qot = db_to_abs(system_gain_qot)
+        wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
+        wavelength_dependent_gain_linear_qot = db_to_abs(wavelength_dependent_gain_qot)
+        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
+        output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot
+        if self.tmp_qot_id % 9 == 0:
+            self.output_power_qot[signal] = output_power
+        else:
+            self.output_power_qot[signal] = output_power_qot
+        return output_power_qot
+
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
         """
         :return:
@@ -583,6 +650,30 @@ class Amplifier(Node):
                                                                     optical_signal.frequency *
                                                                     self.bandwidth * (gain_linear-1) * 1000)
         self.ase_noise[optical_signal] = ase_noise
+
+    def stage_amplified_spontaneous_emission_noise_qot(self, optical_signal, in_power, accumulated_noise=None):
+        """
+        :return:
+        Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
+        """
+        if accumulated_noise:
+            self.ase_noise_qot[optical_signal] = accumulated_noise[optical_signal]
+
+        # Set parameters needed for ASE model
+        noise_figure_linear = db_to_abs(self.noise_figure[optical_signal.index])
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain_qot(optical_signal.index)
+        system_gain = self.system_gain_qot
+
+        if optical_signal not in self.ase_noise_qot:
+            # set initial noise 50 dB below signal power
+            init_noise = in_power / db_to_abs(50)
+            self.ase_noise_qot[optical_signal] = init_noise
+        # Conversion from dB to linear
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
+        ase_noise = self.ase_noise_qot[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
+                                                                        optical_signal.frequency *
+                                                                        self.bandwidth * (gain_linear-1) * 1000)
+        self.ase_noise_qot[optical_signal] = ase_noise
 
     def balance_system_gain(self):
         """
@@ -610,6 +701,28 @@ class Amplifier(Node):
         if not (self.balancing_flag_1 and self.balancing_flag_2):
             self.balancing_flag_1 = True
 
+    def balance_system_gain_qot(self):
+        """
+        Balance system gain with respect with the mean
+        gain of the signals in the amplifier
+        :return:
+        """
+        # Convert power levels from linear to dBm
+        output_power_dBm = [abs_to_db(p) for p in self.output_power_qot.values()]
+        input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
+
+        # Mean difference between output and input power levels
+        out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
+        # Compute the balanced system gain
+        gain_difference = out_in_difference - self.target_gain
+        system_gain_balance = self.system_gain_qot - gain_difference
+        self.system_gain_qot = system_gain_balance
+        # Flag check for enabling the repeated computation of balancing
+        if self.balancing_flag_1_qot and (not self.balancing_flag_2_qot):
+            self.balancing_flag_2_qot = True
+        if not (self.balancing_flag_1_qot and self.balancing_flag_2_qot):
+            self.balancing_flag_1_qot = True
+
     def clean_signals(self, optical_signals):
         for optical_signal in optical_signals:
             del self.input_power[optical_signal]
@@ -628,6 +741,7 @@ class Monitor(Node):
 
     def __init__(self, name, link=None, span=None, amplifier=None):
         """
+
         :param name:
         set to 6 dB per task needed (Add/Drop/Pass-through).
         """

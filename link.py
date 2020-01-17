@@ -3,6 +3,7 @@ import math
 import units as unit
 from pprint import pprint
 import numpy as np
+import json
 
 
 def db_to_abs(db_value):
@@ -37,6 +38,7 @@ class Link(object):
                  output_port_node1, input_port_node2,
                  boost_amp):
         """
+
         :param node1: source Node object
         :param node2: destination Node object
         """
@@ -53,10 +55,16 @@ class Link(object):
         self.optical_signal_power_in = {}  # dict of signals and power levels
         self.optical_signal_power_out = {}  # dict of signals and power levels
 
+        self.optical_signal_power_in_qot = {}  # dict of signals and power levels
+        self.optical_signal_power_out_qot = {}  # dict of signals and power levels
+
         self.nonlinear_interference_noise = {}  # dict of spans to signals to nonlinear noise
+        self.nonlinear_interference_noise_qot = {}  # dict of spans to signals to nonlinear noise
         self.nli_id = 1  # For debugging purposes of NLI noise aggregation
         self.accumulated_ASE_noise = {}
+        self.accumulated_ASE_noise_qot = {}
         self.accumulated_NLI_noise = {}
+        self.accumulated_NLI_noise_qot = {}
 
         self.spans = []
 
@@ -86,7 +94,7 @@ class Link(object):
         A rule deletion or update has been called. Hence, remove the
         instances of signals in the link structure where the previously
         used signals in those ports were.
-        :param signals: signals to be removed on this link
+        :param optical_signals: signals to be removed on this link
         :return:
         """
         for optical_signal in optical_signals:
@@ -108,7 +116,9 @@ class Link(object):
             if amplifier:
                 amplifier.clean_optical_signals(optical_signals)
 
-    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise):
+    def propagate(self, pass_through_signals, pass_through_signals_qot,
+                  accumulated_ASE_noise, accumulated_NLI_noise,
+                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
         """
         Propagate the signals across the link
         :param pass_through_signals:
@@ -119,8 +129,11 @@ class Link(object):
         # Set output signals from node to input of the link
         for optical_signal, power in pass_through_signals.items():
             self.optical_signal_power_in[optical_signal] = power
+        for optical_signal, power in pass_through_signals_qot.items():
+            self.optical_signal_power_in_qot[optical_signal] = power
 
-        self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise)
+        self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise,
+                                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot)
 
         # use is instance instead of checking the class
         if self.node2.__class__.__name__ is 'LineTerminal':
@@ -129,25 +142,34 @@ class Link(object):
             self.node2.switch(self.input_port_node2, self.optical_signal_power_out,
                               self.accumulated_ASE_noise, self.accumulated_NLI_noise)
 
-    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise):
+    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise,
+                             accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
         """
         Compute the propagation of signals over this link
         :return:
         """
         # keep track of the signal power in link
         signal_power_progress = self.optical_signal_power_in.copy()
+        signal_power_progress_qot = self.optical_signal_power_in.copy()
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
             # For monitoring purposes
             if accumulated_NLI_noise:
                 self.boost_amp.nonlinear_noise.update(accumulated_NLI_noise)
+            if accumulated_NLI_noise_qot:
+                self.boost_amp.nonlinear_noise_qot.update(accumulated_NLI_noise_qot)
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.balancing_flag_1 and self.boost_amp.balancing_flag_2):
                 for optical_signal, in_power in self.optical_signal_power_in.items():
                     self.boost_amp.input_power[optical_signal] = in_power
                     self.boost_amp.output_amplified_power(optical_signal, in_power)
                 self.boost_amp.balance_system_gain()
+            while not (self.boost_amp.balancing_flag_1_qot and self.boost_amp.balancing_flag_2_qot):
+                for optical_signal, in_power in self.optical_signal_power_in_qot.items():
+                    self.boost_amp.input_power_qot[optical_signal] = in_power
+                    self.boost_amp.output_amplified_power_qot(optical_signal, in_power)
+                self.boost_amp.balance_system_gain_qot()
 
             # Reset balancing flags to original settings
             self.boost_amp.balancing_flags_off()
@@ -156,8 +178,17 @@ class Link(object):
             for optical_signal, in_power in self.optical_signal_power_in.items():
                 self.boost_amp.input_power[optical_signal] = in_power
                 output_power = self.boost_amp.output_amplified_power(optical_signal, in_power)
+                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power)
                 # Update status of signal power in link
                 signal_power_progress[optical_signal] = output_power
+                signal_power_progress_qot[optical_signal] = output_power_qot
+
+            # Compute for the power
+            for optical_signal, in_power in self.optical_signal_power_in_qot.items():
+                self.boost_amp.input_power_qot[optical_signal] = in_power
+                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power)
+                # Update status of signal power in link
+                signal_power_progress_qot[optical_signal] = output_power_qot
 
             # Compute ASE noise
             for optical_signal, in_power in self.optical_signal_power_in.items():
@@ -166,11 +197,20 @@ class Link(object):
                                                                           accumulated_noise=accumulated_ASE_noise)
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
 
+            for optical_signal, in_power in self.optical_signal_power_in_qot.items():
+                self.boost_amp.stage_amplified_spontaneous_emission_noise_qot(optical_signal,
+                                                                              in_power,
+                                                                              accumulated_noise=accumulated_ASE_noise_qot)
+            accumulated_ASE_noise_qot.update(self.boost_amp.ase_noise_qot)
+
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
+        nonlinear_interference_noise_qot = {}
         if not accumulated_NLI_noise:
             accumulated_NLI_noise = self.init_nonlinear_noise()
+        if not accumulated_NLI_noise_qot:
+            accumulated_NLI_noise_qot = self.init_nonlinear_noise()
         for span, amplifier in self.spans:
             span.input_power = signal_power_progress
             # Compute linear effects from the fibre
@@ -178,9 +218,14 @@ class Link(object):
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise:
                     accumulated_ASE_noise[optical_signal] /= span.attenuation()
+            for optical_signal, power in signal_power_progress_qot.items():
+                signal_power_progress_qot[optical_signal] = power / span.attenuation()
+                if accumulated_ASE_noise_qot:
+                    accumulated_ASE_noise_qot[optical_signal] /= span.attenuation()
+
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
-            if len(signal_power_progress) < 1 and prev_amp:
+            if len(signal_power_progress) > 1 and prev_amp:
                 signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
 
                 #  Store not normalized power and noise levels
@@ -197,6 +242,20 @@ class Link(object):
                     normalized_power, normalized_noise,
                     not_normalized_power, not_normalized_noise)
 
+                signal_power_progress_qot = self.zirngibl_srs(signals_list, signal_power_progress_qot, span)
+                #  Store not normalized power and noise levels
+                #  to be considered in the power excursion calculation
+                not_normalized_power_qot = signal_power_progress_qot
+                not_normalized_noise_qot = prev_amp.ase_noise_qot
+                normalized_power_qot, normalized_noise_qot = self.normalize_channel_levels(
+                    signal_power_progress_qot,
+                    prev_amp.ase_noise_qot,
+                    prev_amp.active_wavelength_dependent_gain_qot())
+                # Consider power excursion and propagation per-span
+                signal_power_progress_qot = self.power_excursion_propagation(
+                    normalized_power_qot, normalized_noise_qot,
+                    not_normalized_power_qot, not_normalized_noise_qot)
+
             # Compute amplifier compensation
             if amplifier:
                 # Debugging which WDG function was assigned to this EDFA
@@ -208,17 +267,35 @@ class Link(object):
                         accumulated_NLI_noise,
                         signal_power_progress,
                         signals_list,
-                        span)
+                        span,
+                        amplifier)
                     self.nonlinear_interference_noise[span] = nonlinear_interference_noise[span]
                     accumulated_NLI_noise.update(nonlinear_interference_noise[span])
                     self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
+
+                    nonlinear_interference_noise_qot[span] = self.output_nonlinear_noise(
+                        accumulated_NLI_noise_qot,
+                        signal_power_progress_qot,
+                        signals_list,
+                        span,
+                        amplifier)
+                    self.nonlinear_interference_noise_qot[span] = nonlinear_interference_noise_qot[span]
+                    accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
+                    self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                 # Enabling balancing check
                 while not (amplifier.balancing_flag_1 and amplifier.balancing_flag_2):
                     for optical_signal, in_power in signal_power_progress.items():
                         amplifier.input_power[optical_signal] = in_power
                         amplifier.output_amplified_power(optical_signal, in_power)
                     amplifier.balance_system_gain()
-                # Reset balancing flags to original settings
+
+                # Enabling balancing check
+                while not (amplifier.balancing_flag_1_qot and amplifier.balancing_flag_2_qot):
+                    for optical_signal, in_power in signal_power_progress_qot.items():
+                        amplifier.input_power_qot[optical_signal] = in_power
+                        amplifier.output_amplified_power_qot(optical_signal, in_power)
+                    amplifier.balance_system_gain_qot()
+                    # Reset balancing flags to original settings
                 amplifier.balancing_flags_off()
 
                 # Compute for the power
@@ -228,6 +305,12 @@ class Link(object):
                     # Update status of signal power in link
                     self.optical_signal_power_out[optical_signal] = output_power
 
+                for optical_signal, in_power in signal_power_progress_qot.items():
+                    amplifier.input_power_qot[optical_signal] = in_power
+                    output_power = amplifier.output_amplified_power_qot(optical_signal, in_power)
+                    # Update status of signal power in link
+                    self.optical_signal_power_out_qot[optical_signal] = output_power
+
                 # Compute ASE noise
                 for optical_signal, in_power in signal_power_progress.items():
                     amplifier.stage_amplified_spontaneous_emission_noise(optical_signal,
@@ -235,21 +318,34 @@ class Link(object):
                                                                          accumulated_noise=accumulated_ASE_noise)
                 accumulated_ASE_noise.update(amplifier.ase_noise)
                 signal_power_progress.update(self.optical_signal_power_out)
+
+                for optical_signal, in_power in signal_power_progress_qot.items():
+                    amplifier.stage_amplified_spontaneous_emission_noise_qot(optical_signal,
+                                                                             in_power,
+                                                                             accumulated_noise=accumulated_ASE_noise)
+                accumulated_ASE_noise_qot.update(amplifier.ase_noise_qot)
+                signal_power_progress_qot.update(self.optical_signal_power_out_qot)
             else:
                 for optical_signal, in_power in signal_power_progress.items():
                     # Update status of signal power in link
                     self.optical_signal_power_out[optical_signal] = in_power
 
+                for optical_signal, in_power in signal_power_progress_qot.items():
+                    # Update status of signal power in link
+                    self.optical_signal_power_out_qot[optical_signal] = in_power
+
             prev_amp = amplifier
             if accumulated_ASE_noise:
                 self.accumulated_ASE_noise.update(accumulated_ASE_noise)
+            if accumulated_ASE_noise_qot:
+                self.accumulated_ASE_noise_qot.update(accumulated_ASE_noise_qot)
 
     @staticmethod
     def zirngibl_srs(optical_signals, active_channels, span):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
-        :param signals: signals interacting at given transmission - list[Signal() object]
+        :param optical_signals: signals interacting at given transmission - list[Signal() object]
         :param active_channels: power levels at the end of span - dict{signal_index: power levels}
         :param span: Span() object
         :return:
@@ -347,23 +443,121 @@ class Link(object):
             nonlinear_noise[optical_signal] = in_power / db_to_abs(50)
         return nonlinear_noise
 
-    def output_nonlinear_noise(self, _nonlinear_noise, signal_power_progress, signals, span):
+    def output_nonlinear_noise(self, _nonlinear_noise, signal_power_progress, signals, span, amplifier):
         """
         :param _nonlinear_noise:
         :param signal_power_progress:
         :param signals: signals interacting at given transmission - list[Signal() object]
         :param span: Span() object
+        :param amplifier: Amplifier() object at beginning of span
         :return: dict{signal_index: accumulated NLI noise levels}
         """
 
+        amplifier_gain = db_to_abs(amplifier.system_gain)
         nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
+        # nonlinear_noise_new = self.nonlinear_noise(signals, signal_power_progress, span, amplifier_gain)
 
         out_noise = {}
-        for optical_signal, value in _nonlinear_noise.items():
-            out_noise[optical_signal] = value + nonlinear_noise_new[optical_signal]
+        for signal, value in _nonlinear_noise.items():
+            out_noise[signal] = value + nonlinear_noise_new[signal]
 
+        json_struct = {'tests': []}
+        nli_id = 'nli_' + str(self.nli_id)
+        json_struct['tests'].append({nli_id: list(out_noise.values())})
+        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        # with open(json_file_name, 'w+') as outfile:
+        #     json.dump(json_struct, outfile)
         self.nli_id += 1
         return out_noise
+
+    def nonlinear_noise(self, signals, signal_power_progress, span, lump_gain):
+        """
+        Computation taken from: Poggiolini, P., et al. "Accurate Non-Linearity Fully-Closed-Form Formula
+        based on the GN/EGN Model and Large-Data-Set Fitting." Optical Fiber Communication Conference.
+        Optical Society of America, 2019. Equations 1-4
+        :param signals: signals interacting at given transmission - list[Signal() object]
+        :param span: Span() object
+        :param lump_gain: EDFA target gain + wavelength dependent gain - float
+        :return: Nonlinear Interference noise - dictionary{signal_index: NLI}
+
+        not correct! Nov. 28th 2019
+        """
+        nonlinear_noise_struct = {}
+        channels_index = []
+        index_to_signal = {}
+        for channel in signals:
+            nonlinear_noise_struct[channel] = None
+            channels_index.append(channel.index)
+            index_to_signal[channel.index] = channel
+        sorted(channels_index)
+        channel_center = channels_index[int(math.floor(len(signal_power_progress.keys()) / 2))]
+        frequency_center = index_to_signal[channel_center].frequency
+
+        # Retrieve fiber properties from span
+        b2 = span.dispersion_coefficient
+        b3 = span.dispersion_slope
+        alpha = span.loss_coefficient
+        gamma = span.non_linear_coefficient
+        span_length = span.length
+
+        for signal in signals:
+            channel_under_test = signal.index
+            frequency_cut = signal.frequency
+            symbol_rate_cut = signal.symbol_rate
+            bits_per_symbol_cut = signal.bits_per_symbol
+            gross_bit_rate_cut = symbol_rate_cut * np.log2(bits_per_symbol_cut)
+            # bw_cut = gross_bit_rate_cut / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
+            bw_cut = symbol_rate_cut
+            pwr_cut = signal_power_progress[signal] * unit.mW
+            g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
+
+            nonlinear_noise_term2 = 0
+
+            for ch in signals:
+
+                frequency_ch = ch.frequency
+                symbol_rate_ch = ch.symbol_rate
+                bits_per_symbol_ch = ch.bits_per_symbol
+                gross_bit_rate_ch = symbol_rate_ch * np.log2(bits_per_symbol_ch)
+                # bw_ch = gross_bit_rate_ch / (2 * np.log2(4))  # full bandwidth of the nth channel (THz).
+                bw_ch = symbol_rate_ch
+                pwr_ch = signal_power_progress[ch] * unit.mW
+                g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
+
+                if ch == channel_under_test:
+                    continue
+                else:
+
+                    b2_eff_nch = b2 + unit.pi * b3 * (
+                            frequency_ch + frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (5)
+                    b2_eff_ncut = b2 + unit.pi * b3 * (
+                            2 * frequency_cut - 2 * frequency_center)  # FWM-factor - [1], Eq. (6)
+
+                    nch_dividend1 = math.asinh(
+                        (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
+                        (frequency_ch - frequency_cut + (bw_ch / 2)) * bw_cut)
+                    nch_divisor1 = 8 * unit.pi * abs(b2_eff_nch) * alpha
+
+                    nch_dividend2 = np.arcsinh(
+                        (unit.pi ** 2 / 2) * abs(b2_eff_nch / alpha) *
+                        (frequency_ch - frequency_cut - (bw_ch / 2)) * bw_cut)
+                    nch_divisor2 = 8 * unit.pi * abs(b2_eff_nch) * alpha
+
+                    _nch = (nch_dividend1 / float(nch_divisor1)) - (
+                            nch_dividend2 / float(nch_divisor2))  # [1], Eq. (3)
+
+                    cut_dividend = np.arcsinh((unit.pi ** 2 / 2) * abs(b2_eff_ncut / (2 * alpha)) * bw_cut ** 2)
+                    cut_divisor = 4 * unit.pi * abs(b2_eff_ncut) * alpha
+                    _cut = cut_dividend / float(cut_divisor)  # [1], Eq. (4)
+
+                    nonlinear_noise_term2 += (2 * g_ch ** 2 * _nch + g_cut ** 2 * _cut)
+
+            nonlinear_noise_term1 = 16 / 27.0 * gamma ** 2 * lump_gain * \
+                                    math.e ** (-2 * alpha * span_length) * g_cut
+            nonlinear_noise = nonlinear_noise_term1 * nonlinear_noise_term2
+            signal_under_test = index_to_signal[channel_under_test]
+            nonlinear_noise_struct[signal_under_test] = nonlinear_noise * bw_cut
+        return nonlinear_noise_struct
 
     def gn_analytic(self, optical_signals, signal_power_progress, span):
         """ Computes the nonlinear interference power on a single carrier.

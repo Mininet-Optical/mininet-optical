@@ -5,9 +5,9 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-figure(num=None, figsize=(7, 6), dpi=256)
-del matplotlib.font_manager.weight_dict['roman']
-matplotlib.font_manager._rebuild()
+# figure(num=None, figsize=(7, 6), dpi=256)
+# del matplotlib.font_manager.weight_dict['roman']
+# matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
@@ -68,7 +68,7 @@ for wnm in w_num:
         osnrs_4000 = opm.get_list_osnr()
         gosnrs_4000 = opm.get_list_gosnr()
 
-        plotting_osnr[wnm].append(osnrs[int(np.floor(wnm/2))])
+        plotting_osnr[wnm].append(osnrs_4000[int(np.floor(wnm/2))])
         plotting_gosnr[wnm].append(gosnrs[int(np.floor(wnm/2))])
         plotting_gosnr_4000[wnm].append(gosnrs_4000[int(np.floor(wnm/2))])
 
@@ -94,7 +94,8 @@ for k in w_num:
     m = markers.pop()
     plt.plot(plotting_gosnr[k], color=c, label=lab, linewidth=2, marker='x')
     plt.plot(plotting_gosnr_4000[k], color=c2, label=lab2, linewidth=2, marker='x')
-    # plt.plot(plotting_theo[k])
+    # plt.plot(plotting_theo[k], color='g', marker='o')
+    plt.plot(plotting_osnr[k], color='g', marker='o')
 
 plt.ylabel("gOSNR (dB)")
 plt.xlabel("Launch power (dBm)")
