@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 1000:
+while test_run <= 1:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -78,9 +78,9 @@ while test_run <= 1000:
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        opm_id = 2
-        for i in range(97):
+        for opm_id in range(2, 3):
             json_struct = {'tests': []}
+            json_struct_qot = {'tests_qot': []}
             opm_name = 'opm_' + str(opm_id)
             opm = net.name_to_node[opm_name]
             osnrs = opm.get_list_osnr()
@@ -91,12 +91,26 @@ while test_run <= 1000:
             json_struct['tests'].append({_osnr_id: osnrs})
             json_struct['tests'].append({_gosnr_id: gosnrs})
 
+            osnrs_qot = opm.get_list_osnr_qot()
+            gosnrs_qot = opm.get_list_gosnr_qot()
+
+            _osnr_id_qot = 'osnr_load_qot_' + load_id
+            _gosnr_id_qot = 'gosnr_load_qot_' + load_id
+            json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
+            json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
+
             dir_ = '../opm-sim/' + opm_name
-            if not os.path.exists(dir_):
+            dir_2 = '../opm-sim-qot/' + opm_name
+            if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
-            json_file_name = '../opm-sim/' + opm_name + '/' + test_id + '_' + str(load_id) + '.json'
+                os.makedirs(dir_2)
+            json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
             with open(json_file_name, 'w+') as outfile:
                 json.dump(json_struct, outfile)
+
+            json_file_name_2 = dir_2 + '/' + test_id + '_' + str(load_id) + '.json'
+            with open(json_file_name_2, 'w+') as outfile:
+                json.dump(json_struct_qot, outfile)
             opm_id += 1
         j += 1
     test_run += 1
