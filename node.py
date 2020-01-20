@@ -485,15 +485,15 @@ class Amplifier(Node):
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
-        self.balancing_flag_1 = False  # When both are True system gain balancing is complete
-        self.balancing_flag_2 = False
+        self.power_excursions_flag_1 = False  # When both are True system gain balancing is complete
+        self.power_excursions_flag_2 = False
 
         self.boost = boost
         self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
 
-    def balancing_flags_off(self):
-        self.balancing_flag_1 = False
-        self.balancing_flag_2 = False
+    def power_excursions_flags_off(self):
+        self.power_excursions_flag_1 = False
+        self.power_excursions_flag_2 = False
 
     def load_wavelength_dependent_gain(self, wavelength_dependent_gain_id):
         """
@@ -584,31 +584,27 @@ class Amplifier(Node):
                                                                     self.bandwidth * (gain_linear-1) * 1000)
         self.ase_noise[optical_signal] = ase_noise
 
-    def balance_system_gain(self):
+    def compute_power_excursions(self):
         """
         Balance system gain with respect with the mean
-        gain of the signals in the amplifier
+        gain of the signals in the amplifier: power excursions
         :return:
         """
         # Convert power levels from linear to dBm
         output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
         input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
-        # print(self.name + " output_power_dBm: %s" % str(output_power_dBm))
-        # print(self.name + " input_power_dBm: %s" % str(input_power_dBm))
 
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
-        gain_difference = out_in_difference - self.target_gain
-        system_gain_balance = self.system_gain - gain_difference
-        # print(self.name + " system_gain_balance: %s" % str(system_gain_balance))
-        # print()
+        power_excursions = out_in_difference - self.target_gain
+        system_gain_balance = self.system_gain - power_excursions
         self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
-        if self.balancing_flag_1 and (not self.balancing_flag_2):
-            self.balancing_flag_2 = True
-        if not (self.balancing_flag_1 and self.balancing_flag_2):
-            self.balancing_flag_1 = True
+        if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
+            self.power_excursions_flag_2 = True
+        if not (self.power_excursions_flag_1 and self.power_excursions_flag_2):
+            self.power_excursions_flag_1 = True
 
     def clean_signals(self, optical_signals):
         for optical_signal in optical_signals:
