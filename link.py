@@ -35,7 +35,7 @@ class Link(object):
 
     def __init__(self, node1, node2,
                  output_port_node1, input_port_node2,
-                 boost_amp):
+                 boost_amp, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
@@ -58,9 +58,10 @@ class Link(object):
         self.accumulated_ASE_noise = {}
         self.accumulated_NLI_noise = {}
 
-        self.spans = []
+        self.spans = spans or []
 
         self.traffic = []
+
 
     def add_span(self, span, amplifier):
         """
