@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 1:
+while test_run <= 5:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -78,7 +78,7 @@ while test_run <= 1:
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        for opm_id in range(2, 3):
+        for opm_id in range(1, 97):
             json_struct = {'tests': []}
             json_struct_qot = {'tests_qot': []}
             opm_name = 'opm_' + str(opm_id)
@@ -109,8 +109,8 @@ while test_run <= 1:
                 json.dump(json_struct, outfile)
 
             json_file_name_2 = dir_2 + '/' + test_id + '_' + str(load_id) + '.json'
-            with open(json_file_name_2, 'w+') as outfile:
-                json.dump(json_struct_qot, outfile)
-            opm_id += 1
+            with open(json_file_name_2, 'w+') as outfile2:
+                json.dump(json_struct_qot, outfile2)
+
         j += 1
     test_run += 1
