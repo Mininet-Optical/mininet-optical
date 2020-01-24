@@ -165,46 +165,50 @@ class Link(object):
                 self.boost_amp.nonlinear_noise.update(accumulated_NLI_noise)
             if accumulated_NLI_noise_qot:
                 self.boost_amp.nonlinear_noise_qot.update(accumulated_NLI_noise_qot)
+
             # Enabling amplifier system gain balancing check
+            signal_keys = list(self.optical_signal_power_in)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
-                for optical_signal, in_power in self.optical_signal_power_in.items():
+                for optical_signal in signal_keys:
+                    in_power = self.optical_signal_power_in[optical_signal]
                     self.boost_amp.input_power[optical_signal] = in_power
                     self.boost_amp.output_amplified_power(optical_signal, in_power)
+
+                    in_power_qot = self.optical_signal_power_in_qot[optical_signal]
+                    self.boost_amp.input_power_qot[optical_signal] = in_power_qot
+                    self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
                 self.boost_amp.compute_power_excursions()
-            while not (self.boost_amp.power_excursions_flag_1_qot and self.boost_amp.power_excursions_flag_2_qot):
-                for optical_signal, in_power in self.optical_signal_power_in_qot.items():
-                    self.boost_amp.input_power_qot[optical_signal] = in_power
-                    self.boost_amp.output_amplified_power_qot(optical_signal, in_power)
                 self.boost_amp.compute_power_excursions_qot()
 
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
 
             # Compute for the power
-            for optical_signal, in_power in self.optical_signal_power_in.items():
+            for optical_signal in signal_keys:
+                in_power = self.optical_signal_power_in[optical_signal]
                 self.boost_amp.input_power[optical_signal] = in_power
                 output_power = self.boost_amp.output_amplified_power(optical_signal, in_power)
+
+                in_power_qot = self.optical_signal_power_in_qot[optical_signal]
+                self.boost_amp.input_power_qot[optical_signal] = in_power_qot
+                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
+
                 # Update status of signal power in link
                 signal_power_progress[optical_signal] = output_power
-
-            # Compute for the power QoT
-            for optical_signal, in_power in self.optical_signal_power_in_qot.items():
-                self.boost_amp.input_power_qot[optical_signal] = in_power
-                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power)
-                # Update status of signal power in link
+                # Update status of signal power in link QoT
                 signal_power_progress_qot[optical_signal] = output_power_qot
 
             # Compute ASE noise
-            for optical_signal, in_power in self.optical_signal_power_in.items():
+            for optical_signal in signal_keys:
+                in_power = self.optical_signal_power_in[optical_signal]
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(optical_signal,
                                                                           in_power,
                                                                           accumulated_noise=accumulated_ASE_noise)
-            accumulated_ASE_noise.update(self.boost_amp.ase_noise)
-
-            for optical_signal, in_power in self.optical_signal_power_in_qot.items():
+                in_power_qot = self.optical_signal_power_in_qot[optical_signal]
                 self.boost_amp.stage_amplified_spontaneous_emission_noise_qot(optical_signal,
-                                                                              in_power,
+                                                                              in_power_qot,
                                                                               accumulated_noise=accumulated_ASE_noise_qot)
+            accumulated_ASE_noise.update(self.boost_amp.ase_noise)
             accumulated_ASE_noise_qot.update(self.boost_amp.ase_noise_qot)
 
         # Needed for the subsequent computations
@@ -250,7 +254,7 @@ class Link(object):
                     accumulated_NLI_noise.update(nonlinear_interference_noise[span])
                     self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
 
-                    nonlinear_interference_noise_qot[span] = self.output_nonlinear_noise(
+                    nonlinear_interference_noise_qot[span] = self.output_nonlinear_noise_qot(
                         accumulated_NLI_noise_qot,
                         signal_power_progress_qot,
                         signals_list,
@@ -259,34 +263,35 @@ class Link(object):
                     self.nonlinear_interference_noise_qot[span] = nonlinear_interference_noise_qot[span]
                     accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                     self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
+
+                signal_keys = list(signal_power_progress)
                 # Enabling balancing check
                 while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
-                    for optical_signal, in_power in signal_power_progress.items():
+                    for optical_signal in signal_keys:
+                        in_power = signal_power_progress[optical_signal]
                         amplifier.input_power[optical_signal] = in_power
                         amplifier.output_amplified_power(optical_signal, in_power)
-                    amplifier.compute_power_excursions()
 
-                # Enabling balancing check
-                while not (amplifier.power_excursions_flag_1_qot and amplifier.power_excursions_flag_2_qot):
-                    for optical_signal, in_power in signal_power_progress_qot.items():
-                        amplifier.input_power_qot[optical_signal] = in_power
-                        amplifier.output_amplified_power_qot(optical_signal, in_power)
+                        in_power_qot = signal_power_progress_qot[optical_signal]
+                        amplifier.input_power_qot[optical_signal] = in_power_qot
+                        amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
+                    amplifier.compute_power_excursions()
                     amplifier.compute_power_excursions_qot()
-                    # Reset balancing flags to original settings
+
                 amplifier.power_excursions_flags_off()
 
                 # Compute for the power
-                for optical_signal, in_power in signal_power_progress.items():
+                for optical_signal in signal_keys:
+                    in_power = signal_power_progress[optical_signal]
                     amplifier.input_power[optical_signal] = in_power
                     output_power = amplifier.output_amplified_power(optical_signal, in_power)
-                    # Update status of signal power in link
-                    self.optical_signal_power_out[optical_signal] = output_power
 
-                for optical_signal, in_power in signal_power_progress_qot.items():
-                    amplifier.input_power_qot[optical_signal] = in_power
-                    output_power = amplifier.output_amplified_power_qot(optical_signal, in_power)
-                    # Update status of signal power in link
-                    self.optical_signal_power_out_qot[optical_signal] = output_power
+                    in_power_qot = signal_power_progress_qot[optical_signal]
+                    amplifier.input_power_qot[optical_signal] = in_power_qot
+                    output_power_qot = amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
+
+                    self.optical_signal_power_out[optical_signal] = output_power
+                    self.optical_signal_power_out_qot[optical_signal] = output_power_qot
 
                 # Compute ASE noise
                 for optical_signal, in_power in signal_power_progress.items():
@@ -381,7 +386,6 @@ class Link(object):
         :param amplifier: Amplifier() object at beginning of span
         :return: dict{signal_index: accumulated NLI noise levels}
         """
-
         amplifier_gain = db_to_abs(amplifier.system_gain)
         nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
         # nonlinear_noise_new = self.nonlinear_noise(signals, signal_power_progress, span, amplifier_gain)
@@ -396,6 +400,26 @@ class Link(object):
         # json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
         # with open(json_file_name, 'w+') as outfile:
         #     json.dump(json_struct, outfile)
+        self.nli_id += 1
+        return out_noise
+
+    def output_nonlinear_noise_qot(self, _nonlinear_noise, signal_power_progress, signals, span, amplifier):
+        """
+        :param _nonlinear_noise:
+        :param signal_power_progress:
+        :param signals: signals interacting at given transmission - list[Signal() object]
+        :param span: Span() object
+        :param amplifier: Amplifier() object at beginning of span
+        :return: dict{signal_index: accumulated NLI noise levels}
+        """
+
+        if amplifier.tmp_qot_id % 14 is 0:
+            out_noise = self.nonlinear_interference_noise[span]
+        else:
+            nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
+            out_noise = {}
+            for signal, value in _nonlinear_noise.items():
+                out_noise[signal] = value + nonlinear_noise_new[signal]
         self.nli_id += 1
         return out_noise
 
