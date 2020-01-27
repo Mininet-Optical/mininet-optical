@@ -413,13 +413,13 @@ class Link(object):
         :return: dict{signal_index: accumulated NLI noise levels}
         """
 
-        if amplifier.tmp_qot_id % 14 is 0:
-            out_noise = self.nonlinear_interference_noise[span]
-        else:
-            nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
-            out_noise = {}
-            for signal, value in _nonlinear_noise.items():
-                out_noise[signal] = value + nonlinear_noise_new[signal]
+        # if amplifier.tmp_qot_id % 14 is 0:
+        #     out_noise = self.nonlinear_interference_noise[span].copy()
+        # else:
+        nonlinear_noise_new = self.gn_analytic(signals, signal_power_progress, span)
+        out_noise = {}
+        for signal, value in _nonlinear_noise.items():
+            out_noise[signal] = value + nonlinear_noise_new[signal]
         self.nli_id += 1
         return out_noise
 
@@ -516,7 +516,7 @@ class Link(object):
         """ Computes the nonlinear interference power on a single carrier.
         Translated from the GNPy project source code
         The method uses eq. 120 from arXiv:1209.0394.
-        :param signals:
+        :param optical_signals:
         :param signal_power_progress:
         :param span:
         :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
