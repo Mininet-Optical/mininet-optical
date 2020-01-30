@@ -425,6 +425,8 @@ class Roadm(Node):
                 # Find the output port as established when installing a rule
                 out_port = self.signal_index_to_out_port[optical_signal.index]
                 # Attenuate signals power
+                tmp = db_to_abs(self.attenuation)
+                tmp2 = in_power / db_to_abs(self.attenuation)
                 self.port_to_optical_signal_power_out[out_port][optical_signal] = in_power / db_to_abs(self.attenuation)
                 if accumulated_ASE_noise:
                     # Attenuate signals noise power
@@ -505,11 +507,11 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-# description_files_qot = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt'}
-                     # 'wdg2': 'wdg2.txt',
-                     # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg1.txt',
+#                      'wdg2': 'wdg2.txt',
+#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
+#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -557,6 +559,7 @@ class Amplifier(Node):
 
         self.equalizer = equalizer  # Optical signal power equalizer reflected at output power compute
         self.eq_power = db_to_abs(eq_power)  # Power level to equalize to (dBm)
+        self.eq_wdg = {}
 
         self.tmp_qot_id = tmp_qot_id
         self.monitor_flag = False
@@ -650,18 +653,22 @@ class Amplifier(Node):
         :param signal: signal object
         :param in_power: input signal power linear (mW)
         """
-        if self.equalizer:
-            self.output_power[signal] = self.eq_power
-            return self.eq_power
-        else:
-            system_gain = self.system_gain
-            wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
-            # Conversion from dB to linear
-            system_gain_linear = db_to_abs(system_gain)
-            wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
-            output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
-            self.output_power[signal] = output_power
-            return output_power
+        system_gain = self.system_gain
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
+        # Conversion from dB to linear
+        system_gain_linear = db_to_abs(system_gain)
+        wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
+        # if self.equalizer:
+        #     tmp = abs_to_db(in_power) + system_gain
+        #     wdg = abs_to_db(self.eq_power) - tmp
+        #     self.eq_wdg[signal] = wdg
+        #     output_power = in_power * system_gain_linear * db_to_abs(wdg)
+        #     self.output_power[signal] = output_power
+        #     return output_power
+        # else:
+        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
+        self.output_power[signal] = output_power
+        return output_power
 
     def output_amplified_power_qot(self, signal, in_power):
         """
@@ -669,22 +676,22 @@ class Amplifier(Node):
         :param signal: signal object
         :param in_power: input signal power linear (mW)
         """
-        if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
-            self.output_power_qot[signal] = self.output_power[signal]
-            return self.output_power_qot[signal]
-        else:
-            if self.equalizer:
-                self.output_power_qot[signal] = self.eq_power
-                return self.eq_power
-            else:
-                system_gain_qot = self.system_gain_qot
-                wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain_qot(signal.index)
-                # Conversion from dB to linear
-                system_gain_linear_qot = db_to_abs(system_gain_qot)
-                wavelength_dependent_gain_linear_qot = db_to_abs(wavelength_dependent_gain_qot)
-                output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot
-                self.output_power_qot[signal] = output_power_qot
-                return output_power_qot
+        # if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
+        #     self.output_power_qot[signal] = self.output_power[signal]
+        #     return self.output_power_qot[signal]
+        # else:
+        #     if self.equalizer:
+        #         self.output_power_qot[signal] = self.eq_power
+        #         return self.eq_power
+        #     else:
+        system_gain_qot = self.system_gain_qot
+        wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain_qot(signal.index)
+        # Conversion from dB to linear
+        system_gain_linear_qot = db_to_abs(system_gain_qot)
+        wavelength_dependent_gain_linear_qot = db_to_abs(wavelength_dependent_gain_qot)
+        output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot
+        self.output_power_qot[signal] = output_power_qot
+        return output_power_qot
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
         """
@@ -703,6 +710,11 @@ class Amplifier(Node):
             # set initial noise 50 dB below signal power
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[optical_signal] = init_noise
+
+        # if self.equalizer:
+        #     # Conversion from dB to linear
+        #     gain_linear = db_to_abs(system_gain) * db_to_abs(self.eq_wdg[optical_signal])
+        # else:
         # Conversion from dB to linear
         gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
@@ -716,30 +728,29 @@ class Amplifier(Node):
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
         """
-        if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
-            self.ase_noise_qot[optical_signal] = self.ase_noise[optical_signal]
-        else:
-            if accumulated_noise:
-                self.ase_noise_qot[optical_signal] = accumulated_noise[optical_signal]
+        # if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
+        #     self.ase_noise_qot[optical_signal] = self.ase_noise[optical_signal]
+        # else:
+        if accumulated_noise:
+            self.ase_noise_qot[optical_signal] = accumulated_noise[optical_signal]
 
-            # Set parameters needed for ASE model
-            noise_figure_linear = db_to_abs(self.noise_figure[optical_signal.index])
-            wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain_qot(optical_signal.index)
-            system_gain_qot = self.system_gain_qot
+        # Set parameters needed for ASE model
+        noise_figure_linear = db_to_abs(self.noise_figure[optical_signal.index])
+        wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain_qot(optical_signal.index)
+        system_gain_qot = self.system_gain_qot
 
-            if optical_signal not in self.ase_noise_qot:
-                # set initial noise 50 dB below signal power
-                init_noise = in_power / db_to_abs(50)
-                self.ase_noise_qot[optical_signal] = init_noise
-            # Conversion from dB to linear
-            gain_linear_qot = db_to_abs(system_gain_qot) * db_to_abs(wavelength_dependent_gain_qot)
+        if optical_signal not in self.ase_noise_qot:
+            # set initial noise 50 dB below signal power
+            init_noise = in_power / db_to_abs(50)
+            self.ase_noise_qot[optical_signal] = init_noise
+        # Conversion from dB to linear
+        gain_linear_qot = db_to_abs(system_gain_qot) * db_to_abs(wavelength_dependent_gain_qot)
 
-            ase_noise = self.ase_noise_qot[optical_signal] * gain_linear_qot + (noise_figure_linear * sc.h *
-                                                                                optical_signal.frequency *
-                                                                                self.bandwidth * (gain_linear_qot - 1) *
-                                                                                1000)
+        ase_noise = self.ase_noise_qot[optical_signal] * gain_linear_qot + (noise_figure_linear * sc.h *
+                                                                            optical_signal.frequency *
+                                                                            self.bandwidth * (gain_linear_qot-1) * 1000)
 
-            self.ase_noise_qot[optical_signal] = ase_noise
+        self.ase_noise_qot[optical_signal] = ase_noise
 
     def compute_power_excursions(self):
         """
@@ -747,17 +758,19 @@ class Amplifier(Node):
         gain of the signals in the amplifier: power excursions
         :return:
         """
-        if not self.equalizer:
-            # Convert power levels from linear to dBm
-            output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
-            input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
-
-            # Mean difference between output and input power levels
-            out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
-            # Compute the balanced system gain
-            power_excursions = out_in_difference - self.target_gain
-            system_gain_balance = self.system_gain - power_excursions
-            self.system_gain = system_gain_balance
+        # if not self.equalizer:
+        #     # the rebalancing is not done if there is equalisation, as this will
+        #     # enable both power and ASE noise get attenuated by the equalization factor
+        #     # Convert power levels from linear to dBm
+        #     output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
+        #     input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
+        #
+        #     # Mean difference between output and input power levels
+        #     out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
+        #     # Compute the balanced system gain
+        #     power_excursions = out_in_difference - self.target_gain
+        #     system_gain_balance = self.system_gain - power_excursions
+        #     self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
@@ -770,25 +783,37 @@ class Amplifier(Node):
         gain of the signals in the amplifier
         :return:
         """
-        if not self.equalizer:
-            # Convert power levels from linear to dBm
-            if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
-                self.system_gain_qot = self.system_gain
-            else:
-                output_power_dBm = [abs_to_db(p) for p in self.output_power_qot.values()]
-                input_power_dBm = [abs_to_db(p) for p in self.input_power_qot.values()]
-
-                # Mean difference between output and input power levels
-                out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
-                # Compute the balanced system gain
-                gain_difference = out_in_difference - self.target_gain
-                system_gain_balance = self.system_gain_qot - gain_difference
-                self.system_gain_qot = system_gain_balance
+        # if not self.equalizer:
+        #     # the rebalancing is not done if there is equalisation, as this will
+        #     # enable both power and ASE noise get attenuated by the equalization factor
+        #     if self.tmp_qot_id % self.monitor_unit is 0 and self.monitor_flag:
+        #         self.system_gain_qot = self.system_gain
+        #     else:
+        #         # Convert power levels from linear to dBm
+        #         output_power_dBm = [abs_to_db(p) for p in self.output_power_qot.values()]
+        #         input_power_dBm = [abs_to_db(p) for p in self.input_power_qot.values()]
+        #
+        #         # Mean difference between output and input power levels
+        #         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
+        #         # Compute the balanced system gain
+        #         gain_difference = out_in_difference - self.target_gain
+        #         system_gain_balance = self.system_gain_qot - gain_difference
+        #         self.system_gain_qot = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1_qot and (not self.power_excursions_flag_2_qot):
             self.power_excursions_flag_2_qot = True
         if not (self.power_excursions_flag_1_qot and self.power_excursions_flag_2_qot):
             self.power_excursions_flag_1_qot = True
+
+    def nli_compensation(self, accumulated_NLI_noise):
+        for optical_signal, nli_noise in accumulated_NLI_noise.items():
+            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain)
+        self.nonlinear_noise.update(accumulated_NLI_noise)
+
+    def nli_compensation_qot(self, accumulated_NLI_noise):
+        for optical_signal, nli_noise in accumulated_NLI_noise.items():
+            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain)
+        self.nonlinear_noise_qot.update(accumulated_NLI_noise)
 
     def clean_signals(self, optical_signals):
         for optical_signal in optical_signals:
@@ -859,6 +884,10 @@ class Monitor(Node):
         :param optical_signal: OpticalSignal object
         :return: gOSNR (linear)
         """
+        # if self.amplifier.tmp_qot_id is 14:
+        #     print()
+        # if self.amplifier.tmp_qot_id is 15:
+        #     print()
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
         if self.amplifier.boost:

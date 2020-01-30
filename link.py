@@ -160,12 +160,6 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-            # For monitoring purposes
-            if accumulated_NLI_noise:
-                self.boost_amp.nonlinear_noise.update(accumulated_NLI_noise)
-            if accumulated_NLI_noise_qot:
-                self.boost_amp.nonlinear_noise_qot.update(accumulated_NLI_noise_qot)
-
             # Enabling amplifier system gain balancing check
             signal_keys = list(self.optical_signal_power_in)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
@@ -211,6 +205,14 @@ class Link(object):
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
             accumulated_ASE_noise_qot.update(self.boost_amp.ase_noise_qot)
 
+            # For monitoring purposes
+            if accumulated_NLI_noise:
+                self.boost_amp.nli_compensation(accumulated_NLI_noise)
+            if accumulated_NLI_noise_qot:
+                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot)
+            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
+            accumulated_NLI_noise_qot.update(self.boost_amp.nonlinear_noise_qot)
+
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
@@ -233,9 +235,9 @@ class Link(object):
 
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress)
-            if len(signal_power_progress) > 1 and prev_amp:
-                signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
-                signal_power_progress_qot = self.zirngibl_srs(signals_list, signal_power_progress_qot, span)
+            # if len(signal_power_progress) > 1 and prev_amp:
+            #     signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
+            #     signal_power_progress_qot = self.zirngibl_srs(signals_list, signal_power_progress_qot, span)
 
             # Compute amplifier compensation
             if amplifier:
