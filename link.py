@@ -3,7 +3,6 @@ import math
 import units as unit
 from pprint import pprint
 import numpy as np
-import mpmath as mp
 import warnings
 import json
 import sys
@@ -222,7 +221,6 @@ class Link(object):
         if not accumulated_NLI_noise_qot:
             accumulated_NLI_noise_qot = self.init_nonlinear_noise_qot()
         for span, amplifier in self.spans:
-            span.input_power = signal_power_progress  # WHAT DOES THIS LINE DO???
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
@@ -235,9 +233,12 @@ class Link(object):
 
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress)
-            # if len(signal_power_progress) > 1 and prev_amp:
-            #     signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
-            #     signal_power_progress_qot = self.zirngibl_srs(signals_list, signal_power_progress_qot, span)
+            if len(signal_power_progress) > 1 and prev_amp:
+                signal_power_progress, accumulated_ASE_noise = \
+                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise, span)
+                signal_power_progress_qot, accumulated_ASE_noise_qot = \
+                    self.zirngibl_srs(signals_list, signal_power_progress_qot,
+                                      accumulated_ASE_noise_qot, span)
 
             # Compute amplifier compensation
             if amplifier:
@@ -325,7 +326,7 @@ class Link(object):
                 self.accumulated_ASE_noise_qot.update(accumulated_ASE_noise_qot)
 
     @staticmethod
-    def zirngibl_srs(optical_signals, active_channels, span):
+    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, span):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
@@ -364,8 +365,9 @@ class Link(object):
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
             active_channels[optical_signal] *= delta_p
+            accumulated_ASE_noise[optical_signal] *= delta_p
 
-        return active_channels
+        return active_channels, accumulated_ASE_noise
 
     def init_nonlinear_noise(self):
         nonlinear_noise = {}
