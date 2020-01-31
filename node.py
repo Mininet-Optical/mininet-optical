@@ -281,7 +281,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, attenuation=6):
+    def __init__(self, name, wss_dict=None):
         """
 
         :param name:
@@ -290,7 +290,10 @@ class Roadm(Node):
         """
         Node.__init__(self, name)
         self.node_id = id(self)
-        self.attenuation = attenuation
+        self.wss_dict = None
+        self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple)
+                                        # (attenuation - float,
+                                        # wd-attenuation - list)
 
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict signal_index to output port in ROADM
@@ -299,6 +302,20 @@ class Roadm(Node):
         self.port_to_optical_signal_ase_noise_out_qot = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
         self.port_to_optical_signal_nli_noise_out_qot = {}  # dict out port to OpticalSignal and NLI noise
+
+    def unpack_wss_dict(self, wss_dict):
+        """
+        Unpack the corresponding values to the WSS dictionary, in the format of:
+        WSS_id (int): (attenuation, wd-attenuation) (tuple)
+        """
+        tmp_dict = {}
+        for wss_id, wd_tuple in wss_dict.items():
+            if wd_tuple[1]:
+                tmp_dict[wss_id] = wd_tuple
+            else:
+                wd_func = [0.0] * 90  # linear function with no extra attenuation
+                tmp_dict[wss_id] = (wd_tuple[0], wd_func)
+        self.wss_dict = tmp_dict
 
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
         """
@@ -406,15 +423,7 @@ class Roadm(Node):
                optical_signal_power_out_qot, accumulated_ASE_noise_qot,
                accumulated_NLI_noise_qot
                ):
-        """
-        Switch the input signals to the appropriate output ports as established
-        by the switching rules in the switch table (if any).
-        :param in_port: input port where signals are being transmitted
-        :param link_signals: the signals being transmitted NOT REALLY, PASSING: self.optical_signal_power_out
-        :param accumulated_ASE_noise: ASE noise (if any)
-        :param accumulated_NLI_noise: NLI noise (if any)
-        :return:
-        """
+        node_attenuation = self.get_node_attenuation(link_signals)
         # Keep track of in which ports there are signals
         out_ports_to_links = {}
         # Update input port structure for monitoring purposes
@@ -425,12 +434,12 @@ class Roadm(Node):
                 # Find the output port as established when installing a rule
                 out_port = self.signal_index_to_out_port[optical_signal.index]
                 # Attenuate signals power
-                tmp = db_to_abs(self.attenuation)
-                tmp2 = in_power / db_to_abs(self.attenuation)
-                self.port_to_optical_signal_power_out[out_port][optical_signal] = in_power / db_to_abs(self.attenuation)
+
+                self.port_to_optical_signal_power_out[out_port][optical_signal] = in_power / \
+                                                                                  node_attenuation[optical_signal]
                 if accumulated_ASE_noise:
                     # Attenuate signals noise power
-                    accumulated_ASE_noise[optical_signal] /= db_to_abs(self.attenuation)
+                    accumulated_ASE_noise[optical_signal] /= node_attenuation[optical_signal]
 
                     if out_port not in self.port_to_optical_signal_ase_noise_out.keys():
                         # Create an entry for the output port
@@ -439,7 +448,7 @@ class Roadm(Node):
                     self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
 
                 if accumulated_NLI_noise:
-                    accumulated_NLI_noise[optical_signal] /= db_to_abs(self.attenuation)
+                    accumulated_NLI_noise[optical_signal] /= node_attenuation[optical_signal]
                     if out_port not in self.port_to_optical_signal_nli_noise_out.keys():
                         # Create an entry for the output port
                         self.port_to_optical_signal_nli_noise_out[out_port] = {}
@@ -455,7 +464,6 @@ class Roadm(Node):
                                                                           self.name, optical_signal.index))
 
 ######################################### QOT ESTIMATION BEGINS #########################################
-        out_ports_to_links_qot = {}
         self.port_to_optical_signal_power_in_qot[in_port].update(optical_signal_power_out_qot)
 
         for optical_signal, in_power in self.port_to_optical_signal_power_in_qot[in_port].items():
@@ -464,24 +472,29 @@ class Roadm(Node):
                 # Find the output port as established when installing a rule
                 out_port = self.signal_index_to_out_port[optical_signal.index]
                 # Attenuate signals power
-                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] = in_power / db_to_abs(self.attenuation)
-                if accumulated_ASE_noise_qot:
-                    # Attenuate signals noise power
-                    accumulated_ASE_noise_qot[optical_signal] /= db_to_abs(self.attenuation)
+                for wss_id, attenuation_tuple in self.wss_dict.items():
+                    wss_att = db_to_abs(attenuation_tuple[0])
+                    wss_wdf = db_to_abs(attenuation_tuple[1][optical_signal.index - 1])
 
-                    if out_port not in self.port_to_optical_signal_ase_noise_out_qot.keys():
-                        # Create an entry for the output port
-                        self.port_to_optical_signal_ase_noise_out_qot[out_port] = {}
-                    # Update structure
-                    self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
+                    self.port_to_optical_signal_power_out_qot[out_port][optical_signal] = in_power / \
+                                                                                          node_attenuation[optical_signal]
+                    if accumulated_ASE_noise_qot:
+                        # Attenuate signals noise power
+                        accumulated_ASE_noise_qot[optical_signal] /= node_attenuation[optical_signal]
 
-                if accumulated_NLI_noise_qot:
-                    accumulated_NLI_noise_qot[optical_signal] /= db_to_abs(self.attenuation)
-                    if out_port not in self.port_to_optical_signal_nli_noise_out_qot.keys():
-                        # Create an entry for the output port
-                        self.port_to_optical_signal_nli_noise_out_qot[out_port] = {}
-                    # Update structure
-                    self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
+                        if out_port not in self.port_to_optical_signal_ase_noise_out_qot.keys():
+                            # Create an entry for the output port
+                            self.port_to_optical_signal_ase_noise_out_qot[out_port] = {}
+                        # Update structure
+                        self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
+
+                    if accumulated_NLI_noise_qot:
+                        accumulated_NLI_noise_qot[optical_signal] /= node_attenuation[optical_signal]
+                        if out_port not in self.port_to_optical_signal_nli_noise_out_qot.keys():
+                            # Create an entry for the output port
+                            self.port_to_optical_signal_nli_noise_out_qot[out_port] = {}
+                        # Update structure
+                        self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
 
 ######################################### QOT ESTIMATION ENDS #########################################
 
@@ -504,6 +517,22 @@ class Roadm(Node):
                 nli_qot = accumulated_NLI_noise_qot.copy()
             # Propagate signals through link
             link.propagate(pass_through_signals, pass_through_signals_qot, ase, nli, ase_qot, nli_qot)
+
+    def get_node_attenuation(self, link_signals):
+        """
+        When switching, it computes the total node attenuation only
+        for the signals passing through
+        """
+        node_attenuation = {}
+        for optical_signal, _ in link_signals.items():
+            wss_attenuation = 0.0
+            wss_wd_attenuation = 0.0
+            for wss_id, attenuation_tuple in self.wss_dict.items():
+                wss_attenuation += attenuation_tuple[0]
+                wss_wd_attenuation += attenuation_tuple[1][optical_signal.index - 1]
+            total_attenuation = db_to_abs(wss_attenuation + wss_wd_attenuation)
+            node_attenuation[optical_signal] = total_attenuation
+        return node_attenuation
 
 
 description_files_dir = 'description-files/'
