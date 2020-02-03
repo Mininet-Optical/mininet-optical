@@ -3,6 +3,7 @@ from pprint import pprint
 import numpy as np
 import scipy.constants as sc
 import random
+import sys
 
 
 def db_to_abs(db_value):
@@ -183,7 +184,9 @@ class LineTerminal(Node):
                        accumulated_ASE_noise=None,
                        accumulated_NLI_noise=None,
                        accumulated_ASE_noise_qot=None,
-                       accumulated_NLI_noise_qot=None)
+                       accumulated_NLI_noise_qot=None,
+                       voa_function=None,
+                       voa_function_qot=None)
 
     def receiver(self, in_port, signal_power, signal_power_qot):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
@@ -281,7 +284,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, wss_dict=None, voa_dict=None):
+    def __init__(self, name, wss_dict=None, voa_function=None):
         """
 
         :param name:
@@ -291,11 +294,11 @@ class Roadm(Node):
         Node.__init__(self, name)
         self.node_id = id(self)
         self.wss_dict = None
-        self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple)
-                                        # (attenuation - float,
-                                        # wd-attenuation - list)
-        self.voa_dict = voa_dict
+        self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
+
+        self.voa_function = voa_function
         self.port_to_voa = None
+        self.port_to_voa_qot = None
 
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict signal_index to output port in ROADM
@@ -319,14 +322,56 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
-    def unpack_voa_dict(self):
-        tmp_dict = {}
-        if self.voa_dict:
-            self.port_to_voa = self.voa_dict.copy()
-        else:
+    def load_voa_function(self, in_port):
+        voa_attenuation = {}
+
+        if not self.voa_function:
             for out_port in self.ports_out:
-                tmp_dict[out_port] = [0.0] * 90  # linear function with no extra attenuation
-            self.port_to_voa = tmp_dict
+                voa_attenuation[out_port] = {}
+                voa_attenuation[out_port] = {ops: 0.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
+            self.port_to_voa = voa_attenuation
+        elif self.voa_function is 'flatten':
+            key_min = min(self.port_to_optical_signal_power_in[in_port].keys(),
+                          key=(lambda k: self.port_to_optical_signal_power_in[in_port][k]))
+            min_power = self.port_to_optical_signal_power_in[in_port][key_min]
+
+            for out_port in self.ports_out:
+                voa_attenuation[out_port] = {}
+                for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
+                    delta = in_power / min_power
+                    voa_attenuation[out_port][optical_signal] = delta
+            self.port_to_voa = voa_attenuation
+        elif self.voa_function is 'srs_compensation':
+            pass
+        else:
+            print("Node.Roadm.load_voa_function: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
+            sys.exit(0)
+
+    def load_voa_function_qot(self, in_port):
+        voa_attenuation = {}
+
+        if not self.voa_function:
+            for out_port in self.ports_out:
+                voa_attenuation[out_port] = {}
+                voa_attenuation[out_port] = {ops: 0.0 for ops in
+                                             self.port_to_optical_signal_power_in_qot[in_port].keys()}
+            self.port_to_voa_qot = voa_attenuation
+        elif self.voa_function is 'flatten':
+            key_min = min(self.port_to_optical_signal_power_in_qot[in_port].keys(),
+                          key=(lambda k: self.port_to_optical_signal_power_in_qot[in_port][k]))
+            min_power = self.port_to_optical_signal_power_in_qot[in_port][key_min]
+
+            for out_port in self.ports_out:
+                voa_attenuation[out_port] = {}
+                for optical_signal, in_power in self.port_to_optical_signal_power_in_qot[in_port].items():
+                    delta = in_power / min_power
+                    voa_attenuation[out_port][optical_signal] = delta
+            self.port_to_voa_qot = voa_attenuation
+        elif self.voa_function is 'srs_compensation':
+            pass
+        else:
+            print("Node.Roadm.load_voa_function_qot: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
+            sys.exit(0)
 
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
         """
@@ -434,20 +479,22 @@ class Roadm(Node):
                optical_signal_power_out_qot, accumulated_ASE_noise_qot,
                accumulated_NLI_noise_qot
                ):
+        # Update input port structure for monitoring purposes
+        self.port_to_optical_signal_power_in[in_port].update(link_signals)
+
         if not self.port_to_voa:
-            self.unpack_voa_dict()
+            self.load_voa_function(in_port)
 
         node_attenuation = self.get_node_attenuation(link_signals)
         # Keep track of in which ports there are signals
         out_ports_to_links = {}
-        # Update input port structure for monitoring purposes
-        self.port_to_optical_signal_power_in[in_port].update(link_signals)
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
             # Iterate through all signals since they all might have changed
             if optical_signal.index in self.signal_index_to_out_port:
                 # Find the output port as established when installing a rule
                 out_port = self.signal_index_to_out_port[optical_signal.index]
-                voa_attenuation = db_to_abs(self.port_to_voa[out_port][optical_signal.index - 1])
+                voa_function = self.port_to_voa[out_port]
+                voa_attenuation = db_to_abs(self.port_to_voa[out_port][optical_signal])
                 # Attenuate signals power
                 self.port_to_optical_signal_power_out[out_port][optical_signal] = in_power / \
                                                                                   node_attenuation[optical_signal] / \
@@ -478,20 +525,24 @@ class Roadm(Node):
                 print("%s.%s.switch unable to find rule for signal %s" % (self.__class__.__name__,
                                                                           self.name, optical_signal.index))
 
-######################################### QOT ESTIMATION BEGINS #########################################
+        ######################################### QOT ESTIMATION BEGINS #########################################
         self.port_to_optical_signal_power_in_qot[in_port].update(optical_signal_power_out_qot)
+
+        if not self.port_to_voa_qot:
+            self.load_voa_function_qot(in_port)
 
         for optical_signal, in_power in self.port_to_optical_signal_power_in_qot[in_port].items():
             # Iterate through all signals since they all might have changed
             if optical_signal.index in self.signal_index_to_out_port:
                 # Find the output port as established when installing a rule
                 out_port = self.signal_index_to_out_port[optical_signal.index]
-                voa_attenuation = db_to_abs(self.port_to_voa[out_port][optical_signal.index - 1])
+                voa_function_qot = self.port_to_voa_qot[out_port]
+                voa_attenuation = db_to_abs(self.port_to_voa_qot[out_port][optical_signal])
                 # Attenuate signals power
-
-                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] = in_power / \
-                                                                                      node_attenuation[optical_signal] / \
-                                                                                      voa_attenuation
+                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] = \
+                    in_power / \
+                    node_attenuation[optical_signal] / \
+                    voa_attenuation
                 if accumulated_ASE_noise_qot:
                     # Attenuate signals noise power
                     accumulated_ASE_noise_qot[optical_signal] /= node_attenuation[optical_signal] / voa_attenuation
@@ -509,7 +560,7 @@ class Roadm(Node):
                     # Update structure
                     self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
 
-######################################### QOT ESTIMATION ENDS #########################################
+        ######################################### QOT ESTIMATION ENDS #########################################
 
         for op, link in out_ports_to_links.items():
             # Pass only the signals corresponding to the output port
@@ -529,7 +580,8 @@ class Roadm(Node):
                 nli = accumulated_NLI_noise.copy()
                 nli_qot = accumulated_NLI_noise_qot.copy()
             # Propagate signals through link
-            link.propagate(pass_through_signals, pass_through_signals_qot, ase, nli, ase_qot, nli_qot)
+            link.propagate(pass_through_signals, pass_through_signals_qot, ase, nli, ase_qot, nli_qot,
+                           voa_function, voa_function_qot)
 
     def get_node_attenuation(self, link_signals):
         """
@@ -551,9 +603,9 @@ class Roadm(Node):
 description_files_dir = 'description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt'}
-                     # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -561,7 +613,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False, equalizer=False, eq_power=0.0, tmp_qot_id=1):
+                 boost=False, tmp_qot_id=1):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -685,7 +737,7 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
-    def output_amplified_power(self, signal, in_power):
+    def output_amplified_power(self, signal, in_power, voa_function=None):
         """
         Compute the output power levels of each signal after amplification
         :param signal: signal object
@@ -693,14 +745,17 @@ class Amplifier(Node):
         """
         system_gain = self.system_gain
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
+        voa = 1.0
+        if voa_function:
+            voa = db_to_abs(voa_function[signal])
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
-        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
+        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear * voa
         self.output_power[signal] = output_power
         return output_power
 
-    def output_amplified_power_qot(self, signal, in_power):
+    def output_amplified_power_qot(self, signal, in_power, voa_function=None):
         """
         Compute the output power levels of each signal after amplification
         :param signal: signal object
@@ -712,14 +767,18 @@ class Amplifier(Node):
         # else:
         system_gain_qot = self.system_gain_qot
         wavelength_dependent_gain_qot = self.get_wavelength_dependent_gain_qot(signal.index)
+        voa = 1.0
+        if voa_function:
+            voa = db_to_abs(voa_function[signal])
         # Conversion from dB to linear
         system_gain_linear_qot = db_to_abs(system_gain_qot)
         wavelength_dependent_gain_linear_qot = db_to_abs(wavelength_dependent_gain_qot)
-        output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot
+        output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot * voa
         self.output_power_qot[signal] = output_power_qot
         return output_power_qot
 
-    def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
+    def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None,
+                                                   voa_function=None):
         """
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
@@ -736,16 +795,19 @@ class Amplifier(Node):
             # set initial noise 50 dB below signal power
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[optical_signal] = init_noise
+        voa = 1.0
+        # if voa_function:
+        #     voa = db_to_abs(voa_function[optical_signal])
 
         # Conversion from dB to linear
-        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain) * voa
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
                                                                     optical_signal.frequency *
-                                                                    self.bandwidth * (gain_linear-1) * 1000)
+                                                                    self.bandwidth * (gain_linear - 1) * 1000)
         self.ase_noise[optical_signal] = ase_noise
 
     def stage_amplified_spontaneous_emission_noise_qot(self, optical_signal, in_power,
-                                                       accumulated_noise=None):
+                                                       accumulated_noise=None, voa_function=None):
         """
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
@@ -765,12 +827,16 @@ class Amplifier(Node):
             # set initial noise 50 dB below signal power
             init_noise = in_power / db_to_abs(50)
             self.ase_noise_qot[optical_signal] = init_noise
+        voa = 1.0
+        # if voa_function:
+        #     voa = db_to_abs(voa_function[optical_signal])
         # Conversion from dB to linear
-        gain_linear_qot = db_to_abs(system_gain_qot) * db_to_abs(wavelength_dependent_gain_qot)
+        gain_linear_qot = db_to_abs(system_gain_qot) * db_to_abs(wavelength_dependent_gain_qot) * voa
 
         ase_noise = self.ase_noise_qot[optical_signal] * gain_linear_qot + (noise_figure_linear * sc.h *
                                                                             optical_signal.frequency *
-                                                                            self.bandwidth * (gain_linear_qot-1) * 1000)
+                                                                            self.bandwidth *
+                                                                            (gain_linear_qot - 1) * 1000)
 
         self.ase_noise_qot[optical_signal] = ase_noise
 
@@ -821,19 +887,26 @@ class Amplifier(Node):
         if not (self.power_excursions_flag_1_qot and self.power_excursions_flag_2_qot):
             self.power_excursions_flag_1_qot = True
 
-    def nli_compensation(self, accumulated_NLI_noise):
+    def nli_compensation(self, accumulated_NLI_noise, voa_function=None):
         """
         As the signal power and ASE noise suffer the impact from the
         amplification, the NLI noise also gets amplified.
         """
+        voa = 1.0
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
+            # if voa_function:
+            #     voa = db_to_abs(voa_function[optical_signal])
             wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
-            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain) * wavelength_dependent_gain
+            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain) * \
+                                                    wavelength_dependent_gain * voa
         self.nonlinear_noise.update(accumulated_NLI_noise)
 
-    def nli_compensation_qot(self, accumulated_NLI_noise):
+    def nli_compensation_qot(self, accumulated_NLI_noise, voa_function=None):
+        voa = 1.0
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
-            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain)
+            # if voa_function:
+            #     voa = db_to_abs(voa_function[optical_signal])
+            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain) * voa
         self.nonlinear_noise_qot.update(accumulated_NLI_noise)
 
     def clean_signals(self, optical_signals):

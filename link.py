@@ -121,7 +121,8 @@ class Link(object):
 
     def propagate(self, pass_through_signals, pass_through_signals_qot,
                   accumulated_ASE_noise, accumulated_NLI_noise,
-                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
+                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
+                  voa_function, voa_function_qot):
         """
         Propagate the signals across the link
         :param pass_through_signals:
@@ -136,7 +137,8 @@ class Link(object):
             self.optical_signal_power_in_qot[optical_signal] = power
 
         self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise,
-                                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot)
+                                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
+                                  voa_function, voa_function_qot)
 
         # use is instance instead of checking the class
         if self.node2.__class__.__name__ is 'LineTerminal':
@@ -148,7 +150,8 @@ class Link(object):
                               self.accumulated_NLI_noise_qot)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise,
-                             accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
+                             accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
+                             voa_function, voa_function_qot):
         """
         Compute the propagation of signals over this link
         :return:
@@ -178,9 +181,9 @@ class Link(object):
 
             # For monitoring purposes
             if accumulated_NLI_noise:
-                self.boost_amp.nli_compensation(accumulated_NLI_noise)
+                self.boost_amp.nli_compensation(accumulated_NLI_noise, voa_function=voa_function)
             if accumulated_NLI_noise_qot:
-                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot)
+                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot, voa_function=voa_function_qot)
             accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
             accumulated_NLI_noise_qot.update(self.boost_amp.nonlinear_noise_qot)
 
@@ -188,11 +191,13 @@ class Link(object):
             for optical_signal in signal_keys:
                 in_power = self.optical_signal_power_in[optical_signal]
                 self.boost_amp.input_power[optical_signal] = in_power
-                output_power = self.boost_amp.output_amplified_power(optical_signal, in_power)
+                output_power = self.boost_amp.output_amplified_power(optical_signal, in_power,
+                                                                     voa_function=voa_function)
 
                 in_power_qot = self.optical_signal_power_in_qot[optical_signal]
                 self.boost_amp.input_power_qot[optical_signal] = in_power_qot
-                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
+                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot,
+                                                                             voa_function=voa_function_qot)
 
                 # Update status of signal power in link
                 signal_power_progress[optical_signal] = output_power
