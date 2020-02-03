@@ -31,7 +31,7 @@ gosnr_mean_rmse_81 = []
 osnr_mean_rmse_81 = []
 
 file_id = 0
-while file_id <= 95:
+while file_id <= 69:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
     directory = '../opm-sim/' + opm
