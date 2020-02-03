@@ -159,9 +159,14 @@ class Link(object):
         # keep track of the signal power in link
         signal_power_progress = self.optical_signal_power_in.copy()
         signal_power_progress_qot = self.optical_signal_power_in_qot.copy()
+
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
+        #     if voa_function:
+        #         self.boost_amp.voa_compensation_f(voa_function)
+        #         self.boost_amp.voa_compensation_f_qot(voa_function_qot)
+
             # Enabling amplifier system gain balancing check
             signal_keys = list(self.optical_signal_power_in)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
@@ -181,9 +186,9 @@ class Link(object):
 
             # For monitoring purposes
             if accumulated_NLI_noise:
-                self.boost_amp.nli_compensation(accumulated_NLI_noise, voa_function=voa_function)
+                self.boost_amp.nli_compensation(accumulated_NLI_noise)
             if accumulated_NLI_noise_qot:
-                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot, voa_function=voa_function_qot)
+                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot)
             accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
             accumulated_NLI_noise_qot.update(self.boost_amp.nonlinear_noise_qot)
 
@@ -191,13 +196,11 @@ class Link(object):
             for optical_signal in signal_keys:
                 in_power = self.optical_signal_power_in[optical_signal]
                 self.boost_amp.input_power[optical_signal] = in_power
-                output_power = self.boost_amp.output_amplified_power(optical_signal, in_power,
-                                                                     voa_function=voa_function)
+                output_power = self.boost_amp.output_amplified_power(optical_signal, in_power)
 
                 in_power_qot = self.optical_signal_power_in_qot[optical_signal]
                 self.boost_amp.input_power_qot[optical_signal] = in_power_qot
-                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot,
-                                                                             voa_function=voa_function_qot)
+                output_power_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
 
                 # Update status of signal power in link
                 signal_power_progress[optical_signal] = output_power
