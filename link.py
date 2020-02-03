@@ -176,6 +176,14 @@ class Link(object):
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
 
+            # For monitoring purposes
+            if accumulated_NLI_noise:
+                self.boost_amp.nli_compensation(accumulated_NLI_noise)
+            if accumulated_NLI_noise_qot:
+                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot)
+            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
+            accumulated_NLI_noise_qot.update(self.boost_amp.nonlinear_noise_qot)
+
             # Compute for the power
             for optical_signal in signal_keys:
                 in_power = self.optical_signal_power_in[optical_signal]
@@ -204,14 +212,6 @@ class Link(object):
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
             accumulated_ASE_noise_qot.update(self.boost_amp.ase_noise_qot)
 
-            # For monitoring purposes
-            if accumulated_NLI_noise:
-                self.boost_amp.nli_compensation(accumulated_NLI_noise)
-            if accumulated_NLI_noise_qot:
-                self.boost_amp.nli_compensation_qot(accumulated_NLI_noise_qot)
-            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
-            accumulated_NLI_noise_qot.update(self.boost_amp.nonlinear_noise_qot)
-
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
@@ -226,10 +226,14 @@ class Link(object):
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise:
                     accumulated_ASE_noise[optical_signal] /= span.attenuation()
+                if accumulated_NLI_noise:
+                    accumulated_NLI_noise[optical_signal] /= span.attenuation()
             for optical_signal, power in signal_power_progress_qot.items():
                 signal_power_progress_qot[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise_qot:
                     accumulated_ASE_noise_qot[optical_signal] /= span.attenuation()
+                if accumulated_NLI_noise_qot:
+                    accumulated_NLI_noise_qot[optical_signal] /= span.attenuation()
 
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress)
@@ -242,7 +246,23 @@ class Link(object):
 
             # Compute amplifier compensation
             if amplifier:
-                # Debugging which WDG function was assigned to this EDFA
+
+                signal_keys = list(signal_power_progress)
+                # Enabling balancing check
+                while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
+                    for optical_signal in signal_keys:
+                        in_power = signal_power_progress[optical_signal]
+                        amplifier.input_power[optical_signal] = in_power
+                        amplifier.output_amplified_power(optical_signal, in_power)
+
+                        in_power_qot = signal_power_progress_qot[optical_signal]
+                        amplifier.input_power_qot[optical_signal] = in_power_qot
+                        amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
+                    amplifier.compute_power_excursions()
+                    amplifier.compute_power_excursions_qot()
+
+                amplifier.power_excursions_flags_off()
+
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
                     # because its amplification gain impacts negatively the nonlinear
@@ -266,22 +286,6 @@ class Link(object):
                     self.nonlinear_interference_noise_qot[span] = nonlinear_interference_noise_qot[span]
                     accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                     self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
-
-                signal_keys = list(signal_power_progress)
-                # Enabling balancing check
-                while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
-                    for optical_signal in signal_keys:
-                        in_power = signal_power_progress[optical_signal]
-                        amplifier.input_power[optical_signal] = in_power
-                        amplifier.output_amplified_power(optical_signal, in_power)
-
-                        in_power_qot = signal_power_progress_qot[optical_signal]
-                        amplifier.input_power_qot[optical_signal] = in_power_qot
-                        amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
-                    amplifier.compute_power_excursions()
-                    amplifier.compute_power_excursions_qot()
-
-                amplifier.power_excursions_flags_off()
 
                 # Compute for the power
                 for optical_signal in signal_keys:
@@ -357,6 +361,11 @@ class Link(object):
             total_power += power_per_channel * unit.mW
 
         # Calculate delta P for each channel
+        d = {}
+        dp = {}
+        for optical_signal, p in active_channels.items():
+            dp[optical_signal.index] = p
+
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
@@ -366,6 +375,11 @@ class Link(object):
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
             active_channels[optical_signal] *= delta_p
             accumulated_ASE_noise[optical_signal] *= delta_p
+            d[optical_signal.index] = delta_p
+
+        ac = {}
+        for optical_signal, p in active_channels.items():
+            ac[optical_signal.index] = p
 
         return active_channels, accumulated_ASE_noise
 
