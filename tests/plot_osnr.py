@@ -47,7 +47,7 @@ for i in range(13, 16):
     # plt.yticks(np.arange(20.0, 22.4, 0.1))
     plt.legend()
     plt.grid(True)
-    n = '/Users/adiaz/Documents/Trinity-College/Research/Agile-Cloud/PTL2019/' + test + 'eq' + _id + 'no_eq.eps'
+    n = '/Users/adiaz/Documents/Trinity-College/Research/Agile-Cloud/PTL2019/' + test + 'eq' + _id + '_eq.eps'
     plt.savefig(n, format='eps')
     plt.clf()
     # plt.show()

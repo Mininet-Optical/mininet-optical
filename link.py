@@ -121,8 +121,7 @@ class Link(object):
 
     def propagate(self, pass_through_signals, pass_through_signals_qot,
                   accumulated_ASE_noise, accumulated_NLI_noise,
-                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
-                  voa_function, voa_function_qot):
+                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
         """
         Propagate the signals across the link
         :param pass_through_signals:
@@ -137,8 +136,7 @@ class Link(object):
             self.optical_signal_power_in_qot[optical_signal] = power
 
         self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise,
-                                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
-                                  voa_function, voa_function_qot)
+                                  accumulated_ASE_noise_qot, accumulated_NLI_noise_qot)
 
         # use is instance instead of checking the class
         if self.node2.__class__.__name__ is 'LineTerminal':
@@ -150,8 +148,7 @@ class Link(object):
                               self.accumulated_NLI_noise_qot)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise,
-                             accumulated_ASE_noise_qot, accumulated_NLI_noise_qot,
-                             voa_function, voa_function_qot):
+                             accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
         """
         Compute the propagation of signals over this link
         :return:
@@ -163,10 +160,6 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-        #     if voa_function:
-        #         self.boost_amp.voa_compensation_f(voa_function)
-        #         self.boost_amp.voa_compensation_f_qot(voa_function_qot)
-
             # Enabling amplifier system gain balancing check
             signal_keys = list(self.optical_signal_power_in)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
@@ -183,6 +176,15 @@ class Link(object):
 
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
+
+            # key_min = min(signal_power_progress.keys(),
+            #               key=(lambda k: signal_power_progress[k]))
+            # min_power = signal_power_progress[key_min]
+            # self.boost_amp.voa_compensation_f(min_power)
+            # key_min_qot = min(signal_power_progress_qot.keys(),
+            #                   key=(lambda k: signal_power_progress_qot[k]))
+            # min_power_qot = signal_power_progress_qot[key_min_qot]
+            # self.boost_amp.voa_compensation_f_qot(min_power_qot)
 
             # For monitoring purposes
             if accumulated_NLI_noise:
@@ -249,27 +251,10 @@ class Link(object):
                 signal_power_progress, accumulated_ASE_noise = \
                     self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise, span)
                 signal_power_progress_qot, accumulated_ASE_noise_qot = \
-                    self.zirngibl_srs(signals_list, signal_power_progress_qot,
-                                      accumulated_ASE_noise_qot, span)
+                    self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot, span)
 
             # Compute amplifier compensation
             if amplifier:
-
-                signal_keys = list(signal_power_progress)
-                # Enabling balancing check
-                while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
-                    for optical_signal in signal_keys:
-                        in_power = signal_power_progress[optical_signal]
-                        amplifier.input_power[optical_signal] = in_power
-                        amplifier.output_amplified_power(optical_signal, in_power)
-
-                        in_power_qot = signal_power_progress_qot[optical_signal]
-                        amplifier.input_power_qot[optical_signal] = in_power_qot
-                        amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
-                    amplifier.compute_power_excursions()
-                    amplifier.compute_power_excursions_qot()
-
-                amplifier.power_excursions_flags_off()
 
                 if len(signal_power_progress) > 2:
                     # Compute nonlinear interference noise, passing the node_amplifier
@@ -294,6 +279,22 @@ class Link(object):
                     self.nonlinear_interference_noise_qot[span] = nonlinear_interference_noise_qot[span]
                     accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                     self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
+
+                signal_keys = list(signal_power_progress)
+                # Enabling balancing check
+                while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
+                    for optical_signal in signal_keys:
+                        in_power = signal_power_progress[optical_signal]
+                        amplifier.input_power[optical_signal] = in_power
+                        amplifier.output_amplified_power(optical_signal, in_power)
+
+                        in_power_qot = signal_power_progress_qot[optical_signal]
+                        amplifier.input_power_qot[optical_signal] = in_power_qot
+                        amplifier.output_amplified_power_qot(optical_signal, in_power_qot)
+                    amplifier.compute_power_excursions()
+                    amplifier.compute_power_excursions_qot()
+
+                amplifier.power_excursions_flags_off()
 
                 # Compute for the power
                 for optical_signal in signal_keys:

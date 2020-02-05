@@ -99,8 +99,8 @@ while test_run <= 1:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            # test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
-            test = '../'
+            test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
+            # test = '../'
             dir_ = test + 'opm-sim/' + opm_name
             dir_2 = test + 'opm-sim-qot/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
