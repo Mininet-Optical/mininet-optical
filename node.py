@@ -177,6 +177,7 @@ class LineTerminal(Node):
             # Associate signals to a transceiver/modulator
             self.transceiver_to_optical_signals[transceiver].append(new_optical_signal)
         # Start transmission
+        print("*** Node %s initiating transmission..." % self.name)
         self.start(transceiver, out_port)
         link = self.out_port_to_link[out_port]
         link.propagate(self.port_to_optical_signal_power_out[out_port],
@@ -189,7 +190,7 @@ class LineTerminal(Node):
     def receiver(self, in_port, signal_power, signal_power_qot):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
         self.port_to_optical_signal_power_in_qot[in_port].update(signal_power_qot)
-        print("%s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+        print("*** Node %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
@@ -341,7 +342,7 @@ class Roadm(Node):
         elif self.voa_function is 'srs_compensation':
             pass
         else:
-            print("Node.Roadm.load_voa_function: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
+            print("*** Node.Roadm.load_voa_function: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
             sys.exit(0)
 
     def load_voa_function_qot(self, in_port):
@@ -380,6 +381,8 @@ class Roadm(Node):
         :return:
         """
         # arbitrary rule identifier
+        print("*** Node %s installing switch rule; in_port: %s out_port: %s signal_indices: %s" %
+              (self.name, in_port, out_port, signal_indices))
         self.switch_table[rule_id] = {'in_port': in_port,
                                       'out_port': out_port,
                                       'signal_indices': signal_indices}
@@ -605,7 +608,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False, tmp_qot_id=1):
+                 boost=False, constant_power=0.0, tmp_qot_id=1):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -643,7 +646,7 @@ class Amplifier(Node):
         self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
-        self.constant_power = db_to_abs(-2)
+        self.constant_power = db_to_abs(constant_power)
         self.voa_compensation = 1.0
         self.voa_compensation_qot = 1.0
 
@@ -975,6 +978,18 @@ class Monitor(Node):
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
         gosnr_linear = output_power / (ase_noise + nli_noise * 1.0e0)
         gosnr = abs_to_db(gosnr_linear)
+        return gosnr
+
+    def monitor_gosnr(self, optical_signal):
+        """
+        Compute gOSNR levels of the signal
+        :param optical_signal: OpticalSignal object
+        :return: gOSNR (mW)
+        """
+        output_power = self.amplifier.output_power[optical_signal]
+        ase_noise = self.amplifier.ase_noise[optical_signal]
+        nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
+        gosnr = output_power / (ase_noise + nli_noise)
         return gosnr
 
     ########################### QOT ESTIMATION BEGINS ######################################

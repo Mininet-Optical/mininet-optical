@@ -177,14 +177,14 @@ class Link(object):
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
 
-            # key_min = min(signal_power_progress.keys(),
-            #               key=(lambda k: signal_power_progress[k]))
-            # min_power = signal_power_progress[key_min]
-            # self.boost_amp.voa_compensation_f(min_power)
-            # key_min_qot = min(signal_power_progress_qot.keys(),
-            #                   key=(lambda k: signal_power_progress_qot[k]))
-            # min_power_qot = signal_power_progress_qot[key_min_qot]
-            # self.boost_amp.voa_compensation_f_qot(min_power_qot)
+            key_min = min(signal_power_progress.keys(),
+                          key=(lambda k: signal_power_progress[k]))
+            min_power = signal_power_progress[key_min]
+            self.boost_amp.voa_compensation_f(min_power)
+            key_min_qot = min(signal_power_progress_qot.keys(),
+                              key=(lambda k: signal_power_progress_qot[k]))
+            min_power_qot = signal_power_progress_qot[key_min_qot]
+            self.boost_amp.voa_compensation_f_qot(min_power_qot)
 
             # For monitoring purposes
             if accumulated_NLI_noise:
@@ -236,8 +236,6 @@ class Link(object):
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise:
                     accumulated_ASE_noise[optical_signal] /= span.attenuation()
-                if accumulated_NLI_noise:
-                    accumulated_NLI_noise[optical_signal] /= span.attenuation()
             for optical_signal, power in signal_power_progress_qot.items():
                 signal_power_progress_qot[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise_qot:
