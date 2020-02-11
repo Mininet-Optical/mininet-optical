@@ -3,6 +3,7 @@ import math
 import units as unit
 from pprint import pprint
 import numpy as np
+import json
 
 
 def db_to_abs(db_value):
@@ -148,6 +149,18 @@ class Link(object):
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
 
+            if self.boost_amp.voa_compensation is not 1.0:
+                # Then there is a VOA function
+                key_min = min(signal_power_progress.keys(),
+                              key=(lambda k: signal_power_progress[k]))
+                min_power = signal_power_progress[key_min]
+                self.boost_amp.voa_compensation_f(min_power)
+
+            # For monitoring purposes
+            if accumulated_NLI_noise:
+                self.boost_amp.nli_compensation(accumulated_NLI_noise)
+            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
+
             # Compute for the power
             for optical_signal, in_power in self.optical_signal_power_in.items():
                 self.boost_amp.input_power[optical_signal] = in_power
@@ -162,18 +175,12 @@ class Link(object):
                                                                           accumulated_noise=accumulated_ASE_noise)
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
 
-            # For monitoring purposes
-            if accumulated_NLI_noise:
-                self.boost_amp.nli_compensation(accumulated_NLI_noise)
-            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
-
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
         if not accumulated_NLI_noise:
             accumulated_NLI_noise = self.init_nonlinear_noise()
         for span, amplifier in self.spans:
-            span.input_power = signal_power_progress
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
@@ -182,7 +189,8 @@ class Link(object):
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
             if len(signal_power_progress) > 1 and prev_amp:
-                signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
+                signal_power_progress, accumulated_ASE_noise = \
+                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise, span)
 
             # Compute amplifier compensation
             if amplifier:
@@ -232,7 +240,7 @@ class Link(object):
                 self.accumulated_ASE_noise.update(accumulated_ASE_noise)
 
     @staticmethod
-    def zirngibl_srs(optical_signals, active_channels, span):
+    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, span):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
@@ -271,8 +279,9 @@ class Link(object):
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
             active_channels[optical_signal] *= delta_p
+            accumulated_ASE_noise[optical_signal] *= delta_p
 
-        return active_channels
+        return active_channels, accumulated_ASE_noise
 
     def init_nonlinear_noise(self):
         nonlinear_noise = {}
@@ -294,6 +303,13 @@ class Link(object):
         out_noise = {}
         for optical_signal, value in _nonlinear_noise.items():
             out_noise[optical_signal] = value + nonlinear_noise_new[optical_signal]
+
+        json_struct = {'tests': []}
+        nli_id = 'nli_' + str(self.nli_id)
+        json_struct['tests'].append({nli_id: list(out_noise.values())})
+        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        with open(json_file_name, 'w+') as outfile:
+            json.dump(json_struct, outfile)
 
         self.nli_id += 1
         return out_noise

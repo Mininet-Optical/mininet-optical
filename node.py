@@ -446,13 +446,13 @@ class Roadm(Node):
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
             # Find the output port as established when installing a rule
             out_port = self.signal_index_to_out_port.get((in_port, optical_signal.index), None)
+            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             if out_port is None:
                 # We can trigger an Exception, but the signals wouldn't be propagated anyway
                 print("%s.%s.switch unable to find rule for signal %s" % (
                     self.__class__.__name__, self.name, optical_signal.index))
                 continue
-            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out[out_port][optical_signal] = \

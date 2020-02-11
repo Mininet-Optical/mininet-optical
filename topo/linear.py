@@ -22,7 +22,7 @@ class LinearTopology:
 
         # Create ROADMs
         wss_dict = {1: (3, None), 2: (3, None)}
-        roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(non)]
+        roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function=None) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
@@ -50,7 +50,7 @@ class LinearTopology:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True)
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, constant_power=op)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
             # link object

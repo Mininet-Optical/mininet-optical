@@ -37,7 +37,7 @@ def ringTopology(n=3):
     # Helper function to create a link between POPs on ports 2, 102
     def link(src, dst, p=1, m='a'):
         "Create 100km link m, from src to dst, for pop p, with amps and monitors"
-        boost = net.add_amplifier('boost%d'%p+m, target_gain=6*db, boost=True)
+        boost = net.add_amplifier('boost%d'%p+m, target_gain=6*db, boost=True, constant_power=-2)
         net.add_monitor('mon%d-1'%p+m, amplifier=boost)
         span = Span(100*km)
         amp = net.add_amplifier('amp%d'%p+m, target_gain=22.0*db)
