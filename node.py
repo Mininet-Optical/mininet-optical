@@ -190,7 +190,7 @@ class LineTerminal(Node):
     def receiver(self, in_port, signal_power, signal_power_qot):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
         self.port_to_optical_signal_power_in_qot[in_port].update(signal_power_qot)
-        print("*** Node %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+        # print("*** Node %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
