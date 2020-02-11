@@ -276,21 +276,62 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, attenuation=6):
+    def __init__(self, name, wss_dict=None, voa_function=None):
         """
         :param name:
-        :param attenuation: total attenuation at the node. Default
-        set to 6 dB per task needed (Add/Drop/Pass-through).
+        :param wss_dict:
+        :param voa_function:
         """
         Node.__init__(self, name)
         self.node_id = id(self)
-        self.attenuation = attenuation
+        self.wss_dict = None
+        self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
+
+        self.voa_function = voa_function
+        self.port_to_voa = None
 
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict (port, signal_index) to output port in ROADM
 
         self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
+
+    def unpack_wss_dict(self, wss_dict):
+        """
+        Unpack the corresponding values to the WSS dictionary, in the format of:
+        WSS_id (int): (attenuation, wd-attenuation) (tuple)
+        """
+        tmp_dict = {}
+        for wss_id, wd_tuple in wss_dict.items():
+            if wd_tuple[1]:
+                tmp_dict[wss_id] = wd_tuple
+            else:
+                wd_func = [0.0] * 90  # linear function with no extra attenuation
+                tmp_dict[wss_id] = (wd_tuple[0], wd_func)
+        self.wss_dict = tmp_dict
+
+    def load_voa_function(self, in_port):
+        voa_attenuation = {}
+
+        if not self.voa_function:
+            for out_port in self.ports_out:
+                voa_attenuation[out_port] = {}
+                voa_attenuation[out_port] = {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
+            self.port_to_voa = voa_attenuation.copy()
+        elif self.voa_function is 'flatten':
+            key_min = min(self.port_to_optical_signal_power_in[in_port].keys(),
+                          key=(lambda k: self.port_to_optical_signal_power_in[in_port][k]))
+            min_power = self.port_to_optical_signal_power_in[in_port][key_min]
+            for out_port in self.ports_out:
+                voa_attenuation[out_port] = {}
+                for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
+                    delta = in_power / min_power
+                    voa_attenuation[out_port][optical_signal] = delta
+            self.port_to_voa = voa_attenuation.copy()
+        elif self.voa_function is 'srs_compensation':
+            pass
+        else:
+            print("*** Node.Roadm.load_voa_function: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
 
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
         """
@@ -396,6 +437,10 @@ class Roadm(Node):
 
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(link_signals)
+        # retrieve the VOA attenuation function at the output ports
+        if not self.port_to_voa:
+            self.load_voa_function(in_port)
+        node_attenuation = self.get_node_attenuation(link_signals)
 
         # Iterate over input port's signals since they all might have changed
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
@@ -407,18 +452,20 @@ class Roadm(Node):
                 print("%s.%s.switch unable to find rule for signal %s" % (
                     self.__class__.__name__, self.name, optical_signal.index))
                 continue
+            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             # Attenuate signal power and update it on output port
-            self.port_to_optical_signal_power_out[out_port][optical_signal] = (
-                in_power / db_to_abs(self.attenuation))
+            self.port_to_optical_signal_power_out[out_port][optical_signal] = \
+                in_power / node_attenuation[optical_signal] / voa_attenuation
 
             if accumulated_ASE_noise and optical_signal in accumulated_ASE_noise:
                 # Attenuate ASE noise and update it on output port
-                accumulated_ASE_noise[optical_signal] /= db_to_abs(self.attenuation)
+                accumulated_ASE_noise[optical_signal] /= node_attenuation[optical_signal] / voa_attenuation
                 self.port_to_optical_signal_ase_noise_out.setdefault(out_port, {})
                 self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
 
             if accumulated_NLI_noise:
+                accumulated_NLI_noise[optical_signal] /= node_attenuation[optical_signal] / voa_attenuation
                 # Update NLI noise on output port
                 self.port_to_optical_signal_nli_noise_out.setdefault(out_port, {})
                 self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
@@ -441,6 +488,22 @@ class Roadm(Node):
                 nli = accumulated_NLI_noise.copy()
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli)
+
+    def get_node_attenuation(self, link_signals):
+        """
+        When switching, it computes the total node attenuation only
+        for the signals passing through
+        """
+        node_attenuation = {}
+        for optical_signal, _ in link_signals.items():
+            wss_attenuation = 0.0
+            wss_wd_attenuation = 0.0
+            for wss_id, attenuation_tuple in self.wss_dict.items():
+                wss_attenuation += attenuation_tuple[0]
+                wss_wd_attenuation += attenuation_tuple[1][optical_signal.index - 1]
+            total_attenuation = db_to_abs(wss_attenuation + wss_wd_attenuation)
+            node_attenuation[optical_signal] = total_attenuation
+        return node_attenuation
 
 
 description_files_dir = 'description-files/'
