@@ -373,7 +373,7 @@ class Roadm(Node):
         for optical_signal in optical_signals:
             del self.port_to_optical_signal_power_out[prev_out_port][optical_signal]
             if (prev_out_port in self.port_to_optical_signal_ase_noise_out and
-                    prev_out_port in self.port_to_optical_signal_nli_noise_out()):
+                    prev_out_port in self.port_to_optical_signal_nli_noise_out):
                 del self.port_to_optical_signal_ase_noise_out[prev_out_port][optical_signal]
                 del self.port_to_optical_signal_nli_noise_out[prev_out_port][optical_signal]
 
@@ -438,21 +438,22 @@ class Roadm(Node):
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(link_signals)
         # retrieve the VOA attenuation function at the output ports
-        if not self.port_to_voa:
-            self.load_voa_function(in_port)
+        # if not self.port_to_voa:
+        self.load_voa_function(in_port)
         node_attenuation = self.get_node_attenuation(link_signals)
 
         # Iterate over input port's signals since they all might have changed
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
             # Find the output port as established when installing a rule
             out_port = self.signal_index_to_out_port.get((in_port, optical_signal.index), None)
-            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             if out_port is None:
                 # We can trigger an Exception, but the signals wouldn't be propagated anyway
                 print("%s.%s.switch unable to find rule for signal %s" % (
                     self.__class__.__name__, self.name, optical_signal.index))
                 continue
+
+            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out[out_port][optical_signal] = \
@@ -506,7 +507,7 @@ class Roadm(Node):
         return node_attenuation
 
 
-description_files_dir = 'description-files/'
+description_files_dir = '/home/alan/Trinity-College/Research/Agile-Cloud/one-env/optical-network-emulator/description-files/'
 description_files = {'linear': 'linear.txt'}
 # description_files = {'wdg1': 'wdg1.txt',
 #                      'wdg2': 'wdg2.txt',

@@ -6,7 +6,6 @@ WIP: Simplified test of ring topology
 
 """
 
-
 from network import Network
 from link import Span as FiberSpan, SpanTuple
 
@@ -27,7 +26,7 @@ def ringTopology(n=3):
     terminals = [net.add_lt('lt%s' % (i + 1), transceivers=transceivers)
                  for i in range(n)]
     wss_dict = {1: (3, None), 2: (3, None)}
-    roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(n)]
+    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(n)]
 
     # Links between this POP's LT and ROADM at ports 1, 101
     for i in range(n):
