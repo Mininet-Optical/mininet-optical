@@ -62,7 +62,6 @@ class Link(object):
 
         self.traffic = []
 
-
     def add_span(self, span, amplifier):
         """
         :param span: Span() object
@@ -140,9 +139,6 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-            # For monitoring purposes
-            if accumulated_NLI_noise:
-                self.boost_amp.nonlinear_noise.update(accumulated_NLI_noise)
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal, in_power in self.optical_signal_power_in.items():
@@ -166,6 +162,11 @@ class Link(object):
                                                                           accumulated_noise=accumulated_ASE_noise)
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
 
+            # For monitoring purposes
+            if accumulated_NLI_noise:
+                self.boost_amp.nli_compensation(accumulated_NLI_noise)
+            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
+
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
         nonlinear_interference_noise = {}
@@ -180,7 +181,7 @@ class Link(object):
                     accumulated_ASE_noise[optical_signal] /= span.attenuation()
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
-            if len(signal_power_progress) < 1 and prev_amp:
+            if len(signal_power_progress) > 1 and prev_amp:
                 signal_power_progress = self.zirngibl_srs(signals_list, signal_power_progress, span)
 
             # Compute amplifier compensation

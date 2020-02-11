@@ -268,6 +268,7 @@ class OpticalSignal(object):
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
 
+
 class Roadm(Node):
     """
     This implementation of Reconfigurable Optical Add/Drop Multiplexing nodes considers
@@ -455,7 +456,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False):
+                 boost=False, constant_power=0.0):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -482,6 +483,9 @@ class Amplifier(Node):
 
         self.boost = boost
         self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
+
+        self.constant_power = db_to_abs(constant_power)
+        self.voa_compensation = 1.0
 
     def power_excursions_flags_off(self):
         self.power_excursions_flag_1 = False
@@ -548,7 +552,7 @@ class Amplifier(Node):
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
-        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
+        output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear / self.voa_compensation
         self.output_power[signal] = output_power
         return output_power
 
@@ -570,7 +574,7 @@ class Amplifier(Node):
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[optical_signal] = init_noise
         # Conversion from dB to linear
-        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain) / self.voa_compensation
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
                                                                     optical_signal.frequency *
                                                                     self.bandwidth * (gain_linear-1) * 1000)
@@ -597,6 +601,27 @@ class Amplifier(Node):
             self.power_excursions_flag_2 = True
         if not (self.power_excursions_flag_1 and self.power_excursions_flag_2):
             self.power_excursions_flag_1 = True
+
+    def nli_compensation(self, accumulated_NLI_noise):
+        """
+        As the signal power and ASE noise suffer the impact from the
+        amplification, the NLI noise also gets amplified.
+        """
+        for optical_signal, nli_noise in accumulated_NLI_noise.items():
+            wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
+            accumulated_NLI_noise[optical_signal] = \
+                nli_noise * db_to_abs(self.system_gain) * wavelength_dependent_gain / self.voa_compensation
+        self.nonlinear_noise.update(accumulated_NLI_noise)
+
+    def voa_compensation_f(self, min_power):
+        """
+        If there is a flattening function at the VOAs from the ROADM nodes,
+        this effect needs to be reflected in the power and noise levels
+        when amplifying to meet a power level threshold.
+        :param min_power:
+        :return:
+        """
+        self.voa_compensation = min_power * db_to_abs(self.system_gain) / self.constant_power
 
     def clean_optical_signals(self, optical_signals):
         for optical_signal in optical_signals:
