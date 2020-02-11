@@ -8,7 +8,6 @@ class LinearTopology:
     @staticmethod
     def build(op=-2, non=3):
         """
-
         :param op: operational power in dBm
         :param non: number of nodes (integer)
         :return: Network object
@@ -22,7 +21,8 @@ class LinearTopology:
         line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs
-        roadms = [net.add_roadm('roadm_%s' % (i + 1)) for i in range(non)]
+        wss_dict = {1: (3, None), 2: (3, None)}
+        roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function=None) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
@@ -43,14 +43,14 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 3
+        span_no = 48
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
             r1 = i + 1  # ROADM 1 index
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True)
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, constant_power=op)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
             # link object

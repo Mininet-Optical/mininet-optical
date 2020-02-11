@@ -81,7 +81,7 @@ class Network(object):
         self.topology[roadm] = []
         return roadm
 
-    def add_amplifier(self, name, amplifier_type, **params):
+    def add_amplifier(self, name, amplifier_type='EDFA', **params):
         """
         Add an Amplifier node.
         :param name: name of Amplifier
@@ -98,7 +98,7 @@ class Network(object):
         self.amplifiers.append(amplifier)
         return amplifier
 
-    def add_link(self, node1, node2, ports=None, boost_amp=None):
+    def add_link(self, node1, node2, ports=None, boost_amp=None, spans=None):
         """
         Add a uni-directional link
         :param node1: source node in link
@@ -114,13 +114,15 @@ class Network(object):
             node1_output_port = ports['node1_output_port']
             node2_input_port = ports['node2_input_port']
 
-        link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp)
+        link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp,
+                    spans=spans)
         node1.out_port_to_link[node1_output_port] = link
         self.links.append(link)
         self.topology[node1].append((node2, link))
         return link
 
-    def add_monitor(self, name, link, span, amplifier):
+    def add_monitor(self, name, link=None, span=None, amplifier=None):
+        assert link or span or amplifier
         monitor = Monitor(name, link, span, amplifier)
         self.name_to_node[name] = monitor
 

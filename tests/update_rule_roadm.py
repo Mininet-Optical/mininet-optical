@@ -45,11 +45,6 @@ roadm_1 = net.name_to_node['roadm_1']
 roadm_2 = net.name_to_node['roadm_2']
 roadm_3 = net.name_to_node['roadm_3']
 
-# for port, node in roadm_3.port_to_node_out.items():
-#     print("%s reachable through port %s" % (node.name, port))
-# for port, node in roadm_3.port_to_node_in.items():
-#     print("roadm_3 reachable by %s through port %s" % (node.name, port))
-
 # Install switch rules into the ROADM nodes
 wavelength_indexes = [1, 2]
 wavelength_indexes2 = [3, 4]

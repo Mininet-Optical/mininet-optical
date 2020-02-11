@@ -11,8 +11,7 @@
 # import tests.monitoring_nli_noise
 # import tests.update_rule_roadm
 # import tests.monitoring_gosnr_vs_power
-# import tests.monitoring_gosnr_vs_distance_power
-import tests.analysis_multihop_transmission
+import tests.monitoring_gosnr_vs_distance_power
+# import tests.analysis_multihop_transmission
 # import tests.gain_power_excursions_verification
 # import tests.loop_detection
-
