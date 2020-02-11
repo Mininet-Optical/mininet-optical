@@ -3,7 +3,6 @@ import math
 import units as unit
 from pprint import pprint
 import numpy as np
-import json
 
 
 def db_to_abs(db_value):
@@ -303,13 +302,6 @@ class Link(object):
         out_noise = {}
         for optical_signal, value in _nonlinear_noise.items():
             out_noise[optical_signal] = value + nonlinear_noise_new[optical_signal]
-
-        json_struct = {'tests': []}
-        nli_id = 'nli_' + str(self.nli_id)
-        json_struct['tests'].append({nli_id: list(out_noise.values())})
-        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        with open(json_file_name, 'w+') as outfile:
-            json.dump(json_struct, outfile)
 
         self.nli_id += 1
         return out_noise
