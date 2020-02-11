@@ -123,5 +123,5 @@ for i in range(17):
 plt.xticks(np.arange(16))
 plt.legend(loc=1)
 plt.grid(True)
-plt.savefig('../gosnr_vs_power.eps', format='eps')
-# plt.show()
+# plt.savefig('../gosnr_vs_power.eps', format='eps')
+plt.show()
