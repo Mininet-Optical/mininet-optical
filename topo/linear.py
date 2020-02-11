@@ -44,7 +44,7 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 4
+        span_no = 3
         tmp_qot_id = 1
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
@@ -52,7 +52,8 @@ class LinearTopology:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, tmp_qot_id=tmp_qot_id)
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, constant_power=op,
+                                          tmp_qot_id=tmp_qot_id)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
             # link object
