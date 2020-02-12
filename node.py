@@ -310,24 +310,21 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
-    def load_voa_function(self, in_port):
-        voa_attenuation = {}
-
+    def load_voa_function(self, in_port, out_port):
+        port_to_voa_attenuation = {out_port: {}}
         if not self.voa_function:
-            for out_port in self.ports_out:
-                voa_attenuation[out_port] = {}
-                voa_attenuation[out_port] = {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
-            self.port_to_voa = voa_attenuation.copy()
+            port_to_voa_attenuation[out_port] = {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
+            return port_to_voa_attenuation
         elif self.voa_function is 'flatten':
+            # retrieve the minimum power-level from all signals entering the ROADM
             key_min = min(self.port_to_optical_signal_power_in[in_port].keys(),
                           key=(lambda k: self.port_to_optical_signal_power_in[in_port][k]))
             min_power = self.port_to_optical_signal_power_in[in_port][key_min]
-            for out_port in self.ports_out:
-                voa_attenuation[out_port] = {}
-                for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
-                    delta = in_power / min_power
-                    voa_attenuation[out_port][optical_signal] = delta
-            self.port_to_voa = voa_attenuation.copy()
+            for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
+                # calculate the attenuation per wavelength to flatten the spectrum
+                delta = in_power / min_power
+                port_to_voa_attenuation[out_port][optical_signal] = delta
+            return port_to_voa_attenuation
         elif self.voa_function is 'srs_compensation':
             pass
         else:
@@ -342,6 +339,8 @@ class Roadm(Node):
         :param signal_indices: signal indices involved in switching procedure
         :return:
         """
+        print("*** Installing switch rule at %s with in_port: %d out_port: %d and %s" % (self.name, in_port, out_port,
+                                                                                         signal_indices))
         # arbitrary rule identifier
         self.switch_table[rule_id] = SwitchRule(in_port, out_port, signal_indices)
         for signal_index in signal_indices:
@@ -432,15 +431,14 @@ class Roadm(Node):
         :param accumulated_NLI_noise: NLI noise (if any)
         :return:
         """
+        print("*** Switching at %s" % self.name)
         # Keep track of which output ports/links have signals
         out_ports_to_links = {}
 
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(link_signals)
-        # retrieve the VOA attenuation function at the output ports
-        # if not self.port_to_voa:
-        self.load_voa_function(in_port)
-        node_attenuation = self.get_node_attenuation(link_signals)
+        # retrieve the WSS wavelength-dependent attenuation
+        node_attenuation = self.get_node_attenuation(in_port)
 
         # Iterate over input port's signals since they all might have changed
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
@@ -453,7 +451,9 @@ class Roadm(Node):
                     self.__class__.__name__, self.name, optical_signal.index))
                 continue
 
-            voa_attenuation = self.port_to_voa[out_port][optical_signal]
+            # retrieve the VOA attenuation function at the output ports
+            port_to_voa_attenuation = self.load_voa_function(in_port, out_port)
+            voa_attenuation = port_to_voa_attenuation[out_port][optical_signal]
 
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out[out_port][optical_signal] = \
@@ -490,13 +490,13 @@ class Roadm(Node):
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli)
 
-    def get_node_attenuation(self, link_signals):
+    def get_node_attenuation(self, in_port):
         """
         When switching, it computes the total node attenuation only
         for the signals passing through
         """
         node_attenuation = {}
-        for optical_signal, _ in link_signals.items():
+        for optical_signal, _ in self.port_to_optical_signal_power_in[in_port].items():
             wss_attenuation = 0.0
             wss_wd_attenuation = 0.0
             for wss_id, attenuation_tuple in self.wss_dict.items():
