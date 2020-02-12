@@ -1,11 +1,8 @@
 #!/usr/bin/python
 
 """
-
 WIP: Simplified test of ring topology
-
 """
-
 
 from network import Network
 from link import Span as FiberSpan, SpanTuple
@@ -27,7 +24,7 @@ def ringTopology(n=3):
     terminals = [net.add_lt('lt%s' % (i + 1), transceivers=transceivers)
                  for i in range(n)]
     wss_dict = {1: (3, None), 2: (3, None)}
-    roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(n)]
+    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(n)]
 
     # Links between this POP's LT and ROADM at ports 1, 101
     for i in range(n):
@@ -46,7 +43,7 @@ def ringTopology(n=3):
 
     # Links to/from next POP in ring
     for i in range(n):
-        roadm, nextroadm =  roadms[i], roadms[(i+1) % n]
+        roadm, nextroadm = roadms[i], roadms[(i+1) % n]
         link(roadm, nextroadm, p=i+1, m='a')
         link(nextroadm, roadm, p=i+1, m='b')
 
@@ -58,7 +55,6 @@ def testRingTopo():
     This script will build the Ring topology and run a single
     2-channel transmission with the default configuration of the simulator,
     and will monitor their OSNR levels. The latter will then be plotted.
-
     Then, one of the signal will be re-routed through different ports, and
     the reconfiguration on the other channels should be automatic through
     the Traffic wrapper.
@@ -76,16 +72,16 @@ def testRingTopo():
     channels2 = [3, 4]
     channels3 = [5, 6]
 
-    roadm1.install_switch_rule(1, 0, 102, channels1)
-    roadm1.install_switch_rule(2, 0, 101, channels2)
-    roadm1.install_switch_rule(3, 0, 101, channels3)
+    roadm1.install_switch_rule(1, 0, 102, channels1)  # switches to roadm3
+    roadm1.install_switch_rule(2, 0, 101, channels2)  # switches to roadm2
+    roadm1.install_switch_rule(3, 0, 101, channels3)  # switches to roadm2
 
-    roadm2.install_switch_rule(1, 1, 102, channels2)
-    roadm2.install_switch_rule(2, 1, 102, channels3)
+    roadm2.install_switch_rule(1, 1, 102, channels2)  # switches TO roadm3
+    roadm2.install_switch_rule(2, 1, 102, channels3)  # switches TO roadm3
 
-    roadm3.install_switch_rule(1, 1, 100, channels1)
-    roadm3.install_switch_rule(2, 2, 100, channels2)
-    roadm3.install_switch_rule(3, 2, 100, channels3)
+    roadm3.install_switch_rule(1, 2, 100, channels1)  # switches FROM roadm1
+    roadm3.install_switch_rule(2, 1, 100, channels2)  # switches FROM roadm2
+    roadm3.install_switch_rule(3, 1, 100, channels3)  # switches FROM roadm2
 
     rw = channels1 + channels2 + channels3
 
