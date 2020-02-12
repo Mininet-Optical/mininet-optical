@@ -5,6 +5,7 @@ import scipy.constants as sc
 import random
 from collections import namedtuple
 
+
 def db_to_abs(db_value):
     """
     :param db_value: list or float
@@ -178,7 +179,7 @@ class LineTerminal(Node):
 
     def receiver(self, in_port, signal_power):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
-        print("%s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+        print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
@@ -263,7 +264,7 @@ class OpticalSignal(object):
         pprint(vars(self))
 
     def __repr__(self):
-        return('<%d>' % self.index)
+        return '<%d>' % self.index
 
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
@@ -310,24 +311,22 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
-    def load_voa_function(self, in_port):
-        voa_attenuation = {}
-
+    def load_voa_function(self, in_port, out_port):
+        port_to_voa_attenuation = {out_port: {}}
         if not self.voa_function:
-            for out_port in self.ports_out:
-                voa_attenuation[out_port] = {}
-                voa_attenuation[out_port] = {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
-            self.port_to_voa = voa_attenuation.copy()
+            port_to_voa_attenuation[out_port] = \
+                {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
+            return port_to_voa_attenuation
         elif self.voa_function is 'flatten':
+            # retrieve the minimum power-level from all signals entering the ROADM
             key_min = min(self.port_to_optical_signal_power_in[in_port].keys(),
                           key=(lambda k: self.port_to_optical_signal_power_in[in_port][k]))
             min_power = self.port_to_optical_signal_power_in[in_port][key_min]
-            for out_port in self.ports_out:
-                voa_attenuation[out_port] = {}
-                for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
-                    delta = in_power / min_power
-                    voa_attenuation[out_port][optical_signal] = delta
-            self.port_to_voa = voa_attenuation.copy()
+            for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
+                # calculate the attenuation per wavelength to flatten the spectrum
+                delta = in_power / min_power
+                port_to_voa_attenuation[out_port][optical_signal] = delta
+            return port_to_voa_attenuation
         elif self.voa_function is 'srs_compensation':
             pass
         else:
@@ -373,7 +372,7 @@ class Roadm(Node):
         for optical_signal in optical_signals:
             del self.port_to_optical_signal_power_out[prev_out_port][optical_signal]
             if (prev_out_port in self.port_to_optical_signal_ase_noise_out and
-                    prev_out_port in self.port_to_optical_signal_nli_noise_out()):
+                    prev_out_port in self.port_to_optical_signal_nli_noise_out):
                 del self.port_to_optical_signal_ase_noise_out[prev_out_port][optical_signal]
                 del self.port_to_optical_signal_nli_noise_out[prev_out_port][optical_signal]
 
@@ -437,22 +436,23 @@ class Roadm(Node):
 
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(link_signals)
-        # retrieve the VOA attenuation function at the output ports
-        if not self.port_to_voa:
-            self.load_voa_function(in_port)
-        node_attenuation = self.get_node_attenuation(link_signals)
+        # retrieve the WSS wavelength-dependent attenuation
+        node_attenuation = self.get_node_attenuation(in_port)
 
         # Iterate over input port's signals since they all might have changed
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
             # Find the output port as established when installing a rule
             out_port = self.signal_index_to_out_port.get((in_port, optical_signal.index), None)
-            voa_attenuation = self.port_to_voa[out_port][optical_signal]
 
             if out_port is None:
                 # We can trigger an Exception, but the signals wouldn't be propagated anyway
-                print("%s.%s.switch unable to find rule for signal %s" % (
+                print("*** %s.%s.switch unable to find rule for signal %s" % (
                     self.__class__.__name__, self.name, optical_signal.index))
                 continue
+
+            # retrieve the VOA attenuation function at the output ports
+            port_to_voa_attenuation = self.load_voa_function(in_port, out_port)
+            voa_attenuation = port_to_voa_attenuation[out_port][optical_signal]
 
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out[out_port][optical_signal] = \
@@ -489,13 +489,13 @@ class Roadm(Node):
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli)
 
-    def get_node_attenuation(self, link_signals):
+    def get_node_attenuation(self, in_port):
         """
         When switching, it computes the total node attenuation only
         for the signals passing through
         """
         node_attenuation = {}
-        for optical_signal, _ in link_signals.items():
+        for optical_signal, _ in self.port_to_optical_signal_power_in[in_port].items():
             wss_attenuation = 0.0
             wss_wd_attenuation = 0.0
             for wss_id, attenuation_tuple in self.wss_dict.items():
@@ -729,7 +729,6 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
-        # print("Monitor.get_list_gosnr.%s" % self.name)
         optical_signals = self.amplifier.output_power.keys()
         optical_signals_list = []
         for optical_signal in optical_signals:
@@ -760,10 +759,6 @@ class Monitor(Node):
             nli_noise = self.amplifier.nonlinear_noise[optical_signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
-        # print("%s.get_osnr span: %s ; power: %s ase_noise: %s nli_noise: %s" % (self.__class__.__name__,
-        #                                                                         self.span, str(output_power),
-        #                                                                         str(ase_noise),
-        #                                                                         str(nli_noise * 1.0e0)))
-        gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e0))
+        gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
