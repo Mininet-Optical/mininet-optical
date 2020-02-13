@@ -694,6 +694,15 @@ class Amplifier(Node):
             if optical_signal in self.nonlinear_noise.keys():
                 del self.nonlinear_noise[optical_signal]
 
+    # OFC DEMO ADDITIONS
+    def mock_nf_adjust(self, new_nf):
+        """
+        Modify the NF of a given amplifier 'on-the-fly'
+        :param new_nf: new noise figure
+        :return:
+        """
+        self.noise_figure = new_nf
+
 
 class Monitor(Node):
     """
