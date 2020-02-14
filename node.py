@@ -5,6 +5,7 @@ import scipy.constants as sc
 import random
 from collections import namedtuple
 
+
 def db_to_abs(db_value):
     """
     :param db_value: list or float
@@ -263,7 +264,7 @@ class OpticalSignal(object):
         pprint(vars(self))
 
     def __repr__(self):
-        return('<%d>' % self.index)
+        return '<%d>' % self.index
 
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
@@ -317,7 +318,8 @@ class Roadm(Node):
     def load_voa_function(self, in_port, out_port):
         port_to_voa_attenuation = {out_port: {}}
         if not self.voa_function:
-            port_to_voa_attenuation[out_port] = {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
+            port_to_voa_attenuation[out_port] = \
+                {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
             return port_to_voa_attenuation
         elif self.voa_function is 'flatten':
             # retrieve the minimum power-level from all signals entering the ROADM
@@ -435,7 +437,6 @@ class Roadm(Node):
         :param accumulated_NLI_noise: NLI noise (if any)
         :return:
         """
-        print("*** Switching at %s" % self.name)
         # Keep track of which output ports/links have signals
         out_ports_to_links = {}
 
@@ -480,6 +481,7 @@ class Roadm(Node):
                 out_ports_to_links[out_port] = self.out_port_to_link[out_port]
 
         for op, link in out_ports_to_links.items():
+            print("*** Switching at %s" % self.name)
             # Pass only the signals corresponding to the output port
             pass_through_signals = self.port_to_optical_signal_power_out[op]
             if op in self.port_to_optical_signal_ase_noise_out:
@@ -511,7 +513,8 @@ class Roadm(Node):
         return node_attenuation
 
 
-description_files_dir = '/home/alan/Trinity-College/Research/Agile-Cloud/one-env/optical-network-emulator/description-files/'
+description_files_dir = \
+    '/home/alan/Trinity-College/Research/Agile-Cloud/one-env/optical-network-emulator/description-files/'
 description_files = {'linear': 'linear.txt'}
 # description_files = {'wdg1': 'wdg1.txt',
 #                      'wdg2': 'wdg2.txt',
@@ -642,7 +645,7 @@ class Amplifier(Node):
             init_noise = in_power / db_to_abs(50)
             self.ase_noise[optical_signal] = init_noise
         # Conversion from dB to linear
-        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain) / self.voa_compensation
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)  / self.voa_compensation
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
                                                                     optical_signal.frequency *
                                                                     self.bandwidth * (gain_linear-1) * 1000)
@@ -699,6 +702,11 @@ class Amplifier(Node):
             if optical_signal in self.nonlinear_noise.keys():
                 del self.nonlinear_noise[optical_signal]
 
+    # ADDITIONS FOR OFC DEMO USE-CASES
+    def mock_nf_adjust(self, new_nf):
+        # Could be improved to allow for input an NF function too
+        self.noise_figure = self.get_noise_figure(new_nf, None)
+
 
 class Monitor(Node):
     """
@@ -734,7 +742,6 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
-        # print("Monitor.get_list_gosnr.%s" % self.name)
         optical_signals = self.amplifier.output_power.keys()
         optical_signals_list = []
         for optical_signal in optical_signals:

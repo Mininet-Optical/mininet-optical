@@ -355,7 +355,7 @@ class Link(object):
                 pwr_ch = signal_power_progress[ch]
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                g_nli += g_ch ** 2 * g_cut * self._psi(optical_signal, ch, beta2=beta2, asymptotic_length=1/alpha)
+                g_nli += g_ch ** 2 * g_cut * self._psi(optical_signal, ch, beta2=beta2, asymptotic_length=1 / alpha)
 
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * unit.pi * abs(beta2) * asymptotic_length)
             signal_under_test = index_to_signal[channel_under_test]
@@ -383,6 +383,30 @@ class Link(object):
             psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi
+
+    # ADDITIONS FOR OFC DEMO USE-CASES
+    def reset_propagation_struct(self):
+        # Link structures
+        self.optical_signal_power_in = {}
+        self.optical_signal_power_out = {}
+        self.nonlinear_interference_noise = {}
+        self.accumulated_ASE_noise = {}
+        self.accumulated_NLI_noise = {}
+
+        # Amplifiers' structures
+        if self.boost_amp:
+            self.boost_amp.input_power = {}  # dict of OpticalSignal to input power levels
+            self.boost_amp.output_power = {}
+            self.boost_amp.ase_noise = {}
+            self.boost_amp.nonlinear_noise = {}
+            self.boost_amp.system_gain = self.boost_amp.target_gain
+        for span, amplifier in self.spans:
+            if amplifier:
+                amplifier.input_power = {}
+                amplifier.output_power = {}
+                amplifier.ase_noise = {}
+                amplifier.nonlinear_noise = {}
+                amplifier.system_gain = amplifier.target_gain
 
 
 class Span(object):
