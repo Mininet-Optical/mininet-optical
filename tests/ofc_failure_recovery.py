@@ -53,8 +53,8 @@ resources = {'transceiver': lt1.name_to_transceivers['t1'],
 net.transmit(lt1, roadm1, resources=resources)
 
 gosnr = r3_mon.get_list_gosnr()
-# net.mock_nf_adjust('amp12', (5.5, 90), 'roadm1', 'roadm3')
-# gosnr2 = r3_mon.get_list_gosnr()
+net.mock_nf_adjust('amp12', (5.5, 90), 'roadm1', 'roadm3')
+gosnr2 = r3_mon.get_list_gosnr()
 # net.mock_nf_adjust('amp11', (10.5, 90), 'roadm1', 'roadm3')
 # gosnr3 = r3_mon.get_list_gosnr()
 # net.mock_nf_adjust('amp10', (10.5, 90), 'roadm1', 'roadm3')
@@ -68,7 +68,7 @@ gosnr = r3_mon.get_list_gosnr()
 #     print("DISRPUTION TIME!")
 
 plt.plot(gosnr, color='b', marker='*')
-# plt.plot(gosnr2, color='y')
+plt.plot(gosnr2, color='y')
 # th = [30.0] * 10
 # plt.plot(th, '--', color='k')
 # plt.plot(gosnr3, color='r')
