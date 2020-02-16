@@ -52,27 +52,27 @@ resources = {'transceiver': lt1.name_to_transceivers['t1'],
              'required_wavelengths': rw}
 net.transmit(lt1, roadm1, resources=resources)
 
-gosnr = r3_mon.get_list_gosnr()
-net.mock_nf_adjust('amp12', (5.5, 90), 'roadm1', 'roadm3')
-gosnr2 = r3_mon.get_list_gosnr()
+osnr = r3_mon.get_list_osnr()
+# net.mock_nf_adjust('amp12', (10.5, 90), 'roadm1', 'roadm3')
+# osnr2 = r3_mon.get_list_osnr()
 # net.mock_nf_adjust('amp11', (10.5, 90), 'roadm1', 'roadm3')
-# gosnr3 = r3_mon.get_list_gosnr()
+# osnr3 = r3_mon.get_list_osnr()
 # net.mock_nf_adjust('amp10', (10.5, 90), 'roadm1', 'roadm3')
-# gosnr4 = r3_mon.get_list_gosnr()
+# osnr4 = r3_mon.get_list_osnr()
 # net.mock_nf_adjust('amp9', (10.5, 90), 'roadm1', 'roadm3')
-# gosnr5 = r3_mon.get_list_gosnr()
+# osnr5 = r3_mon.get_list_osnr()
 # net.mock_nf_adjust('boost9', (10.5, 90), 'roadm1', 'roadm3')
-# gosnr6 = r3_mon.get_list_gosnr()
+# osnr6 = r3_mon.get_list_osnr()
 
-# if np.mean(gosnr3) < 30.0:
+# if np.mean(osnr3) < 30.0:
 #     print("DISRPUTION TIME!")
 
-plt.plot(gosnr, color='b', marker='*')
-plt.plot(gosnr2, color='y')
+plt.plot(osnr, color='b', marker='*')
+# plt.plot(osnr2, color='y')
 # th = [30.0] * 10
 # plt.plot(th, '--', color='k')
-# plt.plot(gosnr3, color='r')
-# plt.plot(gosnr4, '--', color='r')
-# plt.plot(gosnr5, '--', color='r')
-# plt.plot(gosnr6, '--', color='r')
+# plt.plot(osnr3, color='r')
+# plt.plot(osnr4,  color='r')
+# plt.plot(osnr5, '--', color='r')
+# plt.plot(osnr6, '--', color='r')
 plt.show()

@@ -21,7 +21,7 @@ def build(op=0, n=6):
     terminals = [net.add_lt('lt%s' % (i + 1), transceivers=transceivers)
                  for i in range(n)]
     wss_dict = {1: (3, None), 2: (3, None)}
-    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict, voa_function=None) for i in range(n)]
+    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(n)]
     name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
     # Links between this POP's LT and ROADM at ports 1, 101
@@ -35,7 +35,7 @@ def build(op=0, n=6):
     def link(src, dst, p=0):
         "Create 50 km link m, from src to dst, for pop p, with amps and monitors"
 
-        boost = net.add_amplifier('boost%d' % p, target_gain=6, boost=True, constant_power=op)
+        boost = net.add_amplifier('boost%d' % p, target_gain=9, boost=True, constant_power=op)
         l = net.add_link(src, dst, boost_amp=boost)
         net.add_monitor('mon%d-b' % p, amplifier=boost)
         for span_no in range(4):
