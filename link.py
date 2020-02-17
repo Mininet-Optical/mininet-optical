@@ -109,29 +109,30 @@ class Link(object):
             if amplifier:
                 amplifier.clean_optical_signals(optical_signals)
 
-    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation=False):
+    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
+                  voa_compensation=False, voa_function=None):
         """
         Propagate the signals across the link
         :param pass_through_signals:
         :param accumulated_ASE_noise:
         :param accumulated_NLI_noise:
         :param voa_compensation:
+        :param voa_function:
         :return:
         """
         # Set output signals from node to input of the link
         for optical_signal, power in pass_through_signals.items():
             self.optical_signal_power_in[optical_signal] = power
 
-        self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation)
+        if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
+            # use is instance instead of checking the class
+            if self.node2.__class__.__name__ is 'LineTerminal':
+                self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
+            else:
+                self.node2.switch(self.input_port_node2, self.optical_signal_power_out,
+                                  self.accumulated_ASE_noise, self.accumulated_NLI_noise)
 
-        # use is instance instead of checking the class
-        if self.node2.__class__.__name__ is 'LineTerminal':
-            self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
-        else:
-            self.node2.switch(self.input_port_node2, self.optical_signal_power_out,
-                              self.accumulated_ASE_noise, self.accumulated_NLI_noise)
-
-    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
+    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
         """
         Compute the propagation of signals over this link
         :return:
@@ -141,22 +142,24 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-            if not voa_compensation:
-                output_power_dict, input_power_dict, out_in_difference = None, None, None
-                # Enabling amplifier system gain balancing check
-                while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
-                    for optical_signal, in_power in self.optical_signal_power_in.items():
-                        self.boost_amp.input_power[optical_signal] = in_power
-                        self.boost_amp.output_amplified_power(optical_signal, in_power)
-                    output_power_dict, input_power_dict, out_in_difference = self.boost_amp.compute_power_excursions()
+            output_power_dict, input_power_dict, out_in_difference = None, None, None
+            # Enabling amplifier system gain balancing check
+            while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
+                for optical_signal, in_power in self.optical_signal_power_in.items():
+                    self.boost_amp.input_power[optical_signal] = in_power
+                    self.boost_amp.output_amplified_power(optical_signal, in_power)
+                output_power_dict, input_power_dict, out_in_difference = self.boost_amp.compute_power_excursions()
 
-                # Reset balancing flags to original settings
-                self.boost_amp.power_excursions_flags_off()
+            # Reset balancing flags to original settings
+            self.boost_amp.power_excursions_flags_off()
+            if not voa_compensation and voa_function:
 
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
                 prev_roadm.voa_reconf(self, output_power_dict, input_power_dict, self.boost_amp.system_gain,
                                       self.output_port_node1, accumulated_ASE_noise, accumulated_NLI_noise)
+                # return to avoid propagation of effects
+                return False
 
             # For monitoring purposes
             if accumulated_NLI_noise:
@@ -240,6 +243,8 @@ class Link(object):
             prev_amp = amplifier
             if accumulated_ASE_noise:
                 self.accumulated_ASE_noise.update(accumulated_ASE_noise)
+
+        return True
 
     @staticmethod
     def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, span):

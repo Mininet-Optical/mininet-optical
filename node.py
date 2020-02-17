@@ -326,27 +326,6 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
-    # def load_voa_function(self, in_port, out_port):
-    #     port_to_voa_attenuation = {out_port: {}}
-    #     if not self.voa_function:
-    #         port_to_voa_attenuation[out_port] = \
-    #             {ops: 1.0 for ops in self.port_to_optical_signal_power_in[in_port].keys()}
-    #         return port_to_voa_attenuation
-    #     elif self.voa_function is 'flatten':
-    #         # retrieve the minimum power-level from all signals entering the ROADM
-    #         key_min = min(self.port_to_optical_signal_power_in[in_port].keys(),
-    #                       key=(lambda k: self.port_to_optical_signal_power_in[in_port][k]))
-    #         min_power = self.port_to_optical_signal_power_in[in_port][key_min]
-    #         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
-    #             # calculate the attenuation per wavelength to flatten the spectrum
-    #             delta = in_power / min_power
-    #             port_to_voa_attenuation[out_port][optical_signal] = delta
-    #         return port_to_voa_attenuation
-    #     elif self.voa_function is 'srs_compensation':
-    #         pass
-    #     else:
-    #         print("*** Node.Roadm.load_voa_function: Error: \'%s\' VOA function doesn't exist." % self.voa_function)
-
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
         """
         Switching rule installation, accessible from a Control System
@@ -503,8 +482,13 @@ class Roadm(Node):
                 nli = self.port_to_optical_signal_nli_noise_out[op].copy()
             else:
                 nli = accumulated_NLI_noise.copy()
+            if self.voa_function:
+                voa_compensation = False
+            else:
+                voa_compensation = True
             # Propagate signals through link
-            link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
+            link.propagate(pass_through_signals, ase, nli,
+                           voa_compensation=voa_compensation, voa_function=self.voa_function)
 
     def get_node_attenuation(self, in_port):
         """
@@ -525,10 +509,49 @@ class Roadm(Node):
     def voa_reconf(self, link, output_power_dict, input_power_dict, system_gain, out_port,
                    accumulated_ASE_noise, accumulated_NLI_noise):
         """
+        mean wavelength dependent attenuation
+        """
+        if self.voa_function is 'flatten':
+            print("*** voa_conf entered for %s" % self.name)
+            # compute VOA compensation and re-propagate only if there is a function
+            out_difference = {}
+            list_out_difference = []
+            for entry in list(common_entries(output_power_dict, input_power_dict)):
+                # From the boost-amp, compute the difference between output power levels
+                # and input power levels. Set this as the compensation function.
+                k, o, i = entry[0], entry[1], entry[2]
+                delta = o / i / system_gain
+                list_out_difference.append(delta)
+            mean_out_difference = np.mean(list_out_difference)
+            for k in output_power_dict.keys():
+                # store this by optical signal object
+                out_difference[k] = mean_out_difference
+            for optical_signal, voa_att in out_difference.items():
+                # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
+                # hence, only inflict now the additional VOA attenuation to compensate
+                # for the excursions generated at the boost-amp.
+                self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
+                if len(accumulated_ASE_noise) > 0:
+                    accumulated_ASE_noise[optical_signal] /= voa_att
+                    self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                if len(accumulated_NLI_noise) > 0:
+                    accumulated_NLI_noise[optical_signal] /= voa_att
+                    self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+
+            # Proceed with the re-propagation of effects. Same as last step in switch function.
+            pass_through_signals = self.port_to_optical_signal_power_out[out_port]
+            ase = accumulated_ASE_noise.copy()
+            nli = accumulated_NLI_noise.copy()
+            link.reset_propagation_struct()
+            # Propagate signals through link and flag voa_compensation to avoid looping
+            link.propagate(pass_through_signals, ase, nli, voa_compensation=True)
+
+    def voa_reconf2(self, link, output_power_dict, input_power_dict, system_gain, out_port,
+                    accumulated_ASE_noise, accumulated_NLI_noise):
+        """
         wavelength dependent attenuation
         """
         if self.voa_function is 'flatten':
-            print("Entered for %s" % self.name)
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
             for entry in list(common_entries(output_power_dict, input_power_dict)):
@@ -557,53 +580,14 @@ class Roadm(Node):
             # Propagate signals through link and flag voa_compensation to avoid looping
             link.propagate(pass_through_signals, ase, nli, voa_compensation=True)
 
-    def voa_reconf2(self, link, output_power_dict, input_power_dict, system_gain, out_port,
-                    accumulated_ASE_noise, accumulated_NLI_noise):
-        """
-        mean wavelength dependent attenuation
-        """
-        if self.voa_function is 'flatten':
-            print("Entered for %s" % self.name)
-            # compute VOA compensation and re-propagate only if there is a function
-            out_difference = {}
-            list_out_difference = []
-            for entry in list(common_entries(output_power_dict, input_power_dict)):
-                # From the boost-amp, compute the difference between output power levels
-                # and input power levels. Set this as the compensation function.
-                k, o, i = entry[0], entry[1], entry[2]
-                delta = o / i / system_gain
-                list_out_difference.append(delta)
-            mean_out_difference = np.mean(list_out_difference)
-            for k in out_difference.keys():
-                out_difference[k] = mean_out_difference
-            for optical_signal, voa_att in out_difference.items():
-                # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
-                # hence, only inflict now the additional VOA attenuation to compensate
-                # for the excursions generated at the boost-amp.
-                self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
-                if len(accumulated_ASE_noise) > 0:
-                    accumulated_ASE_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                if len(accumulated_NLI_noise) > 0:
-                    accumulated_NLI_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-
-            # Proceed with the re-propagation of effects. Same as last step in switch function.
-            pass_through_signals = self.port_to_optical_signal_power_out[out_port]
-            ase = accumulated_ASE_noise.copy()
-            nli = accumulated_NLI_noise.copy()
-            link.reset_propagation_struct()
-            # Propagate signals through link and flag voa_compensation to avoid looping
-            link.propagate(pass_through_signals, ase, nli, voa_compensation=True)
-
 
 description_files_dir = \
     'description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt'}
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'wdg1': 'wdg2.txt'}
+                     # 'wdg2': 'wdg2.txt'}
+                     # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
