@@ -2,7 +2,7 @@ import topo.ofc_demo as OFCDemo
 import numpy as np
 
 import matplotlib.pyplot as plt
-from tests.switching_tuples import SwitchTuples as st
+from tests.ofc.failure_recovery.switching_tuples import SwitchTuples as st
 
 
 def db_to_abs(db_value):
@@ -30,6 +30,7 @@ n = net.name_to_node
 lt1, lt2, lt3 = [n['lt%d' % i] for i in (1, 2, 3)]
 roadm1, roadm2, roadm3 = [n['roadm%d' % i] for i in (1, 2, 3)]
 r3_mon = n['mon%d' % 12]
+r2_mon = n['mon%d' % 20]
 
 # Install switch rules into the ROADM nodes
 channels1 = list(np.arange(1, 11, 1))
@@ -37,7 +38,7 @@ channels2 = list(np.arange(11, 21, 1))
 channels3 = list(np.arange(21, 31, 1))
 
 proc = st()
-proc.switch_proc1()
+proc.switch_main()
 for pr in proc.roadm1:
     roadm1.install_switch_rule(**pr)
 for pr in proc.roadm2:
@@ -53,26 +54,25 @@ resources = {'transceiver': lt1.name_to_transceivers['t1'],
 net.transmit(lt1, roadm1, resources=resources)
 
 osnr = r3_mon.get_list_osnr()
-# net.mock_nf_adjust('amp12', (10.5, 90), 'roadm1', 'roadm3')
-# osnr2 = r3_mon.get_list_osnr()
-# net.mock_nf_adjust('amp11', (10.5, 90), 'roadm1', 'roadm3')
-# osnr3 = r3_mon.get_list_osnr()
-# net.mock_nf_adjust('amp10', (10.5, 90), 'roadm1', 'roadm3')
-# osnr4 = r3_mon.get_list_osnr()
-# net.mock_nf_adjust('amp9', (10.5, 90), 'roadm1', 'roadm3')
-# osnr5 = r3_mon.get_list_osnr()
-# net.mock_nf_adjust('boost9', (10.5, 90), 'roadm1', 'roadm3')
-# osnr6 = r3_mon.get_list_osnr()
+_osnr = r2_mon.get_list_osnr()
+net.mock_nf_adjust('amp12', (30, 90), 'roadm1', 'roadm3')
+osnr2 = r3_mon.get_list_osnr()
 
-# if np.mean(osnr3) < 30.0:
-#     print("DISRPUTION TIME!")
+if np.mean(osnr2) < 35:
+    print("*** deleting rule roadm3")
+    roadm3.delete_switch_rule(1)
+    print("*** installing rule in roadm2")
+    roadm2.install_switch_rule(3, 1, 102, channels1)
+    print("*** installing rule in roadm2")
+    roadm3.install_switch_rule(4, 2, 100, channels1)
+    print("*** updating rule in roadm1")
+    roadm1.update_switch_rule(1, 101)
+osnr3 = r3_mon.get_list_osnr()
+_osnr2 = r2_mon.get_list_osnr()
 
-plt.plot(osnr, color='b', marker='*')
-# plt.plot(osnr2, color='y')
-# th = [30.0] * 10
-# plt.plot(th, '--', color='k')
+# plt.plot(osnr, color='b', marker='*')
+# plt.plot(osnr2, color='r')
+plt.plot(_osnr, '--', color='b', marker='*')
+plt.plot(_osnr2, '--',  color='y')
 # plt.plot(osnr3, color='r')
-# plt.plot(osnr4,  color='r')
-# plt.plot(osnr5, '--', color='r')
-# plt.plot(osnr6, '--', color='r')
 plt.show()

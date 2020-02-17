@@ -275,6 +275,8 @@ class OpticalSignal(object):
         pprint(vars(self))
 
     def __repr__(self):
+        if self.index < 10:
+            return '<0%d>' % self.index
         return '<%d>' % self.index
 
 
@@ -360,10 +362,6 @@ class Roadm(Node):
         optical_signals = [optical_signal for optical_signal in prev_output_signals
                            if optical_signal.index in signal_indices]
 
-        # Clean and prevent signals from link propagation
-        link = self.out_port_to_link[prev_out_port]
-        link.clean_optical_signals(optical_signals)
-
         # Delete from structures in ROADM node
         for optical_signal in optical_signals:
             del self.port_to_optical_signal_power_out[prev_out_port][optical_signal]
@@ -372,6 +370,8 @@ class Roadm(Node):
                 del self.port_to_optical_signal_ase_noise_out[prev_out_port][optical_signal]
                 del self.port_to_optical_signal_nli_noise_out[prev_out_port][optical_signal]
 
+        self.propagate_cleanup()
+
         if (prev_out_port in self.port_to_optical_signal_ase_noise_out.keys() and
                 prev_out_port in self.port_to_optical_signal_nli_noise_out.keys()):
             ase = self.port_to_optical_signal_ase_noise_out[prev_out_port].copy()
@@ -379,8 +379,21 @@ class Roadm(Node):
         else:
             ase, nli = {}, {}
 
+        self.port_to_optical_signal_power_out[new_out_port] = {}
+        self.port_to_optical_signal_ase_noise_out[new_out_port] = {}
+        self.port_to_optical_signal_nli_noise_out[new_out_port] = {}
         # Propagate the changes in the switch by switching
         self.switch(in_port, self.port_to_optical_signal_power_in[in_port], ase, nli)
+
+    def propagate_cleanup(self):
+        # Clean and prevent signals from link propagation
+        for op, link in self.out_port_to_link.items():
+            link.reset_propagation_struct()
+            node2 = self.port_to_node_out[op]
+            if isinstance(node2, LineTerminal):
+                return
+            else:
+                node2.propagate_cleanup()
 
     def delete_switch_rule(self, rule_id):
         """
@@ -472,7 +485,7 @@ class Roadm(Node):
         for op, link in out_ports_to_links.items():
             print("*** Switching at %s" % self.name)
             # Pass only the signals corresponding to the output port
-            pass_through_signals = self.port_to_optical_signal_power_out[op]
+            pass_through_signals = self.port_to_optical_signal_power_out[op].copy()
             if op in self.port_to_optical_signal_ase_noise_out:
                 ase = self.port_to_optical_signal_ase_noise_out[op].copy()
             else:
@@ -512,7 +525,6 @@ class Roadm(Node):
         mean wavelength dependent attenuation
         """
         if self.voa_function is 'flatten':
-            print("*** voa_conf entered for %s" % self.name)
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
             list_out_difference = []
