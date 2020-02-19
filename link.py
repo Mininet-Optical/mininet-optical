@@ -84,6 +84,7 @@ class Link(object):
 
     def clean_optical_signals(self, optical_signals):
         """
+        THIS MIGHT BE OBSOLETE
         A rule deletion or update has been called. Hence, remove the
         instances of signals in the link structure where the previously
         used signals in those ports were.
@@ -129,8 +130,9 @@ class Link(object):
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
             else:
-                self.node2.switch(self.input_port_node2, self.optical_signal_power_out,
-                                  self.accumulated_ASE_noise, self.accumulated_NLI_noise)
+                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out,
+                                          self.accumulated_ASE_noise, self.accumulated_NLI_noise)
+                self.node2.switch(self.input_port_node2)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
         """
@@ -153,7 +155,6 @@ class Link(object):
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
             if not voa_compensation and voa_function:
-
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
                 prev_roadm.voa_reconf(self, output_power_dict, input_power_dict, self.boost_amp.system_gain,
