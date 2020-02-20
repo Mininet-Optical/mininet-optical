@@ -83,6 +83,7 @@ class Link(object):
 
     def clean_optical_signals(self, optical_signals):
         """
+        THIS MIGHT BE OBSOLETE
         A rule deletion or update has been called. Hence, remove the
         instances of signals in the link structure where the previously
         used signals in those ports were.
@@ -108,28 +109,31 @@ class Link(object):
             if amplifier:
                 amplifier.clean_optical_signals(optical_signals)
 
-    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise):
+    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
+                  voa_compensation=False, voa_function=None):
         """
         Propagate the signals across the link
         :param pass_through_signals:
         :param accumulated_ASE_noise:
         :param accumulated_NLI_noise:
+        :param voa_compensation:
+        :param voa_function:
         :return:
         """
         # Set output signals from node to input of the link
         for optical_signal, power in pass_through_signals.items():
             self.optical_signal_power_in[optical_signal] = power
 
-        self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise)
+        if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
+            # use is instance instead of checking the class
+            if self.node2.__class__.__name__ is 'LineTerminal':
+                self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
+            else:
+                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out,
+                                          self.accumulated_ASE_noise, self.accumulated_NLI_noise)
+                self.node2.switch(self.input_port_node2)
 
-        # use is instance instead of checking the class
-        if self.node2.__class__.__name__ is 'LineTerminal':
-            self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
-        else:
-            self.node2.switch(self.input_port_node2, self.optical_signal_power_out,
-                              self.accumulated_ASE_noise, self.accumulated_NLI_noise)
-
-    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise):
+    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
         """
         Compute the propagation of signals over this link
         :return:
@@ -139,21 +143,23 @@ class Link(object):
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
+            output_power_dict, input_power_dict, out_in_difference = None, None, None
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal, in_power in self.optical_signal_power_in.items():
                     self.boost_amp.input_power[optical_signal] = in_power
                     self.boost_amp.output_amplified_power(optical_signal, in_power)
-                self.boost_amp.compute_power_excursions()
+                output_power_dict, input_power_dict, out_in_difference = self.boost_amp.compute_power_excursions()
+
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
-
-            if self.boost_amp.voa_compensation is not 1.0:
-                # Then there is a VOA function
-                key_min = min(signal_power_progress.keys(),
-                              key=(lambda k: signal_power_progress[k]))
-                min_power = signal_power_progress[key_min]
-                self.boost_amp.voa_compensation_f(min_power)
+            if not voa_compensation and voa_function:
+                # procedure for VOA reconfiguration
+                prev_roadm = self.node1
+                prev_roadm.voa_reconf(self, output_power_dict, input_power_dict, self.boost_amp.system_gain,
+                                      self.output_port_node1, accumulated_ASE_noise, accumulated_NLI_noise)
+                # return to avoid propagation of effects
+                return False
 
             # For monitoring purposes
             if accumulated_NLI_noise:
@@ -238,6 +244,8 @@ class Link(object):
             if accumulated_ASE_noise:
                 self.accumulated_ASE_noise.update(accumulated_ASE_noise)
 
+        return True
+
     @staticmethod
     def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, span):
         """
@@ -245,6 +253,7 @@ class Link(object):
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
         :param optical_signals: signals interacting at given transmission - list[Signal() object]
         :param active_channels: power levels at the end of span - dict{signal_index: power levels}
+        :param accumulated_ASE_noise: ASE noise levels of signals - dict{signal_index: ASE noise levels}
         :param span: Span() object
         :return:
         """
@@ -302,7 +311,6 @@ class Link(object):
         out_noise = {}
         for optical_signal, value in _nonlinear_noise.items():
             out_noise[optical_signal] = value + nonlinear_noise_new[optical_signal]
-
         self.nli_id += 1
         return out_noise
 
@@ -373,6 +381,30 @@ class Link(object):
             psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi
+
+    # ADDITIONS FOR OFC DEMO USE-CASES
+    def reset_propagation_struct(self):
+        # Link structures
+        self.optical_signal_power_in = {}
+        self.optical_signal_power_out = {}
+        self.nonlinear_interference_noise = {}
+        self.accumulated_ASE_noise = {}
+        self.accumulated_NLI_noise = {}
+
+        # Amplifiers' structures
+        if self.boost_amp:
+            self.boost_amp.input_power = {}  # dict of OpticalSignal to input power levels
+            self.boost_amp.output_power = {}
+            self.boost_amp.ase_noise = {}
+            self.boost_amp.nonlinear_noise = {}
+            self.boost_amp.system_gain = self.boost_amp.target_gain
+        for span, amplifier in self.spans:
+            if amplifier:
+                amplifier.input_power = {}
+                amplifier.output_power = {}
+                amplifier.ase_noise = {}
+                amplifier.nonlinear_noise = {}
+                amplifier.system_gain = amplifier.target_gain
 
 
 class Span(object):

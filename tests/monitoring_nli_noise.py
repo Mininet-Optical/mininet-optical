@@ -32,5 +32,5 @@ for n in nli:
     db_nli.append(tmp)
 
 for v in db_nli:
-    plt.plot(v)
+    plt.plot(v, marker='*')
 plt.show()
