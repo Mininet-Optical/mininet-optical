@@ -59,48 +59,48 @@ resources = {'transceiver': lt1.name_to_transceivers['t1'],
              'required_wavelengths': rw}
 net.transmit(lt1, roadm1, resources=resources)
 
-# osnr = r3_mon.get_list_osnr()
-# _osnr = r2_mon.get_list_osnr()
-# net.mock_nf_adjust('amp12', (30, 90), 'roadm1', 'roadm3')
-# osnr2 = r3_mon.get_list_osnr()
-#
-# if np.mean(osnr2) < 20:
-#     print("*** deleting rule roadm3")
-#     roadm3.delete_switch_rule(1)
-#     print("*** installing rule in roadm2")
-#     roadm2.install_switch_rule(3, 1, 102, channels1)
-#     print("*** installing rule in roadm2")
-#     roadm3.install_switch_rule(4, 2, 100, channels1)
-#     print("*** updating rule in roadm1")
-#     roadm1.update_switch_rule(1, 101)
-# # osnr3 = r3_mon.get_list_osnr()
-# _osnr2 = r2_mon.get_list_osnr()
-#
-# # plt.plot(osnr, linewidth=4, color='b', marker='D', markersize=8, markerfacecolor='None', label="Before NF adjustment")
-# # plt.plot(osnr2, linewidth=4, color='r', marker='D', markersize=8, markerfacecolor='None', label="After NF adjustment")
-# x = range(10, 30)
-# plt.plot(x, _osnr, linewidth=4, color='g', marker='D', markersize=8, markerfacecolor='None', label="Before re-routing")
-# x2 = range(0, 30)
-# plt.plot(x2, _osnr2, linewidth=4, color='y', marker='D', markersize=8, markerfacecolor='None', label="After re-routing")
-# # plt.plot(osnr3, color='r')
-# plt.title("OSNR levels Link 2")
-# plt.xlabel("Channel index")
-# plt.ylabel("OSNR (dB)")
-# # xticklabel = [str(x) for x in np.arange(1, 31, 5)]
-# # plt.xticks(range(len(xticklabel)), xticklabel)
-# xticks = []
-# i = 0
-# while i <= 30:
-#     if i % 5 is 0 and i is not 0 or i is 1:
-#         xticks.append(i)
-#     elif i is 0:
-#         pass
-#     else:
-#         xticks.append('')
-#     i += 1
-# l = len(xticks)
-#
-# plt.xticks(np.arange(0, 30, 1), xticks)
-# plt.legend()
-# plt.savefig('../link2.eps', format='eps')
-# plt.show()
+osnr = r3_mon.get_list_osnr()
+_osnr = r2_mon.get_list_osnr()
+net.mock_nf_adjust('amp12', (30, 90), 'roadm1', 'roadm3')
+osnr2 = r3_mon.get_list_osnr()
+
+if np.mean(osnr2) < 20:
+    print("*** deleting rule roadm3")
+    roadm3.delete_switch_rule(1)
+    print("*** installing rule in roadm2")
+    roadm2.install_switch_rule(3, 1, 102, channels1)
+    print("*** installing rule in roadm2")
+    roadm3.install_switch_rule(4, 2, 100, channels1)
+    print("*** updating rule in roadm1")
+    roadm1.update_switch_rule(1, 101)
+# osnr3 = r3_mon.get_list_osnr()
+_osnr2 = r2_mon.get_list_osnr()
+
+# plt.plot(osnr, linewidth=4, color='b', marker='D', markersize=8, markerfacecolor='None', label="Before NF adjustment")
+# plt.plot(osnr2, linewidth=4, color='r', marker='D', markersize=8, markerfacecolor='None', label="After NF adjustment")
+x = range(10, 30)
+plt.plot(x, _osnr, linewidth=4, color='g', marker='D', markersize=8, markerfacecolor='None', label="Before re-routing")
+x2 = range(0, 30)
+plt.plot(x2, _osnr2, linewidth=4, color='y', marker='D', markersize=8, markerfacecolor='None', label="After re-routing")
+# plt.plot(osnr3, color='r')
+plt.title("OSNR levels Link 2")
+plt.xlabel("Channel index")
+plt.ylabel("OSNR (dB)")
+# xticklabel = [str(x) for x in np.arange(1, 31, 5)]
+# plt.xticks(range(len(xticklabel)), xticklabel)
+xticks = []
+i = 0
+while i <= 30:
+    if i % 5 is 0 and i is not 0 or i is 1:
+        xticks.append(i)
+    elif i is 0:
+        pass
+    else:
+        xticks.append('')
+    i += 1
+l = len(xticks)
+
+plt.xticks(np.arange(0, 30, 1), xticks)
+plt.legend()
+plt.savefig('../link2.eps', format='eps')
+plt.show()

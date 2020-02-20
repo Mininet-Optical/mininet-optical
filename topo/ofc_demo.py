@@ -35,7 +35,7 @@ def build(op=0, n=6):
     def link(src, dst, p=0):
         "Create 50 km link m, from src to dst, for pop p, with amps and monitors"
 
-        boost = net.add_amplifier('boost%d' % p, target_gain=9, boost=True, constant_power=op)
+        boost = net.add_amplifier('boost%d' % p, target_gain=9, boost=True)
         l = net.add_link(src, dst, boost_amp=boost)
         net.add_monitor('mon%d-b' % p, amplifier=boost)
         for span_no in range(4):
