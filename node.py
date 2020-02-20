@@ -544,7 +544,7 @@ class Roadm(Node):
                 # From the boost-amp, compute the difference between output power levels
                 # and input power levels. Set this as the compensation function.
                 k, o, i = entry[0], entry[1], entry[2]
-                delta = o / i / system_gain
+                delta = o / i / db_to_abs(system_gain)
                 list_out_difference.append(delta)
             mean_out_difference = np.mean(list_out_difference)
             for k in output_power_dict.keys():
