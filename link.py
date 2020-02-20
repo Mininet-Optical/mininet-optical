@@ -315,7 +315,7 @@ class Link(object):
         json_struct = {'tests': []}
         nli_id = 'nli_' + str(self.nli_id)
         json_struct['tests'].append({nli_id: list(out_noise.values())})
-        json_file_name = '../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        json_file_name = '../monitoring-nli-noise/' + str(self.node1.name) + '_' + str(self.node2.name)  + '_' + nli_id + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
 
@@ -361,7 +361,7 @@ class Link(object):
                 pwr_ch = signal_power_progress[ch]
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                g_nli += g_ch ** 2 * g_cut * self._psi(optical_signal, ch, beta2=beta2, asymptotic_length=1 / alpha)
+                g_nli += g_ch ** 2 * g_cut * self._psi(optical_signal, ch, beta2=beta2, asymptotic_length=1/alpha)
 
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * unit.pi * abs(beta2) * asymptotic_length)
             signal_under_test = index_to_signal[channel_under_test]

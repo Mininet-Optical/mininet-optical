@@ -27,7 +27,7 @@ def build(op=0, n=6):
     # Links between this POP's LT and ROADM at ports 1, 101
     for i in range(n):
         l = net.add_link(terminals[i], roadms[i])
-        l.add_span(Span(length=0.001), amplifier=None)
+        l.add_span(Span('SMF', 0.001), amplifier=None)
         lb = net.add_link(roadms[i], terminals[i])
         lb.add_span(Span(length=0.001), amplifier=None)
 
@@ -39,7 +39,7 @@ def build(op=0, n=6):
         l = net.add_link(src, dst, boost_amp=boost)
         net.add_monitor('mon%d-b' % p, amplifier=boost)
         for span_no in range(4):
-            span = Span('SMF', 50)
+            span = Span(fibre_type='SMF', length=50)
             amp = net.add_amplifier('amp%d' % p, target_gain=11.0)
             l.add_span(span, amp)
             net.add_monitor('mon%d' % p, link=l, span=span, amplifier=amp)
