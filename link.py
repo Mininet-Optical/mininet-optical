@@ -191,11 +191,14 @@ class Link(object):
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 if accumulated_ASE_noise:
                     accumulated_ASE_noise[optical_signal] /= span.attenuation()
+                if accumulated_NLI_noise:
+                    accumulated_NLI_noise[optical_signal] /= span.attenuation()
             # Compute nonlinear effects from the fibre
             signals_list = list(signal_power_progress.keys())
             if len(signal_power_progress) > 1 and prev_amp:
-                signal_power_progress, accumulated_ASE_noise = \
-                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise, span)
+                signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                      accumulated_NLI_noise, span)
 
             # Compute amplifier compensation
             if amplifier:
@@ -247,13 +250,14 @@ class Link(object):
         return True
 
     @staticmethod
-    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, span):
+    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, accumulated_NLI_noise, span):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
         :param optical_signals: signals interacting at given transmission - list[Signal() object]
         :param active_channels: power levels at the end of span - dict{signal_index: power levels}
-        :param accumulated_ASE_noise: ASE noise levels of signals - dict{signal_index: ASE noise levels}
+        :param accumulated_ASE_noise: ASE levels at the end of span - dict{signal_index: ASE levels}
+        :param accumulated_NLI_noise: NLI levels at the end of span - dict{signal_index: NLI levels}
         :param span: Span() object
         :return:
         """
@@ -288,8 +292,9 @@ class Link(object):
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
             active_channels[optical_signal] *= delta_p
             accumulated_ASE_noise[optical_signal] *= delta_p
+            accumulated_NLI_noise[optical_signal] *= delta_p
 
-        return active_channels, accumulated_ASE_noise
+        return active_channels, accumulated_ASE_noise, accumulated_NLI_noise
 
     def init_nonlinear_noise(self):
         nonlinear_noise = {}
