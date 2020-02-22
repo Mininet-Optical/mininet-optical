@@ -156,8 +156,8 @@ class Link(object):
             if not voa_compensation and voa_function:
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
-                prev_roadm.voa_reconf(self, output_power_dict, input_power_dict, self.boost_amp.system_gain,
-                                      self.output_port_node1, accumulated_ASE_noise, accumulated_NLI_noise)
+                prev_roadm.voa_reconf(self, output_power_dict, self.output_port_node1,
+                                      accumulated_ASE_noise, accumulated_NLI_noise)
                 # return to avoid propagation of effects
                 return False
 
