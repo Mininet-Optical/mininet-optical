@@ -73,7 +73,8 @@ osnr_r4_r6 = r4_r6_mon.get_list_osnr()
 
 # Adjust NF of amplifier in link between R1 and R2, so that
 # multiple links break.
-net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
+# net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
+net.mock_amp_gain_adjust('amp3', -10, 'roadm1', 'roadm2')
 
 r2_r4_mon = n['mon%d' % 28]
 osnr_r2_r43 = r2_r4_mon.get_list_osnr()

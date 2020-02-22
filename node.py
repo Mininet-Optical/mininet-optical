@@ -771,6 +771,10 @@ class Amplifier(Node):
         # Could be improved to allow for input an NF function too
         self.noise_figure = self.get_noise_figure(new_nf, None)
 
+    def mock_amp_gain_adjust(self, new_gain):
+        self.target_gain = new_gain
+        self.system_gain = new_gain
+
 
 class Monitor(Node):
     """
