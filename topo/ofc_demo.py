@@ -21,7 +21,8 @@ def build(op=0, n=6):
     terminals = [net.add_lt('lt%s' % (i + 1), transceivers=transceivers)
                  for i in range(n)]
     wss_dict = {1: (3, None), 2: (3, None)}
-    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict) for i in range(n)]
+    roadms = [net.add_roadm('roadm%s' % (i + 1), wss_dict=wss_dict,
+                            voa_function='flatten', voa_target_out_power=op) for i in range(n)]
     name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
     # Links between this POP's LT and ROADM at ports 1, 101

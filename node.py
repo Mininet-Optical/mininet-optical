@@ -546,36 +546,39 @@ class Roadm(Node):
             node_attenuation[optical_signal] = total_attenuation
         return node_attenuation
 
-    def voa_reconf(self, link, output_power_dict, input_power_dict, system_gain, out_port,
+    def voa_reconf(self, link, output_power_dict, out_port,
                    accumulated_ASE_noise, accumulated_NLI_noise):
         """
-        mean wavelength dependent attenuation
+        wavelength dependent attenuation
         """
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
-            list_out_difference = []
-            for entry in list(common_entries(output_power_dict, input_power_dict)):
+            for k, out_power in output_power_dict.items():
                 # From the boost-amp, compute the difference between output power levels
-                # and input power levels. Set this as the compensation function.
-                k, o, i = entry[0], entry[1], entry[2]
-                delta = o / i / db_to_abs(system_gain)
-                list_out_difference.append(delta)
-            mean_out_difference = np.mean(list_out_difference)
-            for k in output_power_dict.keys():
-                # store this by optical signal object
-                out_difference[k] = mean_out_difference
+                # and the target output power. Set this as the compensation function.
+                delta = self.voa_target_out_power / out_power
+                out_difference[k] = delta
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
-                if len(accumulated_ASE_noise) > 0:
-                    accumulated_ASE_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                if len(accumulated_NLI_noise) > 0:
-                    accumulated_NLI_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                if voa_att < 0:
+                    self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
+                    if len(accumulated_ASE_noise) > 0:
+                        accumulated_ASE_noise[optical_signal] /= voa_att
+                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                    if len(accumulated_NLI_noise) > 0:
+                        accumulated_NLI_noise[optical_signal] /= voa_att
+                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                else:
+                    self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
+                    if len(accumulated_ASE_noise) > 0:
+                        accumulated_ASE_noise[optical_signal] *= voa_att
+                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                    if len(accumulated_NLI_noise) > 0:
+                        accumulated_NLI_noise[optical_signal] *= voa_att
+                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
             pass_through_signals = self.port_to_optical_signal_power_out[out_port]
@@ -644,27 +647,6 @@ class Amplifier(Node):
         wdg_file = description_files[wavelength_dependent_gain_id]
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]
-
-    def load_wavelength_dependent_gainFLIPPED(self, wavelength_dependent_gain_id):
-        """
-        :param wavelength_dependent_gain_id: file name id (see top of script) - string
-        :return: Return wavelength dependent gain array flipped with respect to the
-        original ripple function to verify performance of propagation.
-        """
-        if wavelength_dependent_gain_id is None:
-            k = random.choice(list(description_files.keys()))
-            self.wdgfunc = k
-            wavelength_dependent_gain_id = k
-        wdg_file = description_files[wavelength_dependent_gain_id]
-        with open(description_files_dir + wdg_file, "r") as f:
-            content = [float(line) for line in f]
-        content_flipped = []
-        for i in content:
-            if i < 0:
-                content_flipped.append(i + 2 * abs(i))
-            else:
-                content_flipped.append(i - 2 * i)
-        return content_flipped
 
     def get_wavelength_dependent_gain(self, signal_index):
         """
@@ -788,6 +770,10 @@ class Amplifier(Node):
     def mock_nf_adjust(self, new_nf):
         # Could be improved to allow for input an NF function too
         self.noise_figure = self.get_noise_figure(new_nf, None)
+
+    def mock_amp_gain_adjust(self, new_gain):
+        self.target_gain = new_gain
+        self.system_gain = new_gain
 
 
 class Monitor(Node):

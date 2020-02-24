@@ -17,4 +17,3 @@ def plot_list_osnr(_list):
         plt.plot(element, linestyle='None', linewidth=4, color='g', marker='D', markersize=8, markerfacecolor='None', )
         fig_count += 1
     plt.show()
-    
