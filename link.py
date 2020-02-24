@@ -34,8 +34,8 @@ class Link(object):
     """
 
     def __init__(self, node1, node2,
-                 output_port_node1, input_port_node2,
-                 boost_amp, spans=None):
+                 output_port_node1=None, input_port_node2=None,
+                 boost_amp=None, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
@@ -46,6 +46,9 @@ class Link(object):
         self.id = id(self)
         self.node1 = node1
         self.node2 = node2
+        output_port_node1 = node1.new_output_port(node2, portnum=output_port_node1)
+        input_port_node2 = node2.new_input_port(node1, portnum=input_port_node2)
+        node1.out_port_to_link[output_port_node1] = self
         self.output_port_node1 = output_port_node1
         self.input_port_node2 = input_port_node2
         self.boost_amp = boost_amp
@@ -81,6 +84,17 @@ class Link(object):
     def describe(self):
         pprint(vars(self))
 
+    def print_signals(self):
+        "Debugging: print signals"
+        print(self, 'power in:')
+        print(self.optical_signal_power_in)
+        print(self, 'power out:')
+        print(self.optical_signal_power_in)
+
+    def __repr__(self):
+        "String representation"
+        return "(%s-%s)" % (self.node1, self.node2)
+
     def clean_optical_signals(self, optical_signals):
         """
         THIS MIGHT BE OBSOLETE
@@ -109,6 +123,7 @@ class Link(object):
             if amplifier:
                 amplifier.clean_optical_signals(optical_signals)
 
+
     def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
                   voa_compensation=False):
         """
@@ -119,6 +134,8 @@ class Link(object):
         :param voa_compensation:
         :return:
         """
+        accumulated_ASE_noise = accumulated_ASE_noise or {}
+        accumulated_NLI_noise = accumulated_NLI_noise or {}
         # Set output signals from node to input of the link
         for optical_signal, power in pass_through_signals.items():
             self.optical_signal_power_in[optical_signal] = power
@@ -438,6 +455,10 @@ class Span(object):
 
     def describe(self):
         pprint(vars(self))
+
+    def __repr__(self):
+        "String representation"
+        return '<%.2fkm>' % self.length
 
     def attenuation(self):
         return db_to_abs(self.fibre_attenuation * self.length)

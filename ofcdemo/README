@@ -1,0 +1,7 @@
+Demo Prototype Notes
+
+
+This is very incomplete at the moment.
+
+The real control plane will be ONOS but fakecontroller.py exercise the REST
+API to program the control plane for the linear roadm network.

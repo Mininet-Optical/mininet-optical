@@ -10,10 +10,9 @@ from link import Span as FiberSpan, SpanTuple
 km = db = dbM = 1.0
 m = .001
 
-def Span(km, amp=None):
+def Span(length, amp=None):
     "Return a usable span of length km with amplifer amp"
-    return SpanTuple(FiberSpan(km), amp)
-
+    return SpanTuple(FiberSpan(length*km), amp)
 
 def ringTopology(n=3):
     "Create ring topology of size n"
@@ -85,10 +84,15 @@ def testRingTopo():
 
     rw = channels1 + channels2 + channels3
 
+    for roadm in roadm1, roadm2, roadm3:
+        roadm.print_switch_rules()
+
     # Set resources to use and initiate transmission
     resources = {'transceiver': lt1.name_to_transceivers['t1'],
                  'required_wavelengths': rw}
     net.transmit(lt1, roadm1, resources=resources)
+    lt1.print_signals()
+    roadm1.print_signals()
 
     print("*** Updating switch rule in roadm_1...")
     roadm2.delete_switch_rule(1)

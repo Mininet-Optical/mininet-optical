@@ -45,23 +45,35 @@ class Node(object):
         self.ports_out = []
         self.port_to_node_in = {}  # dict of port no. to ingress connecting nodes
         self.port_to_node_out = {}  # dict of port no. to egress connecting nodes
-        self.port_to_optical_signal_in = {}  # dict of ports to input signals
+        # self.port_to_optical_signal_in = {} is a @property (see below)
         self.port_to_optical_signal_out = {}  # dict of ports to output signals
         self.port_to_optical_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_optical_signal_power_out = {}  # dict of ports to output signals and power levels
         self.out_port_to_link = {}
 
-    def new_output_port(self, connected_node):
+    @property
+    def port_to_optical_signal_in(self, in_port=None):
+        "Return dict of ports to input signals"
+        if in_port is not None:
+            return self.port_to_optical_signal_power_in[in_port].keys()
+        return {in_port: list(power_in.keys())
+                for in_port, power_in in self.port_to_optical_signal_power_in.items()}
+
+    def new_output_port(self, connected_node, portnum=None):
         """
         Create a new output port for a node
         to connect to another node
         :param connected_node:
         :return: new output port
         """
-        if len(self.port_to_node_out) > 0:
-            new_output_port = max(self.port_to_node_out.keys()) + 1
+        if portnum is not None:
+            assert portnum not in self.port_to_node_out
+            new_output_port = portnum
         else:
-            new_output_port = self.output_port_base
+            if len(self.port_to_node_in) > 0:
+                new_output_port = max(self.port_to_node_out.keys()) + 1
+            else:
+                new_output_port = self.output_port_base
         # Enable discovery of output ports
         self.ports_out.append(new_output_port)
         # Enable discovery of connected node through output port
@@ -72,17 +84,21 @@ class Node(object):
         self.port_to_optical_signal_power_out[new_output_port] = {}
         return new_output_port
 
-    def new_input_port(self, connected_node):
+    def new_input_port(self, connected_node, portnum=None):
         """
         Create a new input port for a node
         to connect to another node
         :param connected_node:
         :return: new input port
         """
-        if len(self.port_to_node_in) > 0:
-            new_input_port = max(self.port_to_node_in.keys()) + 1
+        if portnum is not None:
+            assert portnum not in self.port_to_node_in
+            new_input_port = portnum
         else:
-            new_input_port = self.input_port_base
+            if len(self.port_to_node_in) > 0:
+                new_input_port = max(self.port_to_node_in.keys()) + 1
+            else:
+                new_input_port = self.input_port_base
         # Enable discovery of input ports
         self.ports_in.append(new_input_port)
         # Enable discovery of connected node through input port
@@ -95,6 +111,27 @@ class Node(object):
 
     def describe(self):
         pprint(vars(self))
+
+    def print_signals(self, names=(('input','input'), ('output', 'output'))):
+        "Debugging: print input and output signals"
+        print(self, "signals:")
+        signal_map = {
+            'input': self.port_to_optical_signal_power_in,
+            'output': self.port_to_optical_signal_power_out}
+        for direction, name in names:
+            port_signals = signal_map[direction]
+            for port in sorted(port_signals):
+                signal_powers = port_signals[port]
+                if signal_powers:
+                    print(name, '%s:' % port, end=' ')
+                    for signal, power in signal_powers.items():
+                        print('%s@%.3f' % (signal, power), end=' ')
+                    print()
+
+
+    def __repr__(self):
+        "Human-readable representation"
+        return '%s' % self.name
 
 
 class LineTerminal(Node):
@@ -290,7 +327,9 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, wss_dict=None, voa_function=None, voa_target_out_power=None):
+    def __init__(self, name, wss_dict=None, voa_function='flatten',
+                 # FIXME: what should the default be?
+                 voa_target_out_power=3):
         """
         :param name:
         :param wss_dict:
@@ -460,6 +499,11 @@ class Roadm(Node):
         link = self.out_port_to_link[out_port]
         link.clean_optical_signals(optical_signals)
 
+    def delete_switch_rules(self):
+        "Delete all switching rules"
+        for ruleId in list(self.switch_table):
+            self.delete_switch_rule( ruleId )
+
     def insert_signals(self, in_port, optical_signals, accumulated_ASE_noise=None, accumulated_NLI_noise=None):
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(optical_signals)
@@ -594,9 +638,24 @@ class Roadm(Node):
             # Propagate signals through link and flag voa_compensation to avoid looping
             link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
 
+    def print_signals(self):
+        "Debugging: print input and output signals"
+        print(self, "signal paths:")
+        for inport in sorted(self.port_to_optical_signal_power_in):
+            inpowers = self.port_to_optical_signal_power_in[inport]
+            if inpowers:
+                for signal, inpower in inpowers.items():
+                    outport = self.signal_index_to_out_port.get((inport, signal.index), None)
+                    print('%d:%s*%.3f' % (inport, signal, inpower), '->', end=' ')
+                    if outport is not None:
+                        outpowers = self.port_to_optical_signal_power_out.get(outport, {})
+                        outpower = outpowers.get(signal, float('nan'))
+                        print('%d:%s*%.3f' % (outport, signal, outpower))
+                    else:
+                        print('***DROP***')
 
-description_files_dir = \
-    'description-files/'
+
+description_files_dir = 'description-files/'
 description_files = {'linear': 'linear.txt'}
 
 
@@ -782,6 +841,10 @@ class Amplifier(Node):
     def mock_amp_gain_adjust(self, new_gain):
         self.target_gain = new_gain
         self.system_gain = new_gain
+
+    def __repr__(self):
+        "String representation"
+        return '<%s %.2fdB>' % (self.name, self.target_gain)
 
 
 class Monitor(Node):
