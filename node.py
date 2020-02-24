@@ -67,11 +67,11 @@ class Node(object):
         :return: new output port
         """
         if portnum is not None:
-            assert portnum not in self.port_to_node_out
+            assert portnum not in self.ports_out
             new_output_port = portnum
         else:
-            if len(self.port_to_node_in) > 0:
-                new_output_port = max(self.port_to_node_out.keys()) + 1
+            if self.ports_out:
+                new_output_port = max(self.ports_out) + 1
             else:
                 new_output_port = self.output_port_base
         # Enable discovery of output ports
@@ -92,11 +92,11 @@ class Node(object):
         :return: new input port
         """
         if portnum is not None:
-            assert portnum not in self.port_to_node_in
+            assert portnum not in self.ports_in
             new_input_port = portnum
         else:
-            if len(self.port_to_node_in) > 0:
-                new_input_port = max(self.port_to_node_in.keys()) + 1
+            if self.ports_in:
+                new_input_port = max(self.ports_in) + 1
             else:
                 new_input_port = self.input_port_base
         # Enable discovery of input ports

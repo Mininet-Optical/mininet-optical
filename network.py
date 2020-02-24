@@ -107,13 +107,9 @@ class Network(object):
         :param boost_amp: optional amplifier object for boost_amplification
         :return: created and added link
         """
-        if ports is None:
-            node1_output_port = node1.new_output_port(node2)
-            node2_input_port = node2.new_input_port(node1)
-        else:
-            node1_output_port = ports['node1_output_port']
-            node2_input_port = ports['node2_input_port']
-
+        ports = ports or {}
+        node1_output_port = ports.get('node1_output_port')
+        node2_input_port = ports.get('node2_input_port')
         link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp,
                     spans=spans)
         node1.out_port_to_link[node1_output_port] = link
