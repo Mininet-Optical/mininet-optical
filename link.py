@@ -152,7 +152,7 @@ class Link(object):
 
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
-            if not voa_compensation:
+            if voa_compensation:
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
                 prev_roadm.voa_reconf(self, output_power_dict, self.output_port_node1,

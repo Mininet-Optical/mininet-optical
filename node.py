@@ -302,9 +302,9 @@ class Roadm(Node):
         self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
 
         self.voa_attenuation = db_to_abs(3)
-        self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
         self.voa_function = voa_function
         self.voa_target_out_power = None
+        self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
 
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict (port, signal_index) to output port in ROADM
@@ -321,13 +321,19 @@ class Roadm(Node):
         :param voa_target_out_power: float
         :return: True VOA reconf False otherwise
         """
+        if voa_target_out_power is not None:
+            # This check is to avoid pythonic-responses
+            # if voa_target_out_power is set to zero
+            voa_target_out_power = db_to_abs(voa_target_out_power)
+            self.voa_target_out_power = voa_target_out_power
         try:
-            assert all([voa_function, voa_target_out_power]) or not any([voa_function, voa_target_out_power])
+            err_msg = "Roadm.voa_safety_check: inconsistent declaration of VOA params."
+            # Either both are passed or None
+            assert all([voa_function, voa_target_out_power]) or \
+                   all(x is None for x in [voa_function, voa_target_out_power]), err_msg
         except AssertionError as err:
-            print("Roadm.voa_safety_check: inconsistent declaration of VOA params.")
             raise err
         if all([voa_function, voa_target_out_power]):
-            self.voa_target_out_power = db_to_abs(voa_target_out_power)
             return True
         return False
 
@@ -586,12 +592,14 @@ class Roadm(Node):
             nli = accumulated_NLI_noise.copy()
             link.reset_propagation_struct()
             # Propagate signals through link and flag voa_compensation to avoid looping
-            link.propagate(pass_through_signals, ase, nli, voa_compensation=True)
+            link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
 
 
 description_files_dir = \
     'description-files/'
 description_files = {'linear': 'linear.txt'}
+
+
 # description_files = {'wdg1': 'wdg2.txt'}
 # 'wdg2': 'wdg2.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
@@ -721,7 +729,7 @@ class Amplifier(Node):
         gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
                                                                     optical_signal.frequency *
-                                                                    self.bandwidth * (gain_linear-1) * 1000)
+                                                                    self.bandwidth * (gain_linear - 1) * 1000)
         self.ase_noise[optical_signal] = ase_noise
 
     def compute_power_excursions(self):
