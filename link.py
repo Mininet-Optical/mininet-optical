@@ -110,21 +110,20 @@ class Link(object):
                 amplifier.clean_optical_signals(optical_signals)
 
     def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
-                  voa_compensation=False, voa_function=None):
+                  voa_compensation=False):
         """
         Propagate the signals across the link
         :param pass_through_signals:
         :param accumulated_ASE_noise:
         :param accumulated_NLI_noise:
         :param voa_compensation:
-        :param voa_function:
         :return:
         """
         # Set output signals from node to input of the link
         for optical_signal, power in pass_through_signals.items():
             self.optical_signal_power_in[optical_signal] = power
 
-        if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
+        if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
             # use is instance instead of checking the class
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
@@ -133,7 +132,7 @@ class Link(object):
                                           self.accumulated_ASE_noise, self.accumulated_NLI_noise)
                 self.node2.switch(self.input_port_node2)
 
-    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation, voa_function):
+    def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
         """
         Compute the propagation of signals over this link
         :return:
@@ -153,7 +152,7 @@ class Link(object):
 
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
-            if not voa_compensation and voa_function:
+            if not voa_compensation:
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
                 prev_roadm.voa_reconf(self, output_power_dict, input_power_dict, self.boost_amp.system_gain,

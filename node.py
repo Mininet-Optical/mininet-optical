@@ -290,7 +290,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, wss_dict=None, voa_function=None):
+    def __init__(self, name, wss_dict=None, voa_function=None, voa_target_out_power=None):
         """
         :param name:
         :param wss_dict:
@@ -302,7 +302,9 @@ class Roadm(Node):
         self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
 
         self.voa_attenuation = db_to_abs(3)
+        self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
         self.voa_function = voa_function
+        self.voa_target_out_power = None
 
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict (port, signal_index) to output port in ROADM
@@ -311,6 +313,23 @@ class Roadm(Node):
         self.port_to_optical_signal_nli_noise_in = {}
         self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
+
+    def voa_safety_check(self, voa_function, voa_target_out_power):
+        """
+        Safety check for the declaration of VOA reconfiguration parameters
+        :param voa_function: string (i.e., 'flatten')
+        :param voa_target_out_power: float
+        :return: True VOA reconf False otherwise
+        """
+        try:
+            assert all([voa_function, voa_target_out_power]) or not any([voa_function, voa_target_out_power])
+        except AssertionError as err:
+            print("Roadm.voa_safety_check: inconsistent declaration of VOA params.")
+            raise err
+        if all([voa_function, voa_target_out_power]):
+            self.voa_target_out_power = db_to_abs(voa_target_out_power)
+            return True
+        return False
 
     def unpack_wss_dict(self, wss_dict):
         """
@@ -507,13 +526,9 @@ class Roadm(Node):
                 nli = self.port_to_optical_signal_nli_noise_out[op].copy()
             else:
                 nli = self.port_to_optical_signal_nli_noise_in[in_port].copy()
-            if self.voa_function:
-                voa_compensation = False
-            else:
-                voa_compensation = True
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli,
-                           voa_compensation=voa_compensation, voa_function=self.voa_function)
+                           voa_compensation=self.voa_compensation)
 
     def get_node_attenuation(self, in_port):
         """
