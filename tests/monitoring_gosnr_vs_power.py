@@ -9,7 +9,7 @@ import matplotlib.font_manager
 # del matplotlib.font_manager.weight_dict['roman']
 # matplotlib.font_manager._rebuild()
 
-plt.rcParams["font.family"] = "Times New Roman"
+# plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
 
 

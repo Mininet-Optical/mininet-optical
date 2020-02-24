@@ -81,7 +81,7 @@ class Network(object):
         self.topology[roadm] = []
         return roadm
 
-    def add_amplifier(self, name, amplifier_type, **params):
+    def add_amplifier(self, name, amplifier_type='EDFA', **params):
         """
         Add an Amplifier node.
         :param name: name of Amplifier
@@ -98,7 +98,7 @@ class Network(object):
         self.amplifiers.append(amplifier)
         return amplifier
 
-    def add_link(self, node1, node2, ports=None, boost_amp=None):
+    def add_link(self, node1, node2, ports=None, boost_amp=None, spans=None):
         """
         Add a uni-directional link
         :param node1: source node in link
@@ -114,13 +114,15 @@ class Network(object):
             node1_output_port = ports['node1_output_port']
             node2_input_port = ports['node2_input_port']
 
-        link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp)
+        link = Link(node1, node2, node1_output_port, node2_input_port, boost_amp=boost_amp,
+                    spans=spans)
         node1.out_port_to_link[node1_output_port] = link
         self.links.append(link)
         self.topology[node1].append((node2, link))
         return link
 
-    def add_monitor(self, name, link, span, amplifier):
+    def add_monitor(self, name, link=None, span=None, amplifier=None):
+        assert link or span or amplifier
         monitor = Monitor(name, link, span, amplifier)
         self.name_to_node[name] = monitor
 
@@ -239,3 +241,91 @@ class Network(object):
 
     def describe(self):
         pprint(vars(self))
+
+    # ADDITIONS FOR OFC DEMO USE-CASES
+    def mock_nf_adjust(self, amp_name, new_nf, src_roadm_name, dst_roadm_name):
+        """
+        Note: contains hard-coded features due to the lack of OO-design with regard
+        to the Link, Spans and EDFAs. For the demo there's no time to change it,
+        but it can certainly be improved in the future.
+        :param amp_name: string
+        :param new_nf: float (dB)
+        :param src_roadm_name:
+        :param dst_roadm_name:
+        :return:
+        """
+        print("*** net.mock_nf_adjust start...")
+        if amp_name not in self.name_to_node:
+            print("*** net.mock_nf_adjust  amplifier name not found!")
+            return
+        if src_roadm_name not in self.name_to_node or dst_roadm_name not in self.name_to_node:
+            print("*** net.mock_nf_adjust  roadm name not found!")
+            return
+        amp = self.name_to_node[amp_name]
+        # Assign new NF to amplifier
+        amp.mock_nf_adjust(new_nf)
+
+        # retrieve ROADM objects
+        src_roadm = self.name_to_node[src_roadm_name]
+        dst_roadm = self.name_to_node[dst_roadm_name]
+        # find link between nodes
+        l = self.find_link_from_nodes(src_roadm, dst_roadm)
+        # reset the signal-propagation structures along the link
+        l.reset_propagation_struct()
+        op = self.find_out_port_from_link(l)
+        # Pass only the signals corresponding to the output port
+        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
+        ase = {}
+        nli = {}
+        print("*** Recomputing propagation out of %s" % src_roadm_name)
+        l.propagate(pass_through_signals, ase, nli)
+
+        print("*** net.mock_nf_adjust end...")
+
+    def mock_amp_gain_adjust(self, amp_name, new_gain, src_roadm_name, dst_roadm_name):
+        """
+        Note: contains hard-coded features due to the lack of OO-design with regard
+        to the Link, Spans and EDFAs. For the demo there's no time to change it,
+        but it can certainly be improved in the future.
+        :param amp_name: string
+        :param new_nf: float (dB)
+        :param src_roadm_name:
+        :param dst_roadm_name:
+        :return:
+        """
+        print("*** net.mock_nf_adjust start...")
+        if amp_name not in self.name_to_node:
+            print("*** net.mock_nf_adjust  amplifier name not found!")
+            return
+        if src_roadm_name not in self.name_to_node or dst_roadm_name not in self.name_to_node:
+            print("*** net.mock_nf_adjust  roadm name not found!")
+            return
+        amp = self.name_to_node[amp_name]
+        # Assign new NF to amplifier
+        amp.mock_amp_gain_adjust(new_gain)
+
+        # retrieve ROADM objects
+        src_roadm = self.name_to_node[src_roadm_name]
+        dst_roadm = self.name_to_node[dst_roadm_name]
+        # find link between nodes
+        l = self.find_link_from_nodes(src_roadm, dst_roadm)
+        # reset the signal-propagation structures along the link
+        l.reset_propagation_struct()
+        op = self.find_out_port_from_link(l)
+        # Pass only the signals corresponding to the output port
+        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
+        ase = {}
+        nli = {}
+        print("*** Recomputing propagation out of %s" % src_roadm_name)
+        l.propagate(pass_through_signals, ase, nli)
+
+        print("*** net.mock_nf_adjust end...")
+
+    def find_link_from_nodes(self, src_node, dst_node):
+        for l in self.links:
+            if l.node1 == src_node and l.node2 == dst_node:
+                return l
+
+    @staticmethod
+    def find_out_port_from_link(l):
+        return l.output_port_node1
