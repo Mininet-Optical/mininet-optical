@@ -17,9 +17,9 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(7, 6), dpi=256)
-# del matplotlib.font_manager.weight_dict['roman']
-# matplotlib.font_manager._rebuild()
+figure(num=None, figsize=(7, 5), dpi=256)
+del matplotlib.font_manager.weight_dict['roman']
+matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
@@ -31,10 +31,11 @@ gosnr_mean_rmse_81 = []
 osnr_mean_rmse_81 = []
 
 file_id = 0
-while file_id <= 69:
+while file_id <= 95:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    directory = '../opm-sim/' + opm
+    mon = 'no-m/'
+    directory = '../opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
     osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
@@ -55,7 +56,7 @@ while file_id <= 69:
                     else:
                         gosnrs[k].append(element[k])
 
-    qot_directory = '../opm-sim-qot/' + opm
+    qot_directory = '../opm-sim-qot-' + mon + opm
     qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
     qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
@@ -90,13 +91,13 @@ while file_id <= 69:
         osnr_27_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
     osnr_mean_rmse_27.append(np.median(osnr_27_rmse))
 
-    # gosnrs_54 = gosnrs['gosnr_load_54']
-    # qot_gosnrs_54 = qot_gosnrs['gosnr_load_qot_54']
-    #
-    # gosnr_54_rmse = []
-    # for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
-    #     gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    # gosnr_mean_rmse_54.append(np.mean(gosnr_54_rmse))
+    gosnrs_54 = gosnrs['gosnr_load_54']
+    qot_gosnrs_54 = qot_gosnrs['gosnr_load_qot_54']
+
+    gosnr_54_rmse = []
+    for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
+        gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    gosnr_mean_rmse_54.append(np.mean(gosnr_54_rmse))
 
     gosnrs_81 = gosnrs['gosnr_load_81']
     qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
@@ -125,14 +126,15 @@ while file_id <= 69:
 
 # plt.plot(osnr_mean_rmse_27, color='b', marker='s', markerfacecolor='None')
 # plt.plot(osnr_mean_rmse_81, color='r', marker='D', markerfacecolor='None')
-# plt.xticks(range(0, 8), range(1, 9))
-plt.title("OSNR QoT-E without corrections")
-plt.ylabel("Mean RMSE (dB) of QoT-E of all channels")
+plt.xticks(np.arange(0, 100, 10))
+plt.yticks(np.arange(0, 7, 0.5))
+# plt.title("OSNR QoT-E without corrections")
+plt.ylabel("Mean RMSE (dB) of controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
 plt.plot(gosnr_mean_rmse_27, linestyle='None', marker='s', markerfacecolor='None', color='b', label='30% ch-load')
-# plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markerfacecolor='None', color='y')
+plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markerfacecolor='None', color='y', label='60% ch-load')
 plt.plot(gosnr_mean_rmse_81, linestyle='None', marker='D', markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
-# plt.savefig('../generic_plot.eps', format='eps')
 plt.grid(True)
-plt.show()
+plt.savefig('../generic_plot.eps', format='eps')
+# plt.show()

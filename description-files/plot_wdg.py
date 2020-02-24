@@ -16,9 +16,9 @@ with open('wdg2_yeo_johnson.txt') as f:
     content = f.readlines()
 # you may also want to remove whitespace characters like `\n` at the end of each line
 content = [float(x) for x in content]
-plt.plot(content, color='k')
+plt.plot(content, color='k', linewidth=9)
 plt.xlabel("Channel index")
-plt.ylabel("Ripple Gain (dB)")
+plt.ylabel("Wavelength-Dependent Gain (dB)")
 plt.xticks(np.arange(0, 100, 10))
 plt.yticks(np.arange(-0.5, 0.6, 0.1))
 plt.savefig('wdg2_yeo_johnson.eps', format='eps')

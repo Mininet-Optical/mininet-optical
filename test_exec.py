@@ -7,6 +7,8 @@
 
 # import tests.monitoring_4_hop_transmission
 # import tests.monitoring_multiple_hop_transmission
+import tests.analysis_multi_opm
+# import tests.analysis_multihop_multi_opm
 # import tests.monitoring_power_noise_roadm
 # import tests.monitoring_nli_noise
 # import tests.update_rule_roadm

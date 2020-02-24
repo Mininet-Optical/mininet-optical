@@ -5,9 +5,9 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(7, 6), dpi=256)
-# del matplotlib.font_manager.weight_dict['roman']
-# matplotlib.font_manager._rebuild()
+figure(num=None, figsize=(7, 6), dpi=256)
+del matplotlib.font_manager.weight_dict['roman']
+matplotlib.font_manager._rebuild()
 
 # plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
@@ -37,7 +37,8 @@ plotting_gosnr = []
 plotting_theo = []
 
 for p in power_levels:
-    print("*** Building Linear network topology for operational power: %s" % p)
+    # print("*** Building Linear network topology for operational power: %s" % p)
+    print("*** Building Linear network topology..." % p)
     net = LinearTopology.build(op=p, non=5)
 
     lt_1 = net.name_to_node['lt_1']
@@ -68,7 +69,7 @@ for p in power_levels:
     resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
     net.transmit(lt_1, roadm_1, resources=resources)
 
-    print("*** Monitoring interfaces")
+    print("*** Monitoring interfaces...")
     osnrs = {i: [] for i in range(1, 17)}
     gosnrs = {i: [] for i in range(1, 17)}
 
@@ -97,8 +98,15 @@ for p in power_levels:
     plotting_gosnr.append(gosnr_c46)
 
     an_osnr = []
+    c = 0
+    i = 0
     for s in range(16):
-        t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
+        if i is 4 or i is 8 or i is 12:
+            t_osnr = c
+        else:
+            t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
+            c = t_osnr
+        i += 1
         an_osnr.append(t_osnr)
     plotting_theo.append(an_osnr)
 
@@ -107,14 +115,16 @@ for p in power_levels:
     del osnrs
     del gosnrs
 
-colors = ['r', 'g', 'b', 'y', 'k']
+colors = ['r', 'g', 'k', 'grey', 'silver']
+markers = ['o', 's', 'D']
 op = list(np.arange(-4, 6, 2)[::-1])
 for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
-    l = 'Launch power: ' + str(op.pop()) + 'dBm'
+    l = 'Tx launch power: ' + str(op.pop()) + 'dBm'
     c = colors.pop()
-    plt.plot(o, marker='o', color=c)
-    plt.plot(g, '--', marker='x', color=c, label=l, linewidth=2)
-    plt.plot(o, marker='v', color='r')
+    m = markers.pop()
+    plt.plot(o, markeredgewidth=3, marker=m, markersize=9, color=c, label=l)
+    plt.plot(g, '--', markeredgewidth=3, marker=m, markersize=9, markerfacecolor='None', color=c)  # , label=l)
+    plt.plot(a, linestyle='None', marker=m, markersize=6, color='r', markerfacecolor='None')
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
@@ -130,5 +140,25 @@ for i in range(17):
 plt.xticks(np.arange(16))
 plt.legend(loc=1)
 plt.grid(True)
-# plt.savefig('../gosnr_vs_power.eps', format='eps')
-plt.show()
+# for i in range(2):
+#     if i is 0:
+#         axs[i].set_ylabel("OSNR(dB)")
+#         plt.setp(axs[i].get_xticklabels(), visible=False)
+#         axs[i].tick_params(axis='x', which='both', length=0)
+#     else:
+#         axs[i].set_ylabel("gOSNR (dB)")
+#         axs[i].set_xlabel("Spans and hops")
+#     ticks = []
+#     s = 0
+#     for j in range(17):
+#         ticks.append(s)
+#         if j == 5 or j == 11:
+#             continue
+#         else:
+#             s += 8
+#     axs[i].set_xticks(np.arange(16))
+#     axs[i].set_yticks(np.arange(12, 50, 6))
+#     axs[i].legend(loc=1, prop={'size': 14})
+#     axs[i].grid(True)
+plt.savefig('../gosnr_vs_power.eps', format='eps')
+# plt.show()
