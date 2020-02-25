@@ -10,9 +10,49 @@ GNMI or Netconf rather than REST.
 """
 
 import requests
+# just in case we ever need python 2
+from subprocess import check_call, CalledProcessError
 
 
-class TerminalProxy( object ):
+### Proxy Objects
+
+class Proxy( object ):
+    "Base proxy class"
+
+    def __repr__( self ):
+        return self.name
+
+
+ListenPortBase = 6653
+
+class OVSProxy( Proxy ):
+    "Local proxy for Open vSwitch configuration via OpenFlow"
+
+    listenPort = ListenPortBase
+
+    def __init__( self, name, ip='127.0.0.1', port=None):
+        self.ip = ip
+        self.name = name
+        if port is None:
+            OVSProxy.listenPort += 1
+            port = OVSProxy.listenPort
+        self.port = port
+        self.remote = 'tcp:%s:%d' % (ip, port)
+
+    def dpctl( self, cmd, params='', verbose=False):
+        "Send OpenFlow command to OvS"
+        if verbose:
+            print( self, cmd, params )
+        params = params.split()
+        args = ['ovs-ofctl', cmd, self.remote] + params
+        try:
+            check_call( args )
+        except CalledProcessError as exc:
+            print( '%s %s %s returned %d' % (
+                self, cmd, params, exc.returncode ) )
+
+
+class TerminalProxy( Proxy ):
     "Local proxy for Terminal/transceiver configuration via REST"
 
     def __init__( self, name ):
@@ -27,7 +67,7 @@ class TerminalProxy( object ):
         print(r)
 
 
-class ROADMProxy( object ):
+class ROADMProxy( Proxy ):
     "Local proxy for ROADM configuration via REST"
 
     def __init__( self, name ):
@@ -43,6 +83,8 @@ class ROADMProxy( object ):
         print(r)
 
 
+### Configuration Retrieval
+
 def fetchNodes():
     "Fetch node list using REST"
     print( '*** Fetching node list' )
@@ -54,9 +96,36 @@ def fetchRules( nodes=['r1','r2','r3'] ):
     "Fetch ROADM rules using REST"
     print( '*** Fetching ROADM rules' )
     for node in nodes:
-        r = requests.get( 'http://localhost:8080/rules', params=dict(node=node) )
+        r = requests.get( 'http://localhost:8080/rules',
+                          params=dict(node=node) )
         print( '***', node, 'rules:')
         print( r.json() )
+
+
+### Control Plane Configuration
+
+def configureRouters():
+    "Configure Open vSwitch 'routers' using OpenFlow"
+
+    print( "*** Configuring Open vSwitch 'routers' remotely... " )
+
+    # Port numbering
+    eth1, eth2, eth3 = 1, 2, 3
+
+    # Configure routers
+    # eth0: local, eth1: dest1, eth2: dest2
+    routers = s1, s2, s3 = [ OVSProxy( s ) for s in  ('s1', 's2', 's3') ]
+    subnets = { s: '10.%d.0.0/24' % pop
+                for pop, s in enumerate(routers, start=1) }
+    for pop, dests in enumerate([(s2,s3), (s1, s3), (s1,s2)], start=1):
+        router, dest1, dest2 = routers[ pop - 1], dests[0], dests[1]
+        print( 'Configuring', router, 'at', router.remote, 'via OpenFlow...' )
+        router.dpctl( 'del-flows' )
+        for eth, dest in enumerate( [ dest1, dest2, router ], start=1 ) :
+            for protocol in 'ip', 'icmp', 'arp':
+                flow = ( protocol + ',ip_dst=' + subnets[dest]+
+                         ',actions=dec_ttl,output:%d' % eth )
+                router.dpctl( 'add-flow', flow )
 
 
 def configureTransceivers():
@@ -106,6 +175,7 @@ def configureROADMs():
 
 if __name__ == '__main__':
     fetchNodes()
+    configureRouters()
     configureTransceivers()
     configureROADMs()
     print( '*** Done.' )

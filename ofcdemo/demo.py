@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 """
-
 demo.py: demonstrate physical/dataplane/control plane emulation
 
 Note: this prototype is not yet complete
@@ -12,12 +11,10 @@ Note: this prototype is not yet complete
 - controller is python script and not ONOS (yet)
 - no ONOS CLI yet
 - no topology visualization in ONOS GUI (yet)
-
 """
 
-
 from dataplane import ROADM, Terminal
-from demolib import LinearRoadmTopo, configureLinearNet, CLI
+from demolib import LinearRoadmTopo, CLI
 from rest import RestServer
 
 from mininet.topo import SingleSwitchTopo
@@ -29,12 +26,9 @@ if __name__ == '__main__':
 
     cleanup()
     setLogLevel( 'info' )
-    net = Mininet( topo=LinearRoadmTopo() )
+    net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True )
     restServer = RestServer( net )
     net.start()
-    # Only configure packet network directly!
-    # Optical network will be configured remotely.
-    configureLinearNet( net, packetOnly=True )
     restServer.start()
     CLI( net )
     restServer.stop()
