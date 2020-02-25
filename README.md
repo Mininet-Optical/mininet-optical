@@ -1,4 +1,4 @@
-### Mininet-Optical
+### Mininet-Optical Prototype and Demo
 
 This is a prototype implementation of an emulator for packet optical software-defined networks.
 
