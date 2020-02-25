@@ -14,13 +14,15 @@ from dataplane import ( Terminal, ROADM, OpticalLink,
                         dbM, km,
                         cleanOptLinks )
 
-from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
-from mininet.examples.linuxrouter import LinuxRouter
 from mininet.clean import cleanup
 from mininet.cli import CLI
+from mininet.net import Mininet
 
+
+# Routers start listening at 6654
+ListenPortBase = 6653
 
 class OpticalCLI( CLI ):
     "Extend CLI with ring network routing commands"
@@ -64,28 +66,36 @@ class LinearRoadmTopo( Topo ):
         "Return a local IP address or subnet for the given POP"
         return template % ( pop, intfnum ) + subnet
 
-    def buildPop( self, p ):
+    def wdmLink( self, *args, **kwargs ):
+        "Convenience function to add an OpticalLink"
+        kwargs.update(cls=OpticalLink)
+        self.addLink( *args, **kwargs )
+
+    def ethLink( self, *args, **kwargs ):
+        "Clarifying alias for addLink"
+        self.addLink( *args, **kwargs )
+
+    def buildPop( self, p, txCount=2 ):
         "Build a POP; returns: ROADM"
         # Network elements
-        hostip, routerip, subnet = self.ip(p, 2), self.ip(p, 1), self.ip(p, 0)
-        gateway = self.ip(p, 1, subnet='')
-        host = self.addHost(
-            'h%d' % p, ip=hostip, defaultRoute='via ' + gateway )
-        router = self.addNode(
-            's%d' % p, cls=LinuxRouter, ip=routerip, subnet=subnet )
-        transceivers = [ (t, -2*dbM, 'C') for t in ('tx1', 'tx2') ]
+        hostname, hostip, subnet = 'h%d' % p, self.ip(p, 1), self.ip(p, 0)
+        host = self.addHost(hostname, ip=hostip,
+                            defaultRoute='dev ' + hostname + '-eth0' )
+        router = self.addSwitch('s%d' % p, subnet=subnet,
+                                listenPort=(ListenPortBase + p))
+        transceivers = [
+            ('t%d' %t, 0*dbM, 'C') for t in range(1, txCount+1) ]
         terminal = self.addSwitch(
             't%d' % p, cls=Terminal, transceivers=transceivers )
         roadm = self.addSwitch( 'r%d' % p,  cls=ROADM )
         # Local links
-        params1 = dict(ip=routerip, subnet=subnet)
-        eth0, eth1, eth2 = 0, 1, 2
+        eth1, eth2, eth3 = 1, 2, 3
         wdm1, wdm2, wdm3, wdm4 = 1, 2, 3, 4
-        self.addLink( host, router, port1=eth0, port2=eth0, params=params1 )
-        self.addLink( router, terminal, port1=eth1, port2=eth1 )
-        self.addLink( router, terminal, port1=eth2, port2=eth2 )
-        self.addLink( terminal, roadm, port1=wdm3, port2=wdm1, cls=OpticalLink )
-        self.addLink( terminal, roadm, port1=wdm4, port2=wdm2, cls=OpticalLink )
+        self.ethLink( router, terminal, port1=eth1, port2=eth1 )
+        self.ethLink( router, terminal, port1=eth2, port2=eth2 )
+        self.ethLink( router, host, port1=eth3 )
+        self.wdmLink( terminal, roadm, port1=wdm3, port2=wdm1 )
+        self.wdmLink( terminal, roadm, port1=wdm4, port2=wdm2 )
         # Return ROADM so we can link it to other POPs as needed
         return roadm
 
@@ -94,12 +104,11 @@ class LinearRoadmTopo( Topo ):
         roadms = [ self.buildPop( p ) for p in range( 1, n+1 ) ]
         # Inter-POP links
         for i in range( 0, n - 1 ):
-            self.addLink( roadms[i], roadms[i+1], cls=OpticalLink,
-                          spans=[50*km + i*25*km])
+            self.wdmLink( roadms[i], roadms[i+1], spans=[50*km + i*25*km])
 
 
 def configureLinearNet( net, packetOnly=False ):
-    """Configure linear network
+    """Configure linear network locally
        Channel usage:
        r1<->r2: 1
        r1<->r3: 2
@@ -108,30 +117,24 @@ def configureLinearNet( net, packetOnly=False ):
     info( '*** Configuring linear network \n' )
 
     # Port numbering
-    eth0, eth1, eth2 = 0, 1, 2
+    eth1, eth2, eth3 = 1, 2, 3
     wdm1, wdm2, wdm3, wdm4 = 1, 2, 3, 4
 
-    # Configure routers - IP routing is painful
+    # Configure routers
+    # eth0: local, eth1: dest1, eth2: dest2
     routers = s1, s2, s3 = net.get( 's1', 's2', 's3' )
     for pop, dests in enumerate([(s2,s3), (s1, s3), (s1,s2)], start=1):
-        # Start from scratch for clarity
-        router = routers[ pop - 1]
-        router.cmd( 'ip route flush table main' )
-        # Local subnet: eth0
-        ip, subnet = router.IP(), router.params[ 'subnet' ]
-        router.cmd( 'ip route add', subnet, 'dev', router.intfs[eth0] )
-        # Remote subnets: eth1, eth2
-        dest1, dest2 = dests
-        subnet1, subnet2 = dest1.params[ 'subnet' ], dest2.params[ 'subnet' ]
-        router.cmd('ip route add', dest1.IP(), 'dev', router.intfs[eth1] )
-        router.cmd('ip route add', subnet1, 'via', dest1.IP() )
-        router.cmd('ip route add', dest2.IP(), 'dev', router.intfs[eth2] )
-        router.cmd('ip route add', subnet2, 'via', dest2.IP() )
-
-    # Don't configure optical elements; they will be configured remotely
-    assert packetOnly
-    if packetOnly:
-        return
+        router, dest1, dest2 = routers[ pop - 1], dests[0], dests[1]
+        # XXX Only one host for now
+        hostmac = net.get( 'h%d' % pop).MAC()
+        router.dpctl( 'del-flows' )
+        for eth, dest in enumerate( [ dest1, dest2, router ], start=1 ) :
+            dstmod = ( 'mod_dl_dst=%s,' % hostmac ) if dest == router else ''
+            for protocol in 'ip', 'icmp', 'arp':
+                flow = ( protocol + ',ip_dst=' + dest.params['subnet'] +
+                         'actions=' +  dstmod +
+                         'dec_ttl,output:%d' % eth )
+                router.dpctl( 'add-flow', flow )
 
     # Configure transceivers
     t1, t2, t3 = net.get( 't1', 't2', 't3' )
@@ -159,8 +162,8 @@ def configureLinearNet( net, packetOnly=False ):
     r3.connect( port1=local1, port2=line1, channels=[2] )
     r3.connect( port1=local2, port2=line1, channels=[1] )
 
-    for roadm in r1, r2, r3:
-        roadm.propagate()
+    #for roadm in r1, r2, r3:
+    # roadm.propagate()
 
 
 def linearRoadmTest():
@@ -174,8 +177,59 @@ def linearRoadmTest():
     net.stop()
 
 
-### TODO: OFC Demo Topology
+### OFC Demo Topology
 
-class DemoTopo( Topo ):
-    "Demo Topology"
-    pass
+class DemoTopo( LinearRoadmTopo ):
+    """OFC Demo Topology
+
+       This network consists of a ring of six POPs
+       with two cross-connections.
+
+             POP2 -- POP3
+            /  |      |  \
+           /   |      |   \
+       POP1    |      |    POP4
+           \   |      |   /
+            \  |      |  /
+             POP6 -- POP5
+
+       All of the links are bidirectional.
+
+      Each POP consists of a host, router, optical terminal, and ROADM:
+
+       h1 - s1 - t1 - r1
+       h2 - s2 - t2 - r2
+       etc.
+    """
+
+    @staticmethod
+    def spans( prefix, index, spanLength=50*km, spanCount=4 ):
+        """Return a list of [spanLength, amp name, ...]
+           the amplifiers are named {name}{index}-ampN"""
+        entries = [ [ spanLength, prefix + '%d-amp%d' % (index, j) ]
+                      for j in range(1, spanCount+1) ]
+        return sum( entries, [] )
+
+    def build( self, n=6 ):
+        "Add POPs and connect them in a ring with some cross-connects"
+
+        # Add POPs
+        roadms = [ self.buildPop( p, txCount=n ) for p in range( 1, n+1 ) ]
+
+        # ROADM ring
+        for i in range( n ):
+            self.wdmLink( roadms[i], roadms[i-1], spans=self.spans( 'L', i ) )
+
+        # Cross-connects
+        for i in range( 0, int(n/2) ):
+            self.wdmLink( roadms[i], roadms[i-1], spans=self.spans( 'C', i ) )
+
+
+if __name__ == '__main__':
+
+    # Test our demo topology
+    cleanup()
+    setLogLevel( 'info' )
+    net = Mininet( topo=DemoTopo() )
+    net.start()
+    net.stop()
