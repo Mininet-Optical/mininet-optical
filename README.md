@@ -5,7 +5,7 @@ This is a prototype implementation of an emulator for packet optical software-de
 It includes:
 
 - a **simulator** for the transmission physics of optical networks, 
-  based on the Gaussian Noise (GN) model
+  based on the GN-model
 - an **emulated dataplane** that extends Mininet with optical network elements and links
 - a simple **control plane** for the emulated network elements
 
