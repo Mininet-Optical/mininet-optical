@@ -467,7 +467,9 @@ class Roadm(Node):
         link = self.out_port_to_link[out_port]
         link.clean_optical_signals(optical_signals)
 
-    def insert_signals(self, in_port, optical_signals, accumulated_ASE_noise=None, accumulated_NLI_noise=None):
+    def insert_signals(self, in_port, optical_signals, optical_signals_qot,
+                       accumulated_ASE_noise=None, accumulated_NLI_noise=None,
+                       accumulated_ASE_noise_qot=None, accumulated_NLI_noise_qot=None):
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(optical_signals)
         # if in_port not in self.port_to_optical_signal_ase_noise_in:
@@ -475,6 +477,14 @@ class Roadm(Node):
         self.port_to_optical_signal_ase_noise_in[in_port].update(accumulated_ASE_noise)
         self.port_to_optical_signal_nli_noise_in.setdefault(in_port, {})
         self.port_to_optical_signal_nli_noise_in[in_port].update(accumulated_NLI_noise)
+
+        # Update input port structure for monitoring purposes
+        self.port_to_optical_signal_power_in_qot[in_port].update(optical_signals_qot)
+        # if in_port not in self.port_to_optical_signal_ase_noise_in:
+        self.port_to_optical_signal_ase_noise_in_qot.setdefault(in_port, {})
+        self.port_to_optical_signal_ase_noise_in_qot[in_port].update(accumulated_ASE_noise_qot)
+        self.port_to_optical_signal_nli_noise_in_qot.setdefault(in_port, {})
+        self.port_to_optical_signal_nli_noise_in_qot[in_port].update(accumulated_NLI_noise_qot)
 
     def switch(self, in_port):
         """
@@ -582,17 +592,18 @@ class Roadm(Node):
                 nli = self.port_to_optical_signal_nli_noise_in[in_port].copy()
                 nli_qot = self.port_to_optical_signal_nli_noise_in_qot[in_port].copy()
             # Propagate signals through link
-            link.propagate(pass_through_signals, ase, nli,
-                           pass_through_signals_qot, ase_qot, nli_qot,
+            link.propagate(pass_through_signals, pass_through_signals_qot,
+                           ase, nli,
+                           ase_qot, nli_qot,
                            voa_compensation=self.voa_compensation)
 
-    def get_node_attenuation(self, link_signals):
+    def get_node_attenuation(self, in_port):
         """
         When switching, it computes the total node attenuation only
         for the signals passing through
         """
         node_attenuation = {}
-        for optical_signal, _ in link_signals.items():
+        for optical_signal, _ in self.port_to_optical_signal_power_in[in_port].items():
             wss_attenuation = 0.0
             wss_wd_attenuation = 0.0
             for wss_id, attenuation_tuple in self.wss_dict.items():
@@ -674,8 +685,9 @@ class Roadm(Node):
             nli_qot = accumulated_NLI_noise_qot.copy()
             link.reset_propagation_struct()
             # Propagate signals through link and flag voa_compensation to avoid looping
-            link.propagate(pass_through_signals, ase, nli,
-                           pass_through_signals_qot, ase_qot, nli_qot,
+            link.propagate(pass_through_signals, pass_through_signals_qot,
+                           ase, nli,
+                           ase_qot, nli_qot,
                            voa_compensation=False)
 
 
@@ -846,7 +858,6 @@ class Amplifier(Node):
         # Conversion from dB to linear
         system_gain_linear_qot = db_to_abs(system_gain_qot)
         wavelength_dependent_gain_linear_qot = db_to_abs(wavelength_dependent_gain_qot)
-
         output_power_qot = in_power * system_gain_linear_qot * wavelength_dependent_gain_linear_qot
         self.output_power_qot[signal] = output_power_qot
         return output_power_qot

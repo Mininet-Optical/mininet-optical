@@ -144,11 +144,10 @@ class Link(object):
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
                                     self.optical_signal_power_out_qot)
             else:
-                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out,
+                self.node2.insert_signals(self.input_port_node2,
+                                          self.optical_signal_power_out, self.optical_signal_power_out_qot,
                                           self.accumulated_ASE_noise, self.accumulated_NLI_noise,
-                                          self.optical_signal_power_out_qot,
-                                          self.accumulated_ASE_noise_qot, self.accumulated_NLI_noise_qot
-                                          )
+                                          self.accumulated_ASE_noise_qot, self.accumulated_NLI_noise_qot)
                 self.node2.switch(self.input_port_node2)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise,
@@ -344,6 +343,8 @@ class Link(object):
                 self.accumulated_ASE_noise.update(accumulated_ASE_noise)
             if accumulated_ASE_noise_qot:
                 self.accumulated_ASE_noise_qot.update(accumulated_ASE_noise_qot)
+
+        return True
 
     @staticmethod
     def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, accumulated_NLI_noise, span):
@@ -616,6 +617,48 @@ class Link(object):
             psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi
+
+    # ADDITIONS FOR OFC DEMO USE-CASES
+    def reset_propagation_struct(self):
+        # Link structures
+        self.optical_signal_power_in = {}
+        self.optical_signal_power_out = {}
+        self.nonlinear_interference_noise = {}
+        self.accumulated_ASE_noise = {}
+        self.accumulated_NLI_noise = {}
+
+        self.optical_signal_power_in_qot = {}
+        self.optical_signal_power_out_qot = {}
+        self.nonlinear_interference_noise_qot = {}
+        self.accumulated_ASE_noise_qot = {}
+        self.accumulated_NLI_noise_qot = {}
+
+        # Amplifiers' structures
+        if self.boost_amp:
+            self.boost_amp.input_power = {}  # dict of OpticalSignal to input power levels
+            self.boost_amp.output_power = {}
+            self.boost_amp.ase_noise = {}
+            self.boost_amp.nonlinear_noise = {}
+            self.boost_amp.system_gain = self.boost_amp.target_gain
+
+            self.boost_amp.input_power_qot = {}  # dict of OpticalSignal to input power levels
+            self.boost_amp.output_power_qot = {}
+            self.boost_amp.ase_noise_qot = {}
+            self.boost_amp.nonlinear_noise_qot = {}
+            self.boost_amp.system_gain_qot = self.boost_amp.target_gain
+        for span, amplifier in self.spans:
+            if amplifier:
+                amplifier.input_power = {}
+                amplifier.output_power = {}
+                amplifier.ase_noise = {}
+                amplifier.nonlinear_noise = {}
+                amplifier.system_gain = amplifier.target_gain
+
+                amplifier.input_power_qot = {}
+                amplifier.output_power_qot = {}
+                amplifier.ase_noise_qot = {}
+                amplifier.nonlinear_noise_qot = {}
+                amplifier.system_gain_qot = amplifier.target_gain
 
 
 class Span(object):
