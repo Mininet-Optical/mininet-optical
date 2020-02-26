@@ -21,12 +21,14 @@ from mininet.topo import SingleSwitchTopo
 from mininet.net import Mininet
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
+from mininet.node import RemoteController
 
 if __name__ == '__main__':
 
     cleanup()
     setLogLevel( 'info' )
-    net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True )
+    net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True,
+                   controller=RemoteController )
     restServer = RestServer( net )
     net.start()
     restServer.start()

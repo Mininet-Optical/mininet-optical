@@ -255,7 +255,6 @@ class ROADM( SwitchBase ):
         port2 = int( query.port2 )
         channels = [int(channel) for channel in query.channels.split(',')]
         params = dict(port1=port1, port2=port2, channels=channels)
-        print(self, 'connecting', params )
         self.connect( **params )
         return 'OK'
 

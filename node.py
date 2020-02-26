@@ -426,7 +426,6 @@ class Roadm(Node):
         for signal_index in signal_indices:
             self.signal_index_to_out_port[in_port, signal_index] = out_port
 
-        print(self.port_to_optical_signal_power_in[in_port])
         if len(self.port_to_optical_signal_power_in[in_port]) > 0:
             self.switch(in_port)
 
