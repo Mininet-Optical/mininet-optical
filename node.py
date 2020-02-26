@@ -294,6 +294,8 @@ class Transceiver(object):
 class OpticalSignal(object):
     spectrum_band_init_nm = {'C': 1529.2}
 
+    instances = {}
+
     def __init__(self, index, spectrum_band, channel_spacing,
                  symbol_rate, bits_per_symbol, data=None):
         self.index = index
@@ -315,6 +317,20 @@ class OpticalSignal(object):
         if self.index < 10:
             return '<0%d>' % self.index
         return '<%d>' % self.index
+
+    @classmethod
+    def getOpticalSignal(cls, index, spectrum_band, channel_spacing,
+                         symbol_rate, bits_per_symbol, data=None):
+        "Return a unique OpticalSignal instance"
+        params = (index, spectrum_band, channel_spacing,
+                  symbol_rate, bits_per_symbol, data)
+        signal = cls.instances.get(params)
+        if not signal:
+            signal = cls.instances[params] = cls(*params)
+        return signal
+
+# Replace class constructor with factory method
+OpticalSignal = OpticalSignal.getOpticalSignal
 
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
