@@ -1,14 +1,25 @@
 #!/usr/bin/python
 
 """
-Simple optical dataplane emulation
+dataplane.py: Simple dataplane emulation for mininet-optical
 
-We repurpose OvS to emulate optical line terminals
-and ROADMs, and we use TCLink to emulate delay
-on optical fiber spans.
+We repurpose OvS to emulate optical line terminals and ROADMs,
+and we use TCLink to emulate delay on optical fiber spans.
 
 For simplicity, we assume that the links and connections are
 full-duplex, and that transponders use thes ame tx and rx channels.
+
+Provides the following Mininet classes:
+
+Terminal:  A set of transceivers that can be connected to Ethernet
+          downlink ports.
+
+ROADM: A colorless, directionless ROADM.
+
+SimpleROADM: A 2-degree ROADM with two add/drop ports
+
+OpticalLink: a bidirectional optical link consisting of fiber
+             spans and amplifiers.
 
 """
 

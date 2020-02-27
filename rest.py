@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
 """
-
-   rest.py: Simple REST control plane for mininet-optical
-
+rest.py: Simple REST-based SDN control plane for mininet-optical
 """
 
 from wsgiref.simple_server import make_server, WSGIRequestHandler
@@ -36,7 +34,7 @@ Monitors
 @get( '/nodes' )
 def nodes():
     "Return list of nodes"
-    return dict( nodes=[str(node) for node in RestServer.net] )
+    return dict( nodes=[ str(node) for node in RestServer.net ] )
 
 
 def lookUpNode( node ):

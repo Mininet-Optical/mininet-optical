@@ -2,7 +2,7 @@
 
 """
 
-ofcdemolib.py: OFC Demo Topology and CLI
+demolib.py: OFC Demo Topology and CLI
 
 (Work in progress - currently we just have a test topology )
 
