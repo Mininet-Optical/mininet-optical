@@ -4,6 +4,11 @@
 
 fakecontroller.py: script to test REST API
 
+This is not intended to be a 'real' controller -
+it is an extremely simple set of proxy objects
+that make it easy to exercise the prototype
+SDN control REST API via python.
+
 The real controller will be ONOS, and it may use
 GNMI or Netconf rather than REST.
 
@@ -25,26 +30,26 @@ class Proxy( object ):
 
 ListenPortBase = 6653
 
-class OVSProxy( Proxy ):
-    "Local proxy for Open vSwitch configuration via OpenFlow"
+class OFSwitchProxy( Proxy ):
+    "Local proxy for OpenFlow switch configuration using ovs-ofctl"
 
     listenPort = ListenPortBase
 
     def __init__( self, name, ip='127.0.0.1', port=None):
-        self.ip = ip
         self.name = name
+        self.ip = ip
         if port is None:
-            OVSProxy.listenPort += 1
-            port = OVSProxy.listenPort
+            OFSwitchProxy.listenPort += 1
+            port = OFSwitchProxy.listenPort
         self.port = port
         self.remote = 'tcp:%s:%d' % (ip, port)
 
     def dpctl( self, cmd, params='', verbose=False):
-        "Send OpenFlow command to OvS"
+        "Invoke ovs-ofctl to program remote switch"
         if verbose:
             print( self, cmd, params )
         params = params.split()
-        args = ['ovs-ofctl', cmd, self.remote] + params
+        args = [ 'ovs-ofctl', cmd, self.remote ] + params
         try:
             check_call( args )
         except CalledProcessError as exc:
@@ -52,26 +57,32 @@ class OVSProxy( Proxy ):
                 self, cmd, params, exc.returncode ) )
 
 
-class TerminalProxy( Proxy ):
-    "Local proxy for Terminal/transceiver configuration via REST"
+class RESTProxy( Proxy ):
+    "Proxy for REST API objects/calls"
 
-    def __init__( self, name ):
+    def __init__( self, name=None, baseURL='http://localhost:8080/'):
         self.name = name
+        self.baseURL = baseURL
+
+    def get( self, path, params=None ):
+        "Make a REST request"
+        return requests.get( self.baseURL + path, params or {} )
+
+
+class TerminalProxy( RESTProxy ):
+    "Local proxy for Terminal/transceiver configuration via REST"
 
     def connect( self, ethPort, tx, wdmPort, channel ):
         "Configure terminal/transceiver"
         params = dict( node=self.name, ethPort=ethPort, tx=tx, wdmPort=wdmPort,
                        channel=channel)
         print('connect', params)
-        r = requests.get( 'http://localhost:8080/connect', params=params)
+        r = self.get( 'connect', params=params )
         print(r)
 
 
-class ROADMProxy( Proxy ):
+class ROADMProxy( RESTProxy ):
     "Local proxy for ROADM configuration via REST"
-
-    def __init__( self, name ):
-        self.name = name
 
     def connect( self, port1, port2, channels ):
         "Configure ROADM"
@@ -79,27 +90,30 @@ class ROADMProxy( Proxy ):
         params = dict(
             node=self.name, port1=port1, port2=port2, channels=channels )
         print('connect', params)
-        r = requests.get( 'http://localhost:8080/connect', params=params)
+        r = self.get( 'connect', params=params)
         print(r)
+
+    def rules( self ):
+        "Fetch ROADM rules"
+        r = self.get( 'rules', params=dict(node=self.name) )
+        return r.json()
 
 
 ### Configuration Retrieval
 
-def fetchNodes():
+
+def fetchNodes( net ):
     "Fetch node list using REST"
     print( '*** Fetching node list' )
-    r = requests.get( 'http://localhost:8080/nodes' )
-    print(r.json()['nodes'])
+    r = net.get( 'nodes' )
+    print( r.json()['nodes'] )
 
-
-def fetchRules( nodes=['r1','r2','r3'] ):
+def fetchRules( roadms ):
     "Fetch ROADM rules using REST"
     print( '*** Fetching ROADM rules' )
-    for node in nodes:
-        r = requests.get( 'http://localhost:8080/rules',
-                          params=dict(node=node) )
+    for roadm in roadms:
         print( '***', node, 'rules:')
-        print( r.json() )
+        print( r.rules() )
 
 
 ### Control Plane Configuration
@@ -114,7 +128,7 @@ def configureRouters():
 
     # Configure routers
     # eth0: local, eth1: dest1, eth2: dest2
-    routers = s1, s2, s3 = [ OVSProxy( s ) for s in  ('s1', 's2', 's3') ]
+    routers = s1, s2, s3 = [ OFSwitchProxy( s ) for s in  ('s1', 's2', 's3') ]
     subnets = { s: '10.%d.0.0/24' % pop
                 for pop, s in enumerate(routers, start=1) }
     for pop, dests in enumerate([(s2,s3), (s1, s3), (s1,s2)], start=1):
@@ -174,7 +188,8 @@ def configureROADMs():
 
 
 if __name__ == '__main__':
-    fetchNodes()
+    net = RESTProxy()
+    fetchNodes( net )
     configureRouters()
     configureTransceivers()
     configureROADMs()
