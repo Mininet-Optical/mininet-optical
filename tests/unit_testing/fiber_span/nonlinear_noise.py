@@ -245,3 +245,4 @@ if __name__ == '__main__':
         ord_nli_list.append(nn)
     # plot_list_osnr_sf([new_nli])
     plot_list_osnr_sf(ord_nli_list)
+
