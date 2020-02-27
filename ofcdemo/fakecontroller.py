@@ -66,7 +66,7 @@ class RESTProxy( Proxy ):
 
     def get( self, path, params=None ):
         "Make a REST request"
-        return requests.get( self.baseURL + path, params or {} )
+        return requests.get( self.baseURL + path, params=(params or {}) )
 
 
 class TerminalProxy( RESTProxy ):
