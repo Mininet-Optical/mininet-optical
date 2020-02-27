@@ -89,13 +89,12 @@ def gn_analytic(optical_signals, signal_power_progress, span):
         nonlinear_noise_struct[channel] = None
         channels_index.append(channel.index)
         index_to_signal[channel.index] = channel
+
     alpha = span.fibre_attenuation
-    # alpha = _alpha / (20 * math.log10(np.exp(1)))
     beta2 = span.dispersion_coefficient
-    # beta2 = (1550e-9 ** 2) * D / (2 * unit.pi * unit.c)
     gamma = span.non_linear_coefficient
     effective_length = span.effective_length
-    asymptotic_length = 1 / alpha
+    asymptotic_length = 1 / (2 * alpha)
 
     for optical_signal in optical_signals:
         channel_under_test = optical_signal.index
@@ -107,16 +106,15 @@ def gn_analytic(optical_signals, signal_power_progress, span):
         g_nli = 0
         for ch in optical_signals:
             symbol_rate_ch = ch.symbol_rate
-            bits_per_symbol_ch = ch.bits_per_symbol
             bw_ch = symbol_rate_ch
             pwr_ch = signal_power_progress[ch]
             g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-            g_nli += g_ch ** 2 * g_cut * _psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
+            g_nli += g_ch ** 2 * g_cut * my_psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
 
-        g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * unit.pi * abs(beta2) * asymptotic_length)
+        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2)
         signal_under_test = index_to_signal[channel_under_test]
-        nonlinear_noise_struct[signal_under_test] = bw_cut * g_nli  #
+        nonlinear_noise_struct[signal_under_test] = bw_cut * g_nli
 
     return nonlinear_noise_struct
 
@@ -135,11 +133,10 @@ def _psi(carrier, interfering_carrier, beta2, asymptotic_length):
         psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
     else:  # XCI, XPM
         delta_f = carrier.frequency - interfering_carrier.frequency
-        # denom = 4 * unit.pi * beta2 * asymptotic_length
         psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
-                         bw_cut * (delta_f + 0.5 * bw_ch)) # / denom
+                         bw_cut * (delta_f + 0.5 * bw_ch))
         psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
-                          bw_cut * (delta_f - 0.5 * bw_ch)) # / denom
+                          bw_cut * (delta_f - 0.5 * bw_ch)) / (4 * unit.pi * abs(beta2) * asymptotic_length)
     return psi
 
 
@@ -154,12 +151,13 @@ def my_psi(carrier, interfering_carrier, beta2, asymptotic_length):
     bw_ch = symbol_rate_ch
 
     if carrier.index == interfering_carrier.index:  # SCI, SPM
-        psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
+        psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2) / \
+              (2 * unit.pi * abs(beta2) * asymptotic_length)
     else:  # XCI, XPM
         delta_f = carrier.frequency - interfering_carrier.frequency
-        denom = 4 * unit.pi * abs(beta2) * asymptotic_length
-        psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f + bw_ch / 2) * bw_ch) / denom
-        psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f - bw_ch / 2) * bw_ch) / denom
+        div = 4 * unit.pi * abs(beta2) * asymptotic_length
+        psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f + bw_ch / 2) * bw_ch) / div
+        psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f - bw_ch / 2) * bw_ch) / div
     return psi
 
 
