@@ -61,7 +61,7 @@ net.transmit(lt1, roadm1, resources=resources)
 rw2 = channels3 + channels4 + channels5
 resources2 = {'transceiver': lt6.name_to_transceivers['t1'],
               'required_wavelengths': rw2}
-net.transmit(lt6, roadm6, resources=resources2)
+# net.transmit(lt6, roadm6, resources=resources2)
 
 
 # Monitoring nodes at the receiver-ends

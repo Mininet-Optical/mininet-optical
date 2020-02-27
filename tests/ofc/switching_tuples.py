@@ -50,6 +50,7 @@ class SwitchTuples:
         channels3 = list(np.arange(21, 31, 1))
         channels4 = list(np.arange(31, 41, 1))
         channels5 = list(np.arange(51, 61, 1))
+        channels4 += (list(np.arange(61, 80, 1)))
 
         # from line terminal to roadm2 and,
         # from roadm3 to line terminal
