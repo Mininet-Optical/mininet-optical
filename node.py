@@ -681,7 +681,7 @@ class Roadm(Node):
             ase = accumulated_ASE_noise.copy()
             nli = accumulated_NLI_noise.copy()
             pass_through_signals_qot = self.port_to_optical_signal_power_out_qot[out_port]
-            ase_qot = accumulated_ASE_noise.copy()
+            ase_qot = accumulated_ASE_noise_qot.copy()
             nli_qot = accumulated_NLI_noise_qot.copy()
             link.reset_propagation_struct()
             # Propagate signals through link and flag voa_compensation to avoid looping
@@ -693,10 +693,10 @@ class Roadm(Node):
 
 description_files_dir = 'description-files/'
 description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt',
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+# description_files = {'wdg1': 'wdg2.txt',
+#                      'wdg2': 'wdg2.txt'}
+                     # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -974,8 +974,9 @@ class Amplifier(Node):
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
             wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
             accumulated_NLI_noise[optical_signal] = \
-                nli_noise * db_to_abs(self.system_gain) * wavelength_dependent_gain
+                nli_noise * db_to_abs(self.system_gain)  # * wavelength_dependent_gain
         self.nonlinear_noise.update(accumulated_NLI_noise)
+        print(self.nonlinear_noise)
 
     def nli_compensation_qot(self, accumulated_NLI_noise):
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
@@ -1008,6 +1009,9 @@ class Monitor(Node):
         self.link = link
         self.span = span
         self.amplifier = amplifier
+
+    def get_nonlinear_interference(self):
+        return self.link.nonlinear_interference_noise
 
     def get_list_osnr(self):
         """

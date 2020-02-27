@@ -23,7 +23,8 @@ class LinearTopology:
 
         # Create ROADMs
         wss_dict = {1: (3, None), 2: (3, None)}
-        roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict, voa_function='flatten') for i in range(non)]
+        roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict,
+                                voa_function='flatten', voa_target_out_power=op) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
@@ -44,7 +45,7 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 3
+        span_no = 20
         tmp_qot_id = 1
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
@@ -52,7 +53,7 @@ class LinearTopology:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6, boost=True, constant_power=op,
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=9, boost=True,
                                           tmp_qot_id=tmp_qot_id)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
@@ -71,10 +72,10 @@ class LinearTopology:
             for sp in range(span_no):
                 # Iterate through number of spans in link
                 # span object
-                span = Span('SMF', 80)
+                span = Span('SMF', 100)
                 in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
 
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6, tmp_qot_id=tmp_qot_id)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=22.0, tmp_qot_id=tmp_qot_id)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
                 opm_l = opm_lab + us + str(opm_no + 1)  # label OPM
