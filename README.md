@@ -7,9 +7,9 @@ It includes:
 - a **simulator** for the transmission physics of optical networks, 
   based on the GN-model
 - an **emulated dataplane** that extends Mininet with optical network elements and links
-- a simple **control plane** for the emulated network elements
+- a simple **SDN control plane** for the emulated network elements
 
-The simulator may be used independently, or as part of the Mininet packet-optical network.
+The simulator may be used independently, or as part of a Mininet packet-optical network.
 
 This enables end-to-end emulation of a software-defined network that includes optical network 
 elements such as ROADMs, optical transceivers, fiber spans, and EDFAs, packet SDN elements 
