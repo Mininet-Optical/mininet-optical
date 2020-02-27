@@ -13,7 +13,7 @@ Note: this prototype is not yet complete
 - no topology visualization in ONOS GUI (yet)
 """
 
-from dataplane import ROADM, Terminal
+from dataplane import ROADM, Terminal, disableIPv6
 from demolib import LinearRoadmTopo, CLI
 from rest import RestServer
 
@@ -29,6 +29,7 @@ if __name__ == '__main__':
     setLogLevel( 'info' )
     net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True,
                    controller=RemoteController )
+    disableIPv6( net )
     restServer = RestServer( net )
     net.start()
     restServer.start()

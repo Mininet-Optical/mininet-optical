@@ -108,7 +108,7 @@ class Terminal( SwitchBase ):
     def reset( self ):
         "Reset/clear routes"
         self.dpctl( 'del-flows' )
-        # Drop IPv6 router soliciations
+        # Drop IPv6 router solicitations
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
         self.txChannels = {}
         # self.model.reset_signals()
