@@ -13,7 +13,7 @@ The simulator may be used independently, or as part of a Mininet packet-optical 
 
 This enables end-to-end emulation of a software-defined network that includes optical network 
 elements such as ROADMs, optical transceivers, fiber spans, and EDFAs, packet SDN elements 
-such as OpenFlow switches and Ethernet links, as well as SDN controllers to manage both packet
+such as OpenFlow switches and Ethernet links, and SDN controllers to manage both packet
 and optical network elements.
 
 
