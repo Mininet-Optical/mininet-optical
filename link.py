@@ -294,32 +294,6 @@ class Link(object):
 
             # Compute amplifier compensation
             if amplifier:
-
-                # if len(signal_power_progress) > 2:
-                # Compute nonlinear interference noise, passing the node_amplifier
-                # because its amplification gain impacts negatively the nonlinear
-                # interference.
-                # nonlinear_interference_noise[span] = self.output_nonlinear_noise(
-                #     accumulated_NLI_noise,
-                #     nli_in_signals,
-                #     signals_list,
-                #     span,
-                #     amplifier)
-                # self.nonlinear_interference_noise[span] = nonlinear_interference_noise[span]
-                # accumulated_NLI_noise.update(nonlinear_interference_noise[span])
-                # self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
-                #
-                # in_signals_qot = self.optical_signal_power_in_qot.copy()
-                # nonlinear_interference_noise_qot[span] = self.output_nonlinear_noise_qot(
-                #     accumulated_NLI_noise_qot,
-                #     nli_in_signals_qot,
-                #     signals_list,
-                #     span,
-                #     amplifier)
-                # self.nonlinear_interference_noise_qot[span] = nonlinear_interference_noise_qot[span]
-                # accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
-                # self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
-                #
                 signal_keys = list(signal_power_progress)
                 # Enabling balancing check
                 while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
