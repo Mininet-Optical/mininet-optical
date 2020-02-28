@@ -31,10 +31,30 @@ Monitors
 -  get monitoring data (OSNR, etc.)
 """
 
+def net():
+    "Return current network object"
+    return RestServer.net
+
+
 @get( '/nodes' )
 def nodes():
     "Return list of nodes"
-    return dict( nodes=[ str(node) for node in RestServer.net ] )
+    return dict( nodes=[ str(node) for node in net() ] )
+
+
+
+@get ( '/links' )
+def links():
+    "Return list of links"
+    links = [ ( intfspec(link.intf1), intfspec(link.intf2) )
+              for link in net().links ]
+    return dict( links=links )
+
+
+def intfspec( intf ):
+    "Return specifier dict(name, port, intf) for intf"
+    return dict( node=intf.node.name, port=intf.node.ports[intf],
+                 intf=intf.name )
 
 
 def lookUpNode( node ):
@@ -55,6 +75,16 @@ def connect():
     else:
         abort( 404, "No connect handler for %s" % node )
 
+
+@get( '/info' )
+def info():
+    "Return an object's configuration and other information"
+    pass
+
+@get( '/config' )
+def config():
+    "Set an object's configuration"
+    pass
 
 @get( '/rules' )
 def rules():

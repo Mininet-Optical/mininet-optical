@@ -69,19 +69,27 @@ class RESTProxy( Proxy ):
         return requests.get( self.baseURL + path, params=(params or {}) )
 
 
-class TerminalProxy( RESTProxy ):
+class NodeProxy( RESTProxy ):
+    "Base class for node proxies"
+    def rules( self ):
+        "Fetch ROADM rules"
+        r = self.get( 'rules', params=dict(node=self.name) )
+        return r.json()
+
+
+class TerminalProxy( NodeProxy ):
     "Local proxy for Terminal/transceiver configuration via REST"
 
-    def connect( self, ethPort, tx, wdmPort, channel ):
+    def connect( self, ethPort, wdmPort, channel ):
         "Configure terminal/transceiver"
-        params = dict( node=self.name, ethPort=ethPort, tx=tx, wdmPort=wdmPort,
+        params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort,
                        channel=channel)
         print('connect', params)
         r = self.get( 'connect', params=params )
-        print(r)
+        print( r )
 
 
-class ROADMProxy( RESTProxy ):
+class ROADMProxy( NodeProxy ):
     "Local proxy for ROADM configuration via REST"
 
     def connect( self, port1, port2, channels ):
@@ -91,12 +99,8 @@ class ROADMProxy( RESTProxy ):
             node=self.name, port1=port1, port2=port2, channels=channels )
         print('connect', params)
         r = self.get( 'connect', params=params)
-        print(r)
+        print( r )
 
-    def rules( self ):
-        "Fetch ROADM rules"
-        r = self.get( 'rules', params=dict(node=self.name) )
-        return r.json()
 
 
 ### Configuration Retrieval
@@ -104,9 +108,16 @@ class ROADMProxy( RESTProxy ):
 
 def fetchNodes( net ):
     "Fetch node list using REST"
-    print( '*** Fetching node list' )
+    print( '*** Fetching nodes' )
     r = net.get( 'nodes' )
-    print( r.json()['nodes'] )
+    print( r.json() )
+
+
+def fetchLinks( net ):
+    print( '*** Fetching links' )
+    r = net.get( 'links' )
+    print( r.json() )
+
 
 def fetchRules( roadms ):
     "Fetch ROADM rules using REST"
@@ -149,16 +160,16 @@ def configureTransceivers():
 
     # Port numbering
     eth0, eth1, eth2 = 0, 1, 2
-    wdm1, wdm2, wdm3, wdm4 = 1, 2, 3, 4
+    wdm1_, wdm2_, wdm3, wdm4 = 1, 2, 3, 4
 
     t1, t2, t3 = [ TerminalProxy( name ) for name in ('t1', 't2', 't3') ]
 
-    t1.connect( tx=0, ethPort=eth1, wdmPort=wdm3, channel=1)
-    t1.connect( tx=1, ethPort=eth2, wdmPort=wdm4, channel=2)
-    t2.connect( tx=0, ethPort=eth1, wdmPort=wdm3, channel=1)
-    t2.connect( tx=1, ethPort=eth2, wdmPort=wdm4, channel=1)
-    t3.connect( tx=0, ethPort=eth1, wdmPort=wdm3, channel=2)
-    t3.connect( tx=1, ethPort=eth2, wdmPort=wdm4, channel=1)
+    t1.connect( ethPort=eth1, wdmPort=wdm3, channel=1 )
+    t1.connect( ethPort=eth2, wdmPort=wdm4, channel=2 )
+    t2.connect( ethPort=eth1, wdmPort=wdm3, channel=1 )
+    t2.connect( ethPort=eth2, wdmPort=wdm4, channel=1 )
+    t3.connect( ethPort=eth1, wdmPort=wdm3, channel=2 )
+    t3.connect( ethPort=eth2, wdmPort=wdm4, channel=1 )
 
 
 def configureROADMs():
@@ -190,6 +201,7 @@ def configureROADMs():
 if __name__ == '__main__':
     net = RESTProxy()
     fetchNodes( net )
+    fetchLinks( net )
     configureRouters()
     configureTransceivers()
     configureROADMs()

@@ -35,7 +35,7 @@ from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
 from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import OVSSwitch
-from mininet.link import TCLink, Intf
+from mininet.link import Link, TCIntf
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
 from mininet.clean import sh, Cleanup, cleanup
@@ -125,30 +125,45 @@ class Terminal( SwitchBase ):
         """Configure transceiver txNum
            channels: [channel index...]
            power: power in dbM"""
-        transceiver = self.model.transceivers[ tx ]
-        if channels is not None:
-            txChannel[ txNum ] = channel
+        transceiver = self.model.transceivers[ txNum ]
+        if channel is not None:
+            self.txChannel[ txNum ] = channel
         if power is not None:
             transceiver.operation_power = db_to_abs(operation_power)
+
+    def txnum( self, wdmPort ):
+        "Return tx number for wdmPort number"
+        # This is inefficient but could be cached
+        txnum = 0
+        for port in sorted( self.ports.values() ):
+            intf = self.intfs[ port ]
+            if isinstance(intf, OpticalIntf ):
+                if port == wdmPort:
+                    return txnum
+                txnum += 1
+        return None
 
     def restConnectHandler( self, query ):
         "REST connect handler"
         ethPort = int( query.ethPort )
-        tx = int ( query.tx )
         wdmPort = int( query.wdmPort )
-        channel = int( query.channel )
-        self.connect( ethPort, tx, wdmPort, channel )
+        channel = int( query.channel ) if hasattr( query, 'channel' ) else None
+        self.connect( ethPort, wdmPort, channel )
         return 'OK'
 
-    def connect(self, ethPort, tx, wdmPort, channel):
+    def connect(self, ethPort, wdmPort, channel=None, power=None ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
-           tx: transceiver number
            wdmPort: WDM port number"""
 
         # Update physical model
         OUT = 100  # Offset for output port
+        tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
+        self.configTx( txNum=tx, channel=channel, power=power )
+        channel = self.txChannel.get( tx )
+        if channel is None:
+            raise Exception( 'must set tx channel before connecting' )
         self.model.transmit( transceiver, wdmPort+OUT, [ channel ] )
 
         # Remove old flows for transponder
@@ -314,8 +329,11 @@ class SimpleROADM( ROADM ):
         self.install( east, west, passChannels )
         self.install( west, east, passChannels )
 
+class OpticalIntf( TCIntf ):
+    "For now, an OpticalIntf is just a TCIntf"
+    pass
 
-class OpticalLink( TCLink ):
+class OpticalLink( Link ):
     """"An emulation of a (bidirectional) optical link.
 
         The dataplane emulation is naturally bidirectional (veth pairs.)
@@ -344,6 +362,7 @@ class OpticalLink( TCLink ):
         kwargs.update( port1=self.port1, port2=self.port2 )
 
         # Initialize dataplane
+        kwargs.update( cls1=OpticalIntf, cls2=OpticalIntf )
         super( OpticalLink, self).__init__( src, dst, **kwargs )
 
         # Create symmetric spans and phy links in both directions
