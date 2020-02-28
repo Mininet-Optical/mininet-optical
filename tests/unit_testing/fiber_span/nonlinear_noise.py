@@ -1,5 +1,6 @@
 import numpy as np
 import units as unit
+import math
 from pprint import pprint
 import matplotlib.pyplot as plt
 
@@ -91,6 +92,8 @@ def gn_analytic(optical_signals, signal_power_progress, span):
         index_to_signal[channel.index] = channel
 
     alpha = span.fibre_attenuation
+    # _alpha = span.fibre_attenuation
+    # alpha = _alpha / (20 * math.log10(np.exp(1)))
     beta2 = span.dispersion_coefficient
     gamma = span.non_linear_coefficient
     effective_length = span.effective_length
@@ -110,9 +113,9 @@ def gn_analytic(optical_signals, signal_power_progress, span):
             pwr_ch = signal_power_progress[ch]
             g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-            g_nli += g_ch ** 2 * g_cut * my_psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
+            g_nli += g_ch ** 2 * g_cut * _psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
 
-        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2)
+        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) / (2 * unit.pi * abs(beta2) * asymptotic_length)
         signal_under_test = index_to_signal[channel_under_test]
         nonlinear_noise_struct[signal_under_test] = bw_cut * g_nli
 
@@ -136,7 +139,7 @@ def _psi(carrier, interfering_carrier, beta2, asymptotic_length):
         psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
                          bw_cut * (delta_f + 0.5 * bw_ch))
         psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
-                          bw_cut * (delta_f - 0.5 * bw_ch)) / (4 * unit.pi * abs(beta2) * asymptotic_length)
+                          bw_cut * (delta_f - 0.5 * bw_ch))
     return psi
 
 
