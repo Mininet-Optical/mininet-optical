@@ -43,19 +43,18 @@ def nodes():
     return dict( nodes=[ str(node) for node in net() ] )
 
 
-
 @get ( '/links' )
 def links():
     "Return list of links"
-    links = [ ( intfspec(link.intf1), intfspec(link.intf2) )
-              for link in net().links ]
-    return dict( links=links )
+    return dict( links=[ linkspec( link ) for link in net().links ] )
 
 
-def intfspec( intf ):
-    "Return specifier dict(name, port, intf) for intf"
-    return dict( node=intf.node.name, port=intf.node.ports[intf],
-                 intf=intf.name )
+def linkspec( link ):
+    "Return specifier dict(node1, port1, node2, port2) for link"
+    intf1, intf2 = link.intf1, link.intf2
+    node1, node2 = intf1.node, intf2.node
+    port1, port2 = node1.ports[intf1], node2.ports[intf2]
+    return { node1.name:port1, node2.name:port2 }
 
 
 def lookUpNode( node ):
