@@ -123,9 +123,9 @@ class Node(object):
             for port in sorted(port_signals):
                 signal_powers = port_signals[port]
                 if signal_powers:
-                    print(name, '%s:' % port, end=' ')
+                    print(name, '%s:' % port, end='')
                     for signal, power in signal_powers.items():
-                        print('%s@%.3f' % (signal, power), end=' ')
+                        print('%s@%.1fdBm' % (signal, abs_to_db(power)), end=' ')
                     print()
 
 
@@ -314,9 +314,8 @@ class OpticalSignal(object):
         pprint(vars(self))
 
     def __repr__(self):
-        if self.index < 10:
-            return '<0%d>' % self.index
-        return '<%d>' % self.index
+        return '<ch%d:%.2fTHz>' % (
+            self.index, self.frequency/unit.THz)
 
     @classmethod
     def getOpticalSignal(cls, index, spectrum_band, channel_spacing,
@@ -661,11 +660,11 @@ class Roadm(Node):
             if inpowers:
                 for signal, inpower in inpowers.items():
                     outport = self.signal_index_to_out_port.get((inport, signal.index), None)
-                    print('%d:%s*%.3f' % (inport, signal, inpower), '->', end=' ')
+                    print('%d:%s@%.1fdBm' % (inport, signal, abs_to_db(inpower)), '->', end=' ')
                     if outport is not None:
                         outpowers = self.port_to_optical_signal_power_out.get(outport, {})
                         outpower = outpowers.get(signal, float('nan'))
-                        print('%d:%s*%.3f' % (outport, signal, outpower))
+                        print('%d:%s@%.1fdBm' % (outport, signal, abs_to_db(outpower)))
                     else:
                         print('***DROP***')
 
