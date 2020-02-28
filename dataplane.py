@@ -85,6 +85,11 @@ class SwitchBase( OVSSwitch ):
             dpid = '%x' % SwitchBase.dpidBase
         return super( OVSSwitch, self ).defaultDpid( dpid )
 
+    @staticmethod
+    def restPortsDict( node ):
+        "Construct a ports dict for a node"
+        return {port: intf.name for port, intf in node.intfs.items() }
+
 
 class Terminal( SwitchBase ):
     """

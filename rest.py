@@ -8,6 +8,7 @@ from wsgiref.simple_server import make_server, WSGIRequestHandler
 from bottle import route, get, post, request, default_app, abort
 from threading import Thread
 
+from dataplane import SwitchBase
 
 """
 Prototype REST API
@@ -65,15 +66,31 @@ def lookUpNode( node ):
         abort( 404, "Unknown node: %s" % node )
 
 
+def nodeHandler( handlerName ):
+    "Handle a node query"
+    query = request.query
+    node = lookUpNode( query.node )
+    if hasattr( node, handlerName ):
+        result = getattr( node, handlerName )( query )
+    else:
+        abort( 404, "No handler for node %s" % node )
+    return result
+
+
 @get( '/connect' )
 def connect():
     "Configure connection in optical node"
+    return nodeHandler( 'restConnectHandler' )
+
+
+@get( '/ports' )
+def ports():
+    "Return a node's ports"
     query = request.query
     node = lookUpNode( query.node )
-    if hasattr( node, 'restConnectHandler' ):
-        node.restConnectHandler( query )
-    else:
-        abort( 404, "No connect handler for %s" % node )
+    # Ugly, but functional on any node
+    return SwitchBase.restPortsDict( node )
+
 
 
 @get( '/info' )

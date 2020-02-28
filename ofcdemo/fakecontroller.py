@@ -66,30 +66,43 @@ class RESTProxy( Proxy ):
 
     def get( self, path, params=None ):
         "Make a REST request"
-        return requests.get( self.baseURL + path, params=(params or {}) )
+        # print(path, params)
+        result = requests.get( self.baseURL + path, params=(params or {}) )
+        # print(result.url)
+        return result
 
 
 class NodeProxy( RESTProxy ):
-    "Base class for node proxies"
+    "Base class for switching node proxies"
+
+    def ports( self ):
+        "Fetch node's switching rules if any"
+        r = self.get( 'ports', params=dict(node=self.name) )
+        return r.json()
+
+
+class SwitchProxy( NodeProxy ):
+    "Base class for switching node proxies"
+
     def rules( self ):
-        "Fetch ROADM rules"
+        "Fetch node's switching rules if any"
         r = self.get( 'rules', params=dict(node=self.name) )
         return r.json()
 
 
-class TerminalProxy( NodeProxy ):
+class TerminalProxy( SwitchProxy ):
     "Local proxy for Terminal/transceiver configuration via REST"
 
-    def connect( self, ethPort, wdmPort, channel ):
+    def connect( self, ethPort, wdmPort, channel=None, power=None ):
         "Configure terminal/transceiver"
         params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort,
-                       channel=channel)
+                       channel=channel, power=power)
         print('connect', params)
         r = self.get( 'connect', params=params )
         print( r )
 
 
-class ROADMProxy( NodeProxy ):
+class ROADMProxy( SwitchProxy ):
     "Local proxy for ROADM configuration via REST"
 
     def connect( self, port1, port2, channels ):
@@ -110,7 +123,9 @@ def fetchNodes( net ):
     "Fetch node list using REST"
     print( '*** Fetching nodes' )
     r = net.get( 'nodes' )
-    print( r.json() )
+    json = r.json()
+    print( json )
+    return json[ 'nodes' ]
 
 
 def fetchLinks( net ):
@@ -127,9 +142,18 @@ def fetchRules( roadms ):
         print( r.rules() )
 
 
+def fetchPorts( net, nodes ):
+    "Fetch ports for all nodes"
+    print( '*** Fetching ports for all nodes' )
+    for node in nodes:
+        result = net.get( 'ports',  dict( node=node ) )
+        if result.status_code == 200:
+            print( node, result.json() )
+
+
 ### Control Plane Configuration
 
-def configureRouters():
+def configurePacketSwitches():
     "Configure Open vSwitch 'routers' using OpenFlow"
 
     print( "*** Configuring Open vSwitch 'routers' remotely... " )
@@ -164,12 +188,12 @@ def configureTransceivers():
 
     t1, t2, t3 = [ TerminalProxy( name ) for name in ('t1', 't2', 't3') ]
 
-    t1.connect( ethPort=eth1, wdmPort=wdm3, channel=1 )
-    t1.connect( ethPort=eth2, wdmPort=wdm4, channel=2 )
-    t2.connect( ethPort=eth1, wdmPort=wdm3, channel=1 )
-    t2.connect( ethPort=eth2, wdmPort=wdm4, channel=1 )
-    t3.connect( ethPort=eth1, wdmPort=wdm3, channel=2 )
-    t3.connect( ethPort=eth2, wdmPort=wdm4, channel=1 )
+    t1.connect( ethPort=eth1, wdmPort=wdm3, channel=1, power=0.0 )
+    t1.connect( ethPort=eth2, wdmPort=wdm4, channel=2, power=0.0 )
+    t2.connect( ethPort=eth1, wdmPort=wdm3, channel=1, power=0.0 )
+    t2.connect( ethPort=eth2, wdmPort=wdm4, channel=1, power=0.0 )
+    t3.connect( ethPort=eth1, wdmPort=wdm3, channel=2, power=0.0 )
+    t3.connect( ethPort=eth2, wdmPort=wdm4, channel=1, power=0.0 )
 
 
 def configureROADMs():
@@ -200,9 +224,11 @@ def configureROADMs():
 
 if __name__ == '__main__':
     net = RESTProxy()
-    fetchNodes( net )
+    nodes = fetchNodes( net )
     fetchLinks( net )
-    configureRouters()
+    fetchPorts( net, nodes )
+    # Note the ONOS fwd app will handle packet switch configuration
+    configurePacketSwitches()
     configureTransceivers()
     configureROADMs()
     print( '*** Done.' )
