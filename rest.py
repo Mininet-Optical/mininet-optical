@@ -9,6 +9,7 @@ from bottle import route, get, post, request, default_app, abort
 from threading import Thread
 
 from dataplane import SwitchBase, Terminal, ROADM
+from mininet.node import Switch
 
 """
 Prototype REST API
@@ -76,6 +77,17 @@ def terminalLinks():
                    (isinstance( link.intf2.node, Terminal) and
                     isinstance( link.intf1.node, ROADM) ) ) ]
 
+    return dict( links=links )
+
+
+@get( '/links/routers' )
+def terminalLinks():
+    "Return links to/from packet switches/routers"
+    links = [ linkspec( link ) for link in net().links
+              if ((isinstance( link.intf1.node, Switch) and
+                   not isinstance( link.intf1.node, SwitchBase)) or
+                  (isinstance( link.intf2.node, Switch) and
+                   not isinstance( link.intf2.node, SwitchBase))) ]
     return dict( links=links )
 
 
