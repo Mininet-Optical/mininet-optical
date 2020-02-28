@@ -8,7 +8,7 @@ from wsgiref.simple_server import make_server, WSGIRequestHandler
 from bottle import route, get, post, request, default_app, abort
 from threading import Thread
 
-from dataplane import SwitchBase
+from dataplane import SwitchBase, Terminal, ROADM
 
 """
 Prototype REST API
@@ -40,7 +40,8 @@ def net():
 @get( '/nodes' )
 def nodes():
     "Return list of nodes"
-    return dict( nodes=[ str(node) for node in net() ] )
+    return dict( nodes={ name:node.__class__.__name__
+                         for name, node in net().items() } )
 
 
 @get ( '/links' )
@@ -55,6 +56,27 @@ def linkspec( link ):
     node1, node2 = intf1.node, intf2.node
     port1, port2 = node1.ports[intf1], node2.ports[intf2]
     return { node1.name:port1, node2.name:port2 }
+
+
+@get( '/links/roadms' )
+def interRoadmLinks():
+    "Return links between ROADMs (only)"
+    links = [ linkspec( link ) for link in net().links
+              if ( isinstance( link.intf1.node, ROADM) and
+                   isinstance( link.intf2.node, ROADM) ) ]
+    return dict( links=links )
+
+
+@get( '/links/terminals' )
+def terminalLinks():
+    "Return links from terminals to ROADMs (only)"
+    links = [ linkspec( link ) for link in net().links
+              if ( (isinstance( link.intf1.node, Terminal) and
+                    isinstance( link.intf2.node, ROADM) ) or
+                   (isinstance( link.intf2.node, Terminal) and
+                    isinstance( link.intf1.node, ROADM) ) ) ]
+
+    return dict( links=links )
 
 
 def lookUpNode( node ):

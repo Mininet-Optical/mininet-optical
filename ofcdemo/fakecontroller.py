@@ -129,9 +129,16 @@ def fetchNodes( net ):
 
 
 def fetchLinks( net ):
-    print( '*** Fetching links' )
-    r = net.get( 'links' )
+    print( '*** Fetching all links' )
+    l = net.get( 'links' )
+    print( l.json() )
+    print( '*** Fetching ROADM-ROADM links' )
+    r = net.get( 'links/roadms' )
     print( r.json() )
+    print( '*** Fetching Terminal-ROADM links' )
+    t = net.get( 'links/terminals' )
+    print( t.json() )
+    return l, r, t
 
 
 def fetchRules( roadms ):
