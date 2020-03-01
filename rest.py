@@ -8,7 +8,7 @@ from wsgiref.simple_server import make_server, WSGIRequestHandler
 from bottle import route, get, post, request, default_app, abort
 from threading import Thread
 
-from dataplane import SwitchBase, Terminal, ROADM
+from dataplane import SwitchBase, Terminal, ROADM, OpticalLink
 from mininet.node import Switch
 
 """
@@ -44,6 +44,36 @@ def nodes():
     return dict( nodes={ name:node.__class__.__name__
                          for name, node in net().items() } )
 
+
+@get( '/monitors' )
+def monitors():
+    "Return list of monitors"
+    monitors = { monitor.name:
+                 dict(link=(monitor.link.node1.name,
+                            monitor.link.node2.name),
+                      amp=monitor.amplifier.name,
+                      target_gain=monitor.amplifier.target_gain)
+                 for link in opticalLinks()
+                 for monitor in link.monitors }
+    return dict( monitors=monitors )
+
+
+@get( '/monitor' )
+def monitor():
+    "Return information for monitor"
+    query = request.query
+    monitor = lookUpNode( query.monitor )
+    if hasattr( monitor, 'restMonitor' ):
+        result = monitor.restMonitor()
+    else:
+        abort( 404, "Node %s does not appear to be a monitor" % monitor )
+    return result
+
+
+def opticalLinks():
+    "Return optical links"
+    return [ link for link in net().links
+             if isinstance( link, OpticalLink ) ]
 
 @get ( '/links' )
 def links():

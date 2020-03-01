@@ -11,31 +11,88 @@ Our demo topology is a cross-connected mesh of 6 POPs.
 """
 
 from dataplane import ( Terminal, ROADM, OpticalLink,
-                        dbM, km,
-                        cleanOptLinks )
+                        dBm, dB, km,
+                        cleanOptLinks, Mininet )
 
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.cli import CLI
-from mininet.net import Mininet
 
 
 # Routers start listening at 6654
 ListenPortBase = 6653
 
 class OpticalCLI( CLI ):
-    "Extend CLI with ring network routing commands"
+    "Extended CLI with optical network commands"
 
     prompt = 'mininet-optical> '
 
-    def do_signals( self, _line ):
-        "Print signals "
+    def do_signals( self, nodename ):
+        "Print node signals "
+        if nodename:
+            try:
+                node = self.mn.get( nodename )
+                if hasattr( node, 'model' ):
+                    node.model.print_signals()
+            except:
+                pass
+            return
         for node in self.mn.switches:
             if hasattr( node, 'model' ):
                 node.model.print_signals()
 
+    def do_linksignals( self, _line ):
+        "Print signals for links between ROADMs"
+        for link in self.mn.links:
+            if ( isinstance( link, OpticalLink ) and
+                 isinstance( link.intf1.node, ROADM ) and
+                 isinstance( link.intf2.node, ROADM ) ):
+                link.phyLink1.print_signals()
+                link.phyLink2.print_signals()
+
+
+    def do_monitors( self, _line ):
+        "List monitors on optical links"
+        for link in self.mn.links:
+            if isinstance( link, OpticalLink ):
+                if link.monitors:
+                    print( link, link.monitors )
+
+    def do_osnr( self, _line ):
+        "List osnr for monitors"
+        for link in self.mn.links:
+            if not isinstance( link, OpticalLink ):
+                continue
+            if not link.monitors:
+                continue
+            if not link.monitors:
+                continue
+            for monitor in link.monitors:
+                print( str(monitor) + ':' )
+                for signal in monitor.amplifier.output_power:
+                    osnr = monitor.get_osnr( signal)
+                    print( '%s OSNR: %.2f dB' % ( signal, osnr ) )
+
+    def do_spans( self, _line ):
+        "List spans between ROADMs"
+        links = self.mn.links
+        for link in links:
+            if not isinstance( link, OpticalLink ):
+                continue
+            if not ( isinstance( link.intf1.node, ROADM ) and
+                     isinstance( link.intf2.node, ROADM ) ):
+                continue
+            for phyLink in link.phyLink1, link.phyLink2:
+                print( str( phyLink ) + ': ', end='' )
+                if phyLink.boost_amp:
+                    print( phyLink.boost_amp, end=' ' )
+                for span in phyLink.spans:
+                    print( span.span, span.amplifier if span.amplifier else '', end=' ' )
+                print()
+
     def do_propagate( self, _line ):
+        "Obsolete: propagate signals manually"
         for node in self.mn.switches:
             if isinstance( node, Terminal ):
                 node.propagate()
@@ -49,8 +106,20 @@ CLI = OpticalCLI
 
 ### Sanity tests
 
+class OpticalTopo( Topo ):
+    "Topo with convenience methods for optical links"
 
-class LinearRoadmTopo( Topo ):
+    def wdmLink( self, *args, **kwargs ):
+        "Convenience function to add an OpticalLink"
+        kwargs.update(cls=OpticalLink)
+        self.addLink( *args, **kwargs )
+
+    def ethLink( self, *args, **kwargs ):
+        "Clarifying alias for addLink"
+        self.addLink( *args, **kwargs )
+
+
+class LinearRoadmTopo( OpticalTopo ):
     """A linear network with a single ROADM and three POPs
 
        h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
@@ -66,14 +135,6 @@ class LinearRoadmTopo( Topo ):
         "Return a local IP address or subnet for the given POP"
         return template % ( pop, intfnum ) + subnet
 
-    def wdmLink( self, *args, **kwargs ):
-        "Convenience function to add an OpticalLink"
-        kwargs.update(cls=OpticalLink)
-        self.addLink( *args, **kwargs )
-
-    def ethLink( self, *args, **kwargs ):
-        "Clarifying alias for addLink"
-        self.addLink( *args, **kwargs )
 
     def buildPop( self, p, txCount=2 ):
         "Build a POP; returns: ROADM"
@@ -84,7 +145,7 @@ class LinearRoadmTopo( Topo ):
         router = self.addSwitch('s%d' % p, subnet=subnet,
                                 listenPort=(ListenPortBase + p))
         transceivers = [
-            ('t%d' %t, 0*dbM, 'C') for t in range(1, txCount+1) ]
+            ('t%d' %t, 0*dBm, 'C') for t in range(1, txCount+1) ]
         terminal = self.addSwitch(
             't%d' % p, cls=Terminal, transceivers=transceivers )
         roadm = self.addSwitch( 'r%d' % p,  cls=ROADM )
@@ -99,12 +160,31 @@ class LinearRoadmTopo( Topo ):
         # Return ROADM so we can link it to other POPs as needed
         return roadm
 
+    @staticmethod
+    def spanSpec( length, amp, targetGain ):
+        "Return span specifier [length, (amp, params)]"
+        return [ length, (amp, dict(target_gain=targetGain) ) ]
+
+    def spans( self, spanLength=50*km, spanCount=4 ):
+        """Return a list of span specifiers (length, (amp, params))
+           the compensation amplifiers are named prefix-ampN"""
+        entries = [ self.spanSpec( length=spanLength, amp='amp%d' % i,
+                                   targetGain=spanLength/km * .22 * dB )
+                      for i in range(1, spanCount+1) ]
+        return sum( entries, [] )
+
     def build( self, n=3 ):
         "Add POPs and connect them in a line"
         roadms = [ self.buildPop( p ) for p in range( 1, n+1 ) ]
+
         # Inter-POP links
         for i in range( 0, n - 1 ):
-            self.wdmLink( roadms[i], roadms[i+1], spans=[50*km + i*25*km])
+            src, dst = roadms[i], roadms[i+1]
+            boost = ( 'boost', dict(target_gain=9.0*dB) )
+            spans = self.spans( spanCount=2 )
+            lastAmpName = spans[-1][0]  # XXX Cryptic!
+            monitors = [ ( lastAmpName + '-monitor', lastAmpName ) ]
+            self.wdmLink( src, dst, boost=boost, spans=spans, monitors=monitors )
 
 
 def configureLinearNet( net, packetOnly=False ):
@@ -177,7 +257,9 @@ def linearRoadmTest():
     net.stop()
 
 
+
 ### OFC Demo Topology
+
 
 class DemoTopo( LinearRoadmTopo ):
     """OFC Demo Topology
@@ -202,13 +284,15 @@ class DemoTopo( LinearRoadmTopo ):
        etc.
     """
 
-    @staticmethod
-    def spans( prefix, index, spanLength=50*km, spanCount=4 ):
-        """Return a list of [spanLength, amp name, ...]
-           the amplifiers are named {name}{index}-ampN"""
-        entries = [ [ spanLength, prefix + '%d-amp%d' % (index, j) ]
-                      for j in range(1, spanCount+1) ]
-        return sum( entries, [] )
+    # Link helper function
+    def addPopLink( self, src, dst, index ):
+        "Construct a link of four 50km fiber spans"
+        boost = ( 'boost', dict(target_gain=9.0*dB) )
+        spans = self.spans( spanLength=50*km, spanCount=4 )
+        lastAmp = spans[-1][0] # FIXME: this is too cryptic
+        monitors = [ ( lastAmp + '-monitor', lastAmp) ]
+        self.wdmLink(
+            src, dst, boost=boost, spans=spans, monitors=monitors )
 
     def build( self, n=6 ):
         "Add POPs and connect them in a ring with some cross-connects"
@@ -216,13 +300,15 @@ class DemoTopo( LinearRoadmTopo ):
         # Add POPs
         roadms = [ self.buildPop( p, txCount=n ) for p in range( 1, n+1 ) ]
 
-        # ROADM ring
+        # ROADM ring links
         for i in range( n ):
-            self.wdmLink( roadms[i], roadms[i-1], spans=self.spans( 'L', i ) )
+            src, dst = roadms[i], roadms[i-1]
+            self.addPopLink( src, dst, index=i )
 
         # Cross-connects
         for i in range( 0, int(n/2) ):
-            self.wdmLink( roadms[i], roadms[i-1], spans=self.spans( 'C', i ) )
+            src, dst = roadms[i], roadms[i-1]
+            self.addPopLink( src, dst, index=i )
 
 
 if __name__ == '__main__':
@@ -231,5 +317,6 @@ if __name__ == '__main__':
     cleanup()
     setLogLevel( 'info' )
     net = Mininet( topo=DemoTopo() )
+    CLI( net )
     net.start()
     net.stop()

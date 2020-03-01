@@ -942,3 +942,7 @@ class Monitor(Node):
         gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
+
+    def __repr__( self ):
+        return "<%s,link=%s,span=%s,amp=%s>" % (
+           self.name, self.link, self.span, self.amplifier)
