@@ -13,12 +13,11 @@ Note: this prototype is not yet complete
 - no topology visualization in ONOS GUI (yet)
 """
 
-from dataplane import ROADM, Terminal, disableIPv6
-from demolib import LinearRoadmTopo, CLI
+from dataplane import Mininet, ROADM, Terminal, disableIPv6
+from ofcdemo.demolib import LinearRoadmTopo, CLI
 from rest import RestServer
 
 from mininet.topo import SingleSwitchTopo
-from mininet.net import Mininet
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.node import RemoteController

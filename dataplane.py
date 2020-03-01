@@ -23,13 +23,10 @@ OpticalLink: a bidirectional optical link consisting of fiber
 
 """
 
-from functools import partial
-from sys import argv
-
 # Physical model
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
 from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
-                   Roadm as PhyROADM )
+                   Roadm as PhyROADM, Monitor as PhyMonitor )
 
 # Data plane
 from mininet.net import Mininet
@@ -42,17 +39,77 @@ from mininet.clean import sh, Cleanup, cleanup
 from mininet.examples.linuxrouter import LinuxRouter
 from mininet.util import BaseString
 
+from collections import namedtuple
+from functools import partial
+from itertools import chain
+from operator import attrgetter
+from sys import argv
+
 # Unit conversions (probably we should use units.py)
 km = 1.0
 m = .001
-dbM = 1.0
+dBm = 1.0
+dB = 1.0
 
 
 ### Network Elements
 
+class OpticalNet( Mininet ):
+    "Add monitors to network"
+
+    monitors = []
+
+    def __iter__( self ):
+        "return iterator over node names"
+        for node in chain( self.hosts, self.switches, self.controllers,
+                           self.monitors ):
+            yield node.name
+
+    def addLinkComponents( self, link ):
+        for monitor in link.monitors:
+            self.nameToNode[ monitor.name ] = monitor
+            self.monitors.append( monitor )
+
+    def addLink( self, *args, **kwargs ):
+        "Extends Mininet.addLink() to add Link's amps and monitors to net"
+        link = super( OpticalNet, self ).addLink( *args, **kwargs )
+        if isinstance( link, OpticalLink ):
+            self.addLinkComponents( link )
+        return link
+
+Mininet = OpticalNet
+
+
+class Monitor( PhyMonitor ):
+    "A hacked PhyMonitor that can stand in for a node"
+
+    # XXX Hacked node compatibility, should probably fix
+    waiting = False
+    execed = True
+    intfs = {}
+    def __init__( self, *args, **kwargs ):
+        super( Monitor, self ).__init__( *args, **kwargs )
+        self.model = self
+    def intfList( self ):
+        return []
+    def pexec( self, *args, **kwargs ):
+        pass
+
+    # SDN monitoring support
+
+    def restMonitor( self ):
+        "Return OSNR to REST agent"
+        osnr = { signal.index:
+                 dict(freq=signal.frequency, osnr=self.get_osnr( signal ))
+                 for signal in sorted( self.amplifier.output_power,
+                                      key=attrgetter( 'index' ) ) }
+        return dict( osnr=osnr )
+
+
 def PhySpan( length, amp=None ):
     "Return a usable span of length km with amplifer amp"
-    return SpanTuple( FiberSpan( length*km) , amp )
+    result = SpanTuple( FiberSpan( length=length*km) , amp )
+    return result
 
 
 class SwitchBase( OVSSwitch ):
@@ -129,7 +186,7 @@ class Terminal( SwitchBase ):
     def configTx( self, txNum, channel=None, power=None ):
         """Configure transceiver txNum
            channels: [channel index...]
-           power: power in dbM"""
+           power: power in dBm"""
         transceiver = self.model.transceivers[ txNum ]
         if channel is not None:
             self.txChannel[ txNum ] = channel
@@ -334,9 +391,11 @@ class SimpleROADM( ROADM ):
         self.install( east, west, passChannels )
         self.install( west, east, passChannels )
 
+
 class OpticalIntf( TCIntf ):
     "For now, an OpticalIntf is just a TCIntf"
     pass
+
 
 class OpticalLink( Link ):
     """"An emulation of a (bidirectional) optical link.
@@ -351,8 +410,14 @@ class OpticalLink( Link ):
     phyLink1 = None
     phyLink2 = None
 
-    def __init__( self, src, dst, port1=None, port2=None, spans=None, **kwargs ):
-
+    def __init__( self, src, dst, port1=None, port2=None,
+                  boost=None, boost1=None, boost2=None, spans=None,
+                  monitors=None, **kwargs ):
+        """node1, node2: nodes to connect
+           port1, port2: node ports
+           boost1, boost2: boost amp (name, {params}) if any
+           spans: list of (length in km, (ampName, params) | None )
+           monitors: list of (monName, ampName)"""
         # Default span: 1m of fiber, no amplifier
         spans = spans or [1*m]
 
@@ -370,24 +435,53 @@ class OpticalLink( Link ):
         kwargs.update( cls1=OpticalIntf, cls2=OpticalIntf )
         super( OpticalLink, self).__init__( src, dst, **kwargs )
 
+        # Boost amplifiers if any
+        prefix1, prefix2 = ('%s-%s-' % (src, dst)), ('%s-%s-' % (dst, src)),
+        boost1 = boost1 or (boost and ( prefix1 + boost[0], boost[1] ) )
+        boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
+        if boost1:
+            name, params = boost1
+            boost1 = PhyAmplifier( name, **params )
+        if boost2:
+            name, params = boost2
+            boost2 = PhyAmplifier( name, **params )
+
         # Create symmetric spans and phy links in both directions
         spans = self.parseSpans( spans )
+        spans1 = [ PhySpan( length, PhyAmplifier( prefix1 + name, **params )
+                            if name else None )
+                   for length, name, params in spans ]
 
-        spans1 = [ PhySpan( length, PhyAmplifier( name + 'a' ) if name else None )
-                   for length, name in spans ]
-
-        spans2 = [ PhySpan( length, PhyAmplifier( name + 'b' ) if name else None )
-                   for length, name in reversed( spans ) ]
+        spans2 = [ PhySpan( length, PhyAmplifier( prefix2 + name, **params )
+                            if name else None )
+                   for length, name, params in reversed( spans ) ]
 
         # XXX Output ports have to start at this number for some reason?
         OUT = 100
         self.phyLink1 = PhyLink(
             src.model, dst.model, output_port_node1=self.port1+OUT,
-            input_port_node2=self.port2, spans=spans1 )
+            input_port_node2=self.port2, boost_amp=boost1, spans=spans1 )
         self.phyLink2 = PhyLink(
             dst.model, src.model, output_port_node1=self.port2+OUT,
-            input_port_node2=self.port1, spans=spans2 )
+            input_port_node2=self.port1, boost_amp=boost2, spans=spans2 )
 
+        # Create monitors and store in self.monitors
+        monitors = monitors or {}
+        monitored = { prefix+ampName: prefix+monitorName
+                      for monitorName, ampName in monitors
+                      for prefix in (prefix1, prefix2) }
+        self.monitors = []
+        for boost in boost1, boost2:
+            if boost and boost.name in monitored:
+                monitor = Monitor( boost, link=link, amplifier=boost )
+                self.monitors.append( monitor )
+        for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
+            for span, amplifier in spans:
+                if amplifier and amplifier.name in monitored:
+                    name = monitored[ amplifier.name ]
+                    monitor = Monitor(
+                        name, link=link, span=span, amplifier=amplifier )
+                    self.monitors.append( monitor )
 
     @staticmethod
     def parseSpans( spans=None ):
@@ -395,12 +489,13 @@ class OpticalLink( Link ):
         spans = spans or []
         result = []
         while spans:
-            length = spans.pop(0)
+            length, ampName, params = spans.pop(0), None, None
+            # Maybe there's a better way of doing this polymorphic api
             if spans and isinstance( spans[ 0 ], BaseString ):
-                name = spans.pop(0)
-                result.append( ( length, name ) )
-            else:
-                result.append( ( length, None ) )
+                ampName = spans.pop( 0 )
+            elif spans and isinstance( spans[ 0 ], tuple ):
+                ampName, params = spans.pop( 0 )
+            result.append( ( length, ampName, params ) )
         return result
 
 
@@ -468,7 +563,7 @@ def dumpNet( net ):
 
 def formatSignals( signalPowers ):
     return '\n'.join(
-        '%s %.2f dbM' % ( channel, signalPowers[ channel ] )
+        '%s %.2f dBm' % ( channel, signalPowers[ channel ] )
         for channel in sorted( signalPowers ) )
 
 
@@ -491,7 +586,7 @@ class TwoTransceiverTopo( Topo ):
         # Nodes
         h1, h2 = [ self.addHost( h ) for h in ( 'h1', 'h2' ) ]
         t1, t2 = [ self.addSwitch( o, cls=Terminal,
-                                   transceivers=[ ( 't1', -2*dbM, 'C' ) ] )
+                                   transceivers=[ ( 't1', -2*dBm, 'C' ) ] )
                    for o in ('t1', 't2') ]
 
         # Packet links: port 1 = ethernet port

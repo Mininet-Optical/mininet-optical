@@ -87,13 +87,15 @@ class Link(object):
     def print_signals(self):
         "Debugging: print signals"
         print(self, 'power in:')
-        print(self.optical_signal_power_in)
+        for signal, power in self.optical_signal_power_in.items():
+            print('%s@%.1fdBm' % (signal, abs_to_db(power)))
         print(self, 'power out:')
-        print(self.optical_signal_power_in)
+        for signal, power in self.optical_signal_power_out.items():
+            print('%s@%.1fdBm' % (signal, abs_to_db(power)))
 
     def __repr__(self):
         "String representation"
-        return "(%s-%s)" % (self.node1, self.node2)
+        return "(%s->%s)" % (self.node1, self.node2)
 
     def clean_optical_signals(self, optical_signals):
         """
@@ -203,6 +205,7 @@ class Link(object):
             accumulated_NLI_noise = self.init_nonlinear_noise()
         if not accumulated_ASE_noise:
             accumulated_ASE_noise = self.init_nonlinear_noise()
+
         for span, amplifier in self.spans:
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
@@ -460,7 +463,7 @@ class Span(object):
 
     def __repr__(self):
         "String representation"
-        return '<%.2fkm>' % self.length
+        return '<%.2fkm>' % (self.length/unit.km)
 
     def attenuation(self):
         return db_to_abs(self.fibre_attenuation * self.length)

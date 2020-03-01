@@ -157,6 +157,16 @@ def fetchPorts( net, nodes ):
         if result.status_code == 200:
             print( node, result.json() )
 
+def fetchOSNR( net ):
+    "Fetch OSNR values"
+    print( '*** Fetching OSNR values from monitors' )
+    monitors = net.get( 'monitors' ).json()['monitors']
+    for monitor, desc in monitors.items():
+        osnr = net.get( 'monitor', params=dict(monitor=monitor ) )
+        print( monitor + ':' )
+        print( desc )
+        print( osnr.json() )
+
 
 ### Control Plane Configuration
 
@@ -238,4 +248,5 @@ if __name__ == '__main__':
     configurePacketSwitches()
     configureTransceivers()
     configureROADMs()
+    fetchOSNR( net )
     print( '*** Done.' )
