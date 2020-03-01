@@ -201,6 +201,8 @@ class Link(object):
         nonlinear_interference_noise = {}
         if not accumulated_NLI_noise:
             accumulated_NLI_noise = self.init_nonlinear_noise()
+        if not accumulated_ASE_noise:
+            accumulated_ASE_noise = self.init_nonlinear_noise()
         for span, amplifier in self.spans:
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
