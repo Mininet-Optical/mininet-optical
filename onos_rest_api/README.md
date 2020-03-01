@@ -1,6 +1,6 @@
 ### ONOS REST API/CLI
 
-Supported CLI opertions:
+Supported ONOS CLI operations:
 
 1. CONFIGURE A ROADM: 
        `emulator-config-topo roadm [roadm_name] [port1_id] [port2_id] [channel_id]`
