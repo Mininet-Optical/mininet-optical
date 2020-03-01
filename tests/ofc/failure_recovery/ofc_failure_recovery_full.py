@@ -74,22 +74,22 @@ osnr_r4_r6 = r4_r6_mon.get_list_osnr()
 # Adjust NF of amplifier in link between R1 and R2, so that
 # multiple links break.
 # net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
-# net.mock_amp_gain_adjust('amp3', -10, 'roadm1', 'roadm2')
-#
-# r2_r4_mon = n['mon%d' % 28]
-# osnr_r2_r43 = r2_r4_mon.get_list_osnr()
-#
-# r4_r6_mon = n['mon%d' % 52]
-# osnr_r4_r62 = r4_r6_mon.get_list_osnr()
-#
-# plot_list_osnr([osnr_r4_r6, osnr_r4_r62])
-#
-# # control procedures for recovery
-# roadm6.delete_switch_rule(1)
-# roadm5.delete_switch_rule(1)
-# roadm4.delete_switch_rule(1)
-# roadm4.delete_switch_rule(2)
-# roadm2.delete_switch_rule(1)
+net.mock_amp_gain_adjust('amp3', -10, 'roadm1', 'roadm2')
+
+r2_r4_mon = n['mon%d' % 28]
+osnr_r2_r43 = r2_r4_mon.get_list_osnr()
+
+r4_r6_mon = n['mon%d' % 52]
+osnr_r4_r62 = r4_r6_mon.get_list_osnr()
+
+plot_list_osnr([osnr_r4_r6, osnr_r4_r62])
+
+# control procedures for recovery
+roadm6.delete_switch_rule(1)
+roadm5.delete_switch_rule(1)
+roadm4.delete_switch_rule(1)
+roadm4.delete_switch_rule(2)
+roadm2.delete_switch_rule(1)
 #
 # switch_proc = st()
 # switch_proc.recovery_link_r1_r2()

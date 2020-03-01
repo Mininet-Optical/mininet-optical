@@ -65,11 +65,11 @@ def output_nonlinear_noise(_nonlinear_noise, signal_power_progress, signals, spa
     :param span: Span() object
     :return: dict{signal_index: accumulated NLI noise levels}
     """
-    nonlinear_noise_new = gn_analytic(signals, signal_power_progress, span)
+    nonlinear_noise_new = my_gn_analytic(signals, signal_power_progress, span)
 
     out_noise = {}
     for signal, value in _nonlinear_noise.items():
-        out_noise[signal] = value + nonlinear_noise_new[signal]
+        out_noise[signal] = nonlinear_noise_new[signal] + value
     return out_noise
 
 
@@ -91,9 +91,9 @@ def gn_analytic(optical_signals, signal_power_progress, span):
         channels_index.append(channel.index)
         index_to_signal[channel.index] = channel
 
-    alpha = span.fibre_attenuation
-    # _alpha = span.fibre_attenuation
-    # alpha = _alpha / (20 * math.log10(np.exp(1)))
+    # alpha = span.fibre_attenuation
+    _alpha = span.fibre_attenuation
+    alpha = _alpha / (20 * math.log10(np.exp(1)))
     beta2 = span.dispersion_coefficient
     gamma = span.non_linear_coefficient
     effective_length = span.effective_length
@@ -113,9 +113,9 @@ def gn_analytic(optical_signals, signal_power_progress, span):
             pwr_ch = signal_power_progress[ch]
             g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-            g_nli += g_ch ** 2 * g_cut * _psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
+            g_nli += g_ch ** 2 * g_cut * _psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length*2)
 
-        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) / (2 * unit.pi * abs(beta2) * asymptotic_length)
+        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) / (2 * unit.pi * abs(beta2) * asymptotic_length*2)
         signal_under_test = index_to_signal[channel_under_test]
         nonlinear_noise_struct[signal_under_test] = bw_cut * g_nli
 
@@ -135,15 +135,63 @@ def _psi(carrier, interfering_carrier, beta2, asymptotic_length):
     if carrier.index == interfering_carrier.index:  # SCI, SPM
         psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
     else:  # XCI, XPM
-        delta_f = carrier.frequency - interfering_carrier.frequency
+        delta_f = interfering_carrier.frequency - carrier.frequency
         psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
-                         bw_cut * (delta_f + 0.5 * bw_ch))
+                         (delta_f + 0.5 * bw_ch) * bw_cut)
         psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) *
-                          bw_cut * (delta_f - 0.5 * bw_ch))
+                           (delta_f - 0.5 * bw_ch) * bw_cut)
     return psi
 
 
-def my_psi(carrier, interfering_carrier, beta2, asymptotic_length):
+def my_gn_analytic(optical_signals, signal_power_progress, span):
+    """ Computes the nonlinear interference power on a single carrier.
+    Translated from the GNPy project source code
+    The method uses eq. 120 from arXiv:1209.0394.
+    :param optical_signals:
+    :param signal_power_progress:
+    :param span:
+    :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
+    """
+    nonlinear_noise_struct = {}
+    channels_index = []
+    index_to_signal = {}
+    for channel in optical_signals:
+        nonlinear_noise_struct[channel] = None
+        channels_index.append(channel.index)
+        index_to_signal[channel.index] = channel
+
+    alpha = span.fibre_attenuation
+    # convert to linear
+    # alpha = _alpha / (2.0 * 10.0 * np.log10(np.exp(1)))
+    beta2 = span.dispersion_coefficient
+    gamma = span.non_linear_coefficient
+    effective_length = span.effective_length
+    asymptotic_length = 1 / (2 * alpha)
+
+    for optical_signal in optical_signals:
+        channel_under_test = optical_signal.index
+        symbol_rate_cut = optical_signal.symbol_rate
+        bw_cut = symbol_rate_cut
+        pwr_cut = signal_power_progress[optical_signal]
+        g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
+
+        g_nli = 0
+        for ch in optical_signals:
+            symbol_rate_ch = ch.symbol_rate
+            bw_ch = symbol_rate_ch
+            pwr_ch = signal_power_progress[ch]
+            g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
+
+            g_nli += g_ch ** 2 * g_cut * my_psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
+
+        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) * 1000
+        signal_under_test = index_to_signal[channel_under_test]
+        nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
+
+    return nonlinear_noise_struct
+
+
+def my_psi(carrier, interfering_carrier, beta2=None, asymptotic_length=None):
     """Calculates eq. 123 from `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`__
     Translated from the GNPy project source code
     """
@@ -154,13 +202,14 @@ def my_psi(carrier, interfering_carrier, beta2, asymptotic_length):
     bw_ch = symbol_rate_ch
 
     if carrier.index == interfering_carrier.index:  # SCI, SPM
-        psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2) / \
-              (2 * unit.pi * abs(beta2) * asymptotic_length)
+        psi = np.arcsinh((unit.pi ** 2) / 2.0 * abs(beta2) * asymptotic_length * bw_cut ** 2) / \
+              (2.0 * unit.pi * abs(beta2) * asymptotic_length)
     else:  # XCI, XPM
-        delta_f = carrier.frequency - interfering_carrier.frequency
-        div = 4 * unit.pi * abs(beta2) * asymptotic_length
-        psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f + bw_ch / 2) * bw_ch) / div
-        psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f - bw_ch / 2) * bw_ch) / div
+        delta_f = interfering_carrier.frequency -  carrier.frequency
+        div = 4.0 * unit.pi * asymptotic_length * abs(beta2)
+        psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f + bw_ch / 2.0) * bw_cut) / div
+        psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f - bw_ch / 2.0) * bw_cut) / div
+        psi *= 2.0
     return psi
 
 
@@ -171,20 +220,23 @@ class Span:
         :param length: optical fiber span length in km - float
         :param fibre_type: optical fiber type - string
         """
-        self.span_id = id(self)
-        self.fibre_type = fibre_type
+        # self.span_id = id(self)
+        # self.fibre_type = fibre_type
         self.length = length * unit.km
-        self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
-        # loss_coefficient = math.e ** (-2 * fibre_attenuation * length)
-        self.effective_length = (1 - np.exp(-2 * self.fibre_attenuation * length)) / 2 * self.fibre_attenuation
-        self.non_linear_coefficient = 1.3 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
-        self.dispersion_coefficient = 20.7 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
-        self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
+        self.fibre_attenuation = db_to_abs(0.22 / unit.km)  # fiber attenuation in decibels/km
+        self.effective_length = (1 - np.exp(-2.0 * self.fibre_attenuation * self.length)) / \
+                                (2.0 * self.fibre_attenuation)
+        self.non_linear_coefficient = 0.78 / unit.km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.dispersion_coefficient = -21.0 * (unit.ps ** 2 / unit.km)  # B_2 dispersion coefficient [ps^2 km^-1]
+        # self.dispersion_slope = 0.1452 * (unit.ps ** 3 / unit.km)  # B_3 dispersion slope in (ps^3 km^-1)
         # self.effective_area = 80 * unit.um * unit.um  # Aeff - SMF effective area
         # self.raman_gain = 7.0 * 1e-12 * unit.cm / unit.W  # r - Raman Gain in SMF
         # self.raman_amplification_band = 15 * unit.THz  # Raman amplification band ~15THz
         # # Raman coefficient
         # self.raman_coefficient = self.raman_gain / (2 * self.effective_area * self.raman_amplification_band)
+
+    def attenuation(self):
+        return db_to_abs(self.fibre_attenuation * self.length)
 
 
 class OpticalSignal(object):
@@ -222,30 +274,44 @@ if __name__ == '__main__':
     channel_spacing = 0.4 * 1e-9
     modulation_format = '16-QAM'
     bits_per_symbol = 4.0
-    symbol_rate = 32e9
+    symbol_rate = 32.0e9
 
     signal_to_power = {OpticalSignal(i, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol):
                                 in_power for i in channel_indices}
     signals = signal_to_power.keys()
 
     # single span declaration
-    spanx = Span('SMF', length=100.0)
-    amp_compensation = db_to_abs(100*0.22)
+    spanx = Span('SMF', length=50.0)
+
     # initial nonlinear interference noise
     nli = init_nonlinear_noise(signal_to_power)
+    # # tmp nonlinear noise accumulation
+    # _nli = 0
+    # # list of nli values after each span
+    # nli_list = [nli]
+    # for i in range(20):
+    #     _nli = output_nonlinear_noise(nli, signal_to_power, signals, spanx)
+    #     nli = _nli
+    #     nli_db = {k: abs_to_db(x) for k, x in nli.items()}
+    #     nli_list.append(nli)
+
     _nli = 0
-    nli0 = nli
-    nli_list = [nli]
+    nli_o = 0
     for i in range(10):
         _nli = output_nonlinear_noise(nli, signal_to_power, signals, spanx)
-        nli = _nli
-        nli_list.append(nli)
-    ordered_indices = order_signals(nli)
+        ordered_indices = order_signals(_nli)
+        nli_o = [_nli[x] for x in ordered_indices]
+        nli = _nli.copy()
+        print(_nli)
 
-    ord_nli_list = []
-    for _l in nli_list:
-        nn = [_l[i] * amp_compensation for i in ordered_indices]
-        ord_nli_list.append(nn)
-    # plot_list_osnr_sf([new_nli])
-    plot_list_osnr_sf(ord_nli_list)
+    # for s, _ in _nli.items():
+    #     print(s.wavelength)
+
+    plot_list_osnr([nli_o])
+
+    # ord_nli_list = []
+    # for _l in nli_list:
+    #     nn = [_l[i] for i in ordered_indices]
+    #     ord_nli_list.append(nn)
+    # plot_list_osnr_sf(ord_nli_list)
 
