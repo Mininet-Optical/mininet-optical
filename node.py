@@ -531,7 +531,7 @@ class Roadm(Node):
             # if accumulated_NLI_noise:
             if optical_signal in self.port_to_optical_signal_nli_noise_in[in_port]:
                 nli_noise = self.port_to_optical_signal_nli_noise_in[in_port][optical_signal]
-                nli_noise /= node_attenuation[optical_signal] / voa_attenuation
+                nli_noise /= node_attenuation[optical_signal] * voa_attenuation
                 self.port_to_optical_signal_nli_noise_out.setdefault(out_port, {})
                 self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] = nli_noise
 
@@ -990,6 +990,10 @@ class Amplifier(Node):
             del self.ase_noise[optical_signal]
             if optical_signal in self.nonlinear_noise.keys():
                 del self.nonlinear_noise[optical_signal]
+
+    def mock_amp_gain_adjust(self, new_gain):
+        self.target_gain = new_gain
+        self.system_gain = new_gain
 
 
 class Monitor(Node):

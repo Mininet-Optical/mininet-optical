@@ -205,7 +205,7 @@ def my_psi(carrier, interfering_carrier, beta2=None, asymptotic_length=None):
         psi = np.arcsinh((unit.pi ** 2) / 2.0 * abs(beta2) * asymptotic_length * bw_cut ** 2) / \
               (2.0 * unit.pi * abs(beta2) * asymptotic_length)
     else:  # XCI, XPM
-        delta_f = interfering_carrier.frequency -  carrier.frequency
+        delta_f = interfering_carrier.frequency - carrier.frequency
         div = 4.0 * unit.pi * asymptotic_length * abs(beta2)
         psi = np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f + bw_ch / 2.0) * bw_cut) / div
         psi -= np.arcsinh(unit.pi ** 2 * asymptotic_length * abs(beta2) * (delta_f - bw_ch / 2.0) * bw_cut) / div
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     # Initial launch power for ALL signals
     in_power = db_to_abs(0)
     # Signals to be used - by index
-    channel_indices = list(range(1, 12))
+    channel_indices = list(range(1, 21))
     spectrum_band = 'C'
     channel_spacing = 0.4 * 1e-9
     modulation_format = '16-QAM'

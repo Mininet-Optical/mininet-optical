@@ -18,7 +18,7 @@
 # import tests.gain_power_excursions_verification
 # import tests.loop_detection
 # import tests.ofc.failure_recovery.ofc_failure_recovery
-import tests.ofc.failure_recovery.ofc_failure_recovery_full
+# import tests.ofc.failure_recovery.ofc_failure_recovery_full
 # import tests.ofc.margin_optimization.margin_optimization
 # import tests.unit_testing.roadm.test_install_switch_rule
 
