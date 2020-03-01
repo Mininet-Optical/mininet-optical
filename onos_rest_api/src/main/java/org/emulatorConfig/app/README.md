@@ -1,0 +1,1 @@
+onos java app/cli
