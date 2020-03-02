@@ -93,6 +93,28 @@ class OpticalCLI( CLI ):
                     print( span.span, span.amplifier if span.amplifier else '', end=' ' )
                 print()
 
+    def do_plot( self, line ):
+        "plot ROADM topology; 'plot save' to save to plot.png"
+        net = self.mn
+        try:
+            import networkx as nx
+            import matplotlib.pyplot as plt
+        except:
+            print( 'Could not import networkx and/or matplotlib.pyplot' )
+            return
+        g = nx.Graph()
+        g.add_nodes_from( switch for switch in net.switches if isinstance(switch, ROADM) )
+        g.add_edges_from([(link.intf1.node, link.intf2.node) for link in net.links
+                          if (isinstance(link.intf1.node, ROADM) and
+                              isinstance(link.intf2.node, ROADM))])
+        nx.draw_shell( g, with_labels=True, font_weight='bold' )
+        if line:
+            fname = 'plot.png'
+            print( 'Saving to', fname, '...' )
+            plt.savefig( fname )
+        else:
+            plt.show()
+
     def do_propagate( self, _line ):
         "Obsolete: propagate signals manually"
         for node in self.mn.switches:
