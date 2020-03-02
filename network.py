@@ -310,8 +310,8 @@ class Network(object):
         op = self.find_out_port_from_link(l)
         # Pass only the signals corresponding to the output port
         pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
-        ase = {}
-        nli = {}
+        ase = src_roadm.port_to_optical_signal_ase_noise_out[op]
+        nli = src_roadm.port_to_optical_signal_nli_noise_out[op]
         print("*** Recomputing propagation out of %s" % src_roadm_name)
         l.propagate(pass_through_signals, ase, nli)
 

@@ -221,9 +221,16 @@ class LineTerminal(Node):
         # Start transmission
         self.start(transceiver, out_port)
         link = self.out_port_to_link[out_port]
+        accumulated_ASE_noise, accumulated_NLI_noise = self.init_noise_structs(out_port)
         link.propagate(self.port_to_optical_signal_power_out[out_port],
-                       accumulated_ASE_noise=None,
-                       accumulated_NLI_noise=None)
+                       accumulated_ASE_noise=accumulated_ASE_noise,
+                       accumulated_NLI_noise=accumulated_NLI_noise)
+
+    def init_noise_structs(self, out_port):
+        noise = {}
+        for optical_signal, power in self.port_to_optical_signal_power_out[out_port].items():
+            noise[optical_signal] = power / db_to_abs(50)
+        return noise, noise
 
     def receiver(self, in_port, signal_power):
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
@@ -781,23 +788,18 @@ class Amplifier(Node):
         self.output_power[signal] = output_power
         return output_power
 
-    def stage_amplified_spontaneous_emission_noise(self, optical_signal, in_power, accumulated_noise=None):
+    def stage_amplified_spontaneous_emission_noise(self, optical_signal, accumulated_noise=None):
         """
         :return:
         Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
         """
-        if accumulated_noise:
-            self.ase_noise[optical_signal] = accumulated_noise[optical_signal]
+        self.ase_noise[optical_signal] = accumulated_noise[optical_signal]
 
         # Set parameters needed for ASE model
         noise_figure_linear = db_to_abs(self.noise_figure[optical_signal.index])
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(optical_signal.index)
         system_gain = self.system_gain
 
-        if optical_signal not in self.ase_noise:
-            # set initial noise 50 dB below signal power
-            init_noise = in_power / db_to_abs(50)
-            self.ase_noise[optical_signal] = init_noise
         # Conversion from dB to linear
         gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise = self.ase_noise[optical_signal] * gain_linear + (noise_figure_linear * sc.h *
