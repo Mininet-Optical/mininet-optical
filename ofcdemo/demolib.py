@@ -72,7 +72,9 @@ class OpticalCLI( CLI ):
                 print( str(monitor) + ':' )
                 for signal in monitor.amplifier.output_power:
                     osnr = monitor.get_osnr( signal)
-                    print( '%s OSNR: %.2f dB' % ( signal, osnr ) )
+                    gosnr = monitor.get_gosnr( signal)
+                    print( '%s OSNR: %.2f dB' % ( signal, osnr ), end='' )
+                    print( ' gOSNR: %.2f dB' % gosnr )
 
     def do_spans( self, _line ):
         "List spans between ROADMs"
