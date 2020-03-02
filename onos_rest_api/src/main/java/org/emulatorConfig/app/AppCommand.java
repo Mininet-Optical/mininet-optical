@@ -24,6 +24,9 @@ Project: ONOS REST API for Optical Emulator (with BoB Lantz, Alan Diaz Montiel)
  */
 package org.emulatorConfig.app;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
@@ -38,15 +41,18 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.lang.Thread;
+import java.lang.Iterable;
 
 
 //use onos CLI
 @Service
-@Command(scope = "onos", name = "emulator-config-topo",
+@Command(scope = "onos", name = "oe-config",
          description = "Optical Emulator Configure CLI command")
 public class AppCommand extends AbstractShellCommand {
 
@@ -116,7 +122,7 @@ public class AppCommand extends AbstractShellCommand {
                                         "}";
 
     @Argument(index = 0, name = "device-type",
-            description = "configure device type: terminal/roadm/default-topo/show-links/show-roadm-links/show-terminal-links",
+            description = "configure device type: terminal/roadm/default-topo/monitor/osnr/show-links/show-roadm-links/show-terminal-links/show-router-links",
             required = true, multiValued = false)
     String device_type = null;
 
@@ -151,9 +157,18 @@ public class AppCommand extends AbstractShellCommand {
       }else if (device_type != null && device_type.equals("show-roadm-links")){
           print("All ROADM Links %s", "are listed as below:");
           show_roadm_links ();
+      }else if (device_type != null && device_type.equals("show-router-links")){
+          print("All Router Links %s", "are listed as below:");
+          show_router_links ();
       }else if (device_type != null && device_type.equals("show-terminal-links")){
           print("All Terminal Links %s", "are listed as below:");
           show_terminal_links ();
+      }else if (device_type != null && device_type.equals("monitor")){
+          print("Network Monitored Infomation %s", ":");
+          monitor ();
+      }else if (device_type != null && device_type.equals("osnr")){
+          print("Link OSNR Infomation %s", ":");
+          osnr ();
       }else if (device_type != null && device_type.equals("default-topo")) {
           default_topo ();
           print("Default Topology is %s", "Configured!");
@@ -165,7 +180,7 @@ public class AppCommand extends AbstractShellCommand {
             config_terminal(node_name,in_port,out_port,channel,power);
             print("Terminal configuration is %s", "done!");
       }else if (device_type != null){
-          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/show-links/default-topo");
+          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/default-topo/monitor/osnr/show-links/show-roadm-links/show-terminal-links/show-router-links");
       }
       return;
     }
@@ -214,7 +229,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //REST connection with GET/POST/DELETE method
-    public static void conMethod (HttpURLConnection con, String method, String post_json) {
+    public static JsonNode conMethod (HttpURLConnection con, String method, String post_json) {
       try{
 	con.setRequestMethod(method);
         if(method.equals("GET") || method.equals("DELETE") ) {
@@ -238,14 +253,28 @@ public class AppCommand extends AbstractShellCommand {
 	  }
 	  iny.close();
 	  //printing result from response
-	  System.out.println(response.toString());
+	  
+          try{
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response.toString());
+            //JsonNode res = json.get(RESULT);
+              //JSONParser parser = new JSONParser();
+              //JSONObject json = (JSONObject) parser.parse(response.toString());
+            //System.out.println(json);
+            return json;
+          }catch (Exception e) {
+             //System.out.println(response.toString());
+             //e.printStackTrace();
+             return null;
+          }
       }catch (Exception e) {
-        e.printStackTrace();
+        //e.printStackTrace();
+        return null;
       }
     }
 
     //set REST connection with GET/POST/DELETE method, and properties of map dict
-    public static void conMethod (HttpURLConnection con, String method, Map<String, String> dict, String post_json) {
+    public static JsonNode conMethod (HttpURLConnection con, String method, Map<String, String> dict, String post_json) {
       try{
         for(String key: dict.keySet()){
             //System.out.println(key + ": " + dict.get(key));
@@ -274,9 +303,23 @@ public class AppCommand extends AbstractShellCommand {
 	  }
 	  iny.close();
 	  //printing result from response
-	  System.out.println(response.toString());
+	  
+          try{
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response.toString());
+            //JsonNode res = json.get(RESULT);
+              //JSONParser parser = new JSONParser();
+              //JSONObject json = (JSONObject) parser.parse(response.toString());
+            //System.out.println(json);
+            return json;
+          }catch (Exception e) {
+            //System.out.println(response.toString());
+            //e.printStackTrace();
+            return null;
+          }
       }catch (Exception e) {
-        e.printStackTrace();
+        //e.printStackTrace();
+        return null;
       }
     }
 
@@ -317,7 +360,6 @@ public class AppCommand extends AbstractShellCommand {
       System.out.println("h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3");
       System.out.println("                      ||");
       System.out.println("                      t2 - s2 - h2");
-
     }
 
     // configure roadm link
@@ -328,7 +370,6 @@ public class AppCommand extends AbstractShellCommand {
       String url = urlFormat("http://localhost:8080/connect", node_info);
       node_info.clear();
       conMethod(RESTCon (url), GET, "");
-
     }
 
     // configure terminal link
@@ -339,32 +380,75 @@ public class AppCommand extends AbstractShellCommand {
       String url = urlFormat("http://localhost:8080/connect", t_info);
       t_info.clear();
       conMethod(RESTCon (url), GET, "");
+    }
 
+    //monitors
+    public void monitor () {
+
+      String url = "http://localhost:8080/monitors";
+      JsonNode monitors = conMethod(RESTCon (url), GET, "");
+      KeyValue(monitors.get("monitors"));
+    }
+
+    //link osnr information
+    public void osnr () {
+
+      String url = "http://localhost:8080/monitors";
+      JsonNode monitors = conMethod(RESTCon (url), GET, "");
+      JsonNode jsonNode = monitors.get("monitors");
+      for (Iterator<Map.Entry<String, JsonNode>> it = jsonNode.fields(); it.hasNext();){
+        Map.Entry<String, JsonNode> field = it.next();
+        //print(field.getKey() + field.getValue().toString());
+        Map<String, String> node_info = new HashMap();
+        node_info.put("monitor", field.getKey());
+        String url1 = urlFormat("http://localhost:8080/monitor", node_info);
+        node_info.clear();
+        JsonNode osnr = conMethod(RESTCon (url1), GET, "");
+        print(field.getValue().toString());
+        print(osnr.toString());
+
+      }
     }
 
     //show all roadm-roadm links
-    public static void show_roadm_links () {
+    public void show_roadm_links () {
 
       String url = "http://localhost:8080" + LINKS + ROADMS;
       conMethod(RESTCon (url), GET, "");
-
-
+      JsonNode links = conMethod(RESTCon (url), GET, "");
+      KeyValue(links);
     }
 
     //show all terminal-roadm links
-    public static void show_terminal_links () {
+    public void show_terminal_links () {
 
       String url = "http://localhost:8080" + LINKS + TERMINALS;
-      conMethod(RESTCon (url), GET, "");
+      JsonNode links = conMethod(RESTCon (url), GET, "");
+      KeyValue(links);
+    }
 
+    //show all router links
+    public void show_router_links () {
+
+      String url = "http://localhost:8080" + LINKS + "/routers";
+      JsonNode links = conMethod(RESTCon (url), GET, "");
+      KeyValue(links);
     }
 
     //show all terminal, roadm, router links
-    public static void show_links () {
+    public void show_links () {
 
       String url = "http://localhost:8080" + LINKS;
-      conMethod(RESTCon (url), GET, "");
+      JsonNode links = conMethod(RESTCon (url), GET, "");
+      KeyValue(links);
+    }
 
+    public void KeyValue(JsonNode jsonNode) {
+
+      for (Iterator<Map.Entry<String, JsonNode>> it = jsonNode.fields(); it.hasNext();){
+        Map.Entry<String, JsonNode> field = it.next();
+        print(field.getKey() + field.getValue().toString());
+      }
     }
 
 }
