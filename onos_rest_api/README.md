@@ -27,7 +27,7 @@ Supported ONOS CLI operations:
       ` oe-config osnr
       
 9. CONFIGURE A DEFAULT NETWORK TOPOLOGY:  
-       `oe-config default-topo`
+      ` oe-config default-topo
 
              h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
                           ||
