@@ -123,21 +123,16 @@ def fetchNodes( net ):
     "Fetch node list using REST"
     print( '*** Fetching nodes' )
     r = net.get( 'nodes' )
-    json = r.json()
-    print( json )
-    return json[ 'nodes' ]
+    return r.json()[ 'nodes' ]
 
 
 def fetchLinks( net ):
     print( '*** Fetching all links' )
-    l = net.get( 'links' )
-    print( l.json() )
+    l = net.get( 'links' ).json()['links']
     print( '*** Fetching ROADM-ROADM links' )
-    r = net.get( 'links/roadms' )
-    print( r.json() )
+    r = net.get( 'links/roadms' ).json()['links']
     print( '*** Fetching Terminal-ROADM links' )
-    t = net.get( 'links/terminals' )
-    print( t.json() )
+    t = net.get( 'links/terminals' ).json()['links']
     return l, r, t
 
 
@@ -152,10 +147,11 @@ def fetchRules( roadms ):
 def fetchPorts( net, nodes ):
     "Fetch ports for all nodes"
     print( '*** Fetching ports for all nodes' )
-    for node in nodes:
-        result = net.get( 'ports',  dict( node=node ) )
-        if result.status_code == 200:
-            print( node, result.json() )
+    results = { node: result.json()
+                for node in nodes
+                for result in [net.get( 'ports', dict( node=node ) ) ]
+                if result.status_code == 200 }
+    return results
 
 def fetchOSNR( net ):
     "Fetch OSNR values"
@@ -240,6 +236,10 @@ def configureROADMs():
 
 
 if __name__ == '__main__':
+
+    # Test fakecontroller - expects LinearRoadmTopo
+    # topology from simpledemo.py
+
     net = RESTProxy()
     nodes = fetchNodes( net )
     fetchLinks( net )

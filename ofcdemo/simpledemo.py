@@ -1,11 +1,13 @@
 #!/usr/bin/python
 
 """
-demo.py: Start up Mininet with OFC Demo Topology
+simpledemo.py: demonstrate physical/dataplane/control plane emulation
+
+This demo uses the simpler 3-node linear ROADM topology
 """
 
 from dataplane import Mininet, ROADM, Terminal, disableIPv6
-from ofcdemo.demolib import DemoTopo, CLI
+from ofcdemo.demolib import LinearRoadmTopo, CLI
 from rest import RestServer
 
 from mininet.topo import SingleSwitchTopo
@@ -17,8 +19,7 @@ if __name__ == '__main__':
 
     cleanup()
     setLogLevel( 'info' )
-    info( '*** Creating Demo Topology \n' )
-    net = Mininet( topo=DemoTopo( txCount=10), autoSetMacs=True,
+    net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True,
                    controller=RemoteController )
     disableIPv6( net )
     restServer = RestServer( net )

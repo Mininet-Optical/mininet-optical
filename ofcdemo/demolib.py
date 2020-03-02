@@ -12,13 +12,14 @@ Our demo topology is a cross-connected mesh of 6 POPs.
 
 from dataplane import ( Terminal, ROADM, OpticalLink,
                         dBm, dB, km,
-                        cleanOptLinks, Mininet )
+                        cleanOptLinks, disableIPv6, Mininet )
+from rest import RestServer
 
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.cli import CLI
-
+from mininet.node import RemoteController
 
 # Routers start listening at 6654
 ListenPortBase = 6653
@@ -63,8 +64,6 @@ class OpticalCLI( CLI ):
         "List osnr for monitors"
         for link in self.mn.links:
             if not isinstance( link, OpticalLink ):
-                continue
-            if not link.monitors:
                 continue
             if not link.monitors:
                 continue
@@ -120,10 +119,6 @@ class OpticalCLI( CLI ):
         for node in self.mn.switches:
             if isinstance( node, Terminal ):
                 node.propagate()
-        for node in self.mn.switches:
-            if isinstance( node, ROADM ):
-                node.propagate()
-
 
 CLI = OpticalCLI
 
@@ -159,7 +154,6 @@ class LinearRoadmTopo( OpticalTopo ):
         "Return a local IP address or subnet for the given POP"
         return template % ( pop, intfnum ) + subnet
 
-
     def buildPop( self, p, txCount=2 ):
         "Build a POP; returns: ROADM"
         # Network elements
@@ -174,13 +168,11 @@ class LinearRoadmTopo( OpticalTopo ):
             't%d' % p, cls=Terminal, transceivers=transceivers )
         roadm = self.addSwitch( 'r%d' % p,  cls=ROADM )
         # Local links
-        eth1, eth2, eth3 = 1, 2, 3
-        wdm1, wdm2, wdm3, wdm4 = 1, 2, 3, 4
-        self.ethLink( router, terminal, port1=eth1, port2=eth1 )
-        self.ethLink( router, terminal, port1=eth2, port2=eth2 )
-        self.ethLink( router, host, port1=eth3 )
-        self.wdmLink( terminal, roadm, port1=wdm3, port2=wdm1 )
-        self.wdmLink( terminal, roadm, port1=wdm4, port2=wdm2 )
+        for port in range( 1, txCount+1 ):
+            self.ethLink( router, terminal, port1=port, port2=port )
+        self.ethLink( router, host, port1=txCount + 1 )
+        for port in range( 1, txCount+1 ):
+            self.wdmLink( terminal, roadm, port1=txCount+port, port2=port )
         # Return ROADM so we can link it to other POPs as needed
         return roadm
 
@@ -318,11 +310,11 @@ class DemoTopo( LinearRoadmTopo ):
         self.wdmLink(
             src, dst, boost=boost, spans=spans, monitors=monitors )
 
-    def build( self, n=6 ):
+    def build( self, n=6, txCount=5 ):
         "Add POPs and connect them in a ring with some cross-connects"
 
         # Add POPs
-        roadms = [ self.buildPop( p, txCount=n ) for p in range( 1, n+1 ) ]
+        roadms = [ self.buildPop( p, txCount=txCount ) for p in range( 1, n+1 ) ]
 
         # ROADM ring links
         for i in range( n ):
@@ -339,7 +331,12 @@ if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel( 'info' )
-    net = Mininet( topo=DemoTopo() )
-    CLI( net )
+    net = Mininet( topo=DemoTopo( txCount=10 ), autoSetMacs=True,
+                   controller=RemoteController )
+    disableIPv6( net )
+    restServer = RestServer( net )
     net.start()
+    restServer.start()
+    CLI( net )
+    restServer.stop()
     net.stop()
