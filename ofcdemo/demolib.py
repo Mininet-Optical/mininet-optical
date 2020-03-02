@@ -305,9 +305,8 @@ class DemoTopo( LinearRoadmTopo ):
             src, dst = roadms[i], roadms[i-1]
             self.addPopLink( src, dst, index=i )
 
-        # Cross-connects
-        for i in range( 0, int(n/2) ):
-            src, dst = roadms[i], roadms[i-1]
+        for i in range( 1, int(n/2) ):
+            src, dst = roadms[i], roadms[-i]
             self.addPopLink( src, dst, index=i )
 
 
