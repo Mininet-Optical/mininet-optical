@@ -26,6 +26,9 @@ package org.emulatorConfig.app;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
@@ -186,7 +189,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     // generate new url with given key-value dictionary
-    public static String urlFormat (String url, Map<String, String> dict) {
+    private static String urlFormat (String url, Map<String, String> dict) {
       String trail = "";
       for(String key: dict.keySet()){
           //System.out.println(key + ": " + dict.get(key));
@@ -196,7 +199,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //set REST connection with url, username, and password
-    public static HttpURLConnection RESTCon(String url, String usr, String psswd) {
+    private static HttpURLConnection RESTCon(String url, String usr, String psswd) {
       try{
         String urly = url;
 	URL obj = new URL(urly);
@@ -215,7 +218,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //set REST connection with url
-    public static HttpURLConnection RESTCon(String url) {
+    private static HttpURLConnection RESTCon(String url) {
       try{
 	String urly = url;
 	URL obj = new URL(urly);
@@ -229,7 +232,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //REST connection with GET/POST/DELETE method
-    public static JsonNode conMethod (HttpURLConnection con, String method, String post_json) {
+    private static JsonNode conMethod (HttpURLConnection con, String method, String post_json) {
       try{
 	con.setRequestMethod(method);
         if(method.equals("GET") || method.equals("DELETE") ) {
@@ -274,7 +277,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //set REST connection with GET/POST/DELETE method, and properties of map dict
-    public static JsonNode conMethod (HttpURLConnection con, String method, Map<String, String> dict, String post_json) {
+    private static JsonNode conMethod (HttpURLConnection con, String method, Map<String, String> dict, String post_json) {
       try{
         for(String key: dict.keySet()){
             //System.out.println(key + ": " + dict.get(key));
@@ -327,7 +330,7 @@ public class AppCommand extends AbstractShellCommand {
     //       h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
     //                      ||
     //                      t2 - s2 - h2
-    public static void default_topo (){
+    private static void default_topo (){
 
       config_terminal("t1","1","3","1","0.0");
       config_terminal("t1","2","4","2","0.0");
@@ -363,7 +366,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     // configure roadm link
-    public static void config_roadm (String name, String port1, String port2, String channels) {
+    private static void config_roadm (String name, String port1, String port2, String channels) {
 
       Map<String, String> node_info = new HashMap();
       node_info.put("node", name);node_info.put("port1", port1);node_info.put("port2", port2);node_info.put("channels", channels);
@@ -373,7 +376,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     // configure terminal link
-    public static void config_terminal (String name, String ethPort, String wdmPort, String channel, String power) {
+    private static void config_terminal (String name, String ethPort, String wdmPort, String channel, String power) {
 
       Map<String, String> t_info = new HashMap();
       t_info.put("node", name);t_info.put("ethPort", ethPort);t_info.put("wdmPort", wdmPort);t_info.put("channel", channel);t_info.put("power", power);
@@ -383,7 +386,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //monitors
-    public void monitor () {
+    private void monitor () {
 
       String url = "http://localhost:8080/monitors";
       JsonNode monitors = conMethod(RESTCon (url), GET, "");
@@ -391,7 +394,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //link osnr information
-    public void osnr () {
+    private void osnr () {
 
       String url = "http://localhost:8080/monitors";
       JsonNode monitors = conMethod(RESTCon (url), GET, "");
@@ -408,10 +411,11 @@ public class AppCommand extends AbstractShellCommand {
         print(osnr.toString());
 
       }
+
     }
 
     //show all roadm-roadm links
-    public void show_roadm_links () {
+    private void show_roadm_links () {
 
       String url = "http://localhost:8080" + LINKS + ROADMS;
       conMethod(RESTCon (url), GET, "");
@@ -420,7 +424,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //show all terminal-roadm links
-    public void show_terminal_links () {
+    private void show_terminal_links () {
 
       String url = "http://localhost:8080" + LINKS + TERMINALS;
       JsonNode links = conMethod(RESTCon (url), GET, "");
@@ -428,7 +432,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //show all router links
-    public void show_router_links () {
+    private void show_router_links () {
 
       String url = "http://localhost:8080" + LINKS + "/routers";
       JsonNode links = conMethod(RESTCon (url), GET, "");
@@ -436,14 +440,14 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //show all terminal, roadm, router links
-    public void show_links () {
+    private void show_links () {
 
       String url = "http://localhost:8080" + LINKS;
       JsonNode links = conMethod(RESTCon (url), GET, "");
       KeyValue(links);
     }
 
-    public void KeyValue(JsonNode jsonNode) {
+    private void KeyValue(JsonNode jsonNode) {
 
       for (Iterator<Map.Entry<String, JsonNode>> it = jsonNode.fields(); it.hasNext();){
         Map.Entry<String, JsonNode> field = it.next();
