@@ -26,7 +26,8 @@ def plot_list_osnr(_list):
 
 def plot_list_osnr_sf(_list):
     plt.xlabel("Channel index")
-    plt.ylabel("G_NLI")
+    plt.ylabel("G_NLI (dB)")
+    plt.title("First span zoomed in")
     for element in _list:
         plt.plot(element, linestyle='None', linewidth=4, marker='D', markersize=8, markerfacecolor='None', )
     plt.show()
@@ -297,17 +298,21 @@ if __name__ == '__main__':
 
     _nli = 0
     nli_o = 0
-    for i in range(10):
+
+    nli_prop = []
+    for i in range(1):
         _nli = output_nonlinear_noise(nli, signal_to_power, signals, spanx)
         ordered_indices = order_signals(_nli)
         nli_o = [_nli[x] for x in ordered_indices]
+        nli_o_db = [abs_to_db(_nli[x]) for x in ordered_indices]
+        nli_prop.append(nli_o_db)
         nli = _nli.copy()
         print(_nli)
 
     # for s, _ in _nli.items():
     #     print(s.wavelength)
 
-    plot_list_osnr([nli_o])
+    plot_list_osnr_sf(nli_prop)
 
     # ord_nli_list = []
     # for _l in nli_list:
