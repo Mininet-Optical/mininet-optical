@@ -66,46 +66,43 @@ net.transmit(lt6, roadm6, resources=resources2)
 
 # Monitoring nodes at the receiver-ends
 r2_r4_mon = n['mon%d' % 28]
-osnr_r2_r42 = r2_r4_mon.get_list_osnr()
+osnr_r2_r4 = r2_r4_mon.get_list_gosnr()
 
 r4_r6_mon = n['mon%d' % 52]
-osnr_r4_r6 = r4_r6_mon.get_list_osnr()
+osnr_r4_r6 = r4_r6_mon.get_list_gosnr()
 
 # Adjust NF of amplifier in link between R1 and R2, so that
 # multiple links break.
 # net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
 net.mock_amp_gain_adjust('amp3', -10, 'roadm1', 'roadm2')
 
-r2_r4_mon = n['mon%d' % 28]
-osnr_r2_r43 = r2_r4_mon.get_list_osnr()
+osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
+osnr_r4_r62 = r4_r6_mon.get_list_gosnr()
 
-r4_r6_mon = n['mon%d' % 52]
-osnr_r4_r62 = r4_r6_mon.get_list_osnr()
-
-plot_list_osnr([osnr_r4_r6, osnr_r4_r62])
+plot_list_osnr([osnr_r2_r4, osnr_r2_r42])
 
 # control procedures for recovery
-roadm6.delete_switch_rule(1)
-roadm5.delete_switch_rule(1)
-roadm4.delete_switch_rule(1)
-roadm4.delete_switch_rule(2)
-roadm2.delete_switch_rule(1)
-
-switch_proc = st()
-switch_proc.recovery_link_r1_r2()
-for pr in switch_proc.roadm3:
-    roadm3.install_switch_rule(**pr)
-for pr in switch_proc.roadm5:
-    roadm5.install_switch_rule(**pr)
-for pr in switch_proc.roadm6:
-    roadm6.install_switch_rule(**pr)
-
-roadm1.update_switch_rule(1, 102)
-
-r3_r5_mon = n['mon%d' % 36]
-osnr_r3_r5 = r3_r5_mon.get_list_osnr()
-
-r5_r6_mon = n['mon%d' % 60]
-osnr_r5_r6 = r5_r6_mon.get_list_osnr()
-# visualise the performance before and after
-plot_list_osnr([osnr_r5_r6])
+# roadm6.delete_switch_rule(1)
+# roadm5.delete_switch_rule(1)
+# roadm4.delete_switch_rule(1)
+# roadm4.delete_switch_rule(2)
+# roadm2.delete_switch_rule(1)
+#
+# switch_proc = st()
+# switch_proc.recovery_link_r1_r2()
+# for pr in switch_proc.roadm3:
+#     roadm3.install_switch_rule(**pr)
+# for pr in switch_proc.roadm5:
+#     roadm5.install_switch_rule(**pr)
+# for pr in switch_proc.roadm6:
+#     roadm6.install_switch_rule(**pr)
+#
+# roadm1.update_switch_rule(1, 102)
+#
+# r3_r5_mon = n['mon%d' % 36]
+# osnr_r3_r5 = r3_r5_mon.get_list_osnr()
+#
+# r5_r6_mon = n['mon%d' % 60]
+# osnr_r5_r6 = r5_r6_mon.get_list_osnr()
+# # visualise the performance before and after
+# plot_list_osnr([osnr_r5_r6])
