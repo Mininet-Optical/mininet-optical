@@ -185,9 +185,9 @@ def my_gn_analytic(optical_signals, signal_power_progress, span):
 
             g_nli += g_ch ** 2 * g_cut * my_psi(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
 
-        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) * 1000
+        g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2)
         signal_under_test = index_to_signal[channel_under_test]
-        nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
+        nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1000
 
     return nonlinear_noise_struct
 
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     nli_o = 0
 
     nli_prop = []
-    for i in range(1):
+    for i in range(10):
         _nli = output_nonlinear_noise(nli, signal_to_power, signals, spanx)
         ordered_indices = order_signals(_nli)
         nli_o = [_nli[x] for x in ordered_indices]
