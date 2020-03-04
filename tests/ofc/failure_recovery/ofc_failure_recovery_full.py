@@ -79,30 +79,31 @@ net.mock_amp_gain_adjust('amp3', -10, 'roadm1', 'roadm2')
 osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
 osnr_r4_r62 = r4_r6_mon.get_list_gosnr()
 
-plot_list_osnr([osnr_r2_r4, osnr_r2_r42])
+# plot_list_osnr([osnr_r2_r4, osnr_r2_r42])
 
 # control procedures for recovery
-# roadm6.delete_switch_rule(1)
-# roadm5.delete_switch_rule(1)
-# roadm4.delete_switch_rule(1)
-# roadm4.delete_switch_rule(2)
-# roadm2.delete_switch_rule(1)
-#
-# switch_proc = st()
-# switch_proc.recovery_link_r1_r2()
-# for pr in switch_proc.roadm3:
-#     roadm3.install_switch_rule(**pr)
-# for pr in switch_proc.roadm5:
-#     roadm5.install_switch_rule(**pr)
-# for pr in switch_proc.roadm6:
-#     roadm6.install_switch_rule(**pr)
-#
-# roadm1.update_switch_rule(1, 102)
-#
-# r3_r5_mon = n['mon%d' % 36]
-# osnr_r3_r5 = r3_r5_mon.get_list_osnr()
-#
-# r5_r6_mon = n['mon%d' % 60]
-# osnr_r5_r6 = r5_r6_mon.get_list_osnr()
-# # visualise the performance before and after
-# plot_list_osnr([osnr_r5_r6])
+roadm6.delete_switch_rule(1)
+roadm5.delete_switch_rule(1)
+roadm4.delete_switch_rule(1)
+roadm4.delete_switch_rule(2)
+roadm2.delete_switch_rule(1)
+
+switch_proc = st()
+switch_proc.recovery_link_r1_r2()
+for pr in switch_proc.roadm3:
+    roadm3.install_switch_rule(**pr)
+for pr in switch_proc.roadm5:
+    roadm5.install_switch_rule(**pr)
+for pr in switch_proc.roadm6:
+    roadm6.install_switch_rule(**pr)
+
+roadm1.update_switch_rule(1, 102)
+
+r3_r5_mon = n['mon%d' % 36]
+osnr_r3_r5 = r3_r5_mon.get_list_gosnr()
+
+r5_r6_mon = n['mon%d' % 60]
+osnr_r5_r6 = r5_r6_mon.get_list_gosnr()
+# visualise the performance before and after
+plot_osnr(osnr_r5_r6)
+# plot_list_osnr([osnr_r3_r5, osnr_r5_r6])
