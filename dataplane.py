@@ -204,13 +204,15 @@ class Terminal( SwitchBase ):
                 if port == wdmPort:
                     return txnum
                 txnum += 1
-        return None
+        raise Exception( '%s could not find tx for port %d' %
+                         ( self, wdmPort ) )
 
     def restConnectHandler( self, query ):
         "REST connect handler"
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
         channel = int( query.channel ) if hasattr( query, 'channel' ) else None
+        # print("CONNECT", self, "eth", ethPort, "wdm", wdmPort, "channel", channel)
         self.connect( ethPort, wdmPort, channel )
         return 'OK'
 
