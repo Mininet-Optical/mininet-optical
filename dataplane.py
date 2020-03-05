@@ -327,7 +327,8 @@ class ROADM( SwitchBase ):
 
     def restRulesHandler( self, query ):
         "Handle REST rules request"
-        return self.model.switch_table
+        return { str(ruleId): rule
+                 for rule, ruleId in self.ruleIds.items() }
 
     # Dataplane operations
 
@@ -386,7 +387,7 @@ class ROADM( SwitchBase ):
         port1 = int( query.port1 )
         port2 = int( query.port2 )
         channels = [int(channel) for channel in query.channels.split(',')]
-        action = getattr( query, 'action', 'install' )
+        action = query.get( 'action', 'install' )
         self.connect( port1, port2, channels, action )
         return 'OK'
 
