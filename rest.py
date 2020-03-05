@@ -14,23 +14,39 @@ from mininet.node import Switch
 """
 Prototype REST API
 
-This is currently very limited. We may wish to add a number of
-additional calls, such as the following:
+This is currently very limited.  We implement the following
+functions:
 
-ROADMs
-- list rules
-- install rule
-- delete rule
-- reset
+Network operations
 
-Amplifiers
-- get/set power
+- list nodes: /nodes -> nodes:[ { node: class } ... ]
+- list links: /links -> links:[ { node1:port1, node2:port2 } ... ]
+- inter-ROADM links: /links/roadms
+- terminal links: /links/terminals
+- router links: /links/routers
 
-Transceivers
--  get/set power, channel/frequency, modulation
+Generic node operations
 
-Monitors
--  get monitoring data (OSNR, etc.)
+- reset: /reset?node=r1
+- list ports: /ports?node=t1 -> ports={ port: name ... }
+
+ROADM operations
+
+- install rule: /connect?node=r1&port1=n&port2=n&channels='1,2,3'
+- delete rule: /connect?node=n&port1=n&port2=n&channels='1,2,3'&action=remove
+- list rules: /rules?node=r1 -> rules:{ ruleId: dict(port1, port2, channels) }
+
+Terminal/transceiver operations
+
+- set transceiver(wdmPort)'s channel, power, and ethPort (packet downlink port)
+   /connect?node=t1&wdmPort=t1-wdm5&channel=1&power=0.0&ethPort=1
+
+Monitor operations
+
+- list monitors: /monitors
+- get monitor data (OSNR, gOSNR): /monitor?monitor=r1-r2-amp2-mon
+  -> osnr:{ signal: {freq, osnr, gosnr} }
+
 """
 
 def net():
@@ -140,9 +156,15 @@ def nodeHandler( handlerName ):
     return result
 
 
+@get( '/reset' )
+def reset():
+    "Reset/clear a node's flow rules"
+    return nodeHandle( 'restResetHandler' )
+
+
 @get( '/connect' )
 def connect():
-    "Configure connection in optical node"
+    "Configure (or install/remove) connection in optical node"
     return nodeHandler( 'restConnectHandler' )
 
 
@@ -161,10 +183,12 @@ def info():
     "Return an object's configuration and other information"
     pass
 
+
 @get( '/config' )
 def config():
     "Set an object's configuration"
     pass
+
 
 @get( '/rules' )
 def rules():

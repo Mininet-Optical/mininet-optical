@@ -26,7 +26,8 @@ OpticalLink: a bidirectional optical link consisting of fiber
 # Physical model
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
 from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
-                   Roadm as PhyROADM, Monitor as PhyMonitor )
+                   Roadm as PhyROADM, Monitor as PhyMonitor,
+                   SwitchRule as PhySwitchRule)
 
 # Data plane
 from mininet.net import Mininet
@@ -148,6 +149,12 @@ class SwitchBase( OVSSwitch ):
         "Construct a ports dict for a node"
         return {port: intf.name for port, intf in node.intfs.items() }
 
+    def restResetHandler( self, query ):
+        "REST reset handler"
+        self.reset()
+        return 'OK'
+
+
 
 class Terminal( SwitchBase ):
     """
@@ -268,6 +275,7 @@ class ROADM( SwitchBase ):
 
     model = None
     modelClass = PhyROADM
+    ruleIds = {}   # Cache of physical model rule IDs
 
     def start( self, _controllers ):
         "Override to start without controller"
@@ -277,17 +285,36 @@ class ROADM( SwitchBase ):
 
     # Physical model operations
 
+    @staticmethod
+    def ruleTuple( inport, outport, channels ):
+        "Return hashable tuple for rule"
+        return PhySwitchRule( inport, outport, tuple( sorted( channels ) ) )
+
     def phyReset( self ):
         "Reset physical model"
+        self.ruleIds = {}
         self.nextRuleId = 1
         self.model.delete_switch_rules()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
         OUT = 100  # Offset for model output port
+        rule = self.ruleTuple( inport, outport, channels )
+        if rule in self.ruleIds:
+            return
         self.model.install_switch_rule(
             self.nextRuleId, inport, outport + OUT, channels )
+        self.ruleIds[ rule ] = self.nextRuleId
         self.nextRuleId += 1
+
+    def phyRemove( self, inport, outport, channels ):
+        rule = ( inport, outport, tuple( sorted( channels ) ) )
+        ruleId = self.ruleIds.get( rule )
+        if ruleId:
+            self.model.delete_switch_rule( ruleId )
+            del self.ruleIds[ rule ]
+        else:
+            raise Exception( 'could not find rule %s' % str( rule ) )
 
     # Probably obsolete now that we have auto-propagation
     #def propagate( self ):
@@ -300,11 +327,6 @@ class ROADM( SwitchBase ):
 
     def restRulesHandler( self, query ):
         "Handle REST rules request"
-        return { ruleId: dict(port1=rule[0], port2=rule[1], channels=rule[2] )
-                 for ruleId, rule in self.model.switch_table.items() }
-
-    def rules( self ):
-        "Return switching rules"
         return self.model.switch_table
 
     # Dataplane operations
@@ -317,16 +339,25 @@ class ROADM( SwitchBase ):
         # Drop IPv6 router soliciations
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
 
-    def dpInstall( self, inport, outport, channels ):
-        "Install a switching rule into the dataplane"
+    def dpFlow( self, inport, outport, channel, action='add-flow' ):
+        "Return a switching rule for the dataplane"
         # Note: Dataplane currently switches on VLAN
         # We can change this in the future
+        return ( ( 'priority=200,' if action == 'add-flow' else '') +
+                 'in_port=%d,' % inport +
+                 'dl_vlan=%d' % channel +
+                 ( ( ',actions=output:%d' % outport )
+                   if action == 'add-flow' else '') )
+
+    def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
+        "Install a switching rule into the dataplane"
         for channel in channels:
-            self.dpctl( 'add-flow',
-                        'priority=200,' +
-                        'in_port=%d,' % inport +
-                        'dl_vlan=%d,' % channel +
-                        'actions=output:%d' % outport )
+            flow = self.dpFlow( inport, outport, channel, 'add-flow' )
+            self.dpctl( cmd, flow )
+
+    def dpRemove( self, inport, outport, channels, cmd='add-flow' ):
+        "Remove a switching rule from the dataplane"
+        dpInstall( self, inport, outport, channels, cmd='del-flows' )
 
     # Combined dataplane/phy emulation operations
 
@@ -335,24 +366,38 @@ class ROADM( SwitchBase ):
         self.dpReset()
         self.phyReset()
 
-    def install( self, inport, outport, channels ):
+    def install( self, inport, outport, channels, action='install' ):
         "Install rules into dataplane and physical model"
-        self.dpInstall( inport, outport, channels )
-        self.phyInstall( inport, outport, channels )
+        if action == 'install':
+            self.dpInstall( inport, outport, channels, cmd='add-flow' )
+            self.phyInstall( inport, outport, channels )
+        elif action == 'remove':
+            self.dpInstall( inport, outport, channels  )
+            self.phyRemove( inport, outport, channels )
+        else:
+            raise Exception( 'unknown action <%s>' % action )
+
+    def restDisconnectHandler( self, query ):
+        "REST remove handler"
+        return restConnectHandler( query, action='remove' )
 
     def restConnectHandler( self, query ):
         "REST connect handler"
         port1 = int( query.port1 )
         port2 = int( query.port2 )
         channels = [int(channel) for channel in query.channels.split(',')]
-        params = dict(port1=port1, port2=port2, channels=channels)
-        self.connect( **params )
+        action = getattr( query, 'action', 'install' )
+        self.connect( port1, port2, channels, action )
         return 'OK'
 
-    def connect( self, port1, port2, channels ):
+    def connect( self, port1, port2, channels, action='install' ):
         "Install bidirectional rule connecting port1 and port2"
-        self.install( port1, port2, channels )
-        self.install( port2, port1, channels )
+        self.install( port1, port2, channels, action=action )
+        self.install( port2, port1, channels, action=action )
+
+    def disconnect( self, port1, port2, channels, action='remove' ):
+        "Remove bidirectional rule connecting port1 and port2"
+        self.connect( port1, port2, channels, action='remove' )
 
 
 class SimpleROADM( ROADM ):
