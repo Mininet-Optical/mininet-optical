@@ -659,20 +659,20 @@ class Roadm(Node):
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
                 if voa_att < 0:
-                    self.port_to_optical_signal_power_out_qot[out_port][optical_signal] /= voa_att
+                    # self.port_to_optical_signal_power_out_qot[out_port][optical_signal] /= voa_att
                     if len(accumulated_ASE_noise_qot) > 0:
-                        accumulated_ASE_noise_qot[optical_signal] /= voa_att
+                        # accumulated_ASE_noise_qot[optical_signal] /= voa_att
                         self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
                     if len(accumulated_NLI_noise_qot) > 0:
-                        accumulated_NLI_noise_qot[optical_signal] /= voa_att
+                        # accumulated_NLI_noise_qot[optical_signal] /= voa_att
                         self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
                 else:
-                    self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
+                    # self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
                     if len(accumulated_ASE_noise_qot) > 0:
-                        accumulated_ASE_noise_qot[optical_signal] *= voa_att
+                        # accumulated_ASE_noise_qot[optical_signal] *= voa_att
                         self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
                     if len(accumulated_NLI_noise_qot) > 0:
-                        accumulated_NLI_noise_qot[optical_signal] *= voa_att
+                        # accumulated_NLI_noise_qot[optical_signal] *= voa_att
                         self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
             ######################################### QOT ESTIMATION ENDS #########################################
 
@@ -950,21 +950,21 @@ class Amplifier(Node):
         #     self.system_gain_qot = self.system_gain
         # else:
         # Convert power levels from linear to dBm
-        output_power_dBm = [abs_to_db(p) for p in self.output_power_qot.values()]
-        input_power_dBm = [abs_to_db(p) for p in self.input_power_qot.values()]
+        # output_power_dBm = [abs_to_db(p) for p in self.output_power_qot.values()]
+        # input_power_dBm = [abs_to_db(p) for p in self.input_power_qot.values()]
 
         # Mean difference between output and input power levels
-        out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
-        # Compute the balanced system gain
-        gain_difference = out_in_difference - self.target_gain
-        system_gain_balance = self.system_gain_qot - gain_difference
-        self.system_gain_qot = system_gain_balance
-        # Flag check for enabling the repeated computation of balancing
-        if self.power_excursions_flag_1_qot and (not self.power_excursions_flag_2_qot):
-            self.power_excursions_flag_2_qot = True
-        if not (self.power_excursions_flag_1_qot and self.power_excursions_flag_2_qot):
-            self.power_excursions_flag_1_qot = True
-        return self.output_power_qot.copy(), self.input_power_qot.copy(), out_in_difference
+        # out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
+        # # Compute the balanced system gain
+        # gain_difference = out_in_difference - self.target_gain
+        # system_gain_balance = self.system_gain_qot - gain_difference
+        # self.system_gain_qot = system_gain_balance
+        # # Flag check for enabling the repeated computation of balancing
+        # if self.power_excursions_flag_1_qot and (not self.power_excursions_flag_2_qot):
+        #     self.power_excursions_flag_2_qot = True
+        # if not (self.power_excursions_flag_1_qot and self.power_excursions_flag_2_qot):
+        #     self.power_excursions_flag_1_qot = True
+        return self.output_power_qot.copy(), self.input_power_qot.copy(), 0
 
     def nli_compensation(self, accumulated_NLI_noise):
         """
@@ -974,13 +974,13 @@ class Amplifier(Node):
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
             wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
             accumulated_NLI_noise[optical_signal] = \
-                nli_noise * db_to_abs(self.system_gain)  # * wavelength_dependent_gain
+                nli_noise * db_to_abs(self.system_gain) * wavelength_dependent_gain
         self.nonlinear_noise.update(accumulated_NLI_noise)
         print(self.nonlinear_noise)
 
     def nli_compensation_qot(self, accumulated_NLI_noise):
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
-            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain)
+            accumulated_NLI_noise[optical_signal] = nli_noise * db_to_abs(self.system_gain_qot)
         self.nonlinear_noise_qot.update(accumulated_NLI_noise)
 
     def clean_optical_signals(self, optical_signals):
@@ -1144,7 +1144,7 @@ class Monitor(Node):
                 nli_noise = self.amplifier.nonlinear_noise_qot[optical_signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise_qot[self.span][optical_signal]
-        gosnr_linear = output_power / (ase_noise + (nli_noise * 1.0e0))
+        gosnr_linear = output_power / (ase_noise + nli_noise)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
     ########################### QOT ESTIMATION ENDS ######################################

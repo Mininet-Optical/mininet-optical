@@ -262,7 +262,6 @@ class Link(object):
                 accumulated_NLI_noise.update(nonlinear_interference_noise[span])
                 self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
 
-                in_signals_qot = self.optical_signal_power_in_qot.copy()
                 nonlinear_interference_noise_qot[span] = self.output_nonlinear_noise_qot(
                     accumulated_NLI_noise_qot,
                     nli_in_signals_qot,
@@ -314,16 +313,6 @@ class Link(object):
                     amplifier.compute_power_excursions_qot()
 
                 amplifier.power_excursions_flags_off()
-
-                # Compensate the NLI
-                if accumulated_NLI_noise:
-                    amplifier.nli_compensation(accumulated_NLI_noise)
-                if accumulated_NLI_noise_qot:
-                    amplifier.nli_compensation_qot(accumulated_NLI_noise_qot)
-                accumulated_NLI_noise.update(amplifier.nonlinear_noise)
-                accumulated_NLI_noise_qot.update(amplifier.nonlinear_noise_qot)
-                self.nonlinear_interference_noise_qot[span] = amplifier.nonlinear_noise
-                self.accumulated_NLI_noise_qot.update(amplifier.nonlinear_noise)
 
                 # Compute for the power
                 for optical_signal in signal_keys:

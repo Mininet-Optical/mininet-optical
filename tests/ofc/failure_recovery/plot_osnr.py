@@ -3,7 +3,7 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 
-figure(num=None, figsize=(7, 6), dpi=256)
+# figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 plt.rcParams["font.family"] = "Times New Roman"
@@ -43,8 +43,8 @@ def plot_1(_list):
     plt.xticks(range(30), x)
     plt.xlabel("Wavelength index [nm]")
     plt.ylabel("gOSNR (dB)")
-    plt.savefig('fig2.png', format='png')
-    # plt.show()
+    # plt.savefig('fig2.png', format='png')
+    plt.show()
 
     
 

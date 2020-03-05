@@ -67,10 +67,15 @@ margin = 0
 r3_r1_mon = n['mon%d' % 16]
 osnr_r3_r1 = r3_r1_mon.get_list_gosnr()
 
+r2_r4_mon = n['mon%d' % 28]
+osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
+osnr_r2_r42_qot = r2_r4_mon.get_list_gosnr_qot()
+
 osnr_r3_r1_qot = r3_r1_mon.get_list_gosnr_qot()
 m_osnr_r3_r1_qot = [margin + x for x in osnr_r3_r1_qot]
 
-plot_list_osnr([osnr_r3_r1, m_osnr_r3_r1_qot])
+# plot_list_osnr([osnr_r3_r1, m_osnr_r3_r1_qot])
+plot_list_osnr([osnr_r2_r42, osnr_r2_r42_qot])
 
 osnr_diff = [abs(x - y) for x, y in zip(osnr_r3_r1, m_osnr_r3_r1_qot)]
 print(osnr_diff)
