@@ -119,6 +119,53 @@ class OpticalCLI( CLI ):
             if isinstance( node, Terminal ):
                 node.propagate()
 
+    # FIXME: This is ugly and also doesn't seem to work.
+    # The amplifier gain is updated but the signals
+    # don't seem to be updating properly.
+    # Translated from network.mock_amp_gain_adjust()
+    def do_setgain( self, line ):
+        """Set amplifier gain for demo purposes
+           usage: setgain src dst amp gain"""
+        params = line.split()
+        if len( params ) != 4:
+            print( "usage: setgain src dst amp gain" )
+            return
+        else:
+            src, dst, amp_name, gain = params
+        links = self.mn.linksBetween( *self.mn.get(src, dst ) )
+        # Find amp
+        l, amp = None, None
+        for link in links:
+            if not isinstance( link, OpticalLink ):
+                continue
+            for phyLink in link.phyLink1, link.phyLink2:
+                if phyLink.boost_amp.name == amp_name:
+                    l, amp = phyLink, phyLink.boost_amp
+                    break
+                for span, spanamp in phyLink.spans:
+                    if spanamp and spanamp.name == amp_name:
+                        l, amp = phyLink, spanamp
+                        break
+        if not amp:
+            print( amp_name, 'not found' )
+            return
+        print( 'amp', amp, end=' ')
+        src_roadm, dst_roadm = phyLink.node1, phyLink.node2
+        # Set gain
+        amp.mock_amp_gain_adjust( float( gain ) )
+        print( '->', amp )
+        # Reset the signal-propagation structures along the link
+        l.reset_propagation_struct()
+        op = l.output_port_node1
+        # Pass only the signals corresponding to the output port
+        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
+        ase = src_roadm.port_to_optical_signal_ase_noise_out[op]
+        nli = src_roadm.port_to_optical_signal_nli_noise_out[op]
+        print("*** Recomputing propagation out of %s" % src_roadm.name)
+        l.propagate(pass_through_signals, ase, nli)
+        print("*** setgain end...")
+
+
 CLI = OpticalCLI
 
 

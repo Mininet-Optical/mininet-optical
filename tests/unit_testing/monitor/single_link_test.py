@@ -96,12 +96,19 @@ def singleLinkPhyTest():
     link = net.links[0]
     dumpLinkPower(link)
 
-    print( '*** Monitor OSNR and gOSNR:' )
+    print( '*** Initial OSNR and gOSNR:' )
     monitors = [ net.name_to_node['mon%d' %i] for i in (1,2,3) ]
     for mon in monitors:
         print('OSNR', mon.get_list_osnr())
-        print('gOSNR', mon.get_list_gosnr())
+        # print('gOSNR', mon.get_list_gosnr())
 
+    print( '*** Changing gain for amp3' )
+    net.mock_amp_gain_adjust( 'amp3', 1.0, 'tx1', 'tx2' )
+
+    print( '*** Updated OSNR and gOSNR:' )
+    for mon in monitors:
+        print('OSNR', mon.get_list_osnr())
+        # print('gOSNR', mon.get_list_gosnr())
 
 if __name__ == '__main__':
 
