@@ -267,6 +267,11 @@ class LineTerminal(Node):
             self.port_to_optical_signal_power_out[out_port][channel] = output_power
             self.port_to_optical_signal_out[out_port].append(channel)
 
+    def print_signals(self, names=(('output', 'tx ->'), ('input','rx <-'))):
+        "Print TX and RX signals"
+        super().print_signals( names )
+
+
 
 class Transceiver(object):
     def __init__(self, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
