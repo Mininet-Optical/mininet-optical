@@ -62,7 +62,7 @@ def plot_1(_list, _list2):
     # plt.xticks(range(30), x)
     plt.yticks(np.arange(20, 35.3, 1.5))
     plt.xlabel("Wavelength index [nm]")
-    plt.ylabel("OSNR (solid) / gOSNR (dB)")
+    plt.ylabel("OSNR (solid) / gOSNR (open) [dB]")
     plt.grid(True)
     # plt.savefig('fig1.png', format='png')
     plt.show()
