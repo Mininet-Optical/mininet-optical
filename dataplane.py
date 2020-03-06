@@ -466,7 +466,11 @@ class OpticalLink( Link ):
            port1, port2: node ports
            boost1, boost2: boost amp (name, {params}) if any
            spans: list of (length in km, (ampName, params) | None )
-           monitors: list of (monName, ampName)"""
+           monitors1: list of (monName, ampName) to monitor
+           NOTE - a prefix of 'src-dst-' will be added to node
+           names, and the ampNames in monitors must match the
+           full (and directional) amplifier name  (r1-r2-amp3)"""
+
         # Default span: 1m of fiber, no amplifier
         spans = spans or [1*m]
 
@@ -516,9 +520,9 @@ class OpticalLink( Link ):
 
         # Create monitors and store in self.monitors
         monitors = monitors or {}
-        monitored = { prefix+ampName: prefix+monitorName
+        monitored = { ampName: monitorName
                       for monitorName, ampName in monitors
-                      for prefix in (prefix1, prefix2) }
+                      for prefix in ( prefix1, prefix2 ) }
         self.monitors = []
         for boost in boost1, boost2:
             if boost and boost.name in monitored:
