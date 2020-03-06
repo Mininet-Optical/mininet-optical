@@ -54,49 +54,48 @@ class SwitchTuples:
         # from line terminal to roadm2 and,
         # from roadm3 to line terminal
         self.roadm1 = [{'rule_id': 1, 'in_port': 0, 'out_port': 101, 'signal_indices': channels1 + channels2},
-                       {'rule_id': 2, 'in_port': 2, 'out_port': 100, 'signal_indices': channels4}]
+                       {'rule_id': 2, 'in_port': 0, 'out_port': 102, 'signal_indices': channels5}]
 
         # from roadm1 to roadm4 and,
         # from roadm3 to line terminal: {'rule_id': 2, 'in_port': 2, 'out_port': 100, 'signal_indices': channels3}
         # from roadm1 to roadm4 for transmission debugging purposes
         self.roadm2 = [{'rule_id': 1, 'in_port': 1, 'out_port': 103, 'signal_indices': channels1 + channels2},
-                       {'rule_id': 2, 'in_port': 2, 'out_port': 103, 'signal_indices': channels3}]
+                       {'rule_id': 2, 'in_port': 2, 'out_port': 103, 'signal_indices': channels3},
+                       {'rule_id': 3, 'in_port': 0, 'out_port': 103, 'signal_indices': channels4}]
 
-        # from roadm5 to roadm2 and,
+        # from LT to roadm2 and,
         # from roadm5 to roadm1
-        self.roadm3 = [{'rule_id': 1, 'in_port': 3, 'out_port': 102, 'signal_indices': channels3},
-                       {'rule_id': 2, 'in_port': 3, 'out_port': 101, 'signal_indices': channels4}]
+        self.roadm3 = [{'rule_id': 1, 'in_port': 0, 'out_port': 102, 'signal_indices': channels3},
+                       {'rule_id': 2, 'in_port': 1, 'out_port': 103, 'signal_indices': channels5}]
 
         # from roadm2 to roadm5 and,
         # from roadm2 to roadm6 and,
         # from roadm5 to line terminal
-        # from roadm2 to terminal for transmission debugging purposes
+        # from roadm2 to terminal
         self.roadm4 = [{'rule_id': 1, 'in_port': 1, 'out_port': 102, 'signal_indices': channels1},
                        {'rule_id': 2, 'in_port': 1, 'out_port': 103, 'signal_indices': channels2},
-                       {'rule_id': 3, 'in_port': 2, 'out_port': 100, 'signal_indices': channels5},
-                       {'rule_id': 4, 'in_port': 1, 'out_port': 102, 'signal_indices': channels3}]
+                       {'rule_id': 3, 'in_port': 1, 'out_port': 100, 'signal_indices': channels3},
+                       {'rule_id': 4, 'in_port': 1, 'out_port': 103, 'signal_indices': channels4}]
 
         # from roadm4 to line terminal and,
         # from roadm6 to roadm3 and,
         # from roadm6 to roadm4
         self.roadm5 = [{'rule_id': 1, 'in_port': 2, 'out_port': 100, 'signal_indices': channels1},
-                       {'rule_id': 2, 'in_port': 3, 'out_port': 101, 'signal_indices': channels3 + channels4},
-                       {'rule_id': 3, 'in_port': 3, 'out_port': 102, 'signal_indices': channels5},
-                       {'rule_id': 4, 'in_port': 2, 'out_port': 100, 'signal_indices': channels3}]
+                       {'rule_id': 2, 'in_port': 1, 'out_port': 103, 'signal_indices': channels5}]
 
         # from roadm4 to line terminal and,
         # from line terminal to roadm 6
-        self.roadm6 = [{'rule_id': 1, 'in_port': 1, 'out_port': 100, 'signal_indices': channels2},
-                       {'rule_id': 2, 'in_port': 0, 'out_port': 102,
-                        'signal_indices': channels3 + channels4 + channels5}]
+        self.roadm6 = [{'rule_id': 1, 'in_port': 2, 'out_port': 100, 'signal_indices': channels5},
+                       {'rule_id': 2, 'in_port': 1, 'out_port': 100, 'signal_indices': channels2},
+                       {'rule_id': 3, 'in_port': 1, 'out_port': 100, 'signal_indices': channels4}]
 
     def recovery_link_r1_r2(self):
         channels1 = list(np.arange(1, 11, 1))
         channels2 = list(np.arange(11, 21, 1))
 
-        self.roadm6 = [{'rule_id': 3, 'in_port': 2, 'out_port': 100, 'signal_indices': channels2}]
+        self.roadm6 = [{'rule_id': 4, 'in_port': 2, 'out_port': 100, 'signal_indices': channels2}]
 
-        self.roadm5 = [{'rule_id': 4, 'in_port': 1, 'out_port': 100, 'signal_indices': channels1},
-                       {'rule_id': 5, 'in_port': 1, 'out_port': 103, 'signal_indices': channels2}]
+        self.roadm5 = [{'rule_id': 3, 'in_port': 1, 'out_port': 100, 'signal_indices': channels1},
+                       {'rule_id': 4, 'in_port': 1, 'out_port': 103, 'signal_indices': channels2}]
 
         self.roadm3 = [{'rule_id': 3, 'in_port': 1, 'out_port': 103, 'signal_indices': channels1 + channels2}]

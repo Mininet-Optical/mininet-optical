@@ -27,7 +27,7 @@ def abs_to_db(absolute_value):
 net = OFCDemo.build()
 
 n = net.name_to_node
-lt1, lt6 = [n['lt%d' % i] for i in (1, 6)]
+lt1, lt2, lt3, lt4, lt5, lt6 = [n['lt%d' % i] for i in (1, 2, 3, 4, 5, 6)]
 roadm1, roadm2, roadm3, roadm4, roadm5, roadm6 = [n['roadm%d' % i] for i in (1, 2, 3, 4, 5, 6)]
 # Channel sub-sets
 channels1 = list(np.arange(1, 11, 1))
@@ -58,27 +58,38 @@ resources = {'transceiver': lt1.name_to_transceivers['t1'],
              'required_wavelengths': rw}
 net.transmit(lt1, roadm1, resources=resources)
 
-rw2 = channels3 + channels4 + channels5
-resources2 = {'transceiver': lt6.name_to_transceivers['t1'],
+rw2 = channels3
+resources2 = {'transceiver': lt3.name_to_transceivers['t1'],
               'required_wavelengths': rw2}
-net.transmit(lt6, roadm6, resources=resources2)
+net.transmit(lt3, roadm3, resources=resources2)
+
+rw3 = channels4
+resources3 = {'transceiver': lt2.name_to_transceivers['t1'],
+              'required_wavelengths': rw3}
+net.transmit(lt2, roadm2, resources=resources3)
+
+rw4 = channels5
+resources4 = {'transceiver': lt1.name_to_transceivers['t1'],
+              'required_wavelengths': rw4}
+net.transmit(lt1, roadm1, resources=resources4)
 
 
 # Monitoring nodes at the receiver-ends
 r2_r4_mon = n['mon%d' % 28]
-osnr_r2_r4 = r2_r4_mon.get_list_gosnr()
+osnr_r2_r4 = r2_r4_mon.get_list_osnr()
+gosnr_r2_r4 = r2_r4_mon.get_list_gosnr()
+# r4_r6_mon = n['mon%d' % 52]
+# osnr_r4_r6 = r4_r6_mon.get_list_osnr()
 
-r4_r6_mon = n['mon%d' % 52]
-osnr_r4_r6 = r4_r6_mon.get_list_gosnr()
 
-plot_1(osnr_r2_r4)
+plot_1(osnr_r2_r4, gosnr_r2_r4)
 
 # Adjust NF of amplifier in link between R1 and R2, so that
 # multiple links break.
 # net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
-net.mock_amp_gain_adjust('amp3', -15, 'roadm1', 'roadm2')
-#
-osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
+# net.mock_amp_gain_adjust('amp3', -15, 'roadm1', 'roadm2')
+# #
+# osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
 # osnr_r4_r62 = r4_r6_mon.get_list_gosnr()
 # plot_2(osnr_r2_r42)
 # plot_list_osnr([osnr_r2_r4, osnr_r2_r42])

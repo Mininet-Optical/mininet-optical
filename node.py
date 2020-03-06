@@ -677,10 +677,10 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-description_files = {'linear': 'linear.txt'}
+# description_files = {'linear': 'linear.txt'}
 
 
-# description_files = {'wdg1': 'wdg2.txt'}
+description_files = {'wdg1': 'wdg2.txt'}
 # 'wdg2': 'wdg2.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
