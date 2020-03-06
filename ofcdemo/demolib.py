@@ -4,8 +4,6 @@
 
 demolib.py: OFC Demo Topology and CLI
 
-(Work in progress - currently we just have a test topology )
-
 Our demo topology is a cross-connected mesh of 6 POPs.
 
 """
@@ -22,6 +20,9 @@ from mininet.cli import CLI
 from mininet.node import RemoteController
 from mininet.util import natural
 
+from collections import namedtuple
+
+
 # Routers start listening at 6654
 ListenPortBase = 6653
 
@@ -29,6 +30,9 @@ class OpticalCLI( CLI ):
     "Extended CLI with optical network commands"
 
     prompt = 'mininet-optical> '
+
+    # XXX This should probably be abstracted better.
+    # Also print() should be output( ... '\n' )
 
     def do_signals( self, nodename ):
         "Print node signals "
@@ -44,30 +48,30 @@ class OpticalCLI( CLI ):
             if hasattr( node, 'model' ):
                 node.model.print_signals()
 
+    def opticalLinks( self ):
+        "Return optical links"
+        return [ link for link in self.mn.links
+                 if isinstance( link, OpticalLink ) ]
+
     def do_linksignals( self, _line ):
         "Print signals for links between ROADMs"
-        for link in self.mn.links:
-            if ( isinstance( link, OpticalLink ) and
-                 isinstance( link.intf1.node, ROADM ) and
+        for link in self.opticalLinks():
+            if ( isinstance( link.intf1.node, ROADM ) and
                  isinstance( link.intf2.node, ROADM ) ):
                 link.phyLink1.print_signals()
                 link.phyLink2.print_signals()
 
-
     def do_monitors( self, _line ):
         "List monitors on optical links"
-        for link in self.mn.links:
-            if isinstance( link, OpticalLink ):
-                if link.monitors:
-                    print( link, link.monitors )
+        for link in self.opticalLinks():
+            if link.monitors:
+                print( '%s:' % link )
+                for monitor in link.monitors:
+                    print( ' ', monitor )
 
     def do_osnr( self, _line ):
         "List osnr for monitors"
-        for link in self.mn.links:
-            if not isinstance( link, OpticalLink ):
-                continue
-            if not link.monitors:
-                continue
+        for link in self.opticalLinks():
             for monitor in link.monitors:
                 print( str(monitor) + ':' )
                 for signal in monitor.amplifier.output_power:
@@ -76,19 +80,24 @@ class OpticalCLI( CLI ):
                     print( '%s OSNR: %.2f dB' % ( signal, osnr ), end='' )
                     print( ' gOSNR: %.2f dB' % gosnr )
 
-    def do_spans( self, _line ):
-        "List spans between nodes"
-        links = [ link for link in self.mn.links if isinstance( link, OpticalLink ) ]
+    def spans( self, minlength=100):
+        "Span iterator"
+        links = self.opticalLinks()
         phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
         for phyLink in sorted( phyLinks, key=natural ):
-            if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < 100:
+            if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < minlength:
                 # Skip short lengths of fiber
                 continue
-            print( str( phyLink ) + ': ', end='' )
+            yield( phyLink, phyLink.spans )
+
+    def do_spans( self, _line ):
+        "List spans between nodes"
+        for (phyLink, spans) in self.spans():
+            print( phyLink, end=' ' )
             if phyLink.boost_amp:
                 print( phyLink.boost_amp, end=' ' )
-            for span in phyLink.spans:
-                    print( span.span, span.amplifier if span.amplifier else '', end=' ' )
+            for span in spans:
+                print( span.span, span.amplifier if span.amplifier else '', end=' ' )
             print()
 
     def do_plot( self, line ):
@@ -119,6 +128,26 @@ class OpticalCLI( CLI ):
             if isinstance( node, Terminal ):
                 node.propagate()
 
+    @staticmethod
+    def formatSignals( signalPowers ):
+        "Nice format for signal powers"
+        return list(
+            '%s %.2f dBm' % ( channel, signalPowers[ channel ] )
+            for channel in sorted( signalPowers, key=natural ) )
+
+    def do_amppowers( self, _line ):
+        "Print out power for all amps on links"
+        for link, spans in self.spans():
+            print( link, end=' ' )
+            for span in spans:
+                amp = span.amplifier
+                if amp:
+                    print('amp:', amp)
+                    print( 'input',
+                           self.formatSignals(amp.input_power),
+                           'output',
+                           self.formatSignals(amp.output_power) )
+
     # FIXME: This is ugly and also doesn't seem to work.
     # The amplifier gain is updated but the signals
     # don't seem to be updating properly.
@@ -127,11 +156,15 @@ class OpticalCLI( CLI ):
         """Set amplifier gain for demo purposes
            usage: setgain src dst amp gain"""
         params = line.split()
-        if len( params ) != 4:
-            print( "usage: setgain src dst amp gain" )
+        if len( params ) != 2:
+            print( "usage: setgain src-dst-ampN gain" )
             return
-        else:
-            src, dst, amp_name, gain = params
+        amp_name, gain = params
+        srcdst = amp_name.split( '-' )
+        if len( srcdst ) < 2:
+            print( "couldn't find src-dst in", amp_name )
+            return
+        src, dst = srcdst[0:2]
         links = self.mn.linksBetween( *self.mn.get(src, dst ) )
         # Find amp
         l, amp = None, None
@@ -159,8 +192,11 @@ class OpticalCLI( CLI ):
         op = l.output_port_node1
         # Pass only the signals corresponding to the output port
         pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
-        ase = src_roadm.port_to_optical_signal_ase_noise_out[op]
-        nli = src_roadm.port_to_optical_signal_nli_noise_out[op]
+        ase = src_roadm.port_to_optical_signal_ase_noise_out.get(op)
+        nli = src_roadm.port_to_optical_signal_nli_noise_out.get(op)
+        if ase is None or nli is None:
+            print( 'WARNING: noise values not found for port', op,
+                   'signal values will probably be incorrect!' )
         print("*** Recomputing propagation out of %s" % src_roadm.name)
         l.propagate(pass_through_signals, ase, nli)
         print("*** setgain end...")
@@ -182,6 +218,13 @@ class OpticalTopo( Topo ):
     def ethLink( self, *args, **kwargs ):
         "Clarifying alias for addLink"
         self.addLink( *args, **kwargs )
+
+SpanSpec = namedtuple( 'SpanSpec', 'length amp' )
+AmpSpec = namedtuple( 'AmpSpec', 'name params ')
+
+def spanSpec( length, amp, targetGain ):
+    "Return span specifier [length, (amp, params)]"
+    return SpanSpec( length, AmpSpec(amp, dict(target_gain=targetGain) ) )
 
 
 class LinearRoadmTopo( OpticalTopo ):
@@ -222,18 +265,13 @@ class LinearRoadmTopo( OpticalTopo ):
         # Return ROADM so we can link it to other POPs as needed
         return roadm
 
-    @staticmethod
-    def spanSpec( length, amp, targetGain ):
-        "Return span specifier [length, (amp, params)]"
-        return [ length, (amp, dict(target_gain=targetGain) ) ]
-
     def spans( self, spanLength=50*km, spanCount=4 ):
         """Return a list of span specifiers (length, (amp, params))
            the compensation amplifiers are named prefix-ampN"""
-        entries = [ self.spanSpec( length=spanLength, amp='amp%d' % i,
-                                   targetGain=spanLength/km * .22 * dB )
-                      for i in range(1, spanCount+1) ]
-        return sum( entries, [] )
+        entries = [ spanSpec( length=spanLength, amp='amp%d' % i,
+                              targetGain=spanLength/km * .22 * dB )
+                    for i in range(1, spanCount+1) ]
+        return sum( [ list(entry) for entry in entries ], [] )
 
     def build( self, n=3 ):
         "Add POPs and connect them in a line"
@@ -244,9 +282,14 @@ class LinearRoadmTopo( OpticalTopo ):
             src, dst = roadms[i], roadms[i+1]
             boost = ( 'boost', dict(target_gain=9.0*dB) )
             spans = self.spans( spanCount=2 )
-            lastAmpName = spans[-1][0]  # XXX Cryptic!
-            monitors = [ ( lastAmpName + '-monitor', lastAmpName ) ]
-            self.wdmLink( src, dst, boost=boost, spans=spans, monitors=monitors )
+            # XXX Unfortunately we currently have to have a priori knowledge of
+            # this prefix
+            prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
+            firstAmpName, lastAmpName = spans[1].name, spans[-1].name
+            monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
+                         ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
+            self.wdmLink( src, dst, boost=boost, spans=spans,
+                          monitors=monitors )
 
 
 def configureLinearNet( net, packetOnly=False ):
@@ -351,8 +394,12 @@ class DemoTopo( LinearRoadmTopo ):
         "Construct a link of four 50km fiber spans"
         boost = ( 'boost', dict(target_gain=9.0*dB) )
         spans = self.spans( spanLength=50*km, spanCount=4 )
-        lastAmp = spans[-1][0] # FIXME: this is too cryptic
-        monitors = [ ( lastAmp + '-monitor', lastAmp) ]
+        # XXX Unfortunately we currently have to have a priori knowledge of
+        # this prefix
+        prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
+        firstAmpName, lastAmpName = spans[1].name, spans[-1].name
+        monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
+                     ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
         self.wdmLink(
             src, dst, boost=boost, spans=spans, monitors=monitors )
 
