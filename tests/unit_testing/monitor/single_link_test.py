@@ -4,13 +4,12 @@
 single_link_test.py: test monitoring on a single link
 """
 
-
 from network import Network
 from link import Span as FiberSpan, SpanTuple
 
 # Units
 
-km = db = dbM = 1.0
+km = dB = dBm = 1.0
 m = .001
 
 
@@ -28,69 +27,80 @@ def singleLinkPhyNetwork( lengths=[50*km] ):
     net = Network()
 
     # Endpoints
-    transceivers = [ ( 't1', 0*dbM, 'C' ) ]
+    transceivers = [ ( 't1', 0*dBm, 'C' ) ]
     terminals = tx1, tx2 = [ net.add_lt( 'tx%d' % i, transceivers=transceivers )
-                  for i in ( 1, 2  ) ]
+                             for i in ( 1, 2  ) ]
 
+    # Single link consisting of multiple fiber spans and amplifiers
+    boost = net.add_amplifier( 'boost1', target_gain=3*dB, boost=True )
+    monitors = [ net.add_monitor( 'mon0', amplifier=boost ) ]
+    amplifiers, spans = [ boost ], []
+    for i, length in enumerate( lengths, start=1 ):
+        amp = net.add_amplifier( 'amp%d' % i, target_gain=11*dB )
+        span = Span( length, amp=amp )
+        monitor = net.add_monitor( 'mon%d' % i, amplifier=amp )
+        amplifiers.append ( amp )
+        monitors.append( monitor)
+        spans.append( span )
 
-    # Link consisting of multiple fiber spans and amplifiers
-    boost = net.add_amplifier( 'boost1', target_gain=6*db, boost=True )
-    net.add_monitor( 'mon0', amplifier=boost )
-    amplifiers = [ net.add_amplifier( 'amp%d' % i, target_gain=11*db,  )
-                   for i, _ in enumerate( lengths, start=1 ) ]
-    monitors = [ net.add_monitor( 'mon%d' % i, amplifier=amp )
-                   for i, amp in enumerate( amplifiers, start=1 ) ]
-    spans = [ Span( length, amp=amplifiers[ i ] )
-              for i, length in enumerate( lengths ) ]
+    net.add_link( tx1, tx2, boost_amp=boost, spans=spans )
 
-    # debugging
+    # Print network elements
 
-    src, dst = terminals
-    net.add_link( src, dst, spans=spans )
-
-    print("TERMINALS", terminals)
-    print("AMPLIFIERS", amplifiers)
-    print("MONITORS", monitors)
-    print("SPANS", spans)
-    print("PORTS", tx1.ports_out, tx2.ports_in)
+    print("*** Terminals:", terminals)
+    print("*** Spans:", spans)
+    print("*** Amplifiers:", amplifiers)
+    print("*** Monitors:", monitors)
+    print("*** Ports:", tx1.ports_out, tx2.ports_in)
 
     return net
 
 
-# Physical model test
+# Support functions
 
 def formatSignals( signalPowers ):
+    "Nice format for signal powers"
     return '\n'.join(
-        '%s %.2f dbM' % ( channel, signalPowers[ channel ] )
+        '%s %.2f dBm' % ( channel, signalPowers[ channel ] )
         for channel in sorted( signalPowers ) )
 
 
 def dumpLinkPower(link):
     "Print out power for all spans in a Link"
     for span, amp in link.spans:
-        print(span, end='')
+        print( 'span:', span )
         if amp:
-            print(amp, 'input', formatSignals(amp.input_power),
+            print('amp:', amp, 'input', formatSignals(amp.input_power),
                   'output', formatSignals(amp.output_power) )
 
 
+# Physical model test
+
+
 def singleLinkPhyTest():
-    lengths = [25*km, 50*km, 25*km]
-    net = singleLinkPhyNetwork( lengths=lengths)
+    "Create a single link and monitor its OSNR and gOSNR"
+    net = singleLinkPhyNetwork( lengths=[25*km, 50*km, 25*km] )
     node = net.name_to_node
+
+    print( '*** Starting test transmission...' )
     tx1, tx2 = node[ 'tx1' ], node[ 'tx2' ]
-    channels = [ 1 ]
     transceiver = tx1.name_to_transceivers[ 't1' ]
-    link = net.links[0]
     outport = tx1.ports_out[0]
-    monitors = [net.name_to_node['mon%d' %i] for i in (1,2,3)]
-    tx1.transmit( transceiver, outport, channels )
+    tx1.transmit( transceiver, outport, channels=[ 1 ] )
+
+    print( '*** Signals:' )
     tx1.print_signals()
     tx2.print_signals()
+
+    print( '*** Link power:' )
+    link = net.links[0]
+    dumpLinkPower(link)
+
+    print( '*** Monitor OSNR and gOSNR:' )
+    monitors = [ net.name_to_node['mon%d' %i] for i in (1,2,3) ]
     for mon in monitors:
         print('OSNR', mon.get_list_osnr())
         print('gOSNR', mon.get_list_gosnr())
-    dumpLinkPower(link)
 
 
 if __name__ == '__main__':
