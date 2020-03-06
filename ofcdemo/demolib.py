@@ -20,6 +20,7 @@ from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.cli import CLI
 from mininet.node import RemoteController
+from mininet.util import natural
 
 # Routers start listening at 6654
 ListenPortBase = 6653
@@ -76,21 +77,19 @@ class OpticalCLI( CLI ):
                     print( ' gOSNR: %.2f dB' % gosnr )
 
     def do_spans( self, _line ):
-        "List spans between ROADMs"
-        links = self.mn.links
-        for link in links:
-            if not isinstance( link, OpticalLink ):
+        "List spans between nodes"
+        links = [ link for link in self.mn.links if isinstance( link, OpticalLink ) ]
+        phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
+        for phyLink in sorted( phyLinks, key=natural ):
+            if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < 100:
+                # Skip short lengths of fiber
                 continue
-            if not ( isinstance( link.intf1.node, ROADM ) and
-                     isinstance( link.intf2.node, ROADM ) ):
-                continue
-            for phyLink in link.phyLink1, link.phyLink2:
-                print( str( phyLink ) + ': ', end='' )
-                if phyLink.boost_amp:
-                    print( phyLink.boost_amp, end=' ' )
-                for span in phyLink.spans:
+            print( str( phyLink ) + ': ', end='' )
+            if phyLink.boost_amp:
+                print( phyLink.boost_amp, end=' ' )
+            for span in phyLink.spans:
                     print( span.span, span.amplifier if span.amplifier else '', end=' ' )
-                print()
+            print()
 
     def do_plot( self, line ):
         "plot ROADM topology; 'plot save' to save to plot.png"
