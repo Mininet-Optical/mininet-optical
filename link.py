@@ -413,12 +413,15 @@ class Link(object):
 
 class Span(object):
 
+    ids = 1
+
     def __init__(self, fibre_type='SMF', length=20.0):
         """
         :param length: optical fiber span length in km - float
         :param fibre_type: optical fiber type - string
         """
-        self.span_id = id(self)
+        self.span_id = Span.ids  # was id(self)
+        Span.ids += 1
         self.fibre_type = fibre_type
         self.length = length * unit.km
         self.fibre_attenuation = 0.22 / unit.km  # fiber attenuation in decibels/km
@@ -441,7 +444,7 @@ class Span(object):
 
     def __repr__(self):
         "String representation"
-        return '<%.2fkm>' % (self.length/unit.km)
+        return '<span%s:%.2fkm>' % (self.span_id,self.length/unit.km)
 
     def attenuation(self):
         return db_to_abs(self.fibre_attenuation * self.length)
