@@ -26,9 +26,20 @@ Supported ONOS CLI operations:
 8. SHOW LINK OSNR:   
        `onos> oe-config osnr
       
-9. CONFIGURE A DEFAULT NETWORK TOPOLOGY:  
-       `onos> oe-config default-topo
+9. CONFIGURE A DEMO NETWORK TOPOLOGY:  
+       `onos> oe-config demo-topo
+       
+10. ADD DEMO NETWORK WITH MESH NETWORK FLOWS:  
+       `onos> oe-config demo-mesh-flows
 
-             h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
-                          ||
-                          t2 - s2 - h2
+11. ADD A SINGLE FLOW FROM ROUTER1 s1 TO ROUTER2 s2 :  
+       `onos> oe-config add-flow s1 s2
+
+12. RESET A ROADM r1 CONFIGURATION:  
+       `onos> oe-config reset r1
+
+13. SHOW ALL PORTS OF A ROADM r1:  
+       `onos> oe-config show-ports r1
+
+
+
