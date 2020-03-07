@@ -67,15 +67,17 @@ def run( net, N=1 ):
                    for node in net.terminals }
 
     # Allocate N channels per endpoint pair
-    net.pairChannels, net.channelPairs = allocateChannels( net.terminals, N )
-    print( list(net.pairChannels[pair] for pair in net.pairChannels) )
+    print( '*** Allocating channels' )
+    net.pairs, net.pairChannels, net.channelPairs = allocateChannels(
+        net.terminals, N )
 
     # Compute remote channels for each pop
     count = len( net.roadms )
     net.remoteChannels = {}
     for i in range( count ):
         pop, src  = i+1, net.terminals[ i ]
-        channels = [ net.pairChannels[src, dst] for dst in net.terminals if src != dst ]
+        channels = [ net.pairChannels[src, dst] for dst in net.terminals
+                     if src != dst ]
         net.remoteChannels[ pop ] = channels
 
     # Print routes
@@ -101,6 +103,8 @@ def run( net, N=1 ):
     reroutes = [ (channel, link)
                  for _monitor, channel, link in failures ]
 
+    # Reroute (not yet implemented )
+    reroute( net, reroutes )
 
 
 
@@ -165,9 +169,9 @@ def adjacencyDict( links ):
 def allocateChannels( terminals, N ):
     "Allocate N channels per endpoint pair"
     pops = len( terminals )
-    pairs = set( (terminals[i], terminals[j] )
-                 for i in range(0, pops)
-                 for j in range(i+1, pops))
+    pairs = [ (terminals[i], terminals[j])
+              for i in range(0, pops)
+              for j in range(i+1, pops) ]
     pairChannels, channelPairs = {}, {}
     channel = 1
     for pair in pairs:
@@ -179,7 +183,7 @@ def allocateChannels( terminals, N ):
             pairChannels[dst, src].append( channel )
             channelPairs[ channel ] = ( src, dst )
             channel += 1
-    return pairChannels, channelPairs
+    return pairs, pairChannels, channelPairs
 
 
 ### Routing (sorry Dijkstra, we don't need you)
@@ -212,12 +216,9 @@ def entriesToReroute( paths, badlink ):
                 paths.append( path )
                 break
 
-def reroute( net, badlink ):
-    "Reroute paths using badlink"
-    # Identify (src, dest) pairs to reroute
-    pairsToReroute = entriesToReroute( net.routes, badlink )
-    print( "*** Need to reroute:", pairs )
-    # Remove bad link from topo
+def reroute( net, failures):
+    "Reroute failures"
+    print( 'failures:', failures)
 
 
 ### Endpoint configuration
@@ -300,8 +301,6 @@ def installPath( path, channels, net):
         else:
             ROADMProxy( roadm ).connect( port1, port2, channels )
 
-    print("*** Done with", path)
-
 
 def channelPorts( node, channels, net ):
     "Return the {router, terminal, roadm} ports for node/channels"
@@ -316,7 +315,7 @@ def channelPorts( node, channels, net ):
 
 def installRoutes( net):
     print( '*** Configuring ROADMs' )
-    for src, dst in net.pairChannels:
+    for src, dst in net.pairs:
         path = net.routes[src][dst]
         channels = net.pairChannels[ src, dst ]
         installPath( path, channels, net )
