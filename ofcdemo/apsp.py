@@ -97,7 +97,11 @@ def run( net, N=1 ):
     countSignals( net.channelPairs, net.routes )
 
     # Monitor OSNR
-    monitorOSNR( net )
+    failures = monitorOSNR( net )
+    reroutes = [ (channel, link)
+                 for _monitor, channel, link in failures ]
+
+
 
 
 ### Support routines
@@ -113,22 +117,32 @@ def monitorKey( monitor ):
     items =  monitor.split( '-' )
     return items
 
-def monitorOSNR( net ):
-    "Fetch OSNR values"
+def monitorOSNR( net, gosnrThreshold=18.0 ):
+    """Monitor gOSNR continuously; if any monitored gOSNR drops
+       below threshold, return list of (monitor, channel, link)"""
     monitors = net.get( 'monitors' ).json()['monitors']
     fmt = '%s:(%.0f,%.0f) '
-    while True:
+    failures = []
+    while not failures:
         logtime = datetime.now().strftime("%H:%M:%S")
-        print( logtime, 'OSNR, gOSNR from monitors:' )
+        # print( logtime, 'OSNR, gOSNR from monitors:' )
         for monitor in sorted( monitors, key=monitorKey ):
-            osnr = net.get( 'monitor', params=dict(monitor=monitor ) )
-            print( monitor + ':', end=' ' )
-            osnr = osnr.json()[ 'osnr' ]
-            for channel, data in osnr.items():
+            response = net.get( 'monitor', params=dict( monitor=monitor ) )
+            osnrdata = response.json()[ 'osnr' ]
+            # print( monitor + ':', end=' ' )
+            for channel, data in osnrdata.items():
                 THz = float( data['freq'] )/1e12
-                print( fmt % ( channel, data['osnr'], data['gosnr'] ), end='' )
-            print()
+                osnr, gosnr = data['osnr'], data['gosnr']
+                # print( fmt % ( channel, osnr, gosnr ), end='' )
+                if gosnr < gosnrThreshold:
+                    print( "WARNING! gOSNR %.2f below %.2f dB threshold" %
+                           ( gosnr, gosnrThreshold ) )
+                    print( fmt % ( channel, osnr, gosnr ), end='' )
+                    link = monitors[ monitor ][ 'link' ]
+                    failures.append( ( monitor, channel, link ) )
+            # print()
         sleep( 1)
+    return failures
 
 
 def adjacencyDict( links ):
