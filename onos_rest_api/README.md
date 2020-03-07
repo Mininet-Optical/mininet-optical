@@ -29,11 +29,11 @@ Supported ONOS CLI operations:
 9. CONFIGURE A DEMO NETWORK TOPOLOGY:  
        `onos> oe-config demo-topo
        
-10. ADD DEMO NETWORK WITH MESH NETWORK FLOWS:  
+10. ADD DEMO NETWORK WITH MESH NETWORK FLOWS (EACH FLOW COMES WITH A RANDOM CHANNEL, NOT DULICATED):  
        `onos> oe-config demo-mesh-flows
 
-11. ADD A SINGLE FLOW FROM ROUTER1 s1 TO ROUTER2 s2 :  
-       `onos> oe-config add-flow s1 s2
+11. ADD A SINGLE FLOW FROM ROUTER1 s1 TO ROUTER2 s2 WITH A WAVELENGTH CHANNEL 5 (optional):  
+       `onos> oe-config add-flow s1 s2 5
 
 12. RESET A ROADM r1 CONFIGURATION:  
        `onos> oe-config reset r1
