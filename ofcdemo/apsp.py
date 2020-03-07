@@ -82,9 +82,9 @@ def run( net, N=1 ):
 
     # Print routes
     print( '*** Routes:' )
-    for src, entries in net.routes.items():
-        for dst, path in entries.items():
-            print(src, '->', dst, path, net.pairChannels[src, dst])
+    for src, dst in net.pairs:
+        path = net.routes[src][dst]
+        print(src, '->', dst, path, net.pairChannels[src, dst])
 
     # Install all routes
     installRoutes( net )
@@ -99,6 +99,7 @@ def run( net, N=1 ):
     countSignals( net.channelPairs, net.routes )
 
     # Monitor OSNR
+    print( '*** Monitoring OSNR...' )
     failures = monitorOSNR( net )
     reroutes = [ (channel, link)
                  for _monitor, channel, link in failures ]
