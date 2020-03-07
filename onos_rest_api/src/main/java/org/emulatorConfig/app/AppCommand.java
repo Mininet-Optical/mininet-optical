@@ -132,7 +132,7 @@ public class AppCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "device-type",
-            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links",
+            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
             required = true, multiValued = false)
     String device_type = null;
 
@@ -164,6 +164,9 @@ public class AppCommand extends AbstractShellCommand {
       if (device_type != null && device_type.equals("show-links")) {
           print("All Links %s", "are listed as below:");
           show_links ();
+      }else if (device_type != null && device_type.equals("show-nodes")){
+          print("All Nodes %s", "are listed as below:");
+          show_nodes ();
       }else if (device_type != null && device_type.equals("show-roadm-links")){
           print("All ROADM Links %s", "are listed as below:");
           show_roadm_links ();
@@ -205,7 +208,7 @@ public class AppCommand extends AbstractShellCommand {
             config_terminal(node_name,in_port,out_port,channel,power);
             print("Terminal configuration is %s", "done!");
       }else if (device_type != null){
-          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
+          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
       }
       return;
     }
@@ -623,6 +626,7 @@ public class AppCommand extends AbstractShellCommand {
 
     }
 
+
     //show all terminal, roadm, router links
     private void show_links () {
 
@@ -636,6 +640,19 @@ public class AppCommand extends AbstractShellCommand {
         print(link_map.get(i)[0]+"/"+link_map.get(i)[1]+" <-> "+link_map.get(i)[2]+"/"+link_map.get(i)[3]);
     }
 
+    //show all nodes
+    private void show_nodes () {
+
+      String url = "http://localhost:8080" + "/nodes";
+      JsonNode nodes = conMethod(RESTCon (url), GET, "");
+      KeyValue(nodes.get("nodes"));
+      //List<String[]> node_map = new ArrayList<String[]>();
+      //traverse(nodes, node_map);
+      //for(int i =0; i < node_map.size()-1;i++)
+        //print(Arrays.toString(node_map.get(i)));
+        //print(node_map.get(i)[0]+":"+node_map.get(i)[1]);
+
+    }
 
     private Map<String,JsonNode> KeyValue(JsonNode jsonNode) {
       //List<Map<String,JsonNode>> kv = new ArrayList<HashMap<String,JsonNode>>();
