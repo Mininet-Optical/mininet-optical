@@ -444,7 +444,7 @@ class Span(object):
 
     def __repr__(self):
         "String representation"
-        return '<span%s:%.2fkm>' % (self.span_id,self.length/unit.km)
+        return '<%.2fkm>' % (self.length/unit.km)
 
     def attenuation(self):
         return db_to_abs(self.fibre_attenuation * self.length)
