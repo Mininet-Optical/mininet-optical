@@ -26,7 +26,9 @@ from ofcdemo.fakecontroller import (
     fetchNodes, fetchLinks, fetchPorts, fetchOSNR )
 
 from collections import defaultdict
+from datetime import datetime
 from itertools import chain
+from time import sleep
 
 
 ### Do it!
@@ -47,59 +49,34 @@ def run( net, N=1 ):
 
     # Assign POPs for convenience
     count = len( net.switches )
-    net.pops = {}
-    for i in range( count ):
-        for node in net.switches[i], net.terminals[i], net.roadms[i]:
-            net.pops[ node ] = i+1
+    net.pops = { node: i+1
+                 for i in range( count )
+                 for node in ( net.switches[i], net.terminals[i], net.roadms[i] ) }
 
     # Fetch links
     net.allLinks, net.roadmLinks, net.terminalLinks = fetchLinks( net )
 
+    # Create adjacency dict
+    net.neighbors = adjacencyDict( net.allLinks )
+
     # Fetch ports
     net.ports = fetchPorts( net, net.roadms + net.terminals + net.switches )
 
-    # Adjacency list
-    # Note we only have to worry about single links between nodes
-    # We handle the terminals separately
-    net.neighbors = defaultdict( defaultdict )
-    for link in net.allLinks:
-        src, dst = link
-        srcport, dstport = link[ src ], link[ dst ]
-        net.neighbors.setdefault( src, {} )
-        net.neighbors[ src ][ dst ] = dstport
-        net.neighbors[ dst ][ src ] = srcport
-
-    #  Calculate inter-pop routes
+    # Calculate inter-pop routes
     net.routes = { node: route( node, net.neighbors, net.terminals )
                    for node in net.terminals }
 
-    # Channel allocation: N channels per endpoint pair
-
-    pops = len( net.terminals )
-    net.pairs = set( (net.terminals[i], net.terminals[j] )
-                 for i in range(0, pops)
-                 for j in range(i+1, pops))
-    net.pairChannels, net.channelPairs = {}, {}
-    channel = 1
-    for pair in net.pairs:
-        src, dst = pair
-        net.pairChannels.setdefault( (src, dst), [] )
-        net.pairChannels.setdefault( (dst, src), [] )
-        for _ in range( N ):
-            net.pairChannels[src, dst].append( channel )
-            net.pairChannels[dst, src].append( channel )
-            net.channelPairs[ channel ] = ( src, dst )
-            channel += 1
-    print( list(net.pairChannels[pair] for pair in net.pairs) )
+    # Allocate N channels per endpoint pair
+    net.pairChannels, net.channelPairs = allocateChannels( net.terminals, N )
+    print( list(net.pairChannels[pair] for pair in net.pairChannels) )
 
     # Compute remote channels for each pop
     count = len( net.roadms )
     net.remoteChannels = {}
     for i in range( count ):
-        pop = i+1
-        src = net.terminals[ i ]
+        pop, src  = i+1, net.terminals[ i ]
         channels = [ net.pairChannels[src, dst] for dst in net.terminals if src != dst ]
-        net.remoteChannels[pop] = channels
+        net.remoteChannels[ pop ] = channels
 
     # Print routes
     print( '*** Routes:' )
@@ -119,8 +96,8 @@ def run( net, N=1 ):
     # Count average signal allocation per link
     countSignals( net.channelPairs, net.routes )
 
-    # Fetch OSNR
-    fetchOSNR( net )
+    # Monitor OSNR
+    monitorOSNR( net )
 
 
 ### Support routines
@@ -129,6 +106,65 @@ def canonical( link ):
     "Return link in canonical (sorted) format"
     # Note that we don't have to worry about numerical sorting
     return tuple( sorted( link ) )
+
+
+def monitorKey( monitor ):
+    "Key for sorting monitor names"
+    items =  monitor.split( '-' )
+    return items
+
+def monitorOSNR( net ):
+    "Fetch OSNR values"
+    monitors = net.get( 'monitors' ).json()['monitors']
+    fmt = '%s:(%.0f,%.0f) '
+    while True:
+        logtime = datetime.now().strftime("%H:%M:%S")
+        print( logtime, 'OSNR, gOSNR from monitors:' )
+        for monitor in sorted( monitors, key=monitorKey ):
+            osnr = net.get( 'monitor', params=dict(monitor=monitor ) )
+            print( monitor + ':', end=' ' )
+            osnr = osnr.json()[ 'osnr' ]
+            for channel, data in osnr.items():
+                THz = float( data['freq'] )/1e12
+                print( fmt % ( channel, data['osnr'], data['gosnr'] ), end='' )
+            print()
+        sleep( 1)
+
+
+def adjacencyDict( links ):
+    "Return an adjacency dict for links"
+    # Note we only have to worry about single links between nodes
+    # We handle the terminals separately
+    neighbors = defaultdict( defaultdict )
+    for link in links:
+        src, dst = link  # link is a dict but order doesn't matter
+        srcport, dstport = link[ src ], link[ dst ]
+        neighbors.setdefault( src, {} )
+        neighbors[ src ][ dst ] = dstport
+        neighbors[ dst ][ src ] = srcport
+    return dict( neighbors )
+
+
+# Channel allocation
+
+def allocateChannels( terminals, N ):
+    "Allocate N channels per endpoint pair"
+    pops = len( terminals )
+    pairs = set( (terminals[i], terminals[j] )
+                 for i in range(0, pops)
+                 for j in range(i+1, pops))
+    pairChannels, channelPairs = {}, {}
+    channel = 1
+    for pair in pairs:
+        src, dst = pair
+        pairChannels.setdefault( (src, dst), [] )
+        pairChannels.setdefault( (dst, src), [] )
+        for _ in range( N ):
+            pairChannels[src, dst].append( channel )
+            pairChannels[dst, src].append( channel )
+            channelPairs[ channel ] = ( src, dst )
+            channel += 1
+    return pairChannels, channelPairs
 
 
 ### Routing (sorry Dijkstra, we don't need you)
@@ -149,6 +185,24 @@ def route( src, neighbors, destinations ):
                     routes[ neighbor ] = newPath
                 seen.add( neighbor)
     return routes
+
+
+def entriesToReroute( paths, badlink ):
+    "Return list of entries in paths containing badlink"
+    pair1, pair2 = list( pair ), list( reversed( pair ) )
+    result = []
+    for entry, paths in paths.items():
+        for i in range( len( path ) - 1):
+            if path[i:i+2] == pair:
+                paths.append( path )
+                break
+
+def reroute( net, badlink ):
+    "Reroute paths using badlink"
+    # Identify (src, dest) pairs to reroute
+    pairsToReroute = entriesToReroute( net.routes, badlink )
+    print( "*** Need to reroute:", pairs )
+    # Remove bad link from topo
 
 
 ### Endpoint configuration
@@ -247,7 +301,7 @@ def channelPorts( node, channels, net ):
 
 def installRoutes( net):
     print( '*** Configuring ROADMs' )
-    for src, dst in net.pairs:
+    for src, dst in net.pairChannels:
         path = net.routes[src][dst]
         channels = net.pairChannels[ src, dst ]
         installPath( path, channels, net )
