@@ -201,6 +201,14 @@ def rules():
         abort( 404, "No rules handler for %s" % node )
 
 
+# Demo support (not part of SDN API)
+
+@get( '/setgain' )
+def setgain():
+    "Demo support: tell Mininet to adjust the gain for am amplifier"
+    net().restSetgainHandler( request.query )
+
+
 # REST Server
 
 class QuietHandler( WSGIRequestHandler ):

@@ -79,6 +79,62 @@ class OpticalNet( Mininet ):
             self.addLinkComponents( link )
         return link
 
+    # Demo/debugging: support for setgain command
+
+    def restSetgainHandler( self, query ):
+        "Demo/debugging: Support for REST setgain call"
+        ampName = query.amplifier
+        gain = query.gain
+        print( "**************", ampName, gain )
+        return self.setgainCmd( ampName, float( gain ) )
+
+    def setgainCmd( self, ampName, gain ):
+        "Demo/debugging: Support for demo CLI setgain command"
+        # FIXME: This is ugly and also doesn't seem to work.
+        # The amplifier gain is updated but the signals
+        # don't seem to be updating properly.
+        # Translated from network.mock_amp_gain_adjust()
+        srcdst = ampName.split( '-' )
+        if len( srcdst ) < 2:
+            return "couldn't find src-dst in %s" % ampName
+        src, dst = srcdst[0:2]
+        links = self.linksBetween( *self.get(src, dst ) )
+        # Find amp
+        l, amp = None, None
+        for link in links:
+            if not isinstance( link, OpticalLink ):
+                continue
+            for phyLink in link.phyLink1, link.phyLink2:
+                if phyLink.boost_amp.name == ampName:
+                    l, amp = phyLink, phyLink.boost_amp
+                    break
+                for span, spanamp in phyLink.spans:
+                    if spanamp and spanamp.name == ampName:
+                        l, amp = phyLink, spanamp
+                        break
+        if not amp:
+            return '%s not found' % ampName
+        oldAmp = str( amp )
+        src_roadm, dst_roadm = phyLink.node1, phyLink.node2
+        # Set gain
+        amp.mock_amp_gain_adjust( float( gain ) )
+        newAmp = str( amp )
+        # Reset the signal-propagation structures along the link
+        l.reset_propagation_struct()
+        op = l.output_port_node1
+        # Pass only the signals corresponding to the output port
+        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
+        ase = src_roadm.port_to_optical_signal_ase_noise_out.get(op)
+        nli = src_roadm.port_to_optical_signal_nli_noise_out.get(op)
+        if ase is None or nli is None:
+            print( 'WARNING: noise values not found for port', op,
+                   'signal values will probably be incorrect!' )
+        print("*** Recomputing propagation out of %s" % src_roadm.name)
+        l.propagate(pass_through_signals, ase, nli)
+        result = oldAmp + '->' + newAmp
+        print("*** setgain end...", result)
+        return result
+
 Mininet = OpticalNet
 
 
@@ -219,10 +275,10 @@ class Terminal( SwitchBase ):
         "REST connect handler"
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
-        channel = int( query.channel ) if hasattr( query, 'channel' ) else None
-        power = float( query.channel ) if hasattr( query, 'power' ) else None
-        # print("CONNECT", self, "eth", ethPort, "wdm", wdmPort, "channel",
-        # channel, "power", power)
+        channel = int( query.channel ) if query.get( 'channel' ) else None
+        power = float( query.power ) if query.get ( 'power' ) else None
+        # print("*** setting", self, "eth", ethPort, "wdm", wdmPort, "channel",
+        #     channel, "power", power)
         self.connect( ethPort, wdmPort, channel, power=power )
         return 'OK'
 
