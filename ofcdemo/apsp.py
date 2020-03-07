@@ -135,10 +135,11 @@ def monitorOSNR( net, gosnrThreshold=18.0 ):
                 osnr, gosnr = data['osnr'], data['gosnr']
                 # print( fmt % ( channel, osnr, gosnr ), end='' )
                 if gosnr < gosnrThreshold:
-                    print( "WARNING! gOSNR %.2f below %.2f dB threshold" %
+                    print( "WARNING! gOSNR %.2f below %.2f dB threshold:" %
                            ( gosnr, gosnrThreshold ) )
-                    print( fmt % ( channel, osnr, gosnr ), end='' )
                     link = monitors[ monitor ][ 'link' ]
+                    print( monitor, '<ch%s:%.2fTHz OSNR=%.2fdB gOSNR=%.2fdB>' %
+                           (channel, THz, osnr, gosnr ) )
                     failures.append( ( monitor, channel, link ) )
             # print()
         sleep( 1)
