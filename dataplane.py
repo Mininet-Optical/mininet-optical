@@ -27,7 +27,8 @@ OpticalLink: a bidirectional optical link consisting of fiber
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
 from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
                    Roadm as PhyROADM, Monitor as PhyMonitor,
-                   SwitchRule as PhySwitchRule)
+                   SwitchRule as PhySwitchRule,
+                   db_to_abs )
 
 # Data plane
 from mininet.net import Mininet
@@ -199,7 +200,7 @@ class Terminal( SwitchBase ):
         if channel is not None:
             self.txChannel[ txNum ] = channel
         if power is not None:
-            transceiver.operation_power = db_to_abs(operation_power)
+            transceiver.operation_power = db_to_abs(power)
 
     def txnum( self, wdmPort ):
         "Return tx number for wdmPort number"
@@ -219,8 +220,10 @@ class Terminal( SwitchBase ):
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
         channel = int( query.channel ) if hasattr( query, 'channel' ) else None
-        # print("CONNECT", self, "eth", ethPort, "wdm", wdmPort, "channel", channel)
-        self.connect( ethPort, wdmPort, channel )
+        power = float( query.channel ) if hasattr( query, 'power' ) else None
+        # print("CONNECT", self, "eth", ethPort, "wdm", wdmPort, "channel",
+        # channel, "power", power)
+        self.connect( ethPort, wdmPort, channel, power=power )
         return 'OK'
 
     def connect(self, ethPort, wdmPort, channel=None, power=None ):
