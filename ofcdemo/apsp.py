@@ -33,9 +33,8 @@ from time import sleep
 
 ### Do it!
 
-# FIXME: N > 1 doesn't work yet
-
-def run( net, N=1 ):
+def run( net, N=3 ):
+    "Configure and monitor network with N=3 channels for each path"
 
     # Fetch nodes
     net.allNodes = fetchNodes( net )
@@ -79,6 +78,8 @@ def run( net, N=1 ):
         channels = [ net.pairChannels[src, dst] for dst in net.terminals
                      if src != dst ]
         net.remoteChannels[ pop ] = channels
+
+    print( net.remoteChannels )
 
     # Print routes
     print( '*** Routes:' )
@@ -175,11 +176,11 @@ def allocateChannels( terminals, N ):
               for j in range(i+1, pops) ]
     pairChannels, channelPairs = {}, {}
     channel = 1
-    for pair in pairs:
-        src, dst = pair
-        pairChannels.setdefault( (src, dst), [] )
-        pairChannels.setdefault( (dst, src), [] )
-        for _ in range( N ):
+    for _ in range( N ):
+        for pair in pairs:
+            src, dst = pair
+            pairChannels.setdefault( (src, dst), [] )
+            pairChannels.setdefault( (dst, src), [] )
             pairChannels[src, dst].append( channel )
             pairChannels[dst, src].append( channel )
             channelPairs[ channel ] = ( src, dst )
@@ -257,18 +258,21 @@ def configurePacketSwitches( net ):
         # Initialize flow table
         print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )
         routerProxy.dpctl( 'del-flows' )
-        # Same low port assignment as terminals
-        ethports = sorted( int( port ) for port, intf in net.ports[ router ].items()
+        # XXX This is more painful and complicated than it should be,
+        # and it relies on a priori knowledge of the topology...
+        # Find local port
+        ethports = sorted( int(port) for port, intf in net.ports[ router ].items()
                            if 'eth' in intf )
-        channels = net.remoteChannels[pop]
-        dests = list(range(1, count+1))
-        dests.remove( pop )
-        outports = { dest: port for dest, port in zip( dests, ethports ) }
-        outports[ pop ] = localport = ethports[-1]
-        # print( pop, "OUTPORTS", outports)
+        localport = ethports[ -1 ]
+        # Only route one channel for now
+        remoteChannels = [ channels[0] for channels in net.remoteChannels[ pop ] ]
+        remotes = [ p for p in range( 1, count+1 ) if p != pop ]
+        ports = channelPorts( router, net )
+        outports = { pop:ports[ channel ]
+                     for pop, channel in zip( remotes, remoteChannels ) }
+        outports[ pop ] = localport
         for j in range( count ):
             destpop = j+1
-            # Only route to a single channel for now
             for protocol in 'ip', 'icmp', 'arp':
                 flow = ( protocol + ',ip_dst=' + subnet( destpop )+
                          ',actions=dec_ttl,output:%d' % outports[ destpop ] )
@@ -291,11 +295,11 @@ def installPath( path, channels, net):
         port2 = net.neighbors[ node2 ][ roadm ]
         # For terminal nodes, use the proper channel port(s)
         if i == 1:
-            ports1 = channelPorts( node1, channels, net )
+            ports1 = channelPorts( node1, net )
             for channel in channels:
                 ROADMProxy( roadm ).connect( ports1[channel], port2, [channel] )
         elif i == len(path) - 2:
-            ports2 = channelPorts( node2, channels, net )
+            ports2 = channelPorts( node2, net )
             for channel in channels:
                 ROADMProxy( roadm ).connect( port1, ports2[channel], [channel] )
         # For roadm nodes, forward the channels en masse
@@ -303,7 +307,7 @@ def installPath( path, channels, net):
             ROADMProxy( roadm ).connect( port1, port2, channels )
 
 
-def channelPorts( node, channels, net ):
+def channelPorts( node, net ):
     "Return the {router, terminal, roadm} ports for node/channels"
     pop = net.pops[ node ]
     # FIXME: shouldn't recompute this every time

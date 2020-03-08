@@ -18,7 +18,7 @@ if __name__ == '__main__':
     cleanup()
     setLogLevel( 'info' )
     info( '*** Creating Demo Topology \n' )
-    net = Mininet( topo=DemoTopo( txCount=10), autoSetMacs=True,
+    net = Mininet( topo=DemoTopo( txCount=15), autoSetMacs=True,
                    controller=RemoteController )
     disableIPv6( net )
     restServer = RestServer( net )

@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     cleanup()
     setLogLevel( 'info' )
-    net = Mininet( topo=LinearRoadmTopo(), autoSetMacs=True,
+    net = Mininet( topo=LinearRoadmTopo(txCount=6), autoSetMacs=True,
                    controller=RemoteController )
     disableIPv6( net )
     restServer = RestServer( net )
