@@ -562,7 +562,10 @@ public class AppCommand extends AbstractShellCommand {
       JsonNode monitors = conMethod(RESTCon (url), GET, "");
       //KeyValue(monitors);
       KeyValue(monitors.get("monitors"));
-      //traverse(monitors.get("monitors"));
+      List<String[]> monitor_map = new ArrayList<String[]>();
+      //traverse(monitors.get("monitors").get("osnr"), monitor_map);
+      //for(int i =0; i < monitor_map.size()-1;i++)
+        //print(Arrays.toString(monitor_map.get(i)));
     }
 
     //link osnr information
@@ -580,7 +583,8 @@ public class AppCommand extends AbstractShellCommand {
         node_info.clear();
         JsonNode osnr = conMethod(RESTCon (url1), GET, "");
         print(field.getValue().toString());
-        print(osnr.toString());
+        //print(osnr.toString());
+        KeyValue(osnr.get("osnr"));
 
       }
 
