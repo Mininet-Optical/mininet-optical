@@ -132,7 +132,7 @@ public class AppCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "device-type",
-            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
+            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/set-gain/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
             required = true, multiValued = false)
     String device_type = null;
 
@@ -200,6 +200,9 @@ public class AppCommand extends AbstractShellCommand {
       }else if (device_type != null && device_type.equals("add-flow") && node_name != null && in_port != null) {
           add_flow (node_name, in_port, out_port, channel);
           print("Added Flow is %s", "Completed!");
+      }else if (device_type != null && device_type.equals("set-gain") && node_name != null && in_port != null) {
+          set_gain (node_name, in_port);
+          print("Amplifier Gain is %s", "Set!");
       }else if (device_type != null && node_name != null && in_port != null && out_port != null && channel != null) {
           if (device_type.equals("roadm")){
             config_roadm(node_name,in_port,out_port,channel);
@@ -208,7 +211,7 @@ public class AppCommand extends AbstractShellCommand {
             config_terminal(node_name,in_port,out_port,channel,power);
             print("Terminal configuration is %s", "done!");
       }else if (device_type != null){
-          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
+          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/set-gain/show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
       }
       return;
     }
@@ -351,6 +354,15 @@ public class AppCommand extends AbstractShellCommand {
       }
     }
 
+
+
+    //setgain for a amplifier
+    public static void set_gain(String amp, String gain) {
+             
+             String url = String.format("http://localhost:8080/setgain?amplifier=%s&gain=%s",amp, gain);
+             JsonNode links = conMethod(RESTCon (url), GET, "");
+    }
+
     //add a single flow from a router to router through optical layer
     public static void add_flow(String source, String destination, String chnnl, String power) {
 
@@ -397,7 +409,8 @@ public class AppCommand extends AbstractShellCommand {
 
     //add mesh network flows from a router to router through optical layer
     public static void demo_mesh_flow() {
-
+             int count =2;
+             int gap = 10;
              String url = "http://localhost:8080" + LINKS;
              JsonNode links = conMethod(RESTCon (url), GET, "");
              List<String[]> link_map = new ArrayList<String[]>();
@@ -410,15 +423,18 @@ public class AppCommand extends AbstractShellCommand {
              String[] routers = new String[] {"s1", "s2", "s3", "s4", "s5", "s6"};
              Random rand = new Random();
              List<String> path_p = new ArrayList<String>();
-             int channel = rand.nextInt(40);
+             int channel = rand.nextInt(10);
              for (int n =0; n<routers.length;n++){
                for (int m =n+1; m<routers.length;m++){
                  if (n!=m){
                    String src = routers[n];
                    String dst = routers[m];
-                   String chnnl = String.valueOf(channel);
+
 	           path_p = dijkstra.dijkstraPath(conn, src, dst);
                    //System.out.println(src +"-" + dst + ":" + chnnl);
+                  while(count!=0){
+                   String chnnl = String.valueOf(channel+gap);
+                   gap += 20;
 		   for (int i = 2; i< path_p.size();i+=4){
 				    //System.out.println(path_p);
 		     if (path_p.get(i).startsWith("t")){
@@ -434,7 +450,12 @@ public class AppCommand extends AbstractShellCommand {
 		         config_roadm(path_p.get(i),path_p.get(i+3),path_p.get(i+1),chnnl);
 		     }
 		   }
-                   channel++;
+
+                   count--;
+                  }
+                  channel++;
+                  count=3;
+                  gap = 0;
                  }
                }
              }
