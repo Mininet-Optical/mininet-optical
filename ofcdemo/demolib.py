@@ -233,9 +233,9 @@ class LinearRoadmTopo( OpticalTopo ):
                     for i in range(1, spanCount+1) ]
         return sum( [ list(entry) for entry in entries ], [] )
 
-    def build( self, n=3 ):
+    def build( self, n=3, txCount=2 ):
         "Add POPs and connect them in a line"
-        roadms = [ self.buildPop( p ) for p in range( 1, n+1 ) ]
+        roadms = [ self.buildPop( p, txCount ) for p in range( 1, n+1 ) ]
 
         # Inter-POP links
         for i in range( 0, n - 1 ):
