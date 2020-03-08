@@ -114,7 +114,7 @@ class OpticalCLI( CLI ):
         g.add_edges_from([(link.intf1.node, link.intf2.node) for link in net.links
                           if (isinstance(link.intf1.node, ROADM) and
                               isinstance(link.intf2.node, ROADM))])
-        nx.draw_shell( g, with_labels=True, font_weight='bold' )
+        nx.draw_spring( g, with_labels=True, font_weight='bold' )
         if line:
             fname = 'plot.png'
             print( 'Saving to', fname, '...' )
