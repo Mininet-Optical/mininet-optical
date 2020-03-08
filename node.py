@@ -866,7 +866,7 @@ class Amplifier(Node):
 
     def __repr__(self):
         "String representation"
-        return '<%s %.2fdB>' % (self.name, self.target_gain)
+        return '<%s %.1fdB>' % (self.name, self.target_gain)
 
 
 class Monitor(Node):

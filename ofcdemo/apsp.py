@@ -26,14 +26,15 @@ from ofcdemo.fakecontroller import (
     fetchNodes, fetchLinks, fetchPorts, fetchOSNR )
 
 from collections import defaultdict
+from datetime import datetime
 from itertools import chain
+from time import sleep
 
 
 ### Do it!
 
-# FIXME: N > 1 doesn't work yet
-
-def run( net, N=1 ):
+def run( net, N=3 ):
+    "Configure and monitor network with N=3 channels for each path"
 
     # Fetch nodes
     net.allNodes = fetchNodes( net )
@@ -47,65 +48,44 @@ def run( net, N=1 ):
 
     # Assign POPs for convenience
     count = len( net.switches )
-    net.pops = {}
-    for i in range( count ):
-        for node in net.switches[i], net.terminals[i], net.roadms[i]:
-            net.pops[ node ] = i+1
+    net.pops = { node: i+1
+                 for i in range( count )
+                 for node in ( net.switches[i], net.terminals[i], net.roadms[i] ) }
 
     # Fetch links
     net.allLinks, net.roadmLinks, net.terminalLinks = fetchLinks( net )
 
+    # Create adjacency dict
+    net.neighbors = adjacencyDict( net.allLinks )
+
     # Fetch ports
     net.ports = fetchPorts( net, net.roadms + net.terminals + net.switches )
 
-    # Adjacency list
-    # Note we only have to worry about single links between nodes
-    # We handle the terminals separately
-    net.neighbors = defaultdict( defaultdict )
-    for link in net.allLinks:
-        src, dst = link
-        srcport, dstport = link[ src ], link[ dst ]
-        net.neighbors.setdefault( src, {} )
-        net.neighbors[ src ][ dst ] = dstport
-        net.neighbors[ dst ][ src ] = srcport
-
-    #  Calculate inter-pop routes
+    # Calculate inter-pop routes
     net.routes = { node: route( node, net.neighbors, net.terminals )
                    for node in net.terminals }
 
-    # Channel allocation: N channels per endpoint pair
-
-    pops = len( net.terminals )
-    net.pairs = set( (net.terminals[i], net.terminals[j] )
-                 for i in range(0, pops)
-                 for j in range(i+1, pops))
-    net.pairChannels, net.channelPairs = {}, {}
-    channel = 1
-    for pair in net.pairs:
-        src, dst = pair
-        net.pairChannels.setdefault( (src, dst), [] )
-        net.pairChannels.setdefault( (dst, src), [] )
-        for _ in range( N ):
-            net.pairChannels[src, dst].append( channel )
-            net.pairChannels[dst, src].append( channel )
-            net.channelPairs[ channel ] = ( src, dst )
-            channel += 1
-    print( list(net.pairChannels[pair] for pair in net.pairs) )
+    # Allocate N channels per endpoint pair
+    print( '*** Allocating channels' )
+    net.pairs, net.pairChannels, net.channelPairs = allocateChannels(
+        net.terminals, N )
 
     # Compute remote channels for each pop
     count = len( net.roadms )
     net.remoteChannels = {}
     for i in range( count ):
-        pop = i+1
-        src = net.terminals[ i ]
-        channels = [ net.pairChannels[src, dst] for dst in net.terminals if src != dst ]
-        net.remoteChannels[pop] = channels
+        pop, src  = i+1, net.terminals[ i ]
+        channels = [ net.pairChannels[src, dst] for dst in net.terminals
+                     if src != dst ]
+        net.remoteChannels[ pop ] = channels
+
+    print( net.remoteChannels )
 
     # Print routes
     print( '*** Routes:' )
-    for src, entries in net.routes.items():
-        for dst, path in entries.items():
-            print(src, '->', dst, path, net.pairChannels[src, dst])
+    for src, dst in net.pairs:
+        path = net.routes[src][dst]
+        print(src, '->', dst, path, net.pairChannels[src, dst])
 
     # Install all routes
     installRoutes( net )
@@ -119,8 +99,15 @@ def run( net, N=1 ):
     # Count average signal allocation per link
     countSignals( net.channelPairs, net.routes )
 
-    # Fetch OSNR
-    fetchOSNR( net )
+    # Monitor OSNR
+    print( '*** Monitoring OSNR...' )
+    failures = monitorOSNR( net )
+    reroutes = [ (channel, link)
+                 for _monitor, channel, link in failures ]
+
+    # Reroute (not yet implemented )
+    reroute( net, reroutes )
+
 
 
 ### Support routines
@@ -129,6 +116,76 @@ def canonical( link ):
     "Return link in canonical (sorted) format"
     # Note that we don't have to worry about numerical sorting
     return tuple( sorted( link ) )
+
+
+def monitorKey( monitor ):
+    "Key for sorting monitor names"
+    items =  monitor.split( '-' )
+    return items
+
+def monitorOSNR( net, gosnrThreshold=18.0 ):
+    """Monitor gOSNR continuously; if any monitored gOSNR drops
+       below threshold, return list of (monitor, channel, link)"""
+    monitors = net.get( 'monitors' ).json()['monitors']
+    fmt = '%s:(%.0f,%.0f) '
+    failures = []
+    while not failures:
+        logtime = datetime.now().strftime("%H:%M:%S")
+        # print( logtime, 'OSNR, gOSNR from monitors:' )
+        for monitor in sorted( monitors, key=monitorKey ):
+            response = net.get( 'monitor', params=dict( monitor=monitor ) )
+            osnrdata = response.json()[ 'osnr' ]
+            # print( monitor + ':', end=' ' )
+            for channel, data in osnrdata.items():
+                THz = float( data['freq'] )/1e12
+                osnr, gosnr = data['osnr'], data['gosnr']
+                # print( fmt % ( channel, osnr, gosnr ), end='' )
+                if gosnr < gosnrThreshold:
+                    print( "WARNING! gOSNR %.2f below %.2f dB threshold:" %
+                           ( gosnr, gosnrThreshold ) )
+                    link = monitors[ monitor ][ 'link' ]
+                    print( monitor, '<ch%s:%.2fTHz OSNR=%.2fdB gOSNR=%.2fdB>' %
+                           (channel, THz, osnr, gosnr ) )
+                    failures.append( ( monitor, channel, link ) )
+            # print()
+        sleep( 1)
+    return failures
+
+
+def adjacencyDict( links ):
+    "Return an adjacency dict for links"
+    # Note we only have to worry about single links between nodes
+    # We handle the terminals separately
+    neighbors = defaultdict( defaultdict )
+    for link in links:
+        src, dst = link  # link is a dict but order doesn't matter
+        srcport, dstport = link[ src ], link[ dst ]
+        neighbors.setdefault( src, {} )
+        neighbors[ src ][ dst ] = dstport
+        neighbors[ dst ][ src ] = srcport
+    return dict( neighbors )
+
+
+# Channel allocation
+
+def allocateChannels( terminals, N ):
+    "Allocate N channels per endpoint pair"
+    pops = len( terminals )
+    pairs = [ (terminals[i], terminals[j])
+              for i in range(0, pops)
+              for j in range(i+1, pops) ]
+    pairChannels, channelPairs = {}, {}
+    channel = 1
+    for _ in range( N ):
+        for pair in pairs:
+            src, dst = pair
+            pairChannels.setdefault( (src, dst), [] )
+            pairChannels.setdefault( (dst, src), [] )
+            pairChannels[src, dst].append( channel )
+            pairChannels[dst, src].append( channel )
+            channelPairs[ channel ] = ( src, dst )
+            channel += 1
+    return pairs, pairChannels, channelPairs
 
 
 ### Routing (sorry Dijkstra, we don't need you)
@@ -149,6 +206,21 @@ def route( src, neighbors, destinations ):
                     routes[ neighbor ] = newPath
                 seen.add( neighbor)
     return routes
+
+
+def entriesToReroute( paths, badlink ):
+    "Return list of entries in paths containing badlink"
+    pair1, pair2 = list( pair ), list( reversed( pair ) )
+    result = []
+    for entry, paths in paths.items():
+        for i in range( len( path ) - 1):
+            if path[i:i+2] == pair:
+                paths.append( path )
+                break
+
+def reroute( net, failures):
+    "Reroute failures"
+    print( 'failures:', failures)
 
 
 ### Endpoint configuration
@@ -186,18 +258,21 @@ def configurePacketSwitches( net ):
         # Initialize flow table
         print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )
         routerProxy.dpctl( 'del-flows' )
-        # Same low port assignment as terminals
-        ethports = sorted( int( port ) for port, intf in net.ports[ router ].items()
+        # XXX This is more painful and complicated than it should be,
+        # and it relies on a priori knowledge of the topology...
+        # Find local port
+        ethports = sorted( int(port) for port, intf in net.ports[ router ].items()
                            if 'eth' in intf )
-        channels = net.remoteChannels[pop]
-        dests = list(range(1, count+1))
-        dests.remove( pop )
-        outports = { dest: port for dest, port in zip( dests, ethports ) }
-        outports[ pop ] = localport = ethports[-1]
-        # print( pop, "OUTPORTS", outports)
+        localport = ethports[ -1 ]
+        # Only route one channel for now
+        remoteChannels = [ channels[0] for channels in net.remoteChannels[ pop ] ]
+        remotes = [ p for p in range( 1, count+1 ) if p != pop ]
+        ports = channelPorts( router, net )
+        outports = { pop:ports[ channel ]
+                     for pop, channel in zip( remotes, remoteChannels ) }
+        outports[ pop ] = localport
         for j in range( count ):
             destpop = j+1
-            # Only route to a single channel for now
             for protocol in 'ip', 'icmp', 'arp':
                 flow = ( protocol + ',ip_dst=' + subnet( destpop )+
                          ',actions=dec_ttl,output:%d' % outports[ destpop ] )
@@ -220,21 +295,19 @@ def installPath( path, channels, net):
         port2 = net.neighbors[ node2 ][ roadm ]
         # For terminal nodes, use the proper channel port(s)
         if i == 1:
-            ports1 = channelPorts( node1, channels, net )
+            ports1 = channelPorts( node1, net )
             for channel in channels:
                 ROADMProxy( roadm ).connect( ports1[channel], port2, [channel] )
         elif i == len(path) - 2:
-            ports2 = channelPorts( node2, channels, net )
+            ports2 = channelPorts( node2, net )
             for channel in channels:
                 ROADMProxy( roadm ).connect( port1, ports2[channel], [channel] )
         # For roadm nodes, forward the channels en masse
         else:
             ROADMProxy( roadm ).connect( port1, port2, channels )
 
-    print("*** Done with", path)
 
-
-def channelPorts( node, channels, net ):
+def channelPorts( node, net ):
     "Return the {router, terminal, roadm} ports for node/channels"
     pop = net.pops[ node ]
     # FIXME: shouldn't recompute this every time
