@@ -639,22 +639,14 @@ class Roadm(Node):
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                # if voa_att < 0:
-                self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
-                if len(accumulated_ASE_noise) > 0:
-                    accumulated_ASE_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                if len(accumulated_NLI_noise) > 0:
-                    accumulated_NLI_noise[optical_signal] /= voa_att
-                    self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-                # else:
-                #     self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
-                #     if len(accumulated_ASE_noise) > 0:
-                #         accumulated_ASE_noise[optical_signal] *= voa_att
-                #         self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                #     if len(accumulated_NLI_noise) > 0:
-                #         accumulated_NLI_noise[optical_signal] *= voa_att
-                #         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                if voa_att < 0:
+                    self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
+                    if len(accumulated_ASE_noise) > 0:
+                        accumulated_ASE_noise[optical_signal] /= voa_att
+                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                    if len(accumulated_NLI_noise) > 0:
+                        accumulated_NLI_noise[optical_signal] /= voa_att
+                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
             pass_through_signals = self.port_to_optical_signal_power_out[out_port]
