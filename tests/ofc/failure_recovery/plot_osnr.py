@@ -87,10 +87,10 @@ def plot_2(_list):
     plt.plot(x4, ch4, linestyle='None', linewidth=4, color='y', marker='D', markersize=10, markerfacecolor='None', )
     plt.xlabel("Wavelength index [nm]")
     plt.ylabel("gOSNR (dB)")
-    plt.yticks(np.arange(9.5, 23.5, 1.5))
+    # plt.yticks(np.arange(9.5, 23.5, 1.5))
     plt.grid(True)
-    plt.savefig('fig2.png', format='png')
-    # plt.show()
+    # plt.savefig('fig2.png', format='png')
+    plt.show()
 
 
 def plot_3(_list):

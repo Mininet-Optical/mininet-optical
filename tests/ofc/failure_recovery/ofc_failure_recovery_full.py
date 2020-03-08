@@ -34,8 +34,8 @@ channels1 = list(np.arange(1, 11, 1))
 channels2 = list(np.arange(11, 21, 1))
 channels3 = list(np.arange(21, 31, 1))
 channels4 = list(np.arange(31, 41, 1))
-# channels5 = list(np.arange(51, 61, 1))
-channels5 = [1]
+channels5 = list(np.arange(51, 61, 1))
+# channels5 = [1]
 
 # Install fixed rules into switches
 switch_proc = st()
@@ -54,20 +54,20 @@ for pr in switch_proc.roadm6:
     roadm6.install_switch_rule(**pr)
 
 # Set resources to use and initiate transmission
-# rw = channels1 + channels2
-# resources = {'transceiver': lt1.name_to_transceivers['t1'],
-#              'required_wavelengths': rw}
-# net.transmit(lt1, roadm1, resources=resources)
-#
-# rw2 = channels3
-# resources2 = {'transceiver': lt3.name_to_transceivers['t1'],
-#               'required_wavelengths': rw2}
-# net.transmit(lt3, roadm3, resources=resources2)
-#
-# rw3 = channels4
-# resources3 = {'transceiver': lt2.name_to_transceivers['t1'],
-#               'required_wavelengths': rw3}
-# net.transmit(lt2, roadm2, resources=resources3)
+rw = channels1 + channels2
+resources = {'transceiver': lt1.name_to_transceivers['t1'],
+             'required_wavelengths': rw}
+net.transmit(lt1, roadm1, resources=resources)
+
+rw2 = channels3
+resources2 = {'transceiver': lt3.name_to_transceivers['t1'],
+              'required_wavelengths': rw2}
+net.transmit(lt3, roadm3, resources=resources2)
+
+rw3 = channels4
+resources3 = {'transceiver': lt2.name_to_transceivers['t1'],
+              'required_wavelengths': rw3}
+net.transmit(lt2, roadm2, resources=resources3)
 
 rw4 = channels5
 resources4 = {'transceiver': lt1.name_to_transceivers['t1'],
@@ -90,9 +90,9 @@ gosnr_r2_r4 = r2_r4_mon.get_list_gosnr()
 # net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
 net.mock_amp_gain_adjust('amp3', 1, 'roadm1', 'roadm2')
 # #
-# osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
+osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
 # osnr_r4_r62 = r4_r6_mon.get_list_gosnr()
-# plot_2(osnr_r2_r42)
+plot_2(osnr_r2_r42)
 # plot_list_osnr([osnr_r2_r4, osnr_r2_r42])
 
 # control procedures for recovery
