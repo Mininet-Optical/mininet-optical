@@ -132,7 +132,7 @@ public class AppCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "device-type",
-            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-flows/demo-mesh-flows/reset/add-flow/set-gain/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
+            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-flows/demo-mesh-flows/clean-flows/reset/add-flow/set-gain/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
             required = true, multiValued = false)
     String device_type = null;
 
@@ -221,7 +221,7 @@ public class AppCommand extends AbstractShellCommand {
             print("Terminal configuration is %s", "done!");
           }
       }else if (device_type != null){
-          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-flows/demo-mesh-flows/reset/add-flow/set-gain/show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
+          print("Wrong arguments! Use one of the listed commands: %s", "\n"+"terminal/roadm/monitor/osnr/" +"\n"+"demo-topo/linear-topo/demo-flows/demo-mesh-flows/clean-flows/"+"\n"+"reset/add-flow/set-gain/"+"\n"+"show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
       }
       return;
     }
