@@ -240,7 +240,7 @@ class LineTerminal(Node):
     def gosnr(power, ase_noise, nli_noise):
         return abs_to_db(power / (ase_noise + nli_noise))
 
-    def receiver(self, in_port, signal_power, accumulated_ASE_noise=None, accumulated_NLI_noise=None):
+    def receiver(self, in_port, signal_power, accumulated_ASE_noise, accumulated_NLI_noise):
         # Update optical signal power; probably obsolete...
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
 

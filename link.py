@@ -144,7 +144,8 @@ class Link(object):
         if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
             # use is instance instead of checking the class
             if self.node2.__class__.__name__ is 'LineTerminal':
-                self.node2.receiver(self.input_port_node2, self.optical_signal_power_out)
+                self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
+                                    self.accumulated_ASE_noise, self.accumulated_NLI_noise)
             else:
                 self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out,
                                           accumulated_ASE_noise=self.accumulated_ASE_noise,
