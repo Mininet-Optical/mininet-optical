@@ -232,9 +232,46 @@ class LineTerminal(Node):
             noise[optical_signal] = power / db_to_abs(50)
         return noise, noise
 
-    def receiver(self, in_port, signal_power):
+    @staticmethod
+    def osnr(power, ase_noise):
+        return abs_to_db(power / ase_noise)
+
+    @staticmethod
+    def gosnr(power, ase_noise, nli_noise):
+        return abs_to_db(power / (ase_noise + nli_noise))
+
+    def receiver(self, in_port, signal_power, accumulated_ASE_noise=None, accumulated_NLI_noise=None):
+        # Update optical signal power; probably obsolete...
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
-        print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+
+        signalInfoDict = {}
+        optical_signals = signal_power.keys()
+        for signal in optical_signals:
+            signalInfoDict[signal] = {'osnr': None, 'gosnr': None,
+                                      'ber': None, 'success': False}
+
+            # Get signal info
+            power = signal_power[signal]
+            ase_noise = accumulated_ASE_noise[signal]
+            nli_noise = accumulated_NLI_noise[signal]
+
+            # Compute OSNR and gOSNR
+            osnr = self.osnr(power, ase_noise)
+            gosnr = self.gosnr(power, ase_noise, nli_noise)
+
+            signalInfoDict[signal]['osnr'] = osnr
+            signalInfoDict[signal]['gosnr'] = gosnr
+            if gosnr < 17:
+                print("*** %s.receiver.%s: Failure!" % (self.__class__.__name__, self.name))
+                signalInfoDict[signal]['success'] = False
+                self.receiver_callback(in_port, signalInfoDict)
+            else:
+                print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+                signalInfoDict[signal]['success'] = True
+                self.receiver_callback(in_port, signalInfoDict)
+
+    def receiver_callback(self, in_port, signalDictInfo):
+        return
 
     def delete_channel(self, transceiver_name, optical_signal):
         """
@@ -820,7 +857,6 @@ class Amplifier(Node):
         power_excursions = out_in_difference - self.target_gain
         system_gain_balance = self.system_gain - power_excursions
         self.system_gain = system_gain_balance
-        print("reconfigured gain balance at %s: %f" % (self.name, self.system_gain) )
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
