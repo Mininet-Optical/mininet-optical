@@ -159,7 +159,7 @@ def nodeHandler( handlerName ):
 @get( '/reset' )
 def reset():
     "Reset/clear a node's flow rules"
-    return nodeHandle( 'restResetHandler' )
+    return nodeHandler( 'restResetHandler' )
 
 
 @get( '/connect' )
