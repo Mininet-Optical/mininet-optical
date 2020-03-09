@@ -4,6 +4,7 @@ import numpy as np
 import scipy.constants as sc
 import random
 from collections import namedtuple
+import math
 
 
 def db_to_abs(db_value):
@@ -261,7 +262,7 @@ class LineTerminal(Node):
 
             signalInfoDict[signal]['osnr'] = osnr
             signalInfoDict[signal]['gosnr'] = gosnr
-            if gosnr < 17:
+            if gosnr < 20:
                 print("*** %s.receiver.%s: Failure!" % (self.__class__.__name__, self.name))
                 signalInfoDict[signal]['success'] = False
                 self.receiver_callback(in_port, signalInfoDict)
