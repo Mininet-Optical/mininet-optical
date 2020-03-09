@@ -227,6 +227,15 @@ class Terminal( SwitchBase ):
     txChannel = {}
     txPorts = {}
 
+    # failed channels whose packets should not be received in
+    # the dataplane
+    failedChannels = None
+    blockCookie = 0xbadfeed
+
+    def __init__( self, *args, **kwargs ):
+        super().__init__( *args, **kwargs )
+        self.model.receiver_callback = self.receiverCallback
+
     def start( self, _controllers ):
         "Override to start without controller"
         super( SwitchBase, self ).start( controllers=[] )
@@ -238,6 +247,7 @@ class Terminal( SwitchBase ):
         # Drop IPv6 router solicitations
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
         self.txChannels = {}
+        self.failedChannels = set()
         # self.model.reset_signals()
 
     # Probably obsolete now that we have auto-propagation
@@ -307,17 +317,52 @@ class Terminal( SwitchBase ):
 
         # Tag outbound packets and untag inbound packets
 
-        outbound = ( 'in_port=%d,' % ethPort +
+        outbound = ( 'priority=100,' +
+                     'in_port=%d,' % ethPort +
                      'actions=mod_vlan_vid=%d,' % channel +
                      'output:%d' % wdmPort )
 
-        inbound = ( 'in_port=%d,' % wdmPort +
+        inbound = ( 'priority=100,' +
+                    'in_port=%d,' % wdmPort +
                     'dl_vlan=%d,' % channel +
                     'actions=strip_vlan,'
                     'output:%d' % ethPort )
 
         self.dpctl( 'add-flow', outbound )
         self.dpctl( 'add-flow', inbound )
+
+    def receiverCallback( self, inport, signalInfoDict ):
+        "Callback from PHY when signal is received"
+        for signal, info in signalInfoDict.items():
+            if not info[ 'success' ]:
+                self.block( inport, signal.index )
+            else:
+                self.unblock( inport, signal.index )
+
+    def block( self, inport, channel ):
+        "Block channel at inport"
+        if channel in self.failedChannels:
+            return
+        self.failedChannels.add( channel )
+        print("***", self, "blocking port", inport, "channel", channel)
+        blockInbound = ( 'priority=200,' +
+                         'in_port=%d,' % inport +
+                         'dl_vlan=%d,' % channel +
+                         'cookie=%d,' % self.blockCookie +
+                         'actions=drop' )
+        self.dpctl( 'add-flow', blockInbound )
+
+    def unblock( self, inport, channel ):
+        "Unblock signal at inport"
+        if channel not in self.failedChannels:
+            return
+        print("***", self, "unblocking port", inport, "channel", channel)
+        self.failedChannels.remove( channel )
+        # No priority or actions in delete
+        blockInbound  = ( 'in_port=%d,' % inport +
+                          'dl_vlan=%d,' % channel +
+                          'cookie=%d/-1' % self.blockCookie )
+        self.dpctl( 'del-flows', blockInbound )
 
     def dumpStatus( self ):
         "Print out some status information"
