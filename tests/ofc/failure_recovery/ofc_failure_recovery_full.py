@@ -29,13 +29,19 @@ net = OFCDemo.build()
 n = net.name_to_node
 lt1, lt2, lt3, lt4, lt5, lt6 = [n['lt%d' % i] for i in (1, 2, 3, 4, 5, 6)]
 roadm1, roadm2, roadm3, roadm4, roadm5, roadm6 = [n['roadm%d' % i] for i in (1, 2, 3, 4, 5, 6)]
-# Channel sub-sets
-channels1 = list(np.arange(1, 11, 1))
-channels2 = list(np.arange(11, 21, 1))
-channels3 = list(np.arange(21, 31, 1))
-channels4 = list(np.arange(31, 41, 1))
-channels5 = list(np.arange(51, 61, 1))
-# channels5 = [1]
+# Channel sub-sets (10 CHANNELS)
+# channels1 = list(np.arange(1, 11, 1))
+# channels2 = list(np.arange(11, 21, 1))
+# channels3 = list(np.arange(21, 31, 1))
+# channels4 = list(np.arange(31, 41, 1))
+# channels5 = list(np.arange(51, 61, 1))
+
+# 5 channels
+channels1 = list(np.arange(1, 6, 1))
+channels2 = list(np.arange(6, 11, 1))
+channels3 = list(np.arange(11, 16, 1))
+channels4 = list(np.arange(16, 21, 1))
+channels5 = list(np.arange(21, 26, 1))
 
 # Install fixed rules into switches
 switch_proc = st()
@@ -76,24 +82,28 @@ net.transmit(lt1, roadm1, resources=resources4)
 
 
 # Monitoring nodes at the receiver-ends
-r2_r4_mon = n['mon%d' % 28]
-osnr_r2_r4 = r2_r4_mon.get_list_osnr()
-gosnr_r2_r4 = r2_r4_mon.get_list_gosnr()
+# r2_r4_mon = n['mon%d' % 28]
+# osnr_r2_r4 = r2_r4_mon.get_list_osnr()
+# gosnr_r2_r4 = r2_r4_mon.get_list_gosnr()
 # r4_r6_mon = n['mon%d' % 52]
 # osnr_r4_r6 = r4_r6_mon.get_list_osnr()
-
-
 # plot_1(osnr_r2_r4, gosnr_r2_r4)
+
+r4_r5_mon = n['mon%d' % 44]
+osnr_r4_r5 = r4_r5_mon.get_list_gosnr()
 
 # Adjust NF of amplifier in link between R1 and R2, so that
 # multiple links break.
 # net.mock_nf_adjust('amp3', (30, 90), 'roadm1', 'roadm2')
-net.mock_amp_gain_adjust('amp3', 1, 'roadm1', 'roadm2')
-# #
-osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
+net.mock_amp_gain_adjust('amp1', 1, 'roadm1', 'roadm2')
+# # #
+# osnr_r2_r42 = r2_r4_mon.get_list_gosnr()
 # osnr_r4_r62 = r4_r6_mon.get_list_gosnr()
-plot_2(osnr_r2_r42)
+# plot_2(osnr_r2_r42)
 # plot_list_osnr([osnr_r2_r4, osnr_r2_r42])
+
+osnr_r4_r52 = r4_r5_mon.get_list_gosnr()
+plot_list_osnr([osnr_r4_r5, osnr_r4_r52])
 
 # control procedures for recovery
 # roadm6.delete_switch_rule(1)
@@ -112,8 +122,8 @@ plot_2(osnr_r2_r42)
 #     roadm6.install_switch_rule(**pr)
 #
 # roadm1.update_switch_rule(1, 102)
-#
-#
+# #
+# #
 # r3_r5_mon = n['mon%d' % 36]
 # osnr_r3_r5 = r3_r5_mon.get_list_gosnr()
 # plot_3(osnr_r3_r5)

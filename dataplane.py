@@ -123,9 +123,9 @@ class OpticalNet( Mininet ):
         l.reset_propagation_struct()
         op = l.output_port_node1
         # Pass only the signals corresponding to the output port
-        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op]
-        ase = src_roadm.port_to_optical_signal_ase_noise_out.get(op)
-        nli = src_roadm.port_to_optical_signal_nli_noise_out.get(op)
+        pass_through_signals = src_roadm.port_to_optical_signal_power_out[op].copy()
+        ase = src_roadm.port_to_optical_signal_ase_noise_out.get(op).copy()
+        nli = src_roadm.port_to_optical_signal_nli_noise_out.get(op).copy()
         if ase is None or nli is None:
             print( 'WARNING: noise values not found for port', op,
                    'signal values will probably be incorrect!' )

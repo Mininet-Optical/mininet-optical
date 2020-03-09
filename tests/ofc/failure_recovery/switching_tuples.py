@@ -45,11 +45,19 @@ class SwitchTuples:
                        {'rule_id': 3, 'in_port': 2, 'out_port': 100, 'signal_indices': channels3}]
 
     def switch_full(self):
-        channels1 = list(np.arange(1, 11, 1))
-        channels2 = list(np.arange(11, 21, 1))
-        channels3 = list(np.arange(21, 31, 1))
-        channels4 = list(np.arange(31, 41, 1))
-        channels5 = list(np.arange(51, 61, 1))
+        # 10 CHANNELS
+        # channels1 = list(np.arange(1, 11, 1))
+        # channels2 = list(np.arange(11, 21, 1))
+        # channels3 = list(np.arange(21, 31, 1))
+        # channels4 = list(np.arange(31, 41, 1))
+        # channels5 = list(np.arange(51, 61, 1))
+
+        # 5 CHANNELS
+        channels1 = list(np.arange(1, 6, 1))
+        channels2 = list(np.arange(6, 11, 1))
+        channels3 = list(np.arange(11, 16, 1))
+        channels4 = list(np.arange(16, 21, 1))
+        channels5 = list(np.arange(21, 26, 1))
 
         # from line terminal to roadm2 and,
         # from roadm3 to line terminal
@@ -90,8 +98,13 @@ class SwitchTuples:
                        {'rule_id': 3, 'in_port': 1, 'out_port': 100, 'signal_indices': channels4}]
 
     def recovery_link_r1_r2(self):
-        channels1 = list(np.arange(1, 11, 1))
-        channels2 = list(np.arange(11, 21, 1))
+        # 10 channels
+        # channels1 = list(np.arange(1, 11, 1))
+        # channels2 = list(np.arange(11, 21, 1))
+
+        # 5 channels
+        channels1 = list(np.arange(1, 6, 1))
+        channels2 = list(np.arange(6, 11, 1))
 
         self.roadm6 = [{'rule_id': 4, 'in_port': 2, 'out_port': 100, 'signal_indices': channels2}]
 

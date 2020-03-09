@@ -145,11 +145,11 @@ class Link(object):
             # use is instance instead of checking the class
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
-                                    self.accumulated_ASE_noise, self.accumulated_NLI_noise)
+                                    self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
             else:
-                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out,
-                                          accumulated_ASE_noise=self.accumulated_ASE_noise,
-                                          accumulated_NLI_noise=self.accumulated_NLI_noise)
+                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
+                                          accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
+                                          accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
                 self.node2.switch(self.input_port_node2)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
@@ -403,7 +403,6 @@ class Link(object):
             self.boost_amp.output_power = {}
             self.boost_amp.ase_noise = {}
             self.boost_amp.nonlinear_noise = {}
-            print("Resetting boost gain to:", self.boost_amp.target_gain, self.boost_amp.name)
             self.boost_amp.system_gain = self.boost_amp.target_gain
         for span, amplifier in self.spans:
             if amplifier:

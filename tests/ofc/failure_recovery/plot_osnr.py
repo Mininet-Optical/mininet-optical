@@ -31,7 +31,7 @@ def plot_list_osnr(_list):
     plt.show()
 
 
-def plot_1(_list, _list2):
+def plot_1_10(_list, _list2):
     wv = ['1545.2', '1541.2', '1537.2', '1533.2', '1529.6']
     wv.reverse()
     plt.xticks([0, 10, 20, 30, 40], wv)
@@ -64,11 +64,47 @@ def plot_1(_list, _list2):
     plt.xlabel("Wavelength index [nm]")
     plt.ylabel("OSNR (solid) / gOSNR (open) [dB]")
     plt.grid(True)
-    # plt.savefig('fig1.png', format='png')
+    plt.savefig('fig1.png', format='png')
+    # plt.show()
+
+
+def plot_1(_list, _list2):
+    x1 = np.arange(0, 5)
+    x2 = np.arange(5, 10)
+    x3 = np.arange(10, 15)
+    x4 = np.arange(15, 20)
+
+    ch1 = _list[:5]
+    ch2 = _list[5:10]
+    ch3 = _list[10:15]
+    ch4 = _list[15:20]
+
+    ch1_g = _list2[:5]
+    ch2_g = _list2[5:10]
+    ch3_g = _list2[10:15]
+    ch4_g = _list2[15:20]
+
+    plt.plot(x1, ch1, linestyle='None', linewidth=4, color='b', marker='D', markersize=10)
+    plt.plot(x2, ch2, linestyle='None', linewidth=4, color='g', marker='D', markersize=10)
+    plt.plot(x3, ch3, linestyle='None', linewidth=4, color='k', marker='D', markersize=10)
+    plt.plot(x4, ch4, linestyle='None', linewidth=4, color='y', marker='D', markersize=10)
+
+    plt.plot(x1, ch1_g, linestyle='None', linewidth=4, color='b', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x2, ch2_g, linestyle='None', linewidth=4, color='g', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x3, ch3_g, linestyle='None', linewidth=4, color='k', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x4, ch4_g, linestyle='None', linewidth=4, color='y', marker='D', markersize=10, markerfacecolor='None', )
+    # plt.yticks(np.arange(20, 35.3, 1.5))
+    wv = ['1537.2', '1535.2', '1533.2', '1531.2', '1529.6']
+    wv.reverse()
+    plt.xticks([0, 5.0, 10.0, 15.0, 20.0], wv)
+    plt.xlabel("Wavelength index [nm]")
+    plt.ylabel("OSNR (solid) / gOSNR (open) [dB]")
+    plt.grid(True)
+    # plt.savefig('../fig1.png', format='png')
     plt.show()
 
 
-def plot_2(_list):
+def plot_2_10(_list):
     wv = ['1545.2', '1541.2', '1537.2', '1533.2', '1529.6']
     wv.reverse()
     plt.xticks([0, 10, 20, 30, 40], wv)
@@ -89,11 +125,39 @@ def plot_2(_list):
     plt.ylabel("gOSNR (dB)")
     # plt.yticks(np.arange(9.5, 23.5, 1.5))
     plt.grid(True)
-    # plt.savefig('fig2.png', format='png')
-    plt.show()
+    plt.savefig('../fig2.png', format='png')
+    # plt.show()
 
 
-def plot_3(_list):
+def plot_2(_list):
+    wv = ['1537.2', '1535.2', '1533.2', '1531.2', '1529.6']
+    wv.reverse()
+    plt.xticks([0, 5, 10, 15, 20], wv)
+    ch1 = _list[:5]
+    x1 = np.arange(0, 5)
+    ch2 = _list[5:10]
+    x2 = np.arange(5, 10)
+    ch3 = _list[10:15]
+    x3 = np.arange(10, 15)
+    ch4 = _list[15:20]
+    x4 = np.arange(15, 20)
+
+    plt.plot(x1, ch1, linestyle='None', linewidth=4, color='b', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x2, ch2, linestyle='None', linewidth=4, color='g', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x3, ch3, linestyle='None', linewidth=4, color='k', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x4, ch4, linestyle='None', linewidth=4, color='y', marker='D', markersize=10, markerfacecolor='None', )
+    plt.xlabel("Wavelength index [nm]")
+    plt.ylabel("gOSNR (dB)")
+    wv = ['1537.2', '1535.2', '1533.2', '1531.2', '1529.6']
+    wv.reverse()
+    plt.xticks([0, 5, 10, 15, 20], wv)
+    plt.yticks(np.arange(18.5, 28, 1.5))
+    plt.grid(True)
+    plt.savefig('../fig2.png', format='png')
+    # plt.show()
+
+
+def plot_3_10(_list):
     wv = ['1553.2', '1549.2', '1545.2', '1541.2', '1537.2', '1533.2', '1529.6']
     wv.reverse()
     plt.xticks([0, 10, 20, 30, 40, 50, 60], wv)
@@ -108,9 +172,33 @@ def plot_3(_list):
     plt.plot(x2, ch2, linestyle='None', linewidth=4, color='g', marker='D', markersize=10, markerfacecolor='None', )
     plt.plot(x5, ch5, linestyle='None', linewidth=4, color='purple', marker='D', markersize=10, markerfacecolor='None', )
 
-    plt.yticks(np.arange(21.6, 22.6, 0.2))
+    plt.yticks(np.arange(20.5, 21.6, 0.2))
     plt.xlabel("Wavelength index [nm]")
     plt.ylabel("gOSNR (dB)")
     plt.grid(True)
-    # plt.savefig('fig3.png', format='png')
-    plt.show()
+    plt.savefig('fig3.png', format='png')
+    # plt.show()
+
+
+def plot_3(_list):
+    ch5 = _list[:5]
+    x5 = np.arange(20, 25)
+    ch1 = _list[5:10]
+    x1 = np.arange(0, 5)
+    ch2 = _list[10:15]
+    x2 = np.arange(5, 10)
+
+    plt.plot(x1, ch1, linestyle='None', linewidth=4, color='b', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x2, ch2, linestyle='None', linewidth=4, color='g', marker='D', markersize=10, markerfacecolor='None', )
+    plt.plot(x5, ch5, linestyle='None', linewidth=4, color='purple', marker='D', markersize=10, markerfacecolor='None', )
+
+    plt.yticks(np.arange(23.2, 24.2, 0.2))
+    wv = ['1539.2', '1537.2', '1535.2', '1533.2', '1531.2', '1529.6']
+    wv.reverse()
+    plt.xticks([0, 5, 10, 15, 20, 25], wv)
+    plt.xlabel("Wavelength index [nm]")
+    plt.ylabel("gOSNR (dB)")
+    plt.grid(True)
+    plt.savefig('../fig3.png', format='png')
+    # plt.show()
+

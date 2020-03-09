@@ -104,7 +104,7 @@ def singleLinkPhyTest():
     tx1.print_signals()
     r1.print_signals()
     r2.print_signals()
-    r2.print_signals()
+    # r2.print_signals()
     print( '*** Link power:' )
     link = net.links[1]
     dumpLinkPower(link)
@@ -117,7 +117,7 @@ def singleLinkPhyTest():
 
 
     print( '*** Changing gain for amp3' )
-    net.mock_amp_gain_adjust( 'amp3', 1.0, 'r1', 'r2' )
+    net.mock_amp_gain_adjust( 'amp1', 1.0, 'r1', 'r2' )
 
 
     print( '*** Updated Link power:' )

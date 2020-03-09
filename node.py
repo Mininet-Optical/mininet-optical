@@ -612,16 +612,16 @@ class Roadm(Node):
             if optical_signal in self.port_to_optical_signal_ase_noise_in[in_port]:
                 # Attenuate ASE noise and update it on output port
                 ase_noise = self.port_to_optical_signal_ase_noise_in[in_port][optical_signal]
-                ase_noise /= node_attenuation[optical_signal] / voa_attenuation
+                ase = ase_noise / node_attenuation[optical_signal] / voa_attenuation
                 self.port_to_optical_signal_ase_noise_out.setdefault(out_port, {})
-                self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] = ase_noise
+                self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] = ase
 
             # if accumulated_NLI_noise:
             if optical_signal in self.port_to_optical_signal_nli_noise_in[in_port]:
                 nli_noise = self.port_to_optical_signal_nli_noise_in[in_port][optical_signal]
-                nli_noise /= node_attenuation[optical_signal] / voa_attenuation
+                nli = nli_noise / node_attenuation[optical_signal] / voa_attenuation
                 self.port_to_optical_signal_nli_noise_out.setdefault(out_port, {})
-                self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] = nli_noise
+                self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] = nli
 
             if out_port not in out_ports_to_links.keys():
                 # keep track of the ports where signals will passed through
@@ -687,7 +687,7 @@ class Roadm(Node):
                         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
-            pass_through_signals = self.port_to_optical_signal_power_out[out_port]
+            pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
             ase = accumulated_ASE_noise.copy()
             nli = accumulated_NLI_noise.copy()
             link.reset_propagation_struct()
@@ -960,10 +960,6 @@ class Monitor(Node):
         """
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
-        # print("outputpower and ase noise")
-        # print(output_power)
-        # print(ase_noise)
-        # print("*************************")
         osnr_linear = output_power / ase_noise
         osnr = abs_to_db(osnr_linear)
         return osnr
