@@ -21,7 +21,7 @@ from mininet.node import RemoteController
 from mininet.util import natural
 
 from collections import namedtuple
-
+from itertools import chain
 
 # Routers start listening at 6654
 ListenPortBase = 6653
@@ -114,7 +114,7 @@ class OpticalCLI( CLI ):
         g.add_edges_from([(link.intf1.node, link.intf2.node) for link in net.links
                           if (isinstance(link.intf1.node, ROADM) and
                               isinstance(link.intf2.node, ROADM))])
-        nx.draw_shell( g, with_labels=True, font_weight='bold' )
+        nx.draw_spring( g, with_labels=True, font_weight='bold' )
         if line:
             fname = 'plot.png'
             print( 'Saving to', fname, '...' )
@@ -332,13 +332,13 @@ class DemoTopo( LinearRoadmTopo ):
        This network consists of a ring of six POPs
        with two cross-connections.
 
-             POP2 -- POP3
+             POP2 -- POP4
             /  |      |  \
            /   |      |   \
-       POP1    |      |    POP4
+       POP1    |      |    POP6
            \   |      |   /
             \  |      |  /
-             POP6 -- POP5
+             POP3 -- POP5
 
        All of the links are bidirectional.
 
@@ -350,7 +350,7 @@ class DemoTopo( LinearRoadmTopo ):
     """
 
     # Link helper function
-    def addPopLink( self, src, dst, index ):
+    def addPopLink( self, src, dst ):
         "Construct a link of four 50km fiber spans"
         boost = ( 'boost', dict(target_gain=9.0*dB) )
         spans = self.spans( spanLength=50*km, spanCount=4 )
@@ -366,17 +366,26 @@ class DemoTopo( LinearRoadmTopo ):
     def build( self, n=6, txCount=5 ):
         "Add POPs and connect them in a ring with some cross-connects"
 
-        # Add POPs
-        roadms = [ self.buildPop( p, txCount=txCount ) for p in range( 1, n+1 ) ]
+        # Build POPs
+        roadms = {p: self.buildPop( p, txCount=txCount ) for p in range( 1, n+1 ) }
+        print(roadms)
 
-        # ROADM ring links
-        for i in range( n ):
-            src, dst = roadms[i], roadms[i-1]
-            self.addPopLink( src, dst, index=i )
+        # ROADM ring
+        odd = list( range( 1, n+1, 2 ) )
+        even = list( range( 2, n+1, 2) )
+        ring = odd + even[::-1]
 
-        for i in range( 1, int(n/2) ):
-            src, dst = roadms[i], roadms[-i]
-            self.addPopLink( src, dst, index=i )
+        # print(ring)
+        # Ring links
+        for i in range( len( ring ) ):
+            src, dst = roadms[ring[i]], roadms[ring[i-1]]
+            self.addPopLink( src, dst )
+
+        # Cross links
+        for i in even[:-1]:
+            src, dst = roadms[i], roadms[i+1]
+            # print(src,dst)
+            self.addPopLink( src, dst )
 
 
 if __name__ == '__main__':
@@ -384,7 +393,7 @@ if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel( 'info' )
-    net = Mininet( topo=DemoTopo( txCount=10 ), autoSetMacs=True,
+    net = Mininet( topo=DemoTopo( txCount=15 ), autoSetMacs=True,
                    controller=RemoteController )
     disableIPv6( net )
     restServer = RestServer( net )
