@@ -403,14 +403,15 @@ class Link(object):
             self.boost_amp.output_power = {}
             self.boost_amp.ase_noise = {}
             self.boost_amp.nonlinear_noise = {}
-            # self.boost_amp.system_gain = self.boost_amp.target_gain
+            print("Resetting boost gain to:", self.boost_amp.target_gain, self.boost_amp.name)
+            self.boost_amp.system_gain = self.boost_amp.target_gain
         for span, amplifier in self.spans:
             if amplifier:
                 amplifier.input_power = {}
                 amplifier.output_power = {}
                 amplifier.ase_noise = {}
                 amplifier.nonlinear_noise = {}
-                # amplifier.system_gain = amplifier.target_gain
+                amplifier.system_gain = amplifier.target_gain
 
 
 class Span(object):
