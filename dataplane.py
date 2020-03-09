@@ -183,6 +183,14 @@ class SwitchBase( OVSSwitch ):
 
         self.model = self.modelClass( name, **phyParams )
 
+    def cmd( self, *args, **kwargs ):
+        # simplified version that calls pexec
+        cmd = ' '.join( str(arg) for arg in args )
+        out, err, code = self.pexec( cmd, shell=True )
+        if code != 0 and not cmd.startswith( 'ip link del' ):
+            raise Exception( '%s returned %d' % ( args, code ) )
+        return out
+
     def dpctl( self, *args ):
         "Call dpctl and check for error"
         result = OVSSwitch.dpctl( self, *args )
