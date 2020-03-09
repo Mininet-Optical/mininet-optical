@@ -26,8 +26,8 @@ Supported ONOS CLI operations:
 8. SHOW LINK OSNR:   
        `onos> oe-config osnr
       
-9. CONFIGURE A DEMO NETWORK TOPOLOGY:  
-       `onos> oe-config demo-topo
+9. SET AMP r1-r2-boost GAIN 0:  
+       `onos> oe-config set-gain r1-r2-amp 0
        
 10. ADD DEMO NETWORK WITH MESH NETWORK FLOWS (EACH FLOW COMES WITH A RANDOM CHANNEL, NOT DULICATED):  
        `onos> oe-config demo-mesh-flows
@@ -40,6 +40,18 @@ Supported ONOS CLI operations:
 
 13. SHOW ALL PORTS OF A ROADM r1:  
        `onos> oe-config show-ports r1
+
+14. CONFIGURE A DEMO NETWORK TOPOLOGY:  
+       `onos> oe-config demo-topo
+ 
+15. SET DEMO FLOWS:  
+       `onos> oe-config demo-flows
+       
+16. CLEAN DEMO FLOWS:  
+       `onos> oe-config clean-flows
+
+      
+
 
 
 
