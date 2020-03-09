@@ -132,7 +132,7 @@ public class AppCommand extends AbstractShellCommand {
 
 
     @Argument(index = 0, name = "device-type",
-            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/set-gain/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
+            description = "configure device type: terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-flows/demo-mesh-flows/clean-flows/reset/add-flow/set-gain/show-ports/show-nodes/show-links/show-roadm-links/show-terminal-links/show-router-links",
             required = true, multiValued = false)
     String device_type = null;
 
@@ -188,6 +188,15 @@ public class AppCommand extends AbstractShellCommand {
       }else if (device_type != null && device_type.equals("linear-topo")) {
           linear_topo ();
           print("Linear Topology is %s", "Configured!");
+      }else if (device_type != null && device_type.equals("clean-flows")) {
+          clean_flow ();
+          print("Demo Network Flows are %s", "Cleaned!");
+      }else if (device_type != null && device_type.equals("demo-flows")) {
+          demo_flow ();
+          print("Demo Network Flows are %s", "Generated!");
+      }else if (device_type != null && device_type.equals("demo-link-recovery")) {
+          demo_link_recovery ();
+          print("Demo Failure Links are %s", "Recovered!");
       }else if (device_type != null && device_type.equals("demo-mesh-flows")) {
           demo_mesh_flow ();
           print("Mesh Network Flows are %s", "Generated!");
@@ -207,11 +216,12 @@ public class AppCommand extends AbstractShellCommand {
           if (device_type.equals("roadm")){
             config_roadm(node_name,in_port,out_port,channel);
             print("ROADM configuration is %s", "done!");
-          }else if (device_type.equals("ternimal") && power != null)
+          }else if (device_type.equals("terminal") && power != null){
             config_terminal(node_name,in_port,out_port,channel,power);
             print("Terminal configuration is %s", "done!");
+          }
       }else if (device_type != null){
-          print("Wrong arguments! Use one of the listed commands: %s", "terminal/roadm/monitor/osnr/demo-topo/linear-topo/demo-mesh-flows/reset/add-flow/set-gain/show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
+          print("Wrong arguments! Use one of the listed commands: %s", "\n"+"terminal/roadm/monitor/osnr/" +"\n"+"demo-topo/linear-topo/demo-flows/demo-mesh-flows/clean-flows/"+"\n"+"reset/add-flow/set-gain/"+"\n"+"show-nodes/show-ports/show-links/show-roadm-links/show-terminal-links/show-router-links");
       }
       return;
     }
@@ -389,7 +399,7 @@ public class AppCommand extends AbstractShellCommand {
              String dst = destination;
              System.out.println(src + "--" + dst + ":" + chnnl + "/"+ power);
              path_p = dijkstra.dijkstraPath(conn, src, dst);
-
+             System.out.println("Light-path: " + path_p);
 	     for (int i = 2; i< path_p.size();i+=4){
 	       if (path_p.get(i).startsWith("t")){
 	         if(i!= path_p.size()-6)
@@ -406,6 +416,214 @@ public class AppCommand extends AbstractShellCommand {
 	     }
 
     }
+
+
+    //clean all flows
+    public static void clean_flow() {
+   
+             reset_roadm ("r1");
+             reset_roadm ("r2");
+             reset_roadm ("r3");
+             reset_roadm ("r4");
+             reset_roadm ("r5");
+             reset_roadm ("r6");
+
+
+    }
+
+
+    //add demi flows from a router to router through optical layer
+    public static void demo_link_recovery() {
+
+             int count = 0;
+
+             while (count!=5) {
+             int port11 = 1;
+             int port12 = 16;
+             int port21 = 1;
+             int port22 = 16;
+             int chnnl = 6;
+             //t1-r1-r2-r4-r6-t6 with ch1-ch5
+             //config_terminal("t1", String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             //config_terminal("t6", String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             del_roadm("r1",String.valueOf(port11+count),"16",String.valueOf(chnnl+count));
+             del_roadm("r2","16","17",String.valueOf(chnnl+count));
+             del_roadm("r4","17","16",String.valueOf(chnnl+count));
+             del_roadm("r6","17",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+
+             while (count!=5) {
+             int port11 = 11;
+             int port12 = 26;
+             int port21 = 11;
+             int port22 = 26;
+             int chnnl = 1;
+             //t1-r1-r2-r4-r5-t5 with ch21-ch25
+             //config_terminal("t1",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             //config_terminal("t5",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             del_roadm("r1",String.valueOf(port11+count),"16",String.valueOf(chnnl+count));
+             del_roadm("r2","16","17",String.valueOf(chnnl+count));
+             del_roadm("r4","17","18",String.valueOf(chnnl+count));
+             del_roadm("r5","18",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 6;
+             int port12 = 21;
+             int port21 = 6;
+             int port22 = 21;
+             int chnnl = 6;
+             //t1-r1-r3-r5-r6-t6 with ch6-ch10
+             config_terminal("t1",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t6",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r1",String.valueOf(port11+count),"17",String.valueOf(chnnl+count));
+             config_roadm("r3","16","17",String.valueOf(chnnl+count));
+             config_roadm("r5","16","17",String.valueOf(chnnl+count));
+             config_roadm("r6","16",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+
+             while (count!=5) {
+             int port11 = 11;
+             int port12 = 26;
+             int port21 = 11;
+             int port22 = 26;
+             int chnnl = 1;
+             //t1-r1-r3-r5-r6-t6 with ch6-ch10
+             config_terminal("t1",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t5",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r1",String.valueOf(port11+count),"17",String.valueOf(chnnl+count));
+             config_roadm("r3","16","17",String.valueOf(chnnl+count));
+             config_roadm("r5","16",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+    }
+
+
+    //add demi flows from a router to router through optical layer
+    public static void demo_flow() {
+
+             String url = "http://localhost:8080" + LINKS;
+             JsonNode links = conMethod(RESTCon (url), GET, "");
+             List<String[]> link_map = new ArrayList<String[]>();
+             traverse(links, link_map);
+             String[][] conn = new String[link_map.size()-1][4];
+             for(int i =0; i < link_map.size()-1;i++)
+                conn[i] = link_map.get(i);
+
+             int count = 0;
+
+             while (count!=5) {
+             int port11 = 1;
+             int port12 = 16;
+             int port21 = 1;
+             int port22 = 16;
+             int chnnl = 6;
+             //t1-r1-r2-r4-r6-t6 with ch1-ch5
+             config_terminal("t1", String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t6", String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r1",String.valueOf(port11+count),"16",String.valueOf(chnnl+count));
+             config_roadm("r2","16","17",String.valueOf(chnnl+count));
+             config_roadm("r4","17","16",String.valueOf(chnnl+count));
+             config_roadm("r6","17",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 6;
+             int port12 = 21;
+             int port21 = 6;
+             int port22 = 21;
+             int chnnl = 21;
+             //t1-r1-r3-r5-r6-t6 with ch6-ch10
+             config_terminal("t1",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t6",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r1",String.valueOf(port11+count),"17",String.valueOf(chnnl+count));
+             config_roadm("r3","16","17",String.valueOf(chnnl+count));
+             config_roadm("r5","16","17",String.valueOf(chnnl+count));
+             config_roadm("r6","16",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 11;
+             int port12 = 26;
+             int port21 = 11;
+             int port22 = 26;
+             int chnnl = 1;
+             //t1-r1-r2-r4-r5-t5 with ch21-ch25
+             config_terminal("t1",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t5",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r1",String.valueOf(port11+count),"16",String.valueOf(chnnl+count));
+             config_roadm("r2","16","17",String.valueOf(chnnl+count));
+             config_roadm("r4","17","18",String.valueOf(chnnl+count));
+             config_roadm("r5","18",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 1;
+             int port12 = 16;
+             int port21 = 1;
+             int port22 = 16;
+             int chnnl = 16;
+             //t3-r3-r2-r4-t4 with ch11-ch15
+             config_terminal("t3",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t4",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r3",String.valueOf(port11+count),"18",String.valueOf(chnnl+count));
+             config_roadm("r2","18","17",String.valueOf(chnnl+count));
+             config_roadm("r4","17",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 6;
+             int port12 = 21;
+             int port21 = 1;
+             int port22 = 16;
+             int chnnl = 26;
+             //t4-r4-r5-t5 with ch16-ch20
+             config_terminal("t4",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t5",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r4",String.valueOf(port11+count),"18",String.valueOf(chnnl+count));
+             config_roadm("r5","18",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+             while (count!=5) {
+             int port11 = 1;
+             int port12 = 16;
+             int port21 = 11;
+             int port22 = 26;
+             int chnnl = 21;
+             //t2-r2-r4-r6-t6 with ch16-ch20
+             config_terminal("t2",String.valueOf(port11+count), String.valueOf(port12+count),String.valueOf(chnnl+count),"0.0");
+             config_terminal("t6",String.valueOf(port21+count), String.valueOf(port22+count),String.valueOf(chnnl+count),"0.0");
+             config_roadm("r2",String.valueOf(port11+count),"17",String.valueOf(chnnl+count));
+             config_roadm("r4","17","16",String.valueOf(chnnl+count));
+             config_roadm("r6","17",String.valueOf(port21+count),String.valueOf(chnnl+count));
+             count++;
+             }
+             count = 0;
+
+    }
+
+
+
 
     //add mesh network flows from a router to router through optical layer
     public static void demo_mesh_flow() {
@@ -503,13 +721,13 @@ public class AppCommand extends AbstractShellCommand {
 
 
     //generate a DEMO 6-ROADM, 6-router network
-    //         POP2 -- POP3
+    //         POP2 -- POP4
     //        /  |      |  \
     //       /   |      |   \
-    //   POP1    |      |    POP4
+    //   POP1    |      |    POP6
     //       \   |      |   /
     //        \  |      |  /
-    //         POP6 -- POP5
+    //         POP3 -- POP5
     private static void demo_topo (){
 
       //post topo to ONOS
@@ -526,13 +744,13 @@ public class AppCommand extends AbstractShellCommand {
       conMethod(RESTCon(ONOS_REST + LINKS, USR, PSWD), DELETE, del_restproperties, ""); 
       conMethod(RESTCon(ONOS_REST, USR, PSWD), POST, restproperties, DEMO_LINKS); 
       
-      System.out.println("             POP2 -- POP3");
+      System.out.println("             POP2 -- POP4");
       System.out.println("            /  |      |  \\ ");
       System.out.println("           /   |      |   \\ ");
-      System.out.println("       POP1    |      |    POP4");
+      System.out.println("       POP1    |      |    POP6");
       System.out.println("           \\   |      |   /");
       System.out.println("            \\  |      |  /");
-      System.out.println("             POP6 -- POP5");
+      System.out.println("             POP3 -- POP5");
     }
 
     // configure roadm link
@@ -554,6 +772,28 @@ public class AppCommand extends AbstractShellCommand {
       t_info.clear();
       conMethod(RESTCon (url), GET, "");
     }
+
+
+    // del roadm link
+    private static void del_roadm (String name, String port1, String port2, String channels) {
+
+      Map<String, String> node_info = new HashMap();
+      node_info.put("node", name);node_info.put("port1", port1);node_info.put("port2", port2);node_info.put("channels", channels);
+      String url = urlFormat("http://localhost:8080/connect", node_info);
+      node_info.clear();
+      conMethod(RESTCon (url+"&action=remove"), GET, "");
+    }
+
+    // del terminal link
+    private static void del_terminal (String name, String ethPort, String wdmPort, String channel, String power) {
+
+      Map<String, String> t_info = new HashMap();
+      t_info.put("node", name);t_info.put("ethPort", ethPort);t_info.put("wdmPort", wdmPort);t_info.put("channel", channel);t_info.put("power", power);
+      String url = urlFormat("http://localhost:8080/connect", t_info);
+      t_info.clear();
+      conMethod(RESTCon (url+"&action=remove"), GET, "");
+    }
+
 
     //monitors
     private void monitor () {
@@ -591,7 +831,7 @@ public class AppCommand extends AbstractShellCommand {
     }
 
     //reset a roadm links
-    private void reset_roadm (String Node) {
+    private static void reset_roadm (String Node) {
 
       String url = "http://localhost:8080" + "/reset?node=" + Node;
       conMethod(RESTCon (url), GET, "");
