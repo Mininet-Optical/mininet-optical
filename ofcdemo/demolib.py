@@ -148,6 +148,13 @@ class OpticalCLI( CLI ):
                            'output',
                            self.formatSignals(amp.output_power) )
 
+    def do_arp( self, _line ):
+        "Send gratuitous arps from every host"
+        print( 'Sending gratuitous ARPs...' )
+        for host in self.mn.hosts:
+            host.cmdPrint( 'arping -bf -c1 -U -I',
+                           host.defaultIntf().name, host.IP() )
+
     # FIXME: This is ugly and also doesn't seem to work.
     # The amplifier gain is updated but the signals
     # don't seem to be updating properly.
