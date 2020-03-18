@@ -17,7 +17,7 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-figure(num=None, figsize=(7, 5), dpi=256)
+# figure(num=None, figsize=(7, 5), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -31,10 +31,10 @@ gosnr_mean_rmse_81 = []
 osnr_mean_rmse_81 = []
 
 file_id = 0
-while file_id <= 95:
+while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'no-m/'
+    mon = 'm14/'
     directory = '../opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
@@ -119,7 +119,7 @@ while file_id <= 95:
     del qot_gosnrs
     del gosnr_27_rmse
     del osnr_27_rmse
-    # del gosnr_54_rmse
+    del gosnr_54_rmse
     del gosnr_81_rmse
     del osnr_81_rmse
 
@@ -136,5 +136,5 @@ plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markerfacecolor='None
 plt.plot(gosnr_mean_rmse_81, linestyle='None', marker='D', markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../generic_plot.eps', format='eps')
-# plt.show()
+# plt.savefig('../generic_plot.eps', format='eps')
+plt.show()

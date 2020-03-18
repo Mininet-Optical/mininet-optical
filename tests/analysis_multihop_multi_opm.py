@@ -32,7 +32,7 @@ file_id = 1
 while file_id <= 50:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    directory = '../opm-sim/' + opm
+    directory = '../opm-sim-no-m/' + opm
     print("*** Running for file: %s" % directory)
 
     osnr_load_keys = ['osnr_load_27', 'osnr_load_54', 'osnr_load_81']
@@ -56,9 +56,9 @@ while file_id <= 50:
                     else:
                         gosnrs[k].append(element[k])
 
-    qot_directory = '../opm-qot/' + opm
-    qot_osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
-    qot_gosnrs = {'gosnr_load_27': [], 'gosnr_load_54': [], 'gosnr_load_81': []}
+    qot_directory = '../opm-sim-qot-no-m/' + opm
+    qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
+    qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
     for filename in os.listdir(qot_directory):
         if filename.endswith(".json"):
@@ -78,7 +78,7 @@ while file_id <= 50:
                             qot_gosnrs[k].append(e)
 
     gosnrs_27 = gosnrs['gosnr_load_27']
-    qot_gosnrs_27 = qot_gosnrs['gosnr_load_27']
+    qot_gosnrs_27 = qot_gosnrs['gosnr_load_qot_27']
 
     gosnr_27_rmse = []
     for _list in gosnrs_27:
@@ -86,7 +86,7 @@ while file_id <= 50:
     gosnr_mean_rmse_27.append(np.mean(gosnr_27_rmse))
 
     gosnrs_54 = gosnrs['gosnr_load_54']
-    qot_gosnrs_54 = qot_gosnrs['gosnr_load_54']
+    qot_gosnrs_54 = qot_gosnrs['gosnr_load_qot_54']
 
     gosnr_54_rmse = []
     for _list in gosnrs_54:
@@ -94,7 +94,7 @@ while file_id <= 50:
     gosnr_mean_rmse_54.append(np.mean(gosnr_54_rmse))
 
     gosnrs_81 = gosnrs['gosnr_load_81']
-    qot_gosnrs_81 = qot_gosnrs['gosnr_load_81']
+    qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
 
     gosnr_81_rmse = []
     for _list in gosnrs_81:

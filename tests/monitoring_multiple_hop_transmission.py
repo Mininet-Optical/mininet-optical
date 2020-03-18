@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 1:
+while test_run <= 10:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -78,7 +78,7 @@ while test_run <= 1:
         resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
         net.transmit(lt_1, roadm_1, resources=resources)
 
-        for opm_id in range(1, 71):
+        for opm_id in range(1, 99):
             json_struct = {'tests': []}
             json_struct_qot = {'tests_qot': []}
             opm_name = 'opm_' + str(opm_id)
@@ -99,10 +99,10 @@ while test_run <= 1:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
-            # test = '../'
-            dir_ = test + 'opm-sim/' + opm_name
-            dir_2 = test + 'opm-sim-qot/' + opm_name
+            # test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
+            test = '../'
+            dir_ = test + 'opm-sim-m14/' + opm_name
+            dir_2 = test + 'opm-sim-qot-m14/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)
