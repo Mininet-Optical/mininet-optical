@@ -22,7 +22,7 @@ del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 19
+plt.rcParams["font.size"] = 24
 
 gosnr_mean_rmse_27 = []
 osnr_mean_rmse_27 = []
@@ -143,11 +143,11 @@ plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
 plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
 ms = 10
-plt.plot(gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
          markerfacecolor='None', color='b', label='30% ch-load')
-plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
          markerfacecolor='None', color='y', label='60% ch-load')
-plt.plot(gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
