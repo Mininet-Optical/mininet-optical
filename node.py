@@ -746,7 +746,7 @@ class Amplifier(Node):
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
         self.tmp_qot_id = tmp_qot_id
-        self.monitor_flag = True
+        self.monitor_flag = False
         self.monitor_unit = 14.0
 
     def power_excursions_flags_off(self):

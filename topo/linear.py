@@ -24,7 +24,7 @@ class LinearTopology:
         # Create ROADMs
         wss_dict = {1: (3, None), 2: (3, None)}
         roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict,
-                                voa_function=None, voa_target_out_power=None) for i in range(non)]
+                                voa_function='flatten', voa_target_out_power=op) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs

@@ -35,7 +35,7 @@ file_id = 0
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'm14/'
+    mon = 'no-m/'
     directory = '../opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
@@ -142,7 +142,7 @@ plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
 # plt.title("OSNR QoT-E without corrections")
 plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
-ms = 10
+ms = 12
 plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
          markerfacecolor='None', color='b', label='30% ch-load')
 plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,

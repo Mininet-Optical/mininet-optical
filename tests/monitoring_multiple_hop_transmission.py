@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 5:
+while test_run <= 3:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -101,8 +101,8 @@ while test_run <= 5:
 
             # test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
             test = '../'
-            dir_ = test + 'opm-sim-m14/' + opm_name
-            dir_2 = test + 'opm-sim-qot-m14/' + opm_name
+            dir_ = test + 'opm-sim-no-m/' + opm_name
+            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)

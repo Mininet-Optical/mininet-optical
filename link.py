@@ -72,7 +72,7 @@ class Link(object):
         self.spans = spans or []
 
         self.traffic = []
-        self.monitor_flag = True
+        self.monitor_flag = False
         self.monitor_unit = 14.0
 
     def add_span(self, span, amplifier):
