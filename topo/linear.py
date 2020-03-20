@@ -24,7 +24,7 @@ class LinearTopology:
         # Create ROADMs
         wss_dict = {1: (3, None), 2: (3, None)}
         roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict,
-                                voa_function='flatten', voa_target_out_power=op) for i in range(non)]
+                                voa_function=None, voa_target_out_power=None) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
@@ -72,10 +72,10 @@ class LinearTopology:
             for sp in range(span_no):
                 # Iterate through number of spans in link
                 # span object
-                span = Span('SMF', 80)
+                span = Span('SMF', 100)
                 in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
 
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6, tmp_qot_id=tmp_qot_id)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=22.0, tmp_qot_id=tmp_qot_id)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
                 opm_l = opm_lab + us + str(opm_no + 1)  # label OPM

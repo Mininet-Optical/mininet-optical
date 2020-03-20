@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 10:
+while test_run <= 5:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding

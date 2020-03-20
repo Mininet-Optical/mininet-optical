@@ -17,16 +17,17 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(7, 5), dpi=256)
+# figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 20
+plt.rcParams["font.size"] = 19
 
 gosnr_mean_rmse_27 = []
 osnr_mean_rmse_27 = []
 gosnr_mean_rmse_54 = []
+osnr_mean_rmse_54 = []
 gosnr_mean_rmse_81 = []
 osnr_mean_rmse_81 = []
 
@@ -97,7 +98,15 @@ while file_id <= 97:
     gosnr_54_rmse = []
     for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
         gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_54.append(np.mean(gosnr_54_rmse))
+    gosnr_mean_rmse_54.append(np.median(gosnr_54_rmse))
+
+    osnrs_54 = osnrs['osnr_load_54']
+    qot_osnrs_54 = qot_osnrs['osnr_load_qot_54']
+
+    osnr_54_rmse = []
+    for _list1, _list2 in zip(osnrs_54, qot_osnrs_54):
+        osnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    osnr_mean_rmse_54.append(np.median(osnr_54_rmse))
 
     gosnrs_81 = gosnrs['gosnr_load_81']
     qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
@@ -126,15 +135,21 @@ while file_id <= 97:
 
 # plt.plot(osnr_mean_rmse_27, color='b', marker='s', markerfacecolor='None')
 # plt.plot(osnr_mean_rmse_81, color='r', marker='D', markerfacecolor='None')
-plt.xticks(np.arange(0, 100, 10))
-plt.yticks(np.arange(0, 7, 0.5))
+x = range(0, 98)
+xt = [1, 14, 28, 42, 56, 70, 84, 98]
+plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
+# plt.yticks(np.arange(0, 6.5, 0.5))
 # plt.title("OSNR QoT-E without corrections")
-plt.ylabel("Mean RMSE (dB) of controller QoT-E model")
+plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
-plt.plot(gosnr_mean_rmse_27, linestyle='None', marker='s', markerfacecolor='None', color='b', label='30% ch-load')
-plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markerfacecolor='None', color='y', label='60% ch-load')
-plt.plot(gosnr_mean_rmse_81, linestyle='None', marker='D', markerfacecolor='None', color='r', label='90% ch-load')
+ms = 10
+plt.plot(gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+         markerfacecolor='None', color='b', label='30% ch-load')
+plt.plot(gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+         markerfacecolor='None', color='y', label='60% ch-load')
+plt.plot(gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+         markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-# plt.savefig('../generic_plot.eps', format='eps')
+# plt.savefig('../monitoring_no_m.eps', format='eps')
 plt.show()
