@@ -1,3 +1,4 @@
+from sklearn.metrics import mean_absolute_error
 from topo.linear import LinearTopology
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,7 @@ figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
-# plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
 
 
@@ -97,11 +98,11 @@ for p in power_levels:
         gosnr_c46.append(_list[45])
     plotting_gosnr.append(gosnr_c46)
 
-    an_osnr = []
+    an_osnr = [osnr_c46[0]]
     c = 0
     i = 0
-    for s in range(16):
-        if i is 4 or i is 8 or i is 12:
+    for s in range(15):
+        if i is 3 or i is 7 or i is 11:
             t_osnr = c
         else:
             t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
@@ -109,6 +110,9 @@ for p in power_levels:
         i += 1
         an_osnr.append(t_osnr)
     plotting_theo.append(an_osnr)
+
+    mae = mean_absolute_error(plotting_theo, plotting_osnr)
+    print(mae)
 
     print("*** Destroying objects")
     del net
@@ -160,5 +164,5 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-plt.savefig('../gosnr_vs_power.eps', format='eps')
-# plt.show()
+# plt.savefig('../gosnr_vs_power.eps', format='eps')
+plt.show()

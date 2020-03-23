@@ -17,12 +17,12 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(8, 6), dpi=256)
+figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 24
+plt.rcParams["font.size"] = 20
 
 gosnr_mean_rmse_27 = []
 osnr_mean_rmse_27 = []
@@ -151,5 +151,5 @@ plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-# plt.savefig('../monitoring_no_m.eps', format='eps')
-plt.show()
+plt.savefig('../monitoring_no_m.eps', format='eps')
+# plt.show()
