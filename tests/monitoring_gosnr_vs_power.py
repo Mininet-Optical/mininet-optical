@@ -31,8 +31,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-# power_levels = list(np.arange(-4, 2, 2))
-power_levels = [0]
+power_levels = list(np.arange(-4, 2, 2))
+# power_levels = [0]
 plotting_osnr = []
 plotting_gosnr = []
 plotting_theo = []

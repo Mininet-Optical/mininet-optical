@@ -181,10 +181,6 @@ class Link(object):
                 # return to avoid propagation of effects
                 return False
 
-            # Compensate for the ROADM attenuation
-            self.boost_amp.nli_compensation(accumulated_NLI_noise)
-            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
-
             # Compute for the power
             for optical_signal, in_power in self.optical_signal_power_in.items():
                 self.boost_amp.input_power[optical_signal] = in_power
@@ -197,6 +193,10 @@ class Link(object):
             # Update accumulated ASE noise structure with respect to
             # the boost amplifier generated noise
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
+
+            # Compensate for the ROADM attenuation
+            self.boost_amp.nli_compensation(accumulated_NLI_noise)
+            accumulated_NLI_noise.update(self.boost_amp.nonlinear_noise)
 
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
@@ -224,7 +224,7 @@ class Link(object):
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 accumulated_ASE_noise[optical_signal] /= span.attenuation()
-                accumulated_NLI_noise[optical_signal] /= span.attenuation()
+                # accumulated_NLI_noise[optical_signal] /= span.attenuation()
 
             # Compute amplifier compensation
             if amplifier:
@@ -243,9 +243,7 @@ class Link(object):
                     output_power = amplifier.output_amplified_power(optical_signal, in_power)
                     # Update status of signal power in link
                     self.optical_signal_power_out[optical_signal] = output_power
-
-                # Compute ASE noise
-                for optical_signal, in_power in signal_power_progress.items():
+                    # Compute ASE noise
                     amplifier.stage_amplified_spontaneous_emission_noise(optical_signal,
                                                                          accumulated_noise=accumulated_ASE_noise)
                 accumulated_ASE_noise.update(amplifier.ase_noise)

@@ -263,7 +263,8 @@ class LineTerminal(Node):
             signalInfoDict[signal]['osnr'] = osnr
             signalInfoDict[signal]['gosnr'] = gosnr
             if gosnr < 20:
-                print("*** %s.receiver.%s: Failure!" % (self.__class__.__name__, self.name))
+                print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
+                      (self.__class__.__name__, self.name, abs_to_db(gosnr)))
                 signalInfoDict[signal]['success'] = False
                 self.receiver_callback(in_port, signalInfoDict)
             else:
@@ -308,7 +309,6 @@ class LineTerminal(Node):
     def print_signals(self, names=(('output', 'tx ->'), ('input','rx <-'))):
         "Print TX and RX signals"
         super().print_signals( names )
-
 
 
 class Transceiver(object):
@@ -685,6 +685,14 @@ class Roadm(Node):
                     if len(accumulated_NLI_noise) > 0:
                         accumulated_NLI_noise[optical_signal] /= voa_att
                         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                # elif voa_att > 0:
+                #     self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
+                #     if len(accumulated_ASE_noise) > 0:
+                #         accumulated_ASE_noise[optical_signal] *= voa_att
+                #         self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                #     if len(accumulated_NLI_noise) > 0:
+                #         accumulated_NLI_noise[optical_signal] *= voa_att
+                #         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
             pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
@@ -712,10 +720,8 @@ class Roadm(Node):
 
 
 description_files_dir = 'description-files/'
-# description_files = {'linear': 'linear.txt'}
-
-
-description_files = {'wdg1': 'wdg2.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg2.txt'}
 # 'wdg2': 'wdg2.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
