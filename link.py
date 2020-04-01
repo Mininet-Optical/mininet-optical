@@ -224,7 +224,7 @@ class Link(object):
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 accumulated_ASE_noise[optical_signal] /= span.attenuation()
-                # accumulated_NLI_noise[optical_signal] /= span.attenuation()
+                accumulated_NLI_noise[optical_signal] /= span.attenuation()
 
             # Compute amplifier compensation
             if amplifier:
