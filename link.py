@@ -267,11 +267,11 @@ class Link(object):
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
                 accumulated_ASE_noise[optical_signal] /= span.attenuation()
-                # accumulated_NLI_noise[optical_signal] /= span.attenuation()
+                accumulated_NLI_noise[optical_signal] /= span.attenuation()
             for optical_signal, power in signal_power_progress_qot.items():
                 signal_power_progress_qot[optical_signal] = power / span.attenuation()
                 accumulated_ASE_noise_qot[optical_signal] /= span.attenuation()
-                # accumulated_NLI_noise_qot[optical_signal] /= span.attenuation()
+                accumulated_NLI_noise_qot[optical_signal] /= span.attenuation()
 
             # Compute amplifier compensation
             if amplifier:
@@ -314,15 +314,10 @@ class Link(object):
                 accumulated_ASE_noise_qot.update(amplifier.ase_noise_qot)
                 signal_power_progress_qot.update(self.optical_signal_power_out_qot.copy())
 
-                # amplifier.nli_compensation(accumulated_NLI_noise)
-                # amplifier.nli_compensation_qot(accumulated_NLI_noise_qot)
-                # accumulated_NLI_noise.update(amplifier.nonlinear_noise)
-                # accumulated_NLI_noise_qot.update(amplifier.nonlinear_noise_qot)
-                #
-                # self.nonlinear_interference_noise[span].update(accumulated_NLI_noise)
-                # self.accumulated_NLI_noise.update(accumulated_NLI_noise)
-                # self.nonlinear_interference_noise_qot[span].update(accumulated_NLI_noise_qot)
-                # self.accumulated_NLI_noise_qot.update(accumulated_NLI_noise_qot)
+                amplifier.nli_compensation(accumulated_NLI_noise)
+                amplifier.nli_compensation_qot(accumulated_NLI_noise_qot)
+                accumulated_NLI_noise.update(amplifier.nonlinear_noise)
+                accumulated_NLI_noise_qot.update(amplifier.nonlinear_noise_qot)
             else:
                 for optical_signal, in_power in signal_power_progress.items():
                     # Update status of signal power in link
