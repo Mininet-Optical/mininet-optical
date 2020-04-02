@@ -248,6 +248,10 @@ class Link(object):
                                                                          accumulated_noise=accumulated_ASE_noise)
                 accumulated_ASE_noise.update(amplifier.ase_noise)
                 signal_power_progress.update(self.optical_signal_power_out)
+
+                amplifier.nli_compensation(accumulated_NLI_noise)
+                accumulated_NLI_noise.update(amplifier.nonlinear_noise)
+
             else:
                 for optical_signal, in_power in signal_power_progress.items():
                     # Update status of signal power in link
