@@ -6,7 +6,7 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(7, 6), dpi=256)
+figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -132,7 +132,7 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
-# plt.yticks(np.arange(8, 46, 2))
+plt.yticks(np.arange(13, 45, 2))
 ticks = []
 s = 0
 for i in range(17):
@@ -164,5 +164,5 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-# plt.savefig('../gosnr_vs_power.eps', format='eps')
-plt.show()
+plt.savefig('../gosnr_vs_power.eps', format='eps')
+# plt.show()
