@@ -235,7 +235,7 @@ class LineTerminal(Node):
 class Transceiver(object):
     def __init__(self, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=0.032e12):
+                 bits_per_symbol=4.0, symbol_rate=0.025e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
