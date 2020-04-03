@@ -537,6 +537,7 @@ class Link(object):
         alpha = span.alpha
         beta2 = span.dispersion_coefficient
         gamma = span.non_linear_coefficient
+        length = span.length
         effective_length = span.effective_length
 
         for optical_signal in optical_signals:
@@ -553,17 +554,22 @@ class Link(object):
                 pwr_ch = signal_power_progress[ch]
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                g_nli += g_ch ** 2 * g_cut * self.psi_factor(optical_signal, ch, alpha, beta2)
+                g_nli += g_ch ** 2 * g_cut * self.psi_factor(optical_signal, ch, alpha,
+                                                             beta2, length, effective_length)
 
-            g_nli *= (16.0 / 27.0) * ((gamma * effective_length) ** 2) * 1000
+            g_nli *= (8.0 / 27.0) * ((gamma * effective_length) ** 2) * 1000
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
 
         return nonlinear_noise_struct
 
     @staticmethod
-    def psi_factor(carrier, interfering_carrier, alpha, beta2):
-        """Calculates eq. 123 from `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`
+    def psi_factor(carrier, interfering_carrier, alpha, beta2, length, effective_length):
+        """Calculates Eq. 7.32 from
+        Poggiolini, P., Jiang, Y., Carena, A. and Forghieri, F., 2016. Analytical modeling
+        of the impact of fiber non-linear propagation on coherent systems and networks.
+        Enabling Technologies for High Spectral-Efficiency Coherent Optical Communication
+        Networks.
         """
         symbol_rate_cut = carrier.symbol_rate
         bw_cut = symbol_rate_cut
@@ -573,13 +579,13 @@ class Link(object):
 
         if carrier.index == interfering_carrier.index:  # SCI, SPM
             psi = np.arcsinh((unit.pi ** 2) / 2.0 * abs(beta2) * (1 / 2 * alpha) * bw_cut ** 2) / \
-                  (2.0 * unit.pi * abs(beta2) * (1 / 2 * alpha))
+                  (4.0 * unit.pi * abs(beta2) * (1 / 2 * alpha))
         else:  # XCI, XPM
             delta_f = interfering_carrier.frequency - carrier.frequency
-            div = 4.0 * unit.pi * (1 / 2 * alpha) * abs(beta2)
+            div = 2.0 * unit.pi * (1 / 2 * alpha) * abs(beta2)
             psi = np.arcsinh(unit.pi ** 2 * (1 / 2 * alpha) * abs(beta2) * (delta_f + bw_ch / 2.0) * bw_cut) / div
             psi -= np.arcsinh(unit.pi ** 2 * (1 / 2 * alpha) * abs(beta2) * (delta_f - bw_ch / 2.0) * bw_cut) / div
-            psi *= 2.0  # delta factor in GN Model
+            psi -= (bw_cut / (delta_f - bw_ch)) * (5.0 / 3.0) * (effective_length / length)
         return psi
 
     # ADDITIONS FOR OFC DEMO USE-CASES
