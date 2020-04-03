@@ -519,8 +519,11 @@ class Link(object):
         return nonlinear_noise_struct
 
     def gn_model(self, optical_signals, signal_power_progress, span):
-        """ Computes the nonlinear interference power on a single carrier.
-        The method uses eq. 120 from arXiv:1209.0394.
+        """ Calculates Eq. 7.32 from
+        Poggiolini, P., Jiang, Y., Carena, A. and Forghieri, F., 2016. Analytical modeling
+        of the impact of fiber non-linear propagation on coherent systems and networks.
+        Enabling Technologies for High Spectral-Efficiency Coherent Optical Communication
+        Networks.
         :param optical_signals:
         :param signal_power_progress:
         :param span:
@@ -554,10 +557,10 @@ class Link(object):
                 pwr_ch = signal_power_progress[ch]
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
 
-                g_nli += g_ch ** 2 * g_cut * self.psi_factor(optical_signal, ch, alpha,
+                g_nli += (g_ch ** 2) * self.psi_factor(optical_signal, ch, alpha,
                                                              beta2, length, effective_length)
 
-            g_nli *= (8.0 / 27.0) * ((gamma * effective_length) ** 2) * 1000
+            g_nli *= (8.0 / (27.0 * unit.pi)) * g_cut * ((gamma ** 2) * effective_length) * 1000
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
 
@@ -565,12 +568,6 @@ class Link(object):
 
     @staticmethod
     def psi_factor(carrier, interfering_carrier, alpha, beta2, length, effective_length):
-        """Calculates Eq. 7.32 from
-        Poggiolini, P., Jiang, Y., Carena, A. and Forghieri, F., 2016. Analytical modeling
-        of the impact of fiber non-linear propagation on coherent systems and networks.
-        Enabling Technologies for High Spectral-Efficiency Coherent Optical Communication
-        Networks.
-        """
         symbol_rate_cut = carrier.symbol_rate
         bw_cut = symbol_rate_cut
 
