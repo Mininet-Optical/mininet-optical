@@ -585,7 +585,7 @@ class Link(object):
             div = 2.0 * unit.pi * (1 / 2 * alpha) * abs(beta2)
             psi = np.arcsinh(unit.pi ** 2 * (1 / 2 * alpha) * abs(beta2) * (delta_f + bw_ch / 2.0) * bw_cut) / div
             psi -= np.arcsinh(unit.pi ** 2 * (1 / 2 * alpha) * abs(beta2) * (delta_f - bw_ch / 2.0) * bw_cut) / div
-            psi -= (bw_cut / (delta_f - bw_ch)) * (5.0 / 3.0) * (effective_length / length)
+            psi -= (bw_cut / delta_f) * (5.0 / 3.0) * (effective_length / length)
         return psi
 
     # ADDITIONS FOR OFC DEMO USE-CASES

@@ -642,14 +642,14 @@ class Roadm(Node):
                     if len(accumulated_NLI_noise) > 0:
                         accumulated_NLI_noise[optical_signal] /= voa_att
                         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-                elif voa_att > 0:
-                    self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
-                    if len(accumulated_ASE_noise) > 0:
-                        accumulated_ASE_noise[optical_signal] *= voa_att
-                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                    if len(accumulated_NLI_noise) > 0:
-                        accumulated_NLI_noise[optical_signal] *= voa_att
-                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                # elif voa_att > 0:
+                #     self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
+                #     if len(accumulated_ASE_noise) > 0:
+                #         accumulated_ASE_noise[optical_signal] *= voa_att
+                #         self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                #     if len(accumulated_NLI_noise) > 0:
+                #         accumulated_NLI_noise[optical_signal] *= voa_att
+                #         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
             ######################################### QOT ESTIMATION BEGINS #########################################
             # out_difference = {}
             # for k, out_power in output_power_dict_qot.items():
