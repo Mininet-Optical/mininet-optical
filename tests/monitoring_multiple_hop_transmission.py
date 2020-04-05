@@ -99,7 +99,6 @@ while test_run <= 3:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            # test = '../opm-monitoring-points/equalisation-tests/no-equalisation/'
             test = '../'
             dir_ = test + 'opm-sim-no-m/' + opm_name
             dir_2 = test + 'opm-sim-qot-no-m/' + opm_name

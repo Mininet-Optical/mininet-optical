@@ -151,5 +151,5 @@ plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_no_m.eps', format='eps')
+plt.savefig('../monitoring_m14.eps', format='eps')
 # plt.show()
