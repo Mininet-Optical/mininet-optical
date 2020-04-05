@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 3:
+while test_run <= 300:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -56,7 +56,8 @@ while test_run <= 3:
         roadm_15 = net.name_to_node['roadm_15']
 
         # Install switch rules into the ROADM nodes
-        wavelength_indexes = range(1, load + 1)
+        wavelength_indexes = list(range(1, load + 1))
+        wavelength_indexes.reverse()
         roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
         roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
@@ -100,8 +101,8 @@ while test_run <= 3:
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
             test = '../'
-            dir_ = test + 'opm-sim-no-m/' + opm_name
-            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            dir_ = test + 'opm-sim-no-m-reverse/' + opm_name
+            dir_2 = test + 'opm-sim-qot-no-m-reverse/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)
