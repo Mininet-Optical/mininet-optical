@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import figure
 import matplotlib.font_manager
+import random
 
 # Plot configuration parameters
 figure(num=None, figsize=(7, 6), dpi=256)
@@ -36,6 +37,7 @@ power_levels = list(np.arange(-4, 2, 2))
 plotting_osnr = []
 plotting_gosnr = []
 plotting_theo = []
+wavelength_indexes = random.sample(range(1, 90), 81)
 
 for p in power_levels:
     # print("*** Building Linear network topology for operational power: %s" % p)
@@ -58,7 +60,8 @@ for p in power_levels:
     #     print("roadm_3 reachable by %s through port %s" % (node.name, port))
 
     # Install switch rules into the ROADM nodes
-    wavelength_indexes = range(1, 82)
+    # wavelength_indexes = range(1, 82)
+    # reversed(wavelength_indexes)
     roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
     roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
     roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
@@ -98,15 +101,15 @@ for p in power_levels:
         gosnr_c46.append(_list[45])
     plotting_gosnr.append(gosnr_c46)
 
-    an_osnr = [osnr_c46[0]]
+    an_osnr = []  # [osnr_c46[0]]
     c = 0
     i = 0
-    for s in range(15):
-        if i is 3 or i is 7 or i is 11:
-            t_osnr = c
-        else:
-            t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
-            c = t_osnr
+    for s in range(16):
+        # if i is 3 or i is 7 or i is 11:
+        #     t_osnr = c
+        # else:
+        t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
+        c = t_osnr
         i += 1
         an_osnr.append(t_osnr)
     plotting_theo.append(an_osnr)
@@ -132,7 +135,7 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
 
 plt.ylabel("OSNR/gOSNR (dB)")
 plt.xlabel("Spans and hops")
-plt.yticks(np.arange(13, 45, 2))
+plt.yticks(np.arange(13, 38, 2))
 ticks = []
 s = 0
 for i in range(17):
