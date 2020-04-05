@@ -355,9 +355,9 @@ class Roadm(Node):
         WSS_id (int): (attenuation, wd-attenuation) (tuple)
         """
         if not wss_dict:
-            # Default wss_dict with 2xWSS w/3 dB attenuation each,
+            # Default wss_dict with 2xWSS w/7 dB attenuation each,
             # and no wavelength-dependent attenuation.
-            wss_dict = {1: (3, None), 2: (3, None)}
+            wss_dict = {1: (7.0, None), 2: (7.0, None)}
         tmp_dict = {}
         for wss_id, wd_tuple in wss_dict.items():
             if wd_tuple[1]:

@@ -22,7 +22,7 @@ class LinearTopology:
         line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs
-        wss_dict = {1: (3, None), 2: (3, None)}
+        wss_dict = {1: (7.0, None), 2: (7.0, None)}
         roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict,
                                 voa_function='flatten', voa_target_out_power=op) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
@@ -53,7 +53,7 @@ class LinearTopology:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=9, boost=True,
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0, boost=True,
                                           tmp_qot_id=tmp_qot_id)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
@@ -90,15 +90,15 @@ class LinearTopology:
 
             # bidirectional
             boost_label = boost_lab + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=9, boost=True)
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0, boost=True)
             link_r2_r1 = net.add_link(name_to_roadm[rl_2],
                                       name_to_roadm[rl_1],
                                       boost_amp=boost_amp)
             in_apm_no = 0
             for sp in range(span_no):
-                span = Span('SMF', 80)
+                span = Span('SMF', 100)
                 in_l = amp_lab + str(in_apm_no + 1) + us + 'l' + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=22.0)
                 link_r2_r1.add_span(span, in_line_amp)
                 in_apm_no = in_apm_no + 1
 
