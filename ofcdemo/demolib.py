@@ -247,7 +247,7 @@ class LinearRoadmTopo( OpticalTopo ):
         # Inter-POP links
         for i in range( 0, n - 1 ):
             src, dst = roadms[i], roadms[i+1]
-            boost = ( 'boost', dict(target_gain=9.0*dB) )
+            boost = ( 'boost', dict(target_gain=17.0*dB) )
             spans = self.spans( spanCount=2 )
             # XXX Unfortunately we currently have to have a priori knowledge of
             # this prefix
@@ -359,7 +359,7 @@ class DemoTopo( LinearRoadmTopo ):
     # Link helper function
     def addPopLink( self, src, dst ):
         "Construct a link of four 50km fiber spans"
-        boost = ( 'boost', dict(target_gain=9.0*dB) )
+        boost = ( 'boost', dict(target_gain=17.0*dB) )
         spans = self.spans( spanLength=50*km, spanCount=4 )
         # XXX Unfortunately we currently have to have a priori knowledge of
         # this prefix
