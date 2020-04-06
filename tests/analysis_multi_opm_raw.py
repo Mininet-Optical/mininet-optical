@@ -17,7 +17,7 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-figure(num=None, figsize=(8, 6), dpi=256)
+figure(num=None, figsize=(8.4, 6.4), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -35,16 +35,14 @@ file_id = 0
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'no-m-random/'
+    mon = 'm28-random/'
     directory = '../opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
     osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
     gosnrs = {'gosnr_load_27': [], 'gosnr_load_54': [], 'gosnr_load_81': []}
 
-    files = os.listdir(directory)
-    sorted_files = sorted(files)
-    for filename in sorted_files:
+    for filename in os.listdir(directory):
         if filename.endswith(".json"):
             file_path = directory + str(filename)
             with open(file_path) as json_file:
@@ -63,9 +61,7 @@ while file_id <= 97:
     qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
     qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
-    qot_files = os.listdir(qot_directory)
-    qot_sorted_files = sorted(qot_files)
-    for filename in qot_sorted_files:
+    for filename in os.listdir(qot_directory):
         if filename.endswith(".json"):
             file_path = qot_directory + str(filename)
             with open(file_path) as json_file:
@@ -155,5 +151,5 @@ plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_no_m_random.eps', format='eps')
+plt.savefig('../monitoring_m28_random.eps', format='eps')
 # plt.show()
