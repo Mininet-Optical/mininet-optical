@@ -85,23 +85,29 @@ while test_run <= 3:
             json_struct_qot = {'tests_qot': []}
             opm_name = 'opm_' + str(opm_id)
             opm = net.name_to_node[opm_name]
-            osnrs = opm.get_list_osnr()
-            gosnrs = opm.get_list_gosnr()
+            power = opm.get_list_power()
+            ase = opm.get_list_ase()
+            nli = opm.get_list_nli()
 
-            _osnr_id = 'osnr_load_' + load_id
-            _gosnr_id = 'gosnr_load_' + load_id
-            json_struct['tests'].append({_osnr_id: osnrs})
-            json_struct['tests'].append({_gosnr_id: gosnrs})
+            _power_id = 'power_' + load_id
+            _ase_id = 'ase_' + load_id
+            _nli_id = 'nli_' + load_id
+            json_struct['tests'].append({_power_id: power})
+            json_struct['tests'].append({_ase_id: ase})
+            json_struct['tests'].append({_nli_id: nli})
 
-            osnrs_qot = opm.get_list_osnr_qot()
-            gosnrs_qot = opm.get_list_gosnr_qot()
+            power_qot = opm.get_list_power_qot()
+            ase_qot = opm.get_list_ase_qot()
+            nli_qot = opm.get_list_nli_qot()
 
-            _osnr_id_qot = 'osnr_load_qot_' + load_id
-            _gosnr_id_qot = 'gosnr_load_qot_' + load_id
-            json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
-            json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
+            _power_id_qot = 'power_qot_' + load_id
+            _ase_id_qot = 'ase_qot_' + load_id
+            _nli_id_qot = 'nli_qot_' + load_id
+            json_struct_qot['tests_qot'].append({_power_id_qot: power_qot})
+            json_struct_qot['tests_qot'].append({_ase_id_qot: ase_qot})
+            json_struct_qot['tests_qot'].append({_nli_id_qot: nli_qot})
 
-            test = '../'
+            test = '../raw-monitor/'
             dir_ = test + 'opm-sim-no-m-tmp/' + opm_name
             dir_2 = test + 'opm-sim-qot-no-m-tmp/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):

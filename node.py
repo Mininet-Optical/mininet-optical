@@ -1003,6 +1003,43 @@ class Monitor(Node):
         self.span = span
         self.amplifier = amplifier
 
+    def get_list_power(self):
+        """
+        :return: power levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            signals_list.append(abs_to_db(self.amplifier.output_power[optical_signal]))
+        return signals_list
+
+    def get_list_ase(self):
+        """
+        :return: ASE noise levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            signals_list.append(abs_to_db(self.amplifier.ase_noise[optical_signal]))
+        return signals_list
+
+    def get_list_nli(self):
+        """
+        :return: NLI noise levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            if self.amplifier.boost:
+                nli_noise = abs_to_db(self.amplifier.nonlinear_noise[optical_signal])
+            else:
+                nli_noise = abs_to_db(self.link.nonlinear_interference_noise[self.span][optical_signal])
+            signals_list.append(nli_noise)
+        return signals_list
+
     def get_list_osnr(self):
         """
         Get the OSNR values at this OPM as a list
@@ -1072,6 +1109,43 @@ class Monitor(Node):
            self.name, self.link, self.span, self.amplifier)
 
     ########################### QOT ESTIMATION BEGINS ######################################
+    def get_list_power_qot(self):
+        """
+        :return: power levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power_qot.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            signals_list.append(abs_to_db(self.amplifier.output_power_qot[optical_signal]))
+        return signals_list
+
+    def get_list_ase_qot(self):
+        """
+        :return: ASE noise levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power_qot.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            signals_list.append(abs_to_db(self.amplifier.ase_noise_qot[optical_signal]))
+        return signals_list
+
+    def get_list_nli_qot(self):
+        """
+        :return: NLI noise levels of all optical signals as a list
+        """
+        optical_signals = self.amplifier.output_power_qot.keys()
+        signals_list = []
+        ordered_signals = self.order_signals(optical_signals)
+        for optical_signal in ordered_signals:
+            if self.amplifier.boost:
+                nli_noise = abs_to_db(self.amplifier.nonlinear_noise_qot[optical_signal])
+            else:
+                nli_noise = abs_to_db(self.link.nonlinear_interference_noise_qot[self.span][optical_signal])
+            signals_list.append(nli_noise)
+        return signals_list
+
     def get_list_osnr_qot(self):
         """
         Get the OSNR values at this OPM as a list

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import figure
 import matplotlib.font_manager
+import sys
 
 # Plot configuration parameters
 figure(num=None, figsize=(8.4, 6.4), dpi=256)
@@ -31,125 +32,201 @@ osnr_mean_rmse_54 = []
 gosnr_mean_rmse_81 = []
 osnr_mean_rmse_81 = []
 
+power_mean_rmse_27 = []
+ase_mean_rmse_27 = []
+nli_mean_rmse_27 = []
+power_worst_rmse_27 = []
+power_best_rmse_27 = []
+
+power_mean_rmse_54 = []
+ase_mean_rmse_54 = []
+nli_mean_rmse_54 = []
+power_worst_rmse_54 = []
+power_best_rmse_54 = []
+
+power_mean_rmse_81 = []
+ase_mean_rmse_81 = []
+nli_mean_rmse_81 = []
+power_worst_rmse_81 = []
+power_best_rmse_81 = []
+
 file_id = 0
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'm28-random/'
-    directory = '../opm-sim-' + mon + opm
+    mon = 'no-m-tmp/'
+    directory = '../raw-monitor/opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
-    osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
-    gosnrs = {'gosnr_load_27': [], 'gosnr_load_54': [], 'gosnr_load_81': []}
+    powers = {'power_27': [], 'power_54': [], 'power_81': []}
+    ases = {'ase_27': [], 'ase_54': [], 'ase_81': []}
+    nlis = {'nli_27': [], 'nli_54': [], 'nli_81': []}
 
-    for filename in os.listdir(directory):
+    files = os.listdir(directory)
+    sorted_files = sorted(files)
+    for filename in sorted_files:
         if filename.endswith(".json"):
             file_path = directory + str(filename)
             with open(file_path) as json_file:
                 f = json.load(json_file)
             for key, items in f.items():
-                i = 0
+                i = 1
                 for element in items:
                     k = list(element.keys())[0]
-                    if i == 0:
-                        osnrs[k].append(element[k])
+                    if i == 1:
+                        powers[k].append(element[k])
+                        i += 1
+                    elif i == 2:
+                        ases[k].append(element[k])
                         i += 1
                     else:
-                        gosnrs[k].append(element[k])
+                        nlis[k].append(element[k])
 
-    qot_directory = '../opm-sim-qot-' + mon + opm
-    qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
-    qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
+    qot_directory = '../raw-monitor/opm-sim-qot-' + mon + opm
+    qot_powers = {'power_qot_27': [], 'power_qot_54': [], 'power_qot_81': []}
+    qot_ases = {'ase_qot_27': [], 'ase_qot_54': [], 'ase_qot_81': []}
+    qot_nlis = {'nli_qot_27': [], 'nli_qot_54': [], 'nli_qot_81': []}
 
-    for filename in os.listdir(qot_directory):
+    qot_files = os.listdir(qot_directory)
+    qot_sorted_files = sorted(qot_files)
+    for filename in qot_sorted_files:
         if filename.endswith(".json"):
             file_path = qot_directory + str(filename)
             with open(file_path) as json_file:
                 f = json.load(json_file)
             for key, items in f.items():
-                i = 0
+                i = 1
                 for element in items:
                     k = list(element.keys())[0]
-                    if i == 0:
-                        qot_osnrs[k].append(element[k])
+                    if i == 1:
+                        qot_powers[k].append(element[k])
+                        i += 1
+                    elif i == 2:
+                        qot_ases[k].append(element[k])
                         i += 1
                     else:
-                        qot_gosnrs[k].append(element[k])
+                        qot_nlis[k].append(element[k])
 
-    gosnrs_27 = gosnrs['gosnr_load_27']
-    qot_gosnrs_27 = qot_gosnrs['gosnr_load_qot_27']
+    # Monitoring power levels
+    powers_27 = powers['power_27']
+    qot_powers_27 = qot_powers['power_qot_27']
+    powers_27_rmse = []
+    for _list1, _list2 in zip(qot_powers_27, powers_27):
+        powers_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    power_mean_rmse_27.append(np.median(powers_27_rmse))
 
-    gosnr_27_rmse = []
-    for _list1, _list2 in zip(qot_gosnrs_27, gosnrs_27):
-        gosnr_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_27.append(np.median(gosnr_27_rmse))
+    powers_54 = powers['power_54']
+    qot_powers_54 = qot_powers['power_qot_54']
+    powers_54_rmse = []
+    for _list1, _list2 in zip(qot_powers_54, powers_54):
+        powers_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    power_mean_rmse_54.append(np.median(powers_54_rmse))
 
-    osnrs_27 = osnrs['osnr_load_27']
-    qot_osnrs_27 = qot_osnrs['osnr_load_qot_27']
+    powers_81 = powers['power_81']
+    qot_powers_81 = qot_powers['power_qot_81']
+    powers_81_rmse = []
+    for _list1, _list2 in zip(qot_powers_81, powers_81):
+        powers_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    power_mean_rmse_81.append(np.median(powers_81_rmse))
 
-    osnr_27_rmse = []
-    for _lista, _listb in zip(qot_osnrs_27, osnrs_27):
-        osnr_27_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
-    osnr_mean_rmse_27.append(np.median(osnr_27_rmse))
+    # Monitoring ASE noise levels
+    ases_27 = ases['ase_27']
+    qot_ases_27 = qot_ases['ase_qot_27']
+    ases_27_rmse = []
+    for _list1, _list2 in zip(qot_ases_27, ases_27):
+        ases_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    ase_mean_rmse_27.append(np.median(ases_27_rmse))
 
-    gosnrs_54 = gosnrs['gosnr_load_54']
-    qot_gosnrs_54 = qot_gosnrs['gosnr_load_qot_54']
+    ases_54 = ases['ase_54']
+    qot_ases_54 = qot_ases['ase_qot_54']
+    ases_54_rmse = []
+    for _list1, _list2 in zip(qot_ases_54, ases_54):
+        ases_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    ase_mean_rmse_54.append(np.median(ases_54_rmse))
 
-    gosnr_54_rmse = []
-    for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
-        gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_54.append(np.median(gosnr_54_rmse))
+    ases_81 = ases['ase_81']
+    qot_ases_81 = qot_ases['ase_qot_81']
+    ases_81_rmse = []
+    for _list1, _list2 in zip(qot_ases_81, ases_81):
+        ases_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    ase_mean_rmse_81.append(np.median(ases_81_rmse))
 
-    osnrs_54 = osnrs['osnr_load_54']
-    qot_osnrs_54 = qot_osnrs['osnr_load_qot_54']
+    # Monitoring NLI noise levels
+    nlis_27 = nlis['nli_27']
+    qot_nlis_27 = qot_nlis['nli_qot_27']
+    nlis_27_rmse = []
+    for _list1, _list2 in zip(qot_nlis_27, nlis_27):
+        nlis_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    nli_mean_rmse_27.append(np.median(nlis_27_rmse))
 
-    osnr_54_rmse = []
-    for _list1, _list2 in zip(osnrs_54, qot_osnrs_54):
-        osnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    osnr_mean_rmse_54.append(np.median(osnr_54_rmse))
+    nlis_54 = nlis['nli_54']
+    qot_nlis_54 = qot_nlis['nli_qot_54']
+    nlis_54_rmse = []
+    for _list1, _list2 in zip(qot_nlis_54, nlis_54):
+        nlis_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    nli_mean_rmse_54.append(np.median(nlis_54_rmse))
 
-    gosnrs_81 = gosnrs['gosnr_load_81']
-    qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
+    nlis_81 = nlis['nli_81']
+    qot_nlis_81 = qot_nlis['nli_qot_81']
+    nlis_81_rmse = []
+    for _list1, _list2 in zip(qot_nlis_81, nlis_81):
+        nlis_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    nli_mean_rmse_81.append(np.median(nlis_81_rmse))
 
-    gosnr_81_rmse = []
-    for _list1, _list2 in zip(qot_gosnrs_81, gosnrs_81):
-        gosnr_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_81.append(np.median(gosnr_81_rmse))
+    del powers
+    del ases
+    del nlis
+    del qot_powers
+    del qot_ases
+    del qot_nlis
+    del powers_27_rmse
+    del powers_54_rmse
+    del powers_81_rmse
 
-    osnrs_81 = osnrs['osnr_load_81']
-    qot_osnrs_81 = qot_osnrs['osnr_load_qot_81']
-
-    osnr_81_rmse = []
-    for _lista, _listb in zip(qot_osnrs_81, osnrs_81):
-        osnr_81_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
-    osnr_mean_rmse_81.append(np.median(osnr_81_rmse))
-
-    del qot_osnrs
-    del qot_gosnrs
-    del gosnr_27_rmse
-    del osnr_27_rmse
-    del gosnr_54_rmse
-    del gosnr_81_rmse
-    del osnr_81_rmse
-
-
-# plt.plot(osnr_mean_rmse_27, color='b', marker='s', markerfacecolor='None')
-# plt.plot(osnr_mean_rmse_81, color='r', marker='D', markerfacecolor='None')
-x = range(0, 98)
-xt = [1, 14, 28, 42, 56, 70, 84, 98]
-plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-# plt.yticks(np.arange(0, 6.5, 0.5))
-# plt.title("OSNR QoT-E without corrections")
+# print power
 plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
+x = range(0, 98)
 ms = 12
-plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+plt.plot(x, power_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
          markerfacecolor='None', color='b', label='30% ch-load')
-plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+plt.plot(x, power_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
          markerfacecolor='None', color='y', label='60% ch-load')
-plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+plt.plot(x, power_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_m28_random.eps', format='eps')
-# plt.show()
+plt.savefig('../monitoring_power.eps', format='eps')
+plt.clf()
+
+# print ase noise
+plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
+plt.xlabel("Index and location of OPM nodes")
+x = range(0, 98)
+ms = 12
+plt.plot(x, ase_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+         markerfacecolor='None', color='b', label='30% ch-load')
+plt.plot(x, ase_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+         markerfacecolor='None', color='y', label='60% ch-load')
+plt.plot(x, ase_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+         markerfacecolor='None', color='r', label='90% ch-load')
+plt.legend()
+plt.grid(True)
+plt.savefig('../monitoring_ase.eps', format='eps')
+plt.clf()
+
+# print nli noise
+plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
+plt.xlabel("Index and location of OPM nodes")
+x = range(0, 98)
+ms = 12
+plt.plot(x, nli_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+         markerfacecolor='None', color='b', label='30% ch-load')
+plt.plot(x, nli_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+         markerfacecolor='None', color='y', label='60% ch-load')
+plt.plot(x, nli_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+         markerfacecolor='None', color='r', label='90% ch-load')
+plt.legend()
+plt.grid(True)
+plt.savefig('../monitoring_nli.eps', format='eps')
+plt.clf()
