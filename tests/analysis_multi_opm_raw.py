@@ -25,13 +25,6 @@ matplotlib.font_manager._rebuild()
 plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.size"] = 20
 
-gosnr_mean_rmse_27 = []
-osnr_mean_rmse_27 = []
-gosnr_mean_rmse_54 = []
-osnr_mean_rmse_54 = []
-gosnr_mean_rmse_81 = []
-osnr_mean_rmse_81 = []
-
 power_mean_rmse_27 = []
 ase_mean_rmse_27 = []
 nli_mean_rmse_27 = []
@@ -51,11 +44,11 @@ power_worst_rmse_81 = []
 power_best_rmse_81 = []
 
 file_id = 0
+mon = 'm14'
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'no-m-tmp/'
-    directory = '../raw-monitor/opm-sim-' + mon + opm
+    directory = '../raw-monitor/opm-sim-' + mon + '/' + opm
     print("*** Running for file: %s" % directory)
 
     powers = {'power_27': [], 'power_54': [], 'power_81': []}
@@ -82,7 +75,7 @@ while file_id <= 97:
                     else:
                         nlis[k].append(element[k])
 
-    qot_directory = '../raw-monitor/opm-sim-qot-' + mon + opm
+    qot_directory = '../raw-monitor/opm-sim-qot-' + mon + '/' + opm
     qot_powers = {'power_qot_27': [], 'power_qot_54': [], 'power_qot_81': []}
     qot_ases = {'ase_qot_27': [], 'ase_qot_54': [], 'ase_qot_81': []}
     qot_nlis = {'nli_qot_27': [], 'nli_qot_54': [], 'nli_qot_81': []}
@@ -196,7 +189,8 @@ plt.plot(x, power_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_power.eps', format='eps')
+fig_name = '../monitoring_power_' + mon + '.eps'
+plt.savefig(fig_name, format='eps')
 plt.clf()
 
 # print ase noise
@@ -212,7 +206,8 @@ plt.plot(x, ase_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_ase.eps', format='eps')
+fig_name = '../monitoring_ase_' + mon + '.eps'
+plt.savefig(fig_name, format='eps')
 plt.clf()
 
 # print nli noise
@@ -228,5 +223,6 @@ plt.plot(x, nli_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_nli.eps', format='eps')
+fig_name = '../monitoring_nli_' + mon + '.eps'
+plt.savefig(fig_name, format='eps')
 plt.clf()

@@ -22,7 +22,7 @@ del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 20
+plt.rcParams["font.size"] = 22
 
 gosnr_mean_rmse_27 = []
 osnr_mean_rmse_27 = []
@@ -35,8 +35,8 @@ file_id = 0
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'no-m-random/'
-    directory = '../opm-sim-' + mon + opm
+    mon = 'm14-random/'
+    directory = '../metrics-monitor/opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
     osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
@@ -59,7 +59,7 @@ while file_id <= 97:
                     else:
                         gosnrs[k].append(element[k])
 
-    qot_directory = '../opm-sim-qot-' + mon + opm
+    qot_directory = '../metrics-monitor/opm-sim-qot-' + mon + opm
     qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
     qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
@@ -148,12 +148,12 @@ plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
 plt.xlabel("Index and location of OPM nodes")
 ms = 12
 plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='30% ch-load')
+         markerfacecolor='None', color='b', label='M-14-30%')
 plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='60% ch-load')
+         markerfacecolor='None', color='y', label='M-14-60%')
 plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='90% ch-load')
+         markerfacecolor='None', color='r', label='M-14-90%')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_no_m_random.eps', format='eps')
+plt.savefig('../monitoring_m14_random.eps', format='eps')
 # plt.show()
