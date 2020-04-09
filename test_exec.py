@@ -5,6 +5,7 @@
     for the EDFA nodes).
 """
 
+# import tests.analysis_gosnr_worst
 # import tests.analysis_raw_before_after_monitor
 # import tests.analysis_gosnr_before_after_monitor
 # import tests.monitoring_4_hop_transmission
