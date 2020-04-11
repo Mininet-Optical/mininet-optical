@@ -124,22 +124,22 @@ for monitor in monitors:
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
 plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-# plt.yticks(np.arange(0, 6.5, 0.5))
+plt.yticks(np.arange(0, 9.0, 0.5))
 plt.ylabel("Worst RMSE (dB) of \nSDN-controller QoT-E model")
-plt.xlabel("Index and location of OPM nodes")
+plt.xlabel("OPM node index")
 ms = 12
-ls = 4
-plt.plot(x, gosnr_mean_rmse_27, color='b', linewidth=ls, label='NO-M-30%')
-plt.plot(x, gosnr_mean_rmse_54, color='y', linewidth=ls, label='NO-M-60%')
-plt.plot(x, gosnr_mean_rmse_81, color='r', linewidth=ls, label='NO-M-90%')
+ls = 6
+plt.plot(x, gosnr_mean_rmse_27, color='b', linewidth=ls, label='W/O-MC*-30%')
+plt.plot(x, gosnr_mean_rmse_54, color='y', linewidth=ls, label='W/O-MC-60%')
+plt.plot(x, gosnr_mean_rmse_81, color='r', linewidth=ls, label='W/O-MC-90%')
 
 plt.plot(x, gosnr_mean_rmse_27_m14, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='M-14-30%')
+         markerfacecolor='None', color='b', label='MC-14**-30%')
 plt.plot(x, gosnr_mean_rmse_54_m14, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='M-14-60%')
+         markerfacecolor='None', color='y', label='MC-14-60%')
 plt.plot(x, gosnr_mean_rmse_81_m14, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='M-14-90%')
-plt.legend(ncol=2)
+         markerfacecolor='None', color='r', label='MC-14-90%')
+plt.legend(ncol=2, columnspacing=0.2, handletextpad=0.2)
 plt.grid(True)
 fig_name = '../monitoring_worst_metrics_before_after.eps'
 plt.savefig(fig_name, format='eps')

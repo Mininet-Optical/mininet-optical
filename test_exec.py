@@ -5,6 +5,7 @@
     for the EDFA nodes).
 """
 
+import tests.analysis_osnr_before_after_monitor
 # import tests.analysis_gosnr_worst
 # import tests.analysis_raw_before_after_monitor
 # import tests.analysis_gosnr_before_after_monitor
@@ -12,7 +13,7 @@
 # import tests.monitoring_multiple_hop_transmission
 # import tests.monitoring_multi_hop_power
 # import tests.analysis_multi_opm_raw
-import tests.analysis_multi_opm
+# import tests.analysis_multi_opm
 # import tests.analysis_multihop_multi_opm
 # import tests.analysis_qot_vs_truth_raw
 # import tests.monitoring_power_noise_roadm

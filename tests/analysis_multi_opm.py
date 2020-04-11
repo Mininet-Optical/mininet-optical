@@ -85,7 +85,7 @@ while file_id <= 97:
     gosnr_27_rmse = []
     for _list1, _list2 in zip(qot_gosnrs_27, gosnrs_27):
         gosnr_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_27.append(max(gosnr_27_rmse))
+    gosnr_mean_rmse_27.append(np.mean(gosnr_27_rmse))
 
     # osnrs_27 = osnrs['osnr_load_27']
     # qot_osnrs_27 = qot_osnrs['osnr_load_qot_27']
@@ -99,7 +99,7 @@ while file_id <= 97:
     gosnr_54_rmse = []
     for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
         gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_54.append(max(gosnr_54_rmse))
+    gosnr_mean_rmse_54.append(np.mean(gosnr_54_rmse))
 
     # osnrs_54 = osnrs['osnr_load_54']
     # qot_osnrs_54 = qot_osnrs['osnr_load_qot_54']
@@ -113,7 +113,7 @@ while file_id <= 97:
     gosnr_81_rmse = []
     for _list1, _list2 in zip(qot_gosnrs_81, gosnrs_81):
         gosnr_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_81.append(max(gosnr_81_rmse))
+    gosnr_mean_rmse_81.append(np.mean(gosnr_81_rmse))
 
     # osnrs_81 = osnrs['osnr_load_81']
     # qot_osnrs_81 = qot_osnrs['osnr_load_qot_81']
@@ -139,15 +139,15 @@ plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
 # plt.yticks(np.arange(0, 6.5, 0.5))
 # plt.title("OSNR QoT-E without corrections")
 plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
-plt.xlabel("Index and location of OPM nodes")
+plt.xlabel("OPM node index")
 ms = 12
 plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='M-14-30%')
+         markerfacecolor='None', color='b', label='MC-14-30%')
 plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='M-14-60%')
+         markerfacecolor='None', color='y', label='MC-14-60%')
 plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='M-14-90%')
+         markerfacecolor='None', color='r', label='MC-14-90%')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_worst_m14.eps', format='eps')
+plt.savefig('../monitoring_m14.eps', format='eps')
 # plt.show()
