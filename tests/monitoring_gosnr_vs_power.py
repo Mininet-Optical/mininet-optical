@@ -7,12 +7,12 @@ import matplotlib.font_manager
 import random
 
 # Plot configuration parameters
-figure(num=None, figsize=(7, 6), dpi=256)
+# figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 20
+plt.rcParams["font.size"] = 18
 
 
 def db_to_abs(db_value):
@@ -33,11 +33,17 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-power_levels = list(np.arange(-4, 2, 2))
+p_start = -10
+p_end = 12
+power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
 plotting_theo = []
-wavelength_indexes = random.sample(range(1, 90), 81)
+rx_gosnr = []
+rx_osnr = []
+wavelength_indexes = list(range(13, 90))
+wavelength_indexes.reverse()
+# wavelength_indexes = random.sample(range(1, 90), 81)
 
 for p in power_levels:
     # print("*** Building Linear network topology for operational power: %s" % p)
@@ -92,14 +98,17 @@ for p in power_levels:
     # Retrieve only the channels of interest
     osnr_c46 = []
     for span, _list in osnrs.items():
-        osnr_c46.append(_list[45])
+        osnr_c46.append(_list[37]) # checking for channel 38 in a 76ch transmission
+        # osnr_c46.append(np.mean(_list))
     plotting_osnr.append(osnr_c46)
+    rx_osnr.append(osnr_c46[-1])
 
     gosnr_c46 = []
-    # plt.plot(x, tmp, color='green', marker='o')
     for span, _list in gosnrs.items():
-        gosnr_c46.append(_list[45])
+        # gosnr_c46.append(_list[45])
+        gosnr_c46.append(_list[37])
     plotting_gosnr.append(gosnr_c46)
+    rx_gosnr.append(gosnr_c46[-1])
 
     an_osnr = []  # [osnr_c46[0]]
     c = 0
@@ -122,20 +131,40 @@ for p in power_levels:
     del osnrs
     del gosnrs
 
-colors = ['r', 'g', 'k', 'grey', 'silver']
-markers = ['o', 's', 'D']
-op = list(np.arange(-4, 6, 2)[::-1])
-for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
-    l = 'Tx launch power: ' + str(op.pop()) + 'dBm'
+colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver']
+# markers = ['o', 's', 'D']
+op = list(np.arange(p_start, p_end, 2)[::-1])
+label_flag = True
+for o, g in zip(plotting_osnr, plotting_gosnr):
+    pp = op.pop()
+    l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
-    m = markers.pop()
-    plt.plot(o, markeredgewidth=3, marker=m, markersize=9, color=c, label=l)
-    plt.plot(g, '--', markeredgewidth=3, marker=m, markersize=9, markerfacecolor='None', color=c)  # , label=l)
-    plt.plot(a, linestyle='None', marker=m, markersize=6, color='r', markerfacecolor='None')
+    # m = markers.pop()
+    # plt.plot(o, markeredgewidth=3, marker=m, markersize=9, color=c, label=l)
+    plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
+    # plt.plot(g, '--', markeredgewidth=3, marker=m, markersize=9, markerfacecolor='None', color=c)
+    plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
+    print("=%=%=%=%=%=%=%=%=%")
+    print(l)
+    print(o)
+    print(g)
+    # print(gosnr_c46_dict[pp])
+    print("=%=%=%=%=%=%=%=%=%")
 
-plt.ylabel("OSNR/gOSNR (dB)")
-plt.xlabel("Spans and hops")
-plt.yticks(np.arange(13, 38, 2))
+# for a in plotting_theo:
+#     if label_flag:
+#         plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
+#         label_flag = False
+#     else:
+#         plt.plot(a, color='r', markerfacecolor='None')
+#     print("=%=%=%=%=%=%=%=%=%")
+#     print(a)
+#     print("=%=%=%=%=%=%=%=%=%")
+
+
+plt.ylabel("OSNR, gOSNR(dashed) (dB)")
+plt.xlabel("Amplifiers")
+# plt.yticks(np.arange(18, 40, 2))
 ticks = []
 s = 0
 for i in range(17):
@@ -167,5 +196,8 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-plt.savefig('../gosnr_vs_power.eps', format='eps')
-# plt.show()
+# plt.savefig('../gosnr_vs_power.eps', format='eps')
+print("=%=%=%=%=%=%=%")
+print(rx_osnr)
+print(rx_gosnr)
+plt.show()

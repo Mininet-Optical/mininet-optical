@@ -22,7 +22,7 @@ del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 20
+plt.rcParams["font.size"] = 18
 
 gosnr_mean_rmse_27 = []
 gosnr_mean_rmse_54 = []
@@ -124,21 +124,21 @@ for monitor in monitors:
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
 plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-plt.yticks(np.arange(0, 9.0, 0.5))
-plt.ylabel("Worst RMSE (dB) of \nSDN-controller QoT-E model")
-plt.xlabel("OPM node index")
-ms = 12
+plt.yticks(np.arange(0, 10, 1))
+plt.ylabel("Max RMSE (dB) of \nSDN-controller QoT-E model")
+plt.xlabel("Amplifiers")
+ms = 9
 ls = 6
-plt.plot(x, gosnr_mean_rmse_27, color='b', linewidth=ls, label='W/O-MC*-30%')
-plt.plot(x, gosnr_mean_rmse_54, color='y', linewidth=ls, label='W/O-MC-60%')
-plt.plot(x, gosnr_mean_rmse_81, color='r', linewidth=ls, label='W/O-MC-90%')
+plt.plot(x, gosnr_mean_rmse_27, color='silver', linewidth=ls, label='No-Monitoring-30%')
+plt.plot(x, gosnr_mean_rmse_54, color='grey', linewidth=ls, label='No-Monitoring-60%')
+plt.plot(x, gosnr_mean_rmse_81, color='k', linewidth=ls, label='No-Monitoring-90%')
 
-plt.plot(x, gosnr_mean_rmse_27_m14, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='MC-14**-30%')
-plt.plot(x, gosnr_mean_rmse_54_m14, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='MC-14-60%')
-plt.plot(x, gosnr_mean_rmse_81_m14, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='MC-14-90%')
+plt.plot(x, gosnr_mean_rmse_27_m14, linestyle='None', marker='s', markeredgewidth=3, markersize=ms,
+         markerfacecolor='None', color='silver', label='Monitoring-30%')
+plt.plot(x, gosnr_mean_rmse_54_m14, linestyle='None', marker='v', markeredgewidth=3, markersize=ms,
+         markerfacecolor='None', color='grey', label='Monitoring-60%')
+plt.plot(x, gosnr_mean_rmse_81_m14, linestyle='None', marker='D', markeredgewidth=3, markersize=ms,
+         markerfacecolor='None', color='k', label='Monitoring-90%')
 plt.legend(ncol=2, columnspacing=0.2, handletextpad=0.2)
 plt.grid(True)
 fig_name = '../monitoring_worst_metrics_before_after.eps'

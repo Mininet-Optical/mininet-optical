@@ -235,7 +235,7 @@ class LineTerminal(Node):
 class Transceiver(object):
     def __init__(self, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=0.025e12):
+                 bits_per_symbol=4.0, symbol_rate=0.032e12):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -694,12 +694,12 @@ class Roadm(Node):
                            voa_compensation=False)
 
 
-description_files_dir = 'description-files/'
-# description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt',
-                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files_dir = '../description-files/'
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg1.txt'}
+                     # 'wdg2': 'wdg2.txt',
+                     # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -987,15 +987,12 @@ class Amplifier(Node):
 
 class Monitor(Node):
     """
-    This implementation of Reconfigurable Optical Add/Drop Multiplexing nodes considers
-    only common ports. That is, not including the internal connections between reconfiguration
-    components (i.e., WSSs).
+    Monitoring nodes
     """
 
     def __init__(self, name, link=None, span=None, amplifier=None):
         """
         :param name:
-        set to 6 dB per task needed (Add/Drop/Pass-through).
         """
         Node.__init__(self, name)
         self.node_id = id(self)
@@ -1101,6 +1098,8 @@ class Monitor(Node):
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
         gosnr_linear = output_power / (ase_noise + nli_noise)
+        print("ASE: ", abs_to_db(ase_noise))
+        print("NLI: ", abs_to_db(nli_noise))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
 

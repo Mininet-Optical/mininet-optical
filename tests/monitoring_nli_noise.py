@@ -33,4 +33,7 @@ for n in nli:
 
 for v in db_nli:
     plt.plot(v)
+
+plt.ylabel("Nonlinear noise [dB]")
+plt.xlabel("Channel index")
 plt.show()
