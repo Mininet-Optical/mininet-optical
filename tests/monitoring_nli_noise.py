@@ -16,7 +16,7 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-dir = '../monitoring-nli-noise/'
+dir = '../../monitoring-nli-noise/'
 
 nli = []
 for file in os.listdir(dir):

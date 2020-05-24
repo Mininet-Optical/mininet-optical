@@ -36,7 +36,7 @@ while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
     mon = 'no-m/'
-    directory = '../metrics-monitor/opm-sim-' + mon + opm
+    directory = '../../metrics-monitor/opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
     osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
@@ -59,7 +59,7 @@ while file_id <= 97:
                     else:
                         gosnrs[k].append(element[k])
 
-    qot_directory = '../metrics-monitor/opm-sim-qot-' + mon + opm
+    qot_directory = '../../metrics-monitor/opm-sim-qot-' + mon + opm
     qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
     qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
@@ -149,5 +149,5 @@ plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markeredgewidth=3,
          markerfacecolor='None', color='k', label='Monitoring-90%')
 plt.legend()
 plt.grid(True)
-plt.savefig('../monitoring_worst_m14.eps', format='eps')
+plt.savefig('../../monitoring_metrics_no_m.eps', format='eps')
 # plt.show()

@@ -41,8 +41,9 @@ plotting_gosnr = []
 plotting_theo = []
 rx_gosnr = []
 rx_osnr = []
-wavelength_indexes = list(range(13, 90))
-wavelength_indexes.reverse()
+wavelength_indexes = list(range(1, 4))
+index = 0  # int(np.floor(len(wavelength_indexes) / 2))
+# wavelength_indexes.reverse()
 # wavelength_indexes = random.sample(range(1, 90), 81)
 
 for p in power_levels:
@@ -98,15 +99,15 @@ for p in power_levels:
     # Retrieve only the channels of interest
     osnr_c46 = []
     for span, _list in osnrs.items():
-        osnr_c46.append(_list[37]) # checking for channel 38 in a 76ch transmission
-        # osnr_c46.append(np.mean(_list))
+        # osnr_c46.append(_list[index])
+        osnr_c46.append(np.mean(_list))
     plotting_osnr.append(osnr_c46)
     rx_osnr.append(osnr_c46[-1])
 
     gosnr_c46 = []
     for span, _list in gosnrs.items():
-        # gosnr_c46.append(_list[45])
-        gosnr_c46.append(_list[37])
+        gosnr_c46.append(np.mean(_list))
+        # gosnr_c46.append(_list[index])
     plotting_gosnr.append(gosnr_c46)
     rx_gosnr.append(gosnr_c46[-1])
 
@@ -135,7 +136,7 @@ colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r',
 # markers = ['o', 's', 'D']
 op = list(np.arange(p_start, p_end, 2)[::-1])
 label_flag = True
-for o, g in zip(plotting_osnr, plotting_gosnr):
+for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     pp = op.pop()
     l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
@@ -148,6 +149,7 @@ for o, g in zip(plotting_osnr, plotting_gosnr):
     print(l)
     print(o)
     print(g)
+    print(a)
     # print(gosnr_c46_dict[pp])
     print("=%=%=%=%=%=%=%=%=%")
 
@@ -200,4 +202,4 @@ plt.grid(True)
 print("=%=%=%=%=%=%=%")
 print(rx_osnr)
 print(rx_gosnr)
-plt.show()
+# plt.show()
