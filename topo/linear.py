@@ -1,6 +1,5 @@
 import network
 from link import Span
-import numpy as np
 
 
 class LinearTopology:
