@@ -12,7 +12,7 @@ del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 18
+plt.rcParams["font.size"] = 16
 
 
 def db_to_abs(db_value):
@@ -33,16 +33,17 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -10
-p_end = 12
+p_start = -2
+p_end = 0
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
 plotting_theo = []
 rx_gosnr = []
 rx_osnr = []
-wavelength_indexes = list(range(1, 4))
-index = 0  # int(np.floor(len(wavelength_indexes) / 2))
+wavelength_indexes = list(range(1, 77))
+index = int(np.floor(len(wavelength_indexes) / 2))
+print("Monitoring channel with index: ", index)
 # wavelength_indexes.reverse()
 # wavelength_indexes = random.sample(range(1, 90), 81)
 
@@ -99,15 +100,15 @@ for p in power_levels:
     # Retrieve only the channels of interest
     osnr_c46 = []
     for span, _list in osnrs.items():
-        # osnr_c46.append(_list[index])
-        osnr_c46.append(np.mean(_list))
+        osnr_c46.append(_list[index])
+        # osnr_c46.append(np.mean(_list))
     plotting_osnr.append(osnr_c46)
     rx_osnr.append(osnr_c46[-1])
 
     gosnr_c46 = []
     for span, _list in gosnrs.items():
-        gosnr_c46.append(np.mean(_list))
-        # gosnr_c46.append(_list[index])
+        # gosnr_c46.append(np.mean(_list))
+        gosnr_c46.append(_list[index])
     plotting_gosnr.append(gosnr_c46)
     rx_gosnr.append(gosnr_c46[-1])
 
@@ -136,14 +137,20 @@ colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r',
 # markers = ['o', 's', 'D']
 op = list(np.arange(p_start, p_end, 2)[::-1])
 label_flag = True
+for a in plotting_theo:
+    if label_flag:
+        plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
+        label_flag = False
+    else:
+        plt.plot(a, color='r', markerfacecolor='None')
 for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     pp = op.pop()
     l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
     # m = markers.pop()
-    # plt.plot(o, markeredgewidth=3, marker=m, markersize=9, color=c, label=l)
+    # plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
     plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
-    # plt.plot(g, '--', markeredgewidth=3, marker=m, markersize=9, markerfacecolor='None', color=c)
+    # plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
     plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
     print("=%=%=%=%=%=%=%=%=%")
     print(l)
@@ -153,12 +160,7 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     # print(gosnr_c46_dict[pp])
     print("=%=%=%=%=%=%=%=%=%")
 
-# for a in plotting_theo:
-#     if label_flag:
-#         plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
-#         label_flag = False
-#     else:
-#         plt.plot(a, color='r', markerfacecolor='None')
+
 #     print("=%=%=%=%=%=%=%=%=%")
 #     print(a)
 #     print("=%=%=%=%=%=%=%=%=%")
@@ -198,8 +200,8 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-# plt.savefig('../gosnr_vs_power.eps', format='eps')
+# plt.savefig('../../gosnr_vs_power_srs.eps', format='eps')
 print("=%=%=%=%=%=%=%")
 print(rx_osnr)
 print(rx_gosnr)
-# plt.show()
+plt.show()

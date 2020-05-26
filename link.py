@@ -399,14 +399,14 @@ class Link(object):
         for signal, value in _nonlinear_noise.items():
             out_noise[signal] = value + nonlinear_noise_new[signal]
 
-        # # Looking at the recently accumulated nonlinear noise
-        # json_struct = {'tests': []}
-        # nli_id = 'nli_' + str(self.nli_id)
-        # json_struct['tests'].append({nli_id: list(out_noise.values())})
-        # json_file_name = '../../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        # with open(json_file_name, 'w+') as outfile:
-        #     json.dump(json_struct, outfile)
-        # self.nli_id += 1
+        # Looking at the recently accumulated nonlinear noise
+        json_struct = {'tests': []}
+        nli_id = 'nli_' + str(self.nli_id)
+        json_struct['tests'].append({nli_id: list(out_noise.values())})
+        json_file_name = '../../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        with open(json_file_name, 'w+') as outfile:
+            json.dump(json_struct, outfile)
+        self.nli_id += 1
         return out_noise
 
     def output_nonlinear_noise_qot(self, _nonlinear_noise, signal_power_progress, signals, span, amplifier):
@@ -632,56 +632,6 @@ class Link(object):
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
         return nonlinear_noise_struct
-
-    # def gn_analytic(self, optical_signals, signal_power_progress, span):
-    #     """ Computes the nonlinear interference power on a single carrier.
-    #     Translated from the GNPy project source code
-    #     The method uses eq. 120 from arXiv:1209.0394.
-    #     :param optical_signals:
-    #     :param signal_power_progress:
-    #     :param span:
-    #     :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
-    #     """
-    #
-    #     nonlinear_noise_struct = {}
-    #     channels_index = []
-    #     index_to_signal = {}
-    #     for channel in optical_signals:
-    #         nonlinear_noise_struct[channel] = None
-    #         channels_index.append(channel.index)
-    #         index_to_signal[channel.index] = channel
-    #     alpha_ = span.alpha
-    #     alpha = span.alpha_
-    #     beta2 = span.dispersion_coefficient
-    #     gamma = span.non_linear_coefficient
-    #     effective_length_ = span.effective_length
-    #     effective_length = span.effective_length_
-    #     asymptotic_length_ = 1 / alpha
-    #     asymptotic_length = 1 / (2 * alpha)
-    #
-    #     optical_signal = optical_signals[0]
-    #     channel_under_test = optical_signal.index
-    #     symbol_rate_cut = optical_signal.symbol_rate
-    #     bw_cut = symbol_rate_cut
-    #     pwr_cut = round(signal_power_progress[optical_signal], 2) * 1e-3
-    #     g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
-    #
-    #     g_nli = 0
-    #     for ch in optical_signals:
-    #         symbol_rate_ch = ch.symbol_rate
-    #         bw_ch = symbol_rate_ch
-    #         pwr_ch = round(signal_power_progress[ch], 2) * 1e-3
-    #         g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
-    #         # delta_factor = 1 if ch.frequency == optical_signal.frequency else 1
-    #         psi = self._psi_gnpy(optical_signal, ch, beta2=beta2,
-    #                              asymptotic_length=asymptotic_length)
-    #         g_nli += g_ch ** 2 * g_cut * psi
-    #
-    #     g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 \
-    #              / (2 * np.pi * abs(beta2) * asymptotic_length)
-    #     signal_under_test = index_to_signal[channel_under_test]
-    #     nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
-    #     return nonlinear_noise_struct
 
     @staticmethod
     def _psi(carrier, interfering_carrier, beta2, asymptotic_length):
