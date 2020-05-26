@@ -1,5 +1,5 @@
 """
-Development testing file.
+Testing file for nonlinear noise accumulation.
 """
 import numpy as np
 import json
@@ -16,7 +16,7 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-dir = '../monitoring-nli-noise/'
+dir = '../../monitoring-nli-noise/'
 
 nli = []
 for file in os.listdir(dir):
@@ -28,9 +28,12 @@ for file in os.listdir(dir):
 
 db_nli = []
 for n in nli:
-    tmp = [abs_to_db(i * 1.0e0) for i in n]
+    tmp = [abs_to_db(i) for i in n]
     db_nli.append(tmp)
 
 for v in db_nli:
-    plt.plot(v, marker='*')
+    plt.plot(v)
+
+plt.ylabel("Nonlinear noise [dB]")
+plt.xlabel("Channel index")
 plt.show()

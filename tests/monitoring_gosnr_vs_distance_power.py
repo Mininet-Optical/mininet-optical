@@ -32,13 +32,13 @@ def abs_to_db(absolute_value):
 
 
 power_levels = list(np.arange(-7, 3, 1))
-plotting_osnr = {4: [], 32: []}
-plotting_gosnr = {4: [], 32: []}
-plotting_gosnr_4000 = {4: [], 32: []}
-plotting_theo = {4: [], 32: []}
+plotting_osnr = {3: [], 7: []}
+plotting_gosnr = {3: [], 7: []}
+plotting_gosnr_4000 = {3: [], 7: []}
+plotting_theo = {3: [], 7: []}
 
 
-w_num = [4, 32]
+w_num = [3, 7]
 
 for wnm in w_num:
     for p in power_levels:

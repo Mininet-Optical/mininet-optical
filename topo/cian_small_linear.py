@@ -50,7 +50,7 @@ class CIANSmallLinear:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6,
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0,
                                           wavelength_dependent_gain_id='wdg1', boost=True)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
@@ -85,7 +85,7 @@ class CIANSmallLinear:
 
             # bidirectional
             boost_label = boost_lab + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
-            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=6,
+            boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0,
                                           wavelength_dependent_gain_id='wdg1', boost=True)
             link_r2_r1 = net.add_link(name_to_roadm[rl_2],
                                       name_to_roadm[rl_1],

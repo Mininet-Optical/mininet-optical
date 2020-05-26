@@ -32,7 +32,7 @@ class RingTopology:
         """
         # Link between ROADM1 and ROADM2 - 100 km
         # and the bidirectional (independent) link
-        boost_roadm1_roadm2 = net.add_amplifier('boost_roadm1_roadm2', 'EDFA', target_gain=6, boost=True)
+        boost_roadm1_roadm2 = net.add_amplifier('boost_roadm1_roadm2', 'EDFA', target_gain=17.0, boost=True)
         l_roadm1_roadm2 = net.add_link(name_to_roadm['roadm_1'],
                                        name_to_roadm['roadm_2'],
                                        boost_amp=boost_roadm1_roadm2)
@@ -44,7 +44,7 @@ class RingTopology:
         net.add_monitor('opm_s1_roadm1_roadm2', link=l_roadm1_roadm2,
                         span=s1_l_roadm1_roadm2, amplifier=amp1_l_roadm1_roadm2)
 
-        boost_roadm2_roadm1 = net.add_amplifier('boost_roadm2_roadm1', 'EDFA', target_gain=6, boost=True)
+        boost_roadm2_roadm1 = net.add_amplifier('boost_roadm2_roadm1', 'EDFA', target_gain=17.0, boost=True)
         l_roadm2_roadm1 = net.add_link(name_to_roadm['roadm_2'],
                                        name_to_roadm['roadm_1'],
                                        boost_amp=boost_roadm2_roadm1)
@@ -58,7 +58,7 @@ class RingTopology:
 
         # Link between ROADM1 and ROADM3 - 100 km
         # and the bidirectional (independent) link
-        boost_roadm1_roadm3 = net.add_amplifier('boost_roadm1_roadm3', 'EDFA', target_gain=6, boost=True)
+        boost_roadm1_roadm3 = net.add_amplifier('boost_roadm1_roadm3', 'EDFA', target_gain=17.0, boost=True)
         l_roadm1_roadm3 = net.add_link(name_to_roadm['roadm_1'],
                                        name_to_roadm['roadm_3'],
                                        boost_amp=boost_roadm1_roadm3)
@@ -70,7 +70,7 @@ class RingTopology:
         net.add_monitor('opm_s1_roadm1_roadm3', link=l_roadm1_roadm3,
                         span=s1_l_roadm1_roadm3, amplifier=amp1_l_roadm1_roadm3)
 
-        boost_roadm3_roadm1 = net.add_amplifier('boost_roadm3_roadm1', 'EDFA', target_gain=6, boost=True)
+        boost_roadm3_roadm1 = net.add_amplifier('boost_roadm3_roadm1', 'EDFA', target_gain=17.0, boost=True)
         l_roadm3_roadm1 = net.add_link(name_to_roadm['roadm_3'],
                                        name_to_roadm['roadm_1'],
                                        boost_amp=boost_roadm3_roadm1)
@@ -84,7 +84,7 @@ class RingTopology:
 
         # Link between ROADM2 and ROADM3 - 100 km
         # and the bidirectional (independent) link
-        boost_roadm2_roadm3 = net.add_amplifier('boost_roadm2_roadm3', 'EDFA', target_gain=6, boost=True)
+        boost_roadm2_roadm3 = net.add_amplifier('boost_roadm2_roadm3', 'EDFA', target_gain=17.0, boost=True)
         l_roadm2_roadm3 = net.add_link(name_to_roadm['roadm_2'],
                                        name_to_roadm['roadm_3'],
                                        boost_amp=boost_roadm2_roadm3)
@@ -96,7 +96,7 @@ class RingTopology:
         net.add_monitor('opm_s1_roadm2_roadm3', link=l_roadm2_roadm3,
                         span=s1_l_roadm2_roadm3, amplifier=amp1_l_roadm2_roadm3)
 
-        boost_roadm3_roadm2 = net.add_amplifier('boost_roadm3_roadm2', 'EDFA', target_gain=6, boost=True)
+        boost_roadm3_roadm2 = net.add_amplifier('boost_roadm3_roadm2', 'EDFA', target_gain=17.0, boost=True)
         l_roadm3_roadm2 = net.add_link(name_to_roadm['roadm_3'],
                                        name_to_roadm['roadm_2'],
                                        boost_amp=boost_roadm3_roadm2)

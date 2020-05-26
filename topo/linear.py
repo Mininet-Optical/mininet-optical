@@ -5,7 +5,7 @@ from link import Span
 class LinearTopology:
 
     @staticmethod
-    def build(op=-2, non=3):
+    def build(op=0, non=3):
         """
         :param op: operational power in dBm
         :param non: number of nodes (integer)

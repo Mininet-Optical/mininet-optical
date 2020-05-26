@@ -50,7 +50,7 @@ class DeutscheTelekom:
         """
         # Link between Berlin and Hamburg - 306.3 km
         # and the bidirectional (independent) link
-        boost_berlin_hamburg = net.add_amplifier('boost_berlin_hamburg', 'EDFA', target_gain=6, boost=True)
+        boost_berlin_hamburg = net.add_amplifier('boost_berlin_hamburg', 'EDFA', target_gain=17.0, boost=True)
         l_berlin_hamburg = net.add_link(name_to_roadm['roadm_berlin'],
                                         name_to_roadm['roadm_hamburg'],
                                         boost_amp=boost_berlin_hamburg)
@@ -67,7 +67,7 @@ class DeutscheTelekom:
         amp4_l_berlin_hamburg = net.add_amplifier('amp4_l_berlin_hamburg', 'EDFA', target_gain=7.4)
         l_berlin_hamburg.add_span(s4_l_berlin_hamburg, amp4_l_berlin_hamburg)
 
-        boost_hamburg_berlin = net.add_amplifier('boost_hamburg_berlin', 'EDFA', target_gain=6, boost=True)
+        boost_hamburg_berlin = net.add_amplifier('boost_hamburg_berlin', 'EDFA', target_gain=17.0, boost=True)
         l_hamburg_berlin = net.add_link(name_to_roadm['roadm_hamburg'],
                                         name_to_roadm['roadm_berlin'],
                                         boost_amp=boost_hamburg_berlin)
@@ -86,7 +86,7 @@ class DeutscheTelekom:
 
         # Link between Berlin and Hannover - 294.9 km
         # and the bidirectional (independent) link
-        boost_berlin_hannover = net.add_amplifier('boost_berlin_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_berlin_hannover = net.add_amplifier('boost_berlin_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_berlin_hannover = net.add_link(name_to_roadm['roadm_berlin'],
                                          name_to_roadm['roadm_hannover'],
                                          boost_amp=boost_berlin_hannover)
@@ -103,7 +103,7 @@ class DeutscheTelekom:
         amp4_l_berlin_hannover = net.add_amplifier('amp4_l_berlin_hannover', 'EDFA', target_gain=13.18)
         l_berlin_hannover.add_span(s4_l_berlin_hannover, amp4_l_berlin_hannover)
 
-        boost_hannover_berlin = net.add_amplifier('boost_hannover_berlin', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_berlin = net.add_amplifier('boost_hannover_berlin', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_berlin = net.add_link(name_to_roadm['roadm_hannover'],
                                          name_to_roadm['roadm_berlin'],
                                          boost_amp=boost_hannover_berlin)
@@ -122,7 +122,7 @@ class DeutscheTelekom:
 
         # Link between Berlin and Leipzig - 173.3 km
         # and the bidirectional (independent) link
-        boost_berlin_leipzig = net.add_amplifier('boost_berlin_leipzig', 'EDFA', target_gain=6, boost=True)
+        boost_berlin_leipzig = net.add_amplifier('boost_berlin_leipzig', 'EDFA', target_gain=17.0, boost=True)
         l_berlin_leipzig = net.add_link(name_to_roadm['roadm_berlin'],
                                         name_to_roadm['roadm_leipzig'],
                                         boost_amp=boost_berlin_leipzig)
@@ -136,7 +136,7 @@ class DeutscheTelekom:
         amp3_l_berlin_leipzig = net.add_amplifier('amp3_l_berlin_leipzig', 'EDFA', target_gain=2.9)
         l_berlin_leipzig.add_span(s3_l_berlin_leipzig, amp3_l_berlin_leipzig)
 
-        boost_leipzig_berlin = net.add_amplifier('boost_leipzig_berlin', 'EDFA', target_gain=6, boost=True)
+        boost_leipzig_berlin = net.add_amplifier('boost_leipzig_berlin', 'EDFA', target_gain=17.0, boost=True)
         l_leipzig_berlin = net.add_link(name_to_roadm['roadm_leipzig'],
                                         name_to_roadm['roadm_berlin'],
                                         boost_amp=boost_leipzig_berlin)
@@ -147,12 +147,12 @@ class DeutscheTelekom:
         amp2_l_leipzig_berlin = net.add_amplifier('amp2_l_leipzig_berlin', 'EDFA', target_gain=17.6)
         l_leipzig_berlin.add_span(s2_l_leipzig_berlin, amp2_l_leipzig_berlin)
         s3_l_leipzig_berlin = Span('SMF', 13.3)
-        amp3_l_leipzig_berlin = net.add_amplifier('amp3_l_leipzig_berlin', 'EDFA', target_gain=6)
+        amp3_l_leipzig_berlin = net.add_amplifier('amp3_l_leipzig_berlin', 'EDFA', target_gain=17.0)
         l_leipzig_berlin.add_span(s3_l_leipzig_berlin, amp3_l_leipzig_berlin)
 
         # Link between Bremen and Hamburg - 114.7 km
         # and the bidirectional (independent) link
-        boost_bremen_hamburg = net.add_amplifier('boost_bremen_hamburg', 'EDFA', target_gain=6, boost=True)
+        boost_bremen_hamburg = net.add_amplifier('boost_bremen_hamburg', 'EDFA', target_gain=17.0, boost=True)
         l_bremen_hamburg = net.add_link(name_to_roadm['roadm_bremen'],
                                         name_to_roadm['roadm_hamburg'],
                                         boost_amp=boost_bremen_hamburg)
@@ -163,7 +163,7 @@ class DeutscheTelekom:
         amp2_l_bremen_hamburg = net.add_amplifier('amp2_l_bremen_hamburg', 'EDFA', target_gain=7.63)
         l_bremen_hamburg.add_span(s2_l_bremen_hamburg, amp2_l_bremen_hamburg)
 
-        boost_hamburg_bremen = net.add_amplifier('boost_hamburg_bremen', 'EDFA', target_gain=6, boost=True)
+        boost_hamburg_bremen = net.add_amplifier('boost_hamburg_bremen', 'EDFA', target_gain=17.0, boost=True)
         l_hamburg_bremen = net.add_link(name_to_roadm['roadm_hamburg'],
                                         name_to_roadm['roadm_bremen'],
                                         boost_amp=boost_hamburg_bremen)
@@ -176,7 +176,7 @@ class DeutscheTelekom:
 
         # Link between Bremen and Hannover - 121.3 km
         # and the bidirectional (independent) link
-        boost_bremen_hannover = net.add_amplifier('boost_bremen_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_bremen_hannover = net.add_amplifier('boost_bremen_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_bremen_hannover = net.add_link(name_to_roadm['roadm_bremen'],
                                          name_to_roadm['roadm_hannover'],
                                          boost_amp=boost_bremen_hannover)
@@ -187,7 +187,7 @@ class DeutscheTelekom:
         amp2_l_bremen_hannover = net.add_amplifier('amp2_l_bremen_hannover', 'EDFA', target_gain=9.1)
         l_bremen_hannover.add_span(s2_l_bremen_hannover, amp2_l_bremen_hannover)
 
-        boost_hannover_bremen = net.add_amplifier('boost_hannover_bremen', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_bremen = net.add_amplifier('boost_hannover_bremen', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_bremen = net.add_link(name_to_roadm['roadm_hannover'],
                                          name_to_roadm['roadm_bremen'],
                                          boost_amp=boost_hannover_bremen)
@@ -200,7 +200,7 @@ class DeutscheTelekom:
 
         # Link between Bremen and Essen - 278.5 km
         # and the bidirectional (independent) link
-        boost_bremen_essen = net.add_amplifier('boost_bremen_essen', 'EDFA', target_gain=6, boost=True)
+        boost_bremen_essen = net.add_amplifier('boost_bremen_essen', 'EDFA', target_gain=17.0, boost=True)
         l_bremen_essen = net.add_link(name_to_roadm['roadm_bremen'],
                                       name_to_roadm['roadm_essen'],
                                       boost_amp=boost_bremen_essen)
@@ -217,7 +217,7 @@ class DeutscheTelekom:
         amp4_l_bremen_essen = net.add_amplifier('amp4_l_bremen_essen', 'EDFA', target_gain=8.5)
         l_bremen_essen.add_span(s4_l_bremen_essen, amp4_l_bremen_essen)
 
-        boost_essen_bremen = net.add_amplifier('boost_essen_bremen', 'EDFA', target_gain=6, boost=True)
+        boost_essen_bremen = net.add_amplifier('boost_essen_bremen', 'EDFA', target_gain=17.0, boost=True)
         l_essen_bremen = net.add_link(name_to_roadm['roadm_essen'],
                                       name_to_roadm['roadm_bremen'],
                                       boost_amp=boost_essen_bremen)
@@ -236,7 +236,7 @@ class DeutscheTelekom:
 
         # Link between Dortmund and Essen - 37.4 km
         # and the bidirectional (independent) link
-        boost_dortmund_essen = net.add_amplifier('boost_dortmund_essen', 'EDFA', target_gain=6, boost=True)
+        boost_dortmund_essen = net.add_amplifier('boost_dortmund_essen', 'EDFA', target_gain=17.0, boost=True)
         l_dortmund_essen = net.add_link(name_to_roadm['roadm_dortmund'],
                                         name_to_roadm['roadm_essen'],
                                         boost_amp=boost_dortmund_essen)
@@ -244,7 +244,7 @@ class DeutscheTelekom:
         amp1_l_dortmund_essen = net.add_amplifier('amp1_l_dortmund_essen', 'EDFA', target_gain=8.2)
         l_dortmund_essen.add_span(s1_l_dortmund_essen, amp1_l_dortmund_essen)
 
-        boost_essen_dortmund = net.add_amplifier('boost_essen_dortmund', 'EDFA', target_gain=6, boost=True)
+        boost_essen_dortmund = net.add_amplifier('boost_essen_dortmund', 'EDFA', target_gain=17.0, boost=True)
         l_essen_dortmund = net.add_link(name_to_roadm['roadm_essen'],
                                         name_to_roadm['roadm_dortmund'],
                                         boost_amp=boost_essen_dortmund)
@@ -254,7 +254,7 @@ class DeutscheTelekom:
 
         # Link between Dortmund and Hannover - 220.4 km
         # and the bidirectional (independent) link
-        boost_dortmund_hannover = net.add_amplifier('boost_dortmund_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_dortmund_hannover = net.add_amplifier('boost_dortmund_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_dortmund_hannover = net.add_link(name_to_roadm['roadm_dortmund'],
                                            name_to_roadm['roadm_hannover'],
                                            boost_amp=boost_dortmund_hannover)
@@ -268,7 +268,7 @@ class DeutscheTelekom:
         amp3_l_dortmund_hannover = net.add_amplifier('amp3_l_dortmund_hannover', 'EDFA', target_gain=13.3)
         l_dortmund_hannover.add_span(s3_l_dortmund_hannover, amp3_l_dortmund_hannover)
 
-        boost_hannover_dortmund = net.add_amplifier('boost_hannover_dortmund', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_dortmund = net.add_amplifier('boost_hannover_dortmund', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_dortmund = net.add_link(name_to_roadm['roadm_hannover'],
                                            name_to_roadm['roadm_dortmund'],
                                            boost_amp=boost_hannover_dortmund)
@@ -284,7 +284,7 @@ class DeutscheTelekom:
 
         # Link between Dortmund and Koln - 84.3 km
         # and the bidirectional (independent) link
-        boost_dortmund_koln = net.add_amplifier('boost_dortmund_koln', 'EDFA', target_gain=6, boost=True)
+        boost_dortmund_koln = net.add_amplifier('boost_dortmund_koln', 'EDFA', target_gain=17.0, boost=True)
         l_dortmund_koln = net.add_link(name_to_roadm['roadm_dortmund'],
                                        name_to_roadm['roadm_koln'],
                                        boost_amp=boost_dortmund_koln)
@@ -292,7 +292,7 @@ class DeutscheTelekom:
         amp1_l_dortmund_koln = net.add_amplifier('amp1_l_dortmund_koln', 'EDFA', target_gain=18.6)
         l_dortmund_koln.add_span(s1_l_dortmund_koln, amp1_l_dortmund_koln)
 
-        boost_koln_dortmund = net.add_amplifier('boost_koln_dortmund', 'EDFA', target_gain=6, boost=True)
+        boost_koln_dortmund = net.add_amplifier('boost_koln_dortmund', 'EDFA', target_gain=17.0, boost=True)
         l_koln_dortmund = net.add_link(name_to_roadm['roadm_koln'],
                                        name_to_roadm['roadm_dortmund'],
                                        boost_amp=boost_koln_dortmund)
@@ -302,7 +302,7 @@ class DeutscheTelekom:
 
         # Link between Dusseldorf and Essen - 36.9 km
         # and the bidirectional (independent) link
-        boost_dusseldorf_essen = net.add_amplifier('boost_dusseldorf_essen', 'EDFA', target_gain=6, boost=True)
+        boost_dusseldorf_essen = net.add_amplifier('boost_dusseldorf_essen', 'EDFA', target_gain=17.0, boost=True)
         l_dusseldorf_essen = net.add_link(name_to_roadm['roadm_dusseldorf'],
                                           name_to_roadm['roadm_essen'],
                                           boost_amp=boost_dusseldorf_essen)
@@ -310,7 +310,7 @@ class DeutscheTelekom:
         amp1_l_dusseldorf_essen = net.add_amplifier('amp1_l_dusseldorf_essen', 'EDFA', target_gain=8.1)
         l_dusseldorf_essen.add_span(s1_l_dusseldorf_essen, amp1_l_dusseldorf_essen)
 
-        boost_essen_dusseldorf = net.add_amplifier('boost_essen_dusseldorf', 'EDFA', target_gain=6, boost=True)
+        boost_essen_dusseldorf = net.add_amplifier('boost_essen_dusseldorf', 'EDFA', target_gain=17.0, boost=True)
         l_essen_dusseldorf = net.add_link(name_to_roadm['roadm_essen'],
                                           name_to_roadm['roadm_dusseldorf'],
                                           boost_amp=boost_essen_dusseldorf)
@@ -320,7 +320,7 @@ class DeutscheTelekom:
 
         # Link between Dusseldorf and Koln - 40.9 km
         # and the bidirectional (independent) link
-        boost_dusseldorf_koln = net.add_amplifier('boost_dusseldorf_koln', 'EDFA', target_gain=6, boost=True)
+        boost_dusseldorf_koln = net.add_amplifier('boost_dusseldorf_koln', 'EDFA', target_gain=17.0, boost=True)
         l_dusseldorf_koln = net.add_link(name_to_roadm['roadm_dusseldorf'],
                                          name_to_roadm['roadm_koln'],
                                          boost_amp=boost_dusseldorf_koln)
@@ -328,7 +328,7 @@ class DeutscheTelekom:
         amp1_l_dusseldorf_koln = net.add_amplifier('amp1_l_dusseldorf_koln', 'EDFA', target_gain=9)
         l_dusseldorf_koln.add_span(s1_l_dusseldorf_koln, amp1_l_dusseldorf_koln)
 
-        boost_koln_dusseldorf = net.add_amplifier('boost_koln_dusseldorf', 'EDFA', target_gain=6, boost=True)
+        boost_koln_dusseldorf = net.add_amplifier('boost_koln_dusseldorf', 'EDFA', target_gain=17.0, boost=True)
         l_koln_dusseldorf = net.add_link(name_to_roadm['roadm_koln'],
                                          name_to_roadm['roadm_dusseldorf'],
                                          boost_amp=boost_koln_dusseldorf)
@@ -338,7 +338,7 @@ class DeutscheTelekom:
 
         # Link between Frankfurt and Hannover - 313.9 km
         # and the bidirectional (independent) link
-        boost_frankfurt_hannover = net.add_amplifier('boost_frankfurt_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_frankfurt_hannover = net.add_amplifier('boost_frankfurt_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_frankfurt_hannover = net.add_link(name_to_roadm['roadm_frankfurt'],
                                             name_to_roadm['roadm_hannover'],
                                             boost_amp=boost_frankfurt_hannover)
@@ -355,7 +355,7 @@ class DeutscheTelekom:
         amp4_l_frankfurt_hannover = net.add_amplifier('amp4_l_frankfurt_hannover', 'EDFA', target_gain=16.3)
         l_frankfurt_hannover.add_span(s4_l_frankfurt_hannover, amp4_l_frankfurt_hannover)
 
-        boost_hannover_frankfurt = net.add_amplifier('boost_hannover_frankfurt', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_frankfurt = net.add_amplifier('boost_hannover_frankfurt', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_frankfurt = net.add_link(name_to_roadm['roadm_hannover'],
                                             name_to_roadm['roadm_frankfurt'],
                                             boost_amp=boost_hannover_frankfurt)
@@ -374,7 +374,7 @@ class DeutscheTelekom:
 
         # Link between Frankfurt and Koln - 182 km
         # and the bidirectional (independent) link
-        boost_frankfurt_koln = net.add_amplifier('boost_frankfurt_koln', 'EDFA', target_gain=6, boost=True)
+        boost_frankfurt_koln = net.add_amplifier('boost_frankfurt_koln', 'EDFA', target_gain=17.0, boost=True)
         l_frankfurt_koln = net.add_link(name_to_roadm['roadm_frankfurt'],
                                         name_to_roadm['roadm_koln'],
                                         boost_amp=boost_frankfurt_koln)
@@ -388,7 +388,7 @@ class DeutscheTelekom:
         amp3_l_frankfurt_koln = net.add_amplifier('amp3_l_frankfurt_koln', 'EDFA', target_gain=4.9)
         l_frankfurt_koln.add_span(s3_l_frankfurt_koln, amp3_l_frankfurt_koln)
 
-        boost_koln_frankfurt = net.add_amplifier('boost_koln_frankfurt', 'EDFA', target_gain=6, boost=True)
+        boost_koln_frankfurt = net.add_amplifier('boost_koln_frankfurt', 'EDFA', target_gain=17.0, boost=True)
         l_koln_frankfurt = net.add_link(name_to_roadm['roadm_koln'],
                                         name_to_roadm['roadm_frankfurt'],
                                         boost_amp=boost_koln_frankfurt)
@@ -427,7 +427,7 @@ class DeutscheTelekom:
 
         # Link between Frankfurt and Leipzig - 313.9 km
         # and the bidirectional (independent) link
-        boost_frankfurt_leipzig = net.add_amplifier('boost_frankfurt_leipzig', 'EDFA', target_gain=6, boost=True)
+        boost_frankfurt_leipzig = net.add_amplifier('boost_frankfurt_leipzig', 'EDFA', target_gain=17.0, boost=True)
         l_frankfurt_leipzig = net.add_link(name_to_roadm['roadm_frankfurt'],
                                            name_to_roadm['roadm_leipzig'],
                                            boost_amp=boost_frankfurt_leipzig)
@@ -444,7 +444,7 @@ class DeutscheTelekom:
         amp4_l_frankfurt_leipzig = net.add_amplifier('amp4_l_frankfurt_leipzig', 'EDFA', target_gain=16.3)
         l_frankfurt_leipzig.add_span(s4_l_frankfurt_leipzig, amp4_l_frankfurt_leipzig)
 
-        boost_leipzig_frankfurt = net.add_amplifier('boost_leipzig_frankfurt', 'EDFA', target_gain=6, boost=True)
+        boost_leipzig_frankfurt = net.add_amplifier('boost_leipzig_frankfurt', 'EDFA', target_gain=17.0, boost=True)
         l_leipzig_frankfurt = net.add_link(name_to_roadm['roadm_leipzig'],
                                            name_to_roadm['roadm_frankfurt'],
                                            boost_amp=boost_leipzig_frankfurt)
@@ -463,7 +463,7 @@ class DeutscheTelekom:
 
         # Link between Frankfurt and Nurnberg - 224.1 km
         # and the bidirectional (independent) link
-        boost_frankfurt_nurnberg = net.add_amplifier('boost_frankfurt_nurnberg', 'EDFA', target_gain=6, boost=True)
+        boost_frankfurt_nurnberg = net.add_amplifier('boost_frankfurt_nurnberg', 'EDFA', target_gain=17.0, boost=True)
         l_frankfurt_nurnberg = net.add_link(name_to_roadm['roadm_frankfurt'],
                                             name_to_roadm['roadm_nurnberg'],
                                             boost_amp=boost_frankfurt_nurnberg)
@@ -495,7 +495,7 @@ class DeutscheTelekom:
         net.add_monitor('verification_opm11', link=l_frankfurt_nurnberg,
                         span=s5_l_frankfurt_nurnberg, amplifier=amp5_l_frankfurt_nurnberg)
 
-        boost_nurnberg_frankfurt = net.add_amplifier('boost_nurnberg_frankfurt', 'EDFA', target_gain=6, boost=True)
+        boost_nurnberg_frankfurt = net.add_amplifier('boost_nurnberg_frankfurt', 'EDFA', target_gain=17.0, boost=True)
         l_nurnberg_frankfurt = net.add_link(name_to_roadm['roadm_nurnberg'],
                                             name_to_roadm['roadm_frankfurt'],
                                             boost_amp=boost_nurnberg_frankfurt)
@@ -511,7 +511,7 @@ class DeutscheTelekom:
 
         # Link between Frankfurt and Stuttgart - 207.4 km
         # and the bidirectional (independent) link
-        boost_frankfurt_stuttgart = net.add_amplifier('boost_frankfurt_stuttgart', 'EDFA', target_gain=6, boost=True)
+        boost_frankfurt_stuttgart = net.add_amplifier('boost_frankfurt_stuttgart', 'EDFA', target_gain=17.0, boost=True)
         l_frankfurt_stuttgart = net.add_link(name_to_roadm['roadm_frankfurt'],
                                              name_to_roadm['roadm_stuttgart'],
                                              boost_amp=boost_frankfurt_stuttgart)
@@ -525,7 +525,7 @@ class DeutscheTelekom:
         amp3_l_frankfurt_stuttgart = net.add_amplifier('amp3_l_frankfurt_stuttgart', 'EDFA', target_gain=10.4)
         l_frankfurt_stuttgart.add_span(s3_l_frankfurt_stuttgart, amp3_l_frankfurt_stuttgart)
 
-        boost_stuttgart_frankfurt = net.add_amplifier('boost_stuttgart_frankfurt', 'EDFA', target_gain=6, boost=True)
+        boost_stuttgart_frankfurt = net.add_amplifier('boost_stuttgart_frankfurt', 'EDFA', target_gain=17.0, boost=True)
         l_stuttgart_frankfurt = net.add_link(name_to_roadm['roadm_stuttgart'],
                                              name_to_roadm['roadm_frankfurt'],
                                              boost_amp=boost_stuttgart_frankfurt)
@@ -541,7 +541,7 @@ class DeutscheTelekom:
 
         # Link between Hamburg and Hannover - 160.9 km
         # and the bidirectional (independent) link
-        boost_hamburg_hannover = net.add_amplifier('boost_hamburg_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_hamburg_hannover = net.add_amplifier('boost_hamburg_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_hamburg_hannover = net.add_link(name_to_roadm['roadm_hamburg'],
                                           name_to_roadm['roadm_hannover'],
                                           boost_amp=boost_hamburg_hannover)
@@ -552,7 +552,7 @@ class DeutscheTelekom:
         amp2_l_hamburg_hannover = net.add_amplifier('amp2_l_hamburg_hannover', 'EDFA', target_gain=17.8)
         l_hamburg_hannover.add_span(s2_l_hamburg_hannover, amp2_l_hamburg_hannover)
 
-        boost_hannover_hamburg = net.add_amplifier('boost_hannover_hamburg', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_hamburg = net.add_amplifier('boost_hannover_hamburg', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_hamburg = net.add_link(name_to_roadm['roadm_hannover'],
                                           name_to_roadm['roadm_hamburg'],
                                           boost_amp=boost_hannover_hamburg)
@@ -565,7 +565,7 @@ class DeutscheTelekom:
 
         # Link between Hannover and Leipzig - 257.2 km
         # and the bidirectional (independent) link
-        boost_hannover_leipzig = net.add_amplifier('boost_hannover_leipzig', 'EDFA', target_gain=6, boost=True)
+        boost_hannover_leipzig = net.add_amplifier('boost_hannover_leipzig', 'EDFA', target_gain=17.0, boost=True)
         l_hannover_leipzig = net.add_link(name_to_roadm['roadm_hannover'],
                                           name_to_roadm['roadm_leipzig'],
                                           boost_amp=boost_hannover_leipzig)
@@ -582,7 +582,7 @@ class DeutscheTelekom:
         amp4_l_hannover_leipzig = net.add_amplifier('amp4_l_hannover_leipzig', 'EDFA', target_gain=3.8)
         l_hannover_leipzig.add_span(s4_l_hannover_leipzig, amp4_l_hannover_leipzig)
 
-        boost_leipzig_hannover = net.add_amplifier('boost_leipzig_hannover', 'EDFA', target_gain=6, boost=True)
+        boost_leipzig_hannover = net.add_amplifier('boost_leipzig_hannover', 'EDFA', target_gain=17.0, boost=True)
         l_leipzig_hannover = net.add_link(name_to_roadm['roadm_leipzig'],
                                           name_to_roadm['roadm_hannover'],
                                           boost_amp=boost_leipzig_hannover)
@@ -601,7 +601,7 @@ class DeutscheTelekom:
 
         # Link between Leipzig and Nurnberg - 274.7 km
         # and the bidirectional (independent) link
-        boost_leipzig_nurnberg = net.add_amplifier('boost_leipzig_nurnberg', 'EDFA', target_gain=6, boost=True)
+        boost_leipzig_nurnberg = net.add_amplifier('boost_leipzig_nurnberg', 'EDFA', target_gain=17.0, boost=True)
         l_leipzig_nurnberg = net.add_link(name_to_roadm['roadm_leipzig'],
                                           name_to_roadm['roadm_nurnberg'],
                                           boost_amp=boost_leipzig_nurnberg)
@@ -618,7 +618,7 @@ class DeutscheTelekom:
         amp4_l_leipzig_nurnberg = net.add_amplifier('amp4_l_leipzig_nurnberg', 'EDFA', target_gain=7.6)
         l_leipzig_nurnberg.add_span(s4_l_leipzig_nurnberg, amp4_l_leipzig_nurnberg)
 
-        boost_nurnberg_leipzig = net.add_amplifier('boost_nurnberg_leipzig', 'EDFA', target_gain=6, boost=True)
+        boost_nurnberg_leipzig = net.add_amplifier('boost_nurnberg_leipzig', 'EDFA', target_gain=17.0, boost=True)
         l_nurnberg_leipzig = net.add_link(name_to_roadm['roadm_nurnberg'],
                                           name_to_roadm['roadm_leipzig'],
                                           boost_amp=boost_nurnberg_leipzig)
@@ -637,7 +637,7 @@ class DeutscheTelekom:
 
         # Link between Munchen and Nurnberg - 180.8 km
         # and the bidirectional (independent) link
-        boost_munchen_nurnberg = net.add_amplifier('boost_munchen_nurnberg', 'EDFA', target_gain=6, boost=True)
+        boost_munchen_nurnberg = net.add_amplifier('boost_munchen_nurnberg', 'EDFA', target_gain=17.0, boost=True)
         l_munchen_nurnberg = net.add_link(name_to_roadm['roadm_munchen'],
                                           name_to_roadm['roadm_nurnberg'],
                                           boost_amp=boost_munchen_nurnberg)
@@ -651,7 +651,7 @@ class DeutscheTelekom:
         amp3_l_munchen_nurnberg = net.add_amplifier('amp3_l_munchen_nurnberg', 'EDFA', target_gain=4.6)
         l_munchen_nurnberg.add_span(s3_l_munchen_nurnberg, amp3_l_munchen_nurnberg)
 
-        boost_nurnberg_munchen = net.add_amplifier('boost_nurnberg_munchen', 'EDFA', target_gain=6, boost=True)
+        boost_nurnberg_munchen = net.add_amplifier('boost_nurnberg_munchen', 'EDFA', target_gain=17.0, boost=True)
         l_nurnberg_munchen = net.add_link(name_to_roadm['roadm_nurnberg'],
                                           name_to_roadm['roadm_munchen'],
                                           boost_amp=boost_nurnberg_munchen)
@@ -685,7 +685,7 @@ class DeutscheTelekom:
 
         # Link between Munchen and Ulm - 145.6 km
         # and the bidirectional (independent) link
-        boost_munchen_ulm = net.add_amplifier('boost_munchen_ulm', 'EDFA', target_gain=6, boost=True)
+        boost_munchen_ulm = net.add_amplifier('boost_munchen_ulm', 'EDFA', target_gain=17.0, boost=True)
         l_munchen_ulm = net.add_link(name_to_roadm['roadm_munchen'],
                                      name_to_roadm['roadm_ulm'],
                                      boost_amp=boost_munchen_ulm)
@@ -696,7 +696,7 @@ class DeutscheTelekom:
         amp2_l_munchen_ulm = net.add_amplifier('amp2_l_munchen_ulm', 'EDFA', target_gain=14.4)
         l_munchen_ulm.add_span(s2_l_munchen_ulm, amp2_l_munchen_ulm)
 
-        boost_ulm_munchen = net.add_amplifier('boost_ulm_munchen', 'EDFA', target_gain=6, boost=True)
+        boost_ulm_munchen = net.add_amplifier('boost_ulm_munchen', 'EDFA', target_gain=17.0, boost=True)
         l_ulm_munchen = net.add_link(name_to_roadm['roadm_ulm'],
                                      name_to_roadm['roadm_munchen'],
                                      boost_amp=boost_ulm_munchen)
@@ -709,7 +709,7 @@ class DeutscheTelekom:
 
         # Link between Nurnberg and Stuttgart - 188.7 km
         # and the bidirectional (independent) link
-        boost_nurnberg_stuttgart = net.add_amplifier('boost_nurnberg_stuttgart', 'EDFA', target_gain=6, boost=True)
+        boost_nurnberg_stuttgart = net.add_amplifier('boost_nurnberg_stuttgart', 'EDFA', target_gain=17.0, boost=True)
         l_nurnberg_stuttgart = net.add_link(name_to_roadm['roadm_nurnberg'],
                                             name_to_roadm['roadm_stuttgart'],
                                             boost_amp=boost_nurnberg_stuttgart)
@@ -723,7 +723,7 @@ class DeutscheTelekom:
         amp3_l_nurnberg_stuttgart = net.add_amplifier('amp3_l_nurnberg_stuttgart', 'EDFA', target_gain=3.3)
         l_nurnberg_stuttgart.add_span(s3_l_nurnberg_stuttgart, amp3_l_nurnberg_stuttgart)
 
-        boost_stuttgart_nurnberg = net.add_amplifier('boost_stuttgart_nurnberg', 'EDFA', target_gain=6, boost=True)
+        boost_stuttgart_nurnberg = net.add_amplifier('boost_stuttgart_nurnberg', 'EDFA', target_gain=17.0, boost=True)
         l_stuttgart_nurnberg = net.add_link(name_to_roadm['roadm_stuttgart'],
                                             name_to_roadm['roadm_nurnberg'],
                                             boost_amp=boost_stuttgart_nurnberg)
@@ -739,14 +739,14 @@ class DeutscheTelekom:
 
         # Link between Stuttgart and Ulm - 87.1 km
         # and the bidirectional (independent) link
-        boost_stuttgart_ulm = net.add_amplifier('boost_stuttgart_ulm', 'EDFA', target_gain=6, boost=True)
+        boost_stuttgart_ulm = net.add_amplifier('boost_stuttgart_ulm', 'EDFA', target_gain=17.0, boost=True)
         l_stuttgart_ulm = net.add_link(name_to_roadm['roadm_stuttgart'],
                                        name_to_roadm['roadm_ulm'], boost_amp=boost_stuttgart_ulm)
         s1_l_stuttgart_ulm = Span('SMF', 87.1)
         amp1_l_stuttgart_ulm = net.add_amplifier('amp1_l_stuttgart_ulm', 'EDFA', target_gain=19.2)
         l_stuttgart_ulm.add_span(s1_l_stuttgart_ulm, amp1_l_stuttgart_ulm)
 
-        boost_ulm_stuttgart = net.add_amplifier('boost_ulm_stuttgart', 'EDFA', target_gain=6, boost=True)
+        boost_ulm_stuttgart = net.add_amplifier('boost_ulm_stuttgart', 'EDFA', target_gain=17.0, boost=True)
         l_ulm_stuttgart = net.add_link(name_to_roadm['roadm_ulm'],
                                        name_to_roadm['roadm_stuttgart'],
                                        boost_amp=boost_ulm_stuttgart)
