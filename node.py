@@ -209,13 +209,15 @@ class LineTerminal(Node):
         # Retrieve transmission specifications to pass
         # to the signals to be installed
         spectrum_band = transceiver.spectrum_band
-        channel_spacing = transceiver.channel_spacing
+        channel_spacing_nm = transceiver.channel_spacing_nm
+        channel_spacing_H = transceiver.channel_spacing_H
         symbol_rate = transceiver.symbol_rate
         bits_per_symbol = transceiver.bits_per_symbol
         # list containing the new signals
         signals = []
         for channel in channels:
-            new_optical_signal = OpticalSignal(channel, spectrum_band, channel_spacing, symbol_rate, bits_per_symbol)
+            new_optical_signal = OpticalSignal(channel, spectrum_band, channel_spacing_H,
+                                               channel_spacing_nm, symbol_rate, bits_per_symbol)
             signals.append(new_optical_signal)
             # Associate signals to a transceiver/modulator
             self.transceiver_to_optical_signals[transceiver].append(new_optical_signal)
@@ -313,8 +315,9 @@ class LineTerminal(Node):
 
 class Transceiver(object):
     def __init__(self, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
-                 channel_spacing=0.4 * 1e-9, bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=0.032e12):
+                 channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
+                 bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
+                 bits_per_symbol=4.0, symbol_rate=32e9):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -327,7 +330,8 @@ class Transceiver(object):
         self.operation_power = db_to_abs(operation_power)  # operation power input in dBm to convert to linear
         self.spectrum_band = spectrum_band
         self.optical_carrier = optical_carrier
-        self.channel_spacing = channel_spacing
+        self.channel_spacing_nm = channel_spacing_nm
+        self.channel_spacing_H = channel_spacing_H
         self.bandwidth = bandwidth
         self.modulation_format = modulation_format
         self.bits_per_symbol = bits_per_symbol
@@ -342,20 +346,21 @@ class Transceiver(object):
 
 
 class OpticalSignal(object):
-    spectrum_band_init_nm = {'C': 1529.2}
-
     instances = {}
+    spectrum_band_init_nm = {'C': 1567.132556194459}
+    spectrum_band_init_H = {'C': 191.3e12}
 
-    def __init__(self, index, spectrum_band, channel_spacing,
-                 symbol_rate, bits_per_symbol, data=None):
+    def __init__(self, index, spectrum_band, channel_spacing_H,
+                 channel_spacing_nm, symbol_rate, bits_per_symbol, data=None):
         self.index = index
-        self.wavelength = self.spectrum_band_init_nm[spectrum_band] * unit.nm + index * channel_spacing
-        self.frequency = unit.c / self.wavelength
+        self.frequency = self.spectrum_band_init_H[spectrum_band] + (channel_spacing_H * index)
+        # AD: need to decide whether we allow for the declaration of the wavelengths
+        self.wavelength = unit.c / self.frequency
+        self.wavelength2 = self.spectrum_band_init_nm[spectrum_band] * unit.nm + index * channel_spacing_nm
         self.data = data
         self.symbol_rate = symbol_rate
         self.bits_per_symbol = bits_per_symbol
 
-        self.power_at_input_interface = {}
         self.power_at_output_interface = {}
         self.linear_noise_at_interface = {}
         self.nonlinear_noise_at_interface = {}
@@ -711,7 +716,7 @@ class Roadm(Node):
                         print('***DROP***')
 
 
-description_files_dir = 'description-files/'
+description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg2.txt'}
 # 'wdg2': 'wdg2.txt'}
