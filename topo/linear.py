@@ -33,48 +33,48 @@ class LinearTopology:
             bi_link = net.add_link(roadm, lt)
             bi_link.add_span(Span('SMF', 0.001), amplifier=None)
 
-        """
-            Create links between inter-city ROADM nodes
-        """
-        # Labels for object creation
-        us = '_'
-        boost_lab = 'boost'
-        amp_lab = 'amp'
-        roadm_lab = 'roadm'
-        opm_lab = 'opm'
-
         opm_i = 0
-        span_no = 6
+        # number of spans per link
+        span_no = 3
+        # span distance in km
+        span_distance = 80
+        # target gain
+        target_gain = 0.22 * span_distance
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected
-            r1 = i + 1  # ROADM 1 index
-            r2 = i + 2  # ROADM 2 index
-            boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
+            r1 = i + 1  # init node
+            r2 = i + 2  # next node
+            boost_label = 'boost_roadm' + str(r1) + '_roadm' + str(r2)  # label of boost amplifier
             # boost amplifier object
             boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0, boost=True)
-            rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
-            rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
+            # label of init node
+            rl_1 = 'roadm_' + str(r1)
+            # label of next node
+            rl_2 = 'roadm_' + str(r2)
             # link object
             link_r1_r2 = net.add_link(name_to_roadm[rl_1],
                                       name_to_roadm[rl_2],
                                       boost_amp=boost_amp)
-            opm_l = opm_lab + us + str(opm_i + 1)  # label OPM boost
+            opm_l = 'opm_' + str(opm_i + 1)  # label OPM boost
             # OPM object
             net.add_monitor(opm_l, link=None,
                             span=None, amplifier=boost_amp)
 
-            in_apm_no = 0  # id of in line amplifiers
-            opm_no = opm_i + 1  # id of OPM at end of spans
+            # id of in line amplifiers
+            in_apm_no = 0
+            # id of OPM at end of spans
+            opm_no = opm_i + 1
             for sp in range(span_no):
                 # Iterate through number of spans in link
                 # span object
-                span = Span('SMF', 80)
-                in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
+                span = Span('SMF', span_distance)
+                net.spans.append(span)
+                in_l = 'amp' + str(in_apm_no+1) + '_l_roadm' + str(r1) + '_roadm' + str(r2)
 
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=target_gain)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
-                opm_l = opm_lab + us + str(opm_no + 1)  # label OPM
+                opm_l = 'opm_' + str(opm_no + 1)  # label OPM
                 # OPM object
                 net.add_monitor(opm_l, link=link_r1_r2,
                                 span=span, amplifier=in_line_amp)
@@ -83,17 +83,17 @@ class LinearTopology:
                 # increment OPM count
                 opm_no = opm_no + 1
 
-            # bidirectional
-            boost_label = boost_lab + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
+            # bidirectional flows
+            boost_label = 'boost_roadm' + str(r2) + '_roadm' + str(r1)
             boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0, boost=True)
             link_r2_r1 = net.add_link(name_to_roadm[rl_2],
                                       name_to_roadm[rl_1],
                                       boost_amp=boost_amp)
             in_apm_no = 0
             for sp in range(span_no):
-                span = Span('SMF', 100)
-                in_l = amp_lab + str(in_apm_no + 1) + us + 'l' + us + roadm_lab + str(r2) + us + roadm_lab + str(r1)
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=22.0)
+                span = Span('SMF', span_distance)
+                in_l = 'amp' + str(in_apm_no + 1) + '_l_roadm' + str(r2) + '_roadm' + str(r1)
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=target_gain)
                 link_r2_r1.add_span(span, in_line_amp)
                 in_apm_no = in_apm_no + 1
 
