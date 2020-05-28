@@ -399,14 +399,14 @@ class Link(object):
         for signal, value in _nonlinear_noise.items():
             out_noise[signal] = value + nonlinear_noise_new[signal]
 
-        # Looking at the recently accumulated nonlinear noise
-        json_struct = {'tests': []}
-        nli_id = 'nli_' + str(self.nli_id)
-        json_struct['tests'].append({nli_id: list(out_noise.values())})
-        json_file_name = '../../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
-        with open(json_file_name, 'w+') as outfile:
-            json.dump(json_struct, outfile)
-        self.nli_id += 1
+        # # Looking at the recently accumulated nonlinear noise
+        # json_struct = {'tests': []}
+        # nli_id = 'nli_' + str(self.nli_id)
+        # json_struct['tests'].append({nli_id: list(out_noise.values())})
+        # json_file_name = '../../monitoring-nli-noise/' + str(self.id) + '_' + nli_id + '.json'
+        # with open(json_file_name, 'w+') as outfile:
+        #     json.dump(json_struct, outfile)
+        # self.nli_id += 1
         return out_noise
 
     def output_nonlinear_noise_qot(self, _nonlinear_noise, signal_power_progress, signals, span, amplifier):
@@ -622,13 +622,15 @@ class Link(object):
                 bw_ch = symbol_rate_ch
                 pwr_ch = round(signal_power_progress[ch], 2) * 1e-3
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
-                delta_factor = 1 if ch.frequency == optical_signal.frequency else 1
+                delta_factor = 1 if ch.frequency == optical_signal.frequency else 2
                 psi = self._psi_gnpy(optical_signal, ch, beta2=beta2,
                                      asymptotic_length=asymptotic_length)
                 g_nli += g_ch ** 2 * g_cut * psi
+                tmp = 0
 
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 \
                      / (2 * np.pi * abs(beta2) * asymptotic_length)
+            tmp = 0
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
         return nonlinear_noise_struct
@@ -669,12 +671,14 @@ class Link(object):
 
         if carrier.index == interfering_carrier.index:  # SCI, SPM
             psi = np.arcsinh(0.5 * unit.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
+            tmp = 0
         else:  # XCI, XPM
             delta_f = carrier.frequency - interfering_carrier.frequency
             psi = np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f + 0.5 * bw_ch))
             psi -= np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
+            tmp = 0
         return psi
 
     # ADDITIONS FOR OFC DEMO USE-CASES

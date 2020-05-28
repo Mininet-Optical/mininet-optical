@@ -33,8 +33,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -2
-p_end = 0
+p_start = 10
+p_end = 12
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
