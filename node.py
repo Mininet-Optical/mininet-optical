@@ -714,8 +714,8 @@ class Roadm(Node):
 
 description_files_dir = '../description-files/'
 description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt'}
-                     # 'wdg2': 'wdg2.txt',
+# description_files = {'wdg1': 'wdg1.txt',
+#                      'wdg2': 'wdg2.txt',
 #                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
 #                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -1091,6 +1091,17 @@ class Monitor(Node):
             optical_signals_list.append(self.get_gosnr(optical_signal))
         return optical_signals_list
 
+    def get_list_osnr_nli(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        optical_signals_list = []
+        for optical_signal in optical_signals:
+            optical_signals_list.append(self.get_osnr_nli(optical_signal))
+        return optical_signals_list
+
     def get_osnr(self, optical_signal):
         """
         Compute OSNR levels of the signal
@@ -1116,6 +1127,21 @@ class Monitor(Node):
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
         gosnr_linear = output_power / (ase_noise + nli_noise)
+        gosnr = abs_to_db(gosnr_linear)
+        return gosnr
+
+    def get_osnr_nli(self, optical_signal):
+        """
+        Compute gOSNR levels of the signal
+        :param optical_signal: OpticalSignal object
+        :return: gOSNR (linear)
+        """
+        output_power = self.amplifier.output_power[optical_signal]
+        if self.amplifier.boost:
+            nli_noise = self.amplifier.nonlinear_noise[optical_signal]
+        else:
+            nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
+        gosnr_linear = output_power / nli_noise
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
 

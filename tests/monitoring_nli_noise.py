@@ -4,7 +4,15 @@ Development testing file.
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
 import os
+
+
+del matplotlib.font_manager.weight_dict['roman']
+matplotlib.font_manager._rebuild()
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 16
 
 
 def abs_to_db(absolute_value):

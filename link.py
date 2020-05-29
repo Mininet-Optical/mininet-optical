@@ -600,27 +600,27 @@ class Link(object):
             nonlinear_noise_struct[channel] = None
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
-        alpha_ = span.alpha
+        # alpha_ = span.alpha
         alpha = span.alpha_
         beta2 = span.dispersion_coefficient
         gamma = span.non_linear_coefficient
-        effective_length_ = span.effective_length
+        # effective_length_ = span.effective_length
         effective_length = span.effective_length_
-        asymptotic_length_ = 1 / alpha
+        # asymptotic_length_ = 1 / alpha
         asymptotic_length = 1 / (2 * alpha)
 
         for optical_signal in optical_signals:
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
             bw_cut = symbol_rate_cut
-            pwr_cut = round(signal_power_progress[optical_signal], 2) * 1e-3
+            pwr_cut = signal_power_progress[optical_signal] * 1e-3
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             g_nli = 0
             for ch in optical_signals:
                 symbol_rate_ch = ch.symbol_rate
                 bw_ch = symbol_rate_ch
-                pwr_ch = round(signal_power_progress[ch], 2) * 1e-3
+                pwr_ch = signal_power_progress[ch] * 1e-3
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
                 delta_factor = 1 if ch.frequency == optical_signal.frequency else 2
                 psi = self._psi_gnpy(optical_signal, ch, beta2=beta2,
@@ -632,7 +632,7 @@ class Link(object):
                      / (2 * np.pi * abs(beta2) * asymptotic_length)
             tmp = 0
             signal_under_test = index_to_signal[channel_under_test]
-            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
+            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3 * 12.5e9/bw_cut
         return nonlinear_noise_struct
 
     @staticmethod

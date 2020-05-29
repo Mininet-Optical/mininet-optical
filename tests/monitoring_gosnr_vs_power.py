@@ -33,15 +33,18 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = 10
+p_start = -10
 p_end = 12
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
+plotting_osnr_nli = []
 plotting_theo = []
 rx_gosnr = []
+rx_osnr_nli = []
 rx_osnr = []
-wavelength_indexes = list(range(1, 77))
+num_channels = 81
+wavelength_indexes = list(range(1, num_channels + 1))
 index = int(np.floor(len(wavelength_indexes) / 2))
 print("Monitoring channel with index: ", index)
 # wavelength_indexes.reverse()
@@ -84,6 +87,7 @@ for p in power_levels:
     print("*** Monitoring interfaces...")
     osnrs = {i: [] for i in range(1, 17)}
     gosnrs = {i: [] for i in range(1, 17)}
+    osnrs_nli = {i: [] for i in range(1, 17)}
 
     # Retrieve from each monitoring points the
     # OSNR and gOSNR of all the channels
@@ -92,25 +96,30 @@ for p in power_levels:
         opm_name = opm_name_base + str(key)
         opm = net.name_to_node[opm_name]
         osnrs[key] = opm.get_list_osnr()
-        if key == 1:
-            gosnrs[key] = opm.get_list_osnr()
-        else:
-            gosnrs[key] = opm.get_list_gosnr()
+        gosnrs[key] = opm.get_list_gosnr()
+        osnrs_nli[key] = opm.get_list_osnr_nli()
 
     # Retrieve only the channels of interest
-    osnr_c46 = []
+    osnr_cut = []
     for span, _list in osnrs.items():
-        osnr_c46.append(_list[index])
-        # osnr_c46.append(np.mean(_list))
-    plotting_osnr.append(osnr_c46)
-    rx_osnr.append(osnr_c46[-1])
+        # osnr_cut.append(_list[index])
+        osnr_cut.append(np.mean(_list))
+    plotting_osnr.append(osnr_cut)
+    rx_osnr.append(osnr_cut[-1])
 
-    gosnr_c46 = []
+    gosnr_cut = []
     for span, _list in gosnrs.items():
-        # gosnr_c46.append(np.mean(_list))
-        gosnr_c46.append(_list[index])
-    plotting_gosnr.append(gosnr_c46)
-    rx_gosnr.append(gosnr_c46[-1])
+        gosnr_cut.append(np.mean(_list))
+        # gosnr_cut.append(_list[index])
+    plotting_gosnr.append(gosnr_cut)
+    rx_gosnr.append(gosnr_cut[-1])
+
+    osnr_nli_cut = []
+    for span, _list in osnrs_nli.items():
+        osnr_nli_cut.append(np.mean(_list))
+        # osnr_nli_cut.append(_list[index])
+    plotting_osnr_nli.append(osnr_nli_cut)
+    rx_osnr_nli.append(osnr_nli_cut[-1])
 
     an_osnr = []  # [osnr_c46[0]]
     c = 0
@@ -204,4 +213,6 @@ plt.grid(True)
 print("=%=%=%=%=%=%=%")
 print(rx_osnr)
 print(rx_gosnr)
-plt.show()
+print(rx_osnr_nli)
+# print(plotting_osnr)
+# plt.show()
