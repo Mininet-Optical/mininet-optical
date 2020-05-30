@@ -369,7 +369,8 @@ class Link(object):
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 \
                      / (2 * np.pi * abs(beta2) * asymptotic_length)
             signal_under_test = index_to_signal[channel_under_test]
-            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
+            ratio_01nm = 12.5e9/bw_cut
+            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * ratio_01nm * 1e3
         return nonlinear_noise_struct
 
     @staticmethod
