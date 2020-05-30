@@ -32,7 +32,7 @@ def abs_to_db(absolute_value):
 
 
 # Define initial and end power levels for the transmission
-p_start = 0
+p_start = -4
 p_end = 2
 p_step = 2
 power_levels = list(np.arange(p_start, p_end, p_step))
@@ -41,7 +41,7 @@ plotting_osnr = []
 plotting_gosnr = []
 plotting_analytical = []
 # Define number of wavelengths to transmit
-num_wavelengths = 76
+num_wavelengths = 81
 wavelength_indexes = list(range(1, num_wavelengths + 1))
 # Define channel index to monitor (channel under test - cut)
 cut = int(np.floor(len(wavelength_indexes) / 2))
@@ -101,7 +101,7 @@ for p in power_levels:
         gosnr_cut.append(_list[cut])
     plotting_gosnr.append(gosnr_cut)
 
-    an_osnr = []  # [osnr_c46[0]]
+    an_osnr = []
     for s in range(16):
         t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
         an_osnr.append(t_osnr)
