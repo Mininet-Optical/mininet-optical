@@ -7,7 +7,7 @@ import matplotlib.font_manager
 import random
 
 # Plot configuration parameters
-# figure(num=None, figsize=(7, 6), dpi=256)
+figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -33,8 +33,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -10
-p_end = 12
+p_start = -4
+p_end = 2
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
@@ -143,7 +143,7 @@ for p in power_levels:
     del gosnrs
 
 colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver']
-# markers = ['o', 's', 'D']
+markers = ['o', 's', 'D']
 op = list(np.arange(p_start, p_end, 2)[::-1])
 label_flag = True
 for a in plotting_theo:
@@ -156,11 +156,11 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     pp = op.pop()
     l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
-    # m = markers.pop()
-    # plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
-    plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
-    # plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
-    plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
+    m = markers.pop()
+    plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
+    # plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
+    plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
+    # plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
     print("=%=%=%=%=%=%=%=%=%")
     print(l)
     print(o)
@@ -209,7 +209,7 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-# plt.savefig('../../gosnr_vs_power_srs.eps', format='eps')
+plt.savefig('../../gosnr_vs_power.eps', format='eps')
 print("=%=%=%=%=%=%=%")
 print(rx_osnr)
 print(rx_gosnr)

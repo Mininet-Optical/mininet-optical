@@ -22,7 +22,7 @@ del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 18
+plt.rcParams["font.size"] = 16
 
 gosnr_mean_rmse_3 = []
 gosnr_mean_rmse_10 = []
@@ -32,7 +32,7 @@ gosnr_mean_rmse_3_m14 = []
 gosnr_mean_rmse_10_m14 = []
 gosnr_mean_rmse_81_m14 = []
 
-monitors = ['no-m', 'm28']
+monitors = ['no-m', 'm14']
 for monitor in monitors:
     file_id = 0
     mon = monitor
@@ -124,7 +124,7 @@ for monitor in monitors:
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
 plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-plt.yticks(np.arange(0, 4.5, 0.5))
+plt.yticks(np.arange(0, 10.5, 0.5))
 plt.ylabel("Max RMSE (dB)")
 plt.xlabel("Amplifiers")
 ms = 12
@@ -141,6 +141,6 @@ plt.plot(x, gosnr_mean_rmse_81_m14, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='k', label='Monitoring-90%')
 plt.legend(ncol=2, columnspacing=0.2, handletextpad=0.2)
 plt.grid(True)
-fig_name = '../../monitoring_metrics_before_after_worst_real_m28.eps'
+fig_name = '../../monitoring_metrics_before_after_worst_real_m14.eps'
 plt.savefig(fig_name, format='eps')
 # plt.show()

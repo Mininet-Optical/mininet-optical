@@ -254,14 +254,14 @@ class Link(object):
                 accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                 self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
 
-            # # Compute nonlinear effects from the fibre
-            # if len(signal_power_progress) > 1 and prev_amp:
-            #     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
-            #         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
-            #                           accumulated_NLI_noise, span)
-            #     signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-            #         self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-            #                           accumulated_NLI_noise_qot, span)
+            # Compute nonlinear effects from the fibre
+            if len(signal_power_progress) > 1 and prev_amp:
+                signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                      accumulated_NLI_noise, span)
+                signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                    self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                                      accumulated_NLI_noise_qot, span)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():

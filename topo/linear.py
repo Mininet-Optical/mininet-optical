@@ -46,7 +46,7 @@ class LinearTopology:
         opm_lab = 'opm'
 
         opm_i = 0
-        span_no = 3
+        span_no = 6
         tmp_qot_id = 1
         for i in range(non-1):
             # Iterate through the number of nodes linearly connected

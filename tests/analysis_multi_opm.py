@@ -136,7 +136,7 @@ while file_id <= 97:
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
 plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-plt.yticks(np.arange(0, 1.4, 0.1))
+plt.yticks(np.arange(0, 3.4, 0.1))
 plt.ylabel("Max RMSE (dB)")
 plt.xlabel("Amplifiers")
 ms = 9
