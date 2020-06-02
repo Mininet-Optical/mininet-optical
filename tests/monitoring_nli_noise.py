@@ -23,6 +23,14 @@ def abs_to_db(absolute_value):
     db_value = 10*np.log10(absolute_value)
     return db_value
 
+def db_to_abs(db_value):
+    """
+    :param db_value: list or float
+    :return: Convert dB to absolute value
+    """
+    absolute_value = 10**(db_value/float(10))
+    return absolute_value
+
 
 dir = '../../monitoring-nli-noise/'
 
@@ -36,7 +44,7 @@ for file in os.listdir(dir):
 
 db_nli = []
 for n in nli:
-    tmp = [abs_to_db(i * 1.0e0) for i in n]
+    tmp = [abs_to_db(i*1e-3) for i in n]
     db_nli.append(tmp)
 
 for v in db_nli:
@@ -44,4 +52,5 @@ for v in db_nli:
 
 plt.ylabel("Nonlinear noise [dB]")
 plt.xlabel("Channel index")
+plt.grid(True)
 plt.show()

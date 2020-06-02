@@ -1126,7 +1126,7 @@ class Monitor(Node):
             nli_noise = self.amplifier.nonlinear_noise[optical_signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
-        gosnr_linear = output_power / (ase_noise + nli_noise)
+        gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9/32.0e9))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
 
@@ -1235,7 +1235,7 @@ class Monitor(Node):
             nli_noise = self.amplifier.nonlinear_noise_qot[optical_signal]
         else:
             nli_noise = self.link.nonlinear_interference_noise_qot[self.span][optical_signal]
-        gosnr_linear = output_power / (ase_noise + nli_noise)
+        gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9/32.0e9))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
     ########################### QOT ESTIMATION ENDS ######################################

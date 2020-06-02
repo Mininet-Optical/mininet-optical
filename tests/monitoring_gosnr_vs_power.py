@@ -33,8 +33,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -4
-p_end = 2
+p_start = -10
+p_end = 12
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
@@ -43,7 +43,7 @@ plotting_theo = []
 rx_gosnr = []
 rx_osnr_nli = []
 rx_osnr = []
-num_channels = 81
+num_channels = 76
 wavelength_indexes = list(range(1, num_channels + 1))
 index = int(np.floor(len(wavelength_indexes) / 2))
 print("Monitoring channel with index: ", index)
@@ -156,11 +156,11 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     pp = op.pop()
     l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
-    m = markers.pop()
-    plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
-    # plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
-    plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
-    # plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
+    # m = markers.pop()
+    # plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
+    plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
+    # plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
+    plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
     print("=%=%=%=%=%=%=%=%=%")
     print(l)
     print(o)
@@ -168,11 +168,6 @@ for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
     print(a)
     # print(gosnr_c46_dict[pp])
     print("=%=%=%=%=%=%=%=%=%")
-
-
-#     print("=%=%=%=%=%=%=%=%=%")
-#     print(a)
-#     print("=%=%=%=%=%=%=%=%=%")
 
 
 plt.ylabel("OSNR, gOSNR(dashed) (dB)")
