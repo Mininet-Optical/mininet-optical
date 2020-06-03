@@ -658,7 +658,7 @@ class Roadm(Node):
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
                 if delta > self.voa_attenuation:
-                    out_difference[k] = delta  # self.voa_attenuation
+                    out_difference[k] = self.voa_attenuation
                 else:
                     out_difference[k] = delta
             lin_vals = list(out_difference.values())
@@ -675,21 +675,21 @@ class Roadm(Node):
                 accumulated_NLI_noise[optical_signal] *= voa_att
                 self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
             ######################################### QOT ESTIMATION BEGINS #########################################
-            out_difference = {}
-            for k, out_power in output_power_dict_qot.items():
-                # From the boost-amp, compute the difference between output power levels
-                # and the target output power. Set this as the compensation function.
-                delta = self.voa_target_out_power / out_power
-                out_difference[k] = delta
-            for optical_signal, voa_att in out_difference.items():
-                # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
-                # hence, only inflict now the additional VOA attenuation to compensate
-                # for the excursions generated at the boost-amp.
-                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
-                accumulated_ASE_noise_qot[optical_signal] *= voa_att
-                self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
-                accumulated_NLI_noise_qot[optical_signal] *= voa_att
-                self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
+            # out_difference = {}
+            # for k, out_power in output_power_dict_qot.items():
+            #     # From the boost-amp, compute the difference between output power levels
+            #     # and the target output power. Set this as the compensation function.
+            #     delta = self.voa_target_out_power / out_power
+            #     out_difference[k] = delta
+            # for optical_signal, voa_att in out_difference.items():
+            #     # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
+            #     # hence, only inflict now the additional VOA attenuation to compensate
+            #     # for the excursions generated at the boost-amp.
+            #     self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
+            #     accumulated_ASE_noise_qot[optical_signal] *= voa_att
+            #     self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
+            #     accumulated_NLI_noise_qot[optical_signal] *= voa_att
+            #     self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
             ######################################### QOT ESTIMATION ENDS #########################################
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
