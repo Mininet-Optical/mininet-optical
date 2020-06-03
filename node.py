@@ -664,7 +664,7 @@ class Roadm(Node):
             lin_vals = list(out_difference.values())
             db_vals = [abs_to_db(x) for x in lin_vals]
             max_voa_att = max(db_vals)
-            print("(node.py line:667) The max voa att value: ", max_voa_att)
+            # print("(node.py line:667) The max voa att value: ", max_voa_att)
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
