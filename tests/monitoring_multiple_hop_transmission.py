@@ -32,8 +32,8 @@ while test_run <= 1:
     # different wavelength loads corresponding
     # to 30, 60 and 90 % of wavelength capacity
     j = 0
-    _load = [27, 54, 81]
-    while j < 2:
+    _load = [3, 10, 81]
+    while j < 3:
         load = _load[j]
         load_id = str(load)
         net = LinearTopology.build(non=15)
@@ -101,19 +101,19 @@ while test_run <= 1:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            # test = '../'
-            # dir_ = test + 'opm-sim-no-m-tmp/' + opm_name
-            # dir_2 = test + 'opm-sim-qot-no-m-tmp/' + opm_name
-            # if not os.path.exists(dir_) and not os.path.exists(dir_2):
-            #     os.makedirs(dir_)
-            #     os.makedirs(dir_2)
-            # json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
-            # with open(json_file_name, 'w+') as outfile:
-            #     json.dump(json_struct, outfile)
-            #
-            # json_file_name_2 = dir_2 + '/' + test_id + '_' + str(load_id) + '.json'
-            # with open(json_file_name_2, 'w+') as outfile2:
-            #     json.dump(json_struct_qot, outfile2)
+            test = '../'
+            dir_ = test + 'opm-sim-no-m/' + opm_name
+            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            if not os.path.exists(dir_) and not os.path.exists(dir_2):
+                os.makedirs(dir_)
+                os.makedirs(dir_2)
+            json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
+            with open(json_file_name, 'w+') as outfile:
+                json.dump(json_struct, outfile)
+           
+            json_file_name_2 = dir_2 + '/' + test_id + '_' + str(load_id) + '.json'
+            with open(json_file_name_2, 'w+') as outfile2:
+                json.dump(json_struct_qot, outfile2)
 
         j += 1
     test_run += 1
