@@ -254,14 +254,14 @@ class Link(object):
                 accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                 self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
 
-            # # Compute nonlinear effects from the fibre
-            # if len(signal_power_progress) > 1 and prev_amp:
-            #     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
-            #         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
-            #                           accumulated_NLI_noise, span)
-            #     signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-            #         self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-            #                           accumulated_NLI_noise_qot, span)
+            # Compute nonlinear effects from the fibre
+            if len(signal_power_progress) > 1 and prev_amp:
+                signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                    self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                      accumulated_NLI_noise, span)
+                signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                    self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                                      accumulated_NLI_noise_qot, span, flag=False)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
@@ -336,7 +336,7 @@ class Link(object):
         return True
 
     @staticmethod
-    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, accumulated_NLI_noise, span):
+    def zirngibl_srs(optical_signals, active_channels, accumulated_ASE_noise, accumulated_NLI_noise, span, flag=True):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
@@ -361,7 +361,7 @@ class Link(object):
         frequency_min = min_signal.frequency  # minimum frequency of longest wavelength
         frequency_max = max_signal.frequency  # maximum frequency of shortest wavelength
 
-        effective_length = span.effective_length  # SMF effective distance
+        effective_length = span.effective_length_  # SMF effective distance
         beta = span.raman_coefficient
 
         total_power = 0  # Total input power calculated by following loop
@@ -372,13 +372,19 @@ class Link(object):
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    beta * total_power * effective_length * (frequency - frequency_min))  # term 1
             r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
             active_channels[optical_signal] *= delta_p
             accumulated_ASE_noise[optical_signal] *= delta_p
             accumulated_NLI_noise[optical_signal] *= delta_p
+        if flag:
+            min_p = str(round(abs_to_db(min(list(active_channels.values()))), 2))
+            max_p = str(round(abs_to_db(max(list(active_channels.values()))), 2))
+            diff_p_lin = abs_to_db(max(list(active_channels.values()))) - abs_to_db(min(list(active_channels.values())))
+            diff_p = str(round(diff_p_lin, 2))
+            print("(link.py line:387) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
 
         return active_channels, accumulated_ASE_noise, accumulated_NLI_noise
 

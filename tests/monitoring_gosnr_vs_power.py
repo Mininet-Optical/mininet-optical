@@ -7,7 +7,7 @@ import matplotlib.font_manager
 import random
 
 # Plot configuration parameters
-figure(num=None, figsize=(7, 6), dpi=256)
+# figure(num=None, figsize=(7, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -33,7 +33,7 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -10
+p_start = 6
 p_end = 12
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
@@ -102,22 +102,22 @@ for p in power_levels:
     # Retrieve only the channels of interest
     osnr_cut = []
     for span, _list in osnrs.items():
-        # osnr_cut.append(_list[index])
-        osnr_cut.append(np.mean(_list))
+        osnr_cut.append(_list[index])
+        # osnr_cut.append(np.mean(_list))
     plotting_osnr.append(osnr_cut)
     rx_osnr.append(osnr_cut[-1])
 
     gosnr_cut = []
     for span, _list in gosnrs.items():
-        gosnr_cut.append(np.mean(_list))
-        # gosnr_cut.append(_list[index])
+        # gosnr_cut.append(np.mean(_list))
+        gosnr_cut.append(_list[index])
     plotting_gosnr.append(gosnr_cut)
     rx_gosnr.append(gosnr_cut[-1])
 
     osnr_nli_cut = []
     for span, _list in osnrs_nli.items():
-        osnr_nli_cut.append(np.mean(_list))
-        # osnr_nli_cut.append(_list[index])
+        # osnr_nli_cut.append(np.mean(_list))
+        osnr_nli_cut.append(_list[index])
     plotting_osnr_nli.append(osnr_nli_cut)
     rx_osnr_nli.append(osnr_nli_cut[-1])
 
@@ -210,4 +210,4 @@ print(rx_osnr)
 print(rx_gosnr)
 print(rx_osnr_nli)
 # print(plotting_osnr)
-# plt.show()
+plt.show()

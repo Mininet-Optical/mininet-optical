@@ -327,7 +327,7 @@ class Roadm(Node):
         self.wss_dict = None
         self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
 
-        self.voa_attenuation = db_to_abs(3)
+        self.voa_attenuation = db_to_abs(6)
         self.voa_function = voa_function
         self.voa_target_out_power = None
         self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
@@ -375,7 +375,7 @@ class Roadm(Node):
         if not wss_dict:
             # Default wss_dict with 2xWSS w/7 dB attenuation each,
             # and no wavelength-dependent attenuation.
-            wss_dict = {1: (7.0, None), 2: (7.0, None)}
+            wss_dict = {1: (5.5, None), 2: (5.5, None)}
         tmp_dict = {}
         for wss_id, wd_tuple in wss_dict.items():
             if wd_tuple[1]:
@@ -515,13 +515,11 @@ class Roadm(Node):
         :param in_port: input port where signals are being transmitted
         :return:
         """
-        # if self.name == 'roadm_6':
-        #     print()
         # Keep track of which output ports/links have signals
         out_ports_to_links = {}
 
         # retrieve the WSS wavelength-dependent attenuation
-        node_attenuation = self.get_node_attenuation(in_port)
+        node_attenuation = self.get_node_attenuation()
 
         # Iterate over input port's signals since they all might have changed
         for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
@@ -539,20 +537,20 @@ class Roadm(Node):
 
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out[out_port][optical_signal] = \
-                in_power / node_attenuation[optical_signal] / voa_attenuation
+                in_power / node_attenuation / voa_attenuation
 
             # if accumulated_ASE_noise and optical_signal in accumulated_ASE_noise:
             if optical_signal in self.port_to_optical_signal_ase_noise_in[in_port]:
                 # Attenuate ASE noise and update it on output port
                 ase_noise = self.port_to_optical_signal_ase_noise_in[in_port][optical_signal]
-                ase = ase_noise / node_attenuation[optical_signal] / voa_attenuation
+                ase = ase_noise / node_attenuation / voa_attenuation
                 self.port_to_optical_signal_ase_noise_out.setdefault(out_port, {})
                 self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] = ase
 
             # if accumulated_NLI_noise:
             if optical_signal in self.port_to_optical_signal_nli_noise_in[in_port]:
                 nli_noise = self.port_to_optical_signal_nli_noise_in[in_port][optical_signal]
-                nli = nli_noise / node_attenuation[optical_signal] / voa_attenuation
+                nli = nli_noise / node_attenuation / voa_attenuation
                 self.port_to_optical_signal_nli_noise_out.setdefault(out_port, {})
                 self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] = nli
 
@@ -575,20 +573,20 @@ class Roadm(Node):
             voa_attenuation = self.voa_attenuation
             # Attenuate signal power and update it on output port
             self.port_to_optical_signal_power_out_qot[out_port][optical_signal] = \
-                in_power / node_attenuation[optical_signal] / voa_attenuation
+                in_power / node_attenuation / voa_attenuation
 
             # if accumulated_ASE_noise and optical_signal in accumulated_ASE_noise:
             if optical_signal in self.port_to_optical_signal_ase_noise_in_qot[in_port]:
                 # Attenuate ASE noise and update it on output port
                 ase_noise = self.port_to_optical_signal_ase_noise_in_qot[in_port][optical_signal]
-                ase = ase_noise / node_attenuation[optical_signal] / voa_attenuation
+                ase = ase_noise / node_attenuation / voa_attenuation
                 self.port_to_optical_signal_ase_noise_out_qot.setdefault(out_port, {})
                 self.port_to_optical_signal_ase_noise_out_qot[out_port][optical_signal] = ase
 
             # if accumulated_NLI_noise:
             if optical_signal in self.port_to_optical_signal_nli_noise_in_qot[in_port]:
                 nli_noise = self.port_to_optical_signal_nli_noise_in_qot[in_port][optical_signal]
-                nli = nli_noise / node_attenuation[optical_signal] / voa_attenuation
+                nli = nli_noise / node_attenuation / voa_attenuation
                 self.port_to_optical_signal_nli_noise_out_qot.setdefault(out_port, {})
                 self.port_to_optical_signal_nli_noise_out_qot[out_port][optical_signal] = nli
 
@@ -618,21 +616,32 @@ class Roadm(Node):
                            ase_qot, nli_qot,
                            voa_compensation=self.voa_compensation)
 
-    def get_node_attenuation(self, in_port):
+    def get_node_attenuation(self):
         """
         When switching, it computes the total node attenuation only
         for the signals passing through
         """
-        node_attenuation = {}
-        for optical_signal, _ in self.port_to_optical_signal_power_in[in_port].items():
-            wss_attenuation = 0.0
-            wss_wd_attenuation = 0.0
-            for wss_id, attenuation_tuple in self.wss_dict.items():
-                wss_attenuation += attenuation_tuple[0]
-                wss_wd_attenuation += attenuation_tuple[1][optical_signal.index - 1]
-            total_attenuation = db_to_abs(wss_attenuation + wss_wd_attenuation)
-            node_attenuation[optical_signal] = total_attenuation
-        return node_attenuation
+        wss_attenuation = 0.0
+        for wss_id, attenuation_tuple in self.wss_dict.items():
+            wss_attenuation += attenuation_tuple[0]
+        total_attenuation = db_to_abs(wss_attenuation)
+        return total_attenuation
+
+    # def get_node_attenuation(self, in_port):
+    #     """
+    #     When switching, it computes the total node attenuation only
+    #     for the signals passing through
+    #     """
+    #     node_attenuation = {}
+    #     for optical_signal, _ in self.port_to_optical_signal_power_in[in_port].items():
+    #         wss_attenuation = 0.0
+    #         wss_wd_attenuation = 0.0
+    #         for wss_id, attenuation_tuple in self.wss_dict.items():
+    #             wss_attenuation += attenuation_tuple[0]
+    #             wss_wd_attenuation += attenuation_tuple[1][optical_signal.index - 1]
+    #         total_attenuation = db_to_abs(wss_attenuation + wss_wd_attenuation)
+    #         node_attenuation[optical_signal] = total_attenuation
+    #     return node_attenuation
 
     def voa_reconf(self, link, output_power_dict, out_port,
                    accumulated_ASE_noise, accumulated_NLI_noise,
@@ -640,10 +649,34 @@ class Roadm(Node):
         """
         wavelength dependent attenuation
         """
+        tmp_power = list(output_power_dict.values())
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
             for k, out_power in output_power_dict.items():
+                # From the boost-amp, compute the difference between output power levels
+                # and the target output power. Set this as the compensation function.
+                delta = self.voa_target_out_power / out_power
+                if delta > self.voa_attenuation:
+                    out_difference[k] = delta  # self.voa_attenuation
+                else:
+                    out_difference[k] = delta
+            lin_vals = list(out_difference.values())
+            db_vals = [abs_to_db(x) for x in lin_vals]
+            max_voa_att = max(db_vals)
+            print("(node.py line:667) The max voa att value: ", max_voa_att)
+            for optical_signal, voa_att in out_difference.items():
+                # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
+                # hence, only inflict now the additional VOA attenuation to compensate
+                # for the excursions generated at the boost-amp.
+                self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
+                accumulated_ASE_noise[optical_signal] *= voa_att
+                self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
+                accumulated_NLI_noise[optical_signal] *= voa_att
+                self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+            ######################################### QOT ESTIMATION BEGINS #########################################
+            out_difference = {}
+            for k, out_power in output_power_dict_qot.items():
                 # From the boost-amp, compute the difference between output power levels
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
@@ -652,49 +685,11 @@ class Roadm(Node):
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                if voa_att < 0:
-                    self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
-                    if len(accumulated_ASE_noise) > 0:
-                        accumulated_ASE_noise[optical_signal] /= voa_att
-                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                    if len(accumulated_NLI_noise) > 0:
-                        accumulated_NLI_noise[optical_signal] /= voa_att
-                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-                # elif voa_att > 0:
-                #     self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
-                #     if len(accumulated_ASE_noise) > 0:
-                #         accumulated_ASE_noise[optical_signal] *= voa_att
-                #         self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                #     if len(accumulated_NLI_noise) > 0:
-                #         accumulated_NLI_noise[optical_signal] *= voa_att
-                #         self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-            ######################################### QOT ESTIMATION BEGINS #########################################
-            # out_difference = {}
-            # for k, out_power in output_power_dict_qot.items():
-            #     # From the boost-amp, compute the difference between output power levels
-            #     # and the target output power. Set this as the compensation function.
-            #     delta = self.voa_target_out_power / out_power
-            #     out_difference[k] = delta
-            # for optical_signal, voa_att in out_difference.items():
-            #     # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
-            #     # hence, only inflict now the additional VOA attenuation to compensate
-            #     # for the excursions generated at the boost-amp.
-            #     if voa_att < 0:
-            #         self.port_to_optical_signal_power_out_qot[out_port][optical_signal] /= voa_att
-            #         if len(accumulated_ASE_noise_qot) > 0:
-            #             accumulated_ASE_noise_qot[optical_signal] /= voa_att
-            #             self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
-            #         if len(accumulated_NLI_noise_qot) > 0:
-            #             accumulated_NLI_noise_qot[optical_signal] /= voa_att
-            #             self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
-            #     elif voa_att > 0:
-            #         self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
-            #         if len(accumulated_ASE_noise_qot) > 0:
-            #             accumulated_ASE_noise_qot[optical_signal] *= voa_att
-            #             self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
-            #         if len(accumulated_NLI_noise_qot) > 0:
-            #             accumulated_NLI_noise_qot[optical_signal] *= voa_att
-            #             self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
+                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
+                accumulated_ASE_noise_qot[optical_signal] *= voa_att
+                self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
+                accumulated_NLI_noise_qot[optical_signal] *= voa_att
+                self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
             ######################################### QOT ESTIMATION ENDS #########################################
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
@@ -713,11 +708,11 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt',
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+# description_files = {'linear': 'linear.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
