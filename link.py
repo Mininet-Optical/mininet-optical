@@ -75,7 +75,7 @@ class Link(object):
         self.monitor_flag = False
         self.monitor_unit = 14.0
 
-        self.srs_effect = False
+        self.srs_effect = True
 
     def add_span(self, span, amplifier):
         """
