@@ -262,9 +262,9 @@ class Link(object):
                     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
                         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
                                           accumulated_NLI_noise, span)
-                    signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-                        self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-                                          accumulated_NLI_noise_qot, span, flag=False)
+                    # signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                    #     self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                    #                       accumulated_NLI_noise_qot, span, flag=False)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
