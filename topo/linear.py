@@ -22,7 +22,7 @@ class LinearTopology:
         line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs
-        wss_dict = {1: (5.5, None), 2: (5.5, None)}
+        wss_dict = {1: (7.0, None), 2: (7.0, None)}
         roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict,
                                 voa_function='flatten', voa_target_out_power=op) for i in range(non)]
         # roadms = [net.add_roadm('roadm_%s' % (i + 1), wss_dict=wss_dict) for i in range(non)]

@@ -327,7 +327,7 @@ class Roadm(Node):
         self.wss_dict = None
         self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
 
-        self.voa_attenuation = db_to_abs(6)
+        self.voa_attenuation = db_to_abs(3)
         self.voa_function = voa_function
         self.voa_target_out_power = None
         self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
@@ -650,6 +650,7 @@ class Roadm(Node):
         wavelength dependent attenuation
         """
         tmp_power = list(output_power_dict.values())
+        tmp_power_qot = list(output_power_dict_qot.values())
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
@@ -663,8 +664,8 @@ class Roadm(Node):
                     out_difference[k] = delta
             lin_vals = list(out_difference.values())
             db_vals = [abs_to_db(x) for x in lin_vals]
-            max_voa_att = max(db_vals)
-            # print("(node.py line:667) The max voa att value: ", max_voa_att)
+            max_voa_att = str(round(max(db_vals), 2))
+            # print("(node.py line:667) The max voa att value: %s dB" % max_voa_att)
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
@@ -708,11 +709,11 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-# description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt',
-                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg1.txt',
+#                      'wdg2': 'wdg2.txt',
+#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
+#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):

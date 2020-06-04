@@ -72,7 +72,7 @@ class Link(object):
         self.spans = spans or []
 
         self.traffic = []
-        self.monitor_flag = False
+        self.monitor_flag = True
         self.monitor_unit = 14.0
 
         self.srs_effect = True
@@ -262,9 +262,9 @@ class Link(object):
                     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
                         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
                                           accumulated_NLI_noise, span)
-                    # signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-                    #     self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-                    #                       accumulated_NLI_noise_qot, span, flag=False)
+                    signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                        self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                                          accumulated_NLI_noise_qot, span, flag=False)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
@@ -375,7 +375,8 @@ class Link(object):
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    beta * total_power * effective_length * (frequency - frequency_max))  # term 1
+                    # beta * total_power * effective_length * (frequency_max - frequency))  # term 1
             r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW

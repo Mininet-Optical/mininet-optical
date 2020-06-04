@@ -26,17 +26,17 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 1:
+while test_run <= 300:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
     # to 30, 60 and 90 % of wavelength capacity
     j = 0
-    _load = [3, 10, 81]
+    _load = [27, 54, 81]
     while j < 3:
         load = _load[j]
         load_id = str(load)
-        net = LinearTopology.build(non=15)
+        net = LinearTopology.build(op=0, non=27)
 
         lt_1 = net.name_to_node['lt_1']
 
@@ -54,7 +54,7 @@ while test_run <= 1:
         roadm_12 = net.name_to_node['roadm_12']
         roadm_13 = net.name_to_node['roadm_13']
         roadm_14 = net.name_to_node['roadm_14']
-        roadm_15 = net.name_to_node['roadm_15']
+        roadm_27 = net.name_to_node['roadm_27']
 
         # Install switch rules into the ROADM nodes
         # wavelength_indexes = list(range(1, load + 1))
@@ -73,7 +73,7 @@ while test_run <= 1:
         roadm_12.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_13.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_14.install_switch_rule(1, 1, 102, wavelength_indexes)
-        roadm_15.install_switch_rule(1, 1, 100, wavelength_indexes)
+        roadm_27.install_switch_rule(1, 1, 100, wavelength_indexes)
 
         rw = wavelength_indexes
         # Set resources to use and initiate transmission
@@ -101,7 +101,9 @@ while test_run <= 1:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            test = '../'
+            test = '../../metrics-monitor/'
+            # dir_ = test + 'opm-sim-m14/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
             dir_ = test + 'opm-sim-no-m/' + opm_name
             dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
@@ -110,7 +112,7 @@ while test_run <= 1:
             json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
             with open(json_file_name, 'w+') as outfile:
                 json.dump(json_struct, outfile)
-           
+
             json_file_name_2 = dir_2 + '/' + test_id + '_' + str(load_id) + '.json'
             with open(json_file_name_2, 'w+') as outfile2:
                 json.dump(json_struct_qot, outfile2)
