@@ -327,7 +327,7 @@ class Roadm(Node):
         self.wss_dict = None
         self.unpack_wss_dict(wss_dict)  # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
 
-        self.voa_attenuation = db_to_abs(3)
+        self.voa_attenuation = db_to_abs(6)
         self.voa_function = voa_function
         self.voa_target_out_power = None
         self.voa_compensation = self.voa_safety_check(voa_function, voa_target_out_power)
@@ -649,6 +649,10 @@ class Roadm(Node):
         """
         wavelength dependent attenuation
         """
+        voa_min_dB = 0
+        voa_max_dB = 9  # plus the initial att the max value is 15 dB
+        voa_range_dB = range(voa_min_dB, voa_max_dB + 1)
+
         tmp_power = list(output_power_dict.values())
         tmp_power_qot = list(output_power_dict_qot.values())
         if self.voa_function is 'flatten':
@@ -658,14 +662,24 @@ class Roadm(Node):
                 # From the boost-amp, compute the difference between output power levels
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
-                if delta > self.voa_attenuation:
-                    out_difference[k] = self.voa_attenuation
-                else:
+                delta_dB = abs_to_db(delta)
+                # out_difference[k] = delta
+                if delta_dB < 0 and abs(delta_dB) in voa_range_dB:
+                    # negative and within range, we can attenuate further
                     out_difference[k] = delta
+                elif delta_dB < 0 and abs_to_db(delta) in voa_range_dB:
+                    # negative and exceeding range, we attenuate the max
+                    out_difference[k] = db_to_abs(-voa_max_dB)
+                elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
+                    # positive and not higher than initial attenuation
+                    out_difference[k] = delta
+                elif 0 < delta_dB > abs_to_db(self.voa_attenuation):
+                    # positive and higher than initial attenuation, saturates
+                    out_difference[k] = self.voa_attenuation
             lin_vals = list(out_difference.values())
             db_vals = [abs_to_db(x) for x in lin_vals]
             max_voa_att = str(round(max(db_vals), 2))
-            # print("(node.py line:667) The max voa att value: %s dB" % max_voa_att)
+            print("(node.py line:667) The max voa att value: %s dB" % max_voa_att)
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
@@ -709,11 +723,10 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-description_files = {'linear': 'linear.txt'}
-# description_files = {'wdg1': 'wdg1.txt',
-#                      'wdg2': 'wdg2.txt',
-#                      'wdg1_yj': 'wdg1_yeo_johnson.txt',
-#                      'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg2.txt',
+                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
+                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -760,7 +773,7 @@ class Amplifier(Node):
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
         self.tmp_qot_id = tmp_qot_id
-        self.monitor_flag = False
+        self.monitor_flag = True
         self.monitor_unit = 14.0
 
     def power_excursions_flags_off(self):
@@ -931,7 +944,7 @@ class Amplifier(Node):
         output_power_dBm = [abs_to_db(p) for p in self.output_power.values()]
         input_power_dBm = [abs_to_db(p) for p in self.input_power.values()]
 
-        # Mean difference between output and input power levels
+        # # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
         power_excursions = out_in_difference - self.target_gain

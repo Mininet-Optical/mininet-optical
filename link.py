@@ -75,7 +75,7 @@ class Link(object):
         self.monitor_flag = True
         self.monitor_unit = 14.0
 
-        self.srs_effect = True
+        self.srs_effect = False
 
     def add_span(self, span, amplifier):
         """
@@ -256,16 +256,6 @@ class Link(object):
                 accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
                 self.accumulated_NLI_noise_qot.update(nonlinear_interference_noise_qot[span])
 
-            if self.srs_effect:
-                # Compute nonlinear effects from the fibre
-                if len(signal_power_progress) > 1 and prev_amp:
-                    signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
-                        self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
-                                          accumulated_NLI_noise, span)
-                    signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-                        self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-                                          accumulated_NLI_noise_qot, span, flag=False)
-
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
                 signal_power_progress[optical_signal] = power / span.attenuation()
@@ -275,6 +265,16 @@ class Link(object):
                 signal_power_progress_qot[optical_signal] = power / span.attenuation()
                 accumulated_ASE_noise_qot[optical_signal] /= span.attenuation()
                 accumulated_NLI_noise_qot[optical_signal] /= span.attenuation()
+
+            if self.srs_effect:
+                # Compute nonlinear effects from the fibre
+                if len(signal_power_progress) > 1 and prev_amp:
+                    signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                        self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                          accumulated_NLI_noise, span)
+                    signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                        self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                                          accumulated_NLI_noise_qot, span, flag=False)
 
             # Compute amplifier compensation
             if amplifier:
@@ -375,8 +375,9 @@ class Link(object):
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency - frequency_max))  # term 1
-                    # beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    # beta * total_power * effective_length * (frequency - frequency_min))  # term 1
+
             r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
@@ -388,7 +389,7 @@ class Link(object):
             max_p = str(round(abs_to_db(max(list(active_channels.values()))), 2))
             diff_p_lin = abs_to_db(max(list(active_channels.values()))) - abs_to_db(min(list(active_channels.values())))
             diff_p = str(round(diff_p_lin, 2))
-            # print("(link.py line:387) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
+            print("(link.py line:387) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
 
         return active_channels, accumulated_ASE_noise, accumulated_NLI_noise
 
