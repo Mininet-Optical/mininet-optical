@@ -75,7 +75,7 @@ class Link(object):
         self.monitor_flag = True
         self.monitor_unit = 14.0
 
-        self.srs_effect = False
+        self.srs_effect = True
 
     def add_span(self, span, amplifier):
         """
@@ -389,7 +389,7 @@ class Link(object):
             max_p = str(round(abs_to_db(max(list(active_channels.values()))), 2))
             diff_p_lin = abs_to_db(max(list(active_channels.values()))) - abs_to_db(min(list(active_channels.values())))
             diff_p = str(round(diff_p_lin, 2))
-            print("(link.py line:387) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
+            # print("(link.py line:392) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
 
         return active_channels, accumulated_ASE_noise, accumulated_NLI_noise
 
