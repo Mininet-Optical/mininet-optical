@@ -44,7 +44,7 @@ for file in os.listdir(dir):
 
 db_nli = []
 for n in nli:
-    tmp = [abs_to_db(i*1e-3) for i in n]
+    tmp = [abs_to_db(i) for i in n]
     db_nli.append(tmp)
 
 for v in db_nli:

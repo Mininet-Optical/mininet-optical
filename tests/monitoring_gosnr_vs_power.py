@@ -33,19 +33,22 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = 6
-p_end = 12
+p_start = -2
+p_end = 0
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
+plotting_gosnr_qot = []
 plotting_osnr_nli = []
 plotting_theo = []
 rx_gosnr = []
+rx_gosnr_qot = []
 rx_osnr_nli = []
 rx_osnr = []
-num_channels = 76
+num_channels = 81
 wavelength_indexes = list(range(1, num_channels + 1))
-index = int(np.floor(len(wavelength_indexes) / 2))
+# index = int(np.floor(len(wavelength_indexes) / 2))
+index = 6 - 1
 print("Monitoring channel with index: ", index)
 # wavelength_indexes.reverse()
 # wavelength_indexes = random.sample(range(1, 90), 81)
@@ -87,6 +90,7 @@ for p in power_levels:
     print("*** Monitoring interfaces...")
     osnrs = {i: [] for i in range(1, 17)}
     gosnrs = {i: [] for i in range(1, 17)}
+    gosnrs_qot = {i: [] for i in range(1, 17)}
     osnrs_nli = {i: [] for i in range(1, 17)}
 
     # Retrieve from each monitoring points the
@@ -97,6 +101,7 @@ for p in power_levels:
         opm = net.name_to_node[opm_name]
         osnrs[key] = opm.get_list_osnr()
         gosnrs[key] = opm.get_list_gosnr()
+        gosnrs_qot[key] = opm.get_list_gosnr_qot()
         osnrs_nli[key] = opm.get_list_osnr_nli()
 
     # Retrieve only the channels of interest
@@ -113,6 +118,14 @@ for p in power_levels:
         gosnr_cut.append(_list[index])
     plotting_gosnr.append(gosnr_cut)
     rx_gosnr.append(gosnr_cut[-1])
+
+    gosnr_cut_qot = []
+    for span, _list in gosnrs_qot.items():
+        # gosnr_cut.append(np.mean(_list))
+        gosnr_cut_qot.append(_list[index])
+        print(_list[index])
+    plotting_gosnr_qot.append(gosnr_cut_qot)
+    rx_gosnr_qot.append(gosnr_cut_qot[-1])
 
     osnr_nli_cut = []
     for span, _list in osnrs_nli.items():
@@ -146,26 +159,26 @@ colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r',
 markers = ['o', 's', 'D']
 op = list(np.arange(p_start, p_end, 2)[::-1])
 label_flag = True
-for a in plotting_theo:
-    if label_flag:
-        plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
-        label_flag = False
-    else:
-        plt.plot(a, color='r', markerfacecolor='None')
-for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_theo):
+# for a in plotting_theo:
+#     if label_flag:
+#         plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
+#         label_flag = False
+#     else:
+#         plt.plot(a, color='r', markerfacecolor='None')
+for o, g, a in zip(plotting_gosnr_qot, plotting_gosnr, plotting_theo):
     pp = op.pop()
     l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
     # m = markers.pop()
     # plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
-    plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=l)
+    plt.plot(o, markeredgewidth=3, markersize=9, color='b', label=l)
     # plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
     plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
     print("=%=%=%=%=%=%=%=%=%")
     print(l)
     print(o)
     print(g)
-    print(a)
+    # print(a)
     # print(gosnr_c46_dict[pp])
     print("=%=%=%=%=%=%=%=%=%")
 
@@ -208,6 +221,6 @@ plt.savefig('../../gosnr_vs_power.eps', format='eps')
 print("=%=%=%=%=%=%=%")
 print(rx_osnr)
 print(rx_gosnr)
-print(rx_osnr_nli)
+print(rx_gosnr_qot)
 # print(plotting_osnr)
 plt.show()

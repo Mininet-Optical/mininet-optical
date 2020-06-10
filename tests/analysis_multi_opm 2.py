@@ -17,12 +17,12 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 
 # Plot configuration parameters
-# figure(num=None, figsize=(9, 7), dpi=256)
+figure(num=None, figsize=(8, 6), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 18
+plt.rcParams["font.size"] = 20
 
 gosnr_mean_rmse_27 = []
 osnr_mean_rmse_27 = []
@@ -35,8 +35,8 @@ file_id = 0
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    mon = 'no-m/'
-    directory = '../../metrics-monitor/opm-sim-' + mon + opm
+    mon = 'no-m-random/'
+    directory = '../opm-sim-' + mon + opm
     print("*** Running for file: %s" % directory)
 
     osnrs = {'osnr_load_27': [], 'osnr_load_54': [], 'osnr_load_81': []}
@@ -59,7 +59,7 @@ while file_id <= 97:
                     else:
                         gosnrs[k].append(element[k])
 
-    qot_directory = '../../metrics-monitor/opm-sim-qot-' + mon + opm
+    qot_directory = '../opm-sim-qot-' + mon + opm
     qot_osnrs = {'osnr_load_qot_27': [], 'osnr_load_qot_54': [], 'osnr_load_qot_81': []}
     qot_gosnrs = {'gosnr_load_qot_27': [], 'gosnr_load_qot_54': [], 'gosnr_load_qot_81': []}
 
@@ -82,53 +82,59 @@ while file_id <= 97:
 
     gosnrs_27 = gosnrs['gosnr_load_27']
     qot_gosnrs_27 = qot_gosnrs['gosnr_load_qot_27']
+
     gosnr_27_rmse = []
     for _list1, _list2 in zip(qot_gosnrs_27, gosnrs_27):
         gosnr_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_27.append(np.max(gosnr_27_rmse))
+    gosnr_mean_rmse_27.append(np.median(gosnr_27_rmse))
 
-    # osnrs_27 = osnrs['osnr_load_27']
-    # qot_osnrs_27 = qot_osnrs['osnr_load_qot_27']
-    # osnr_27_rmse = []
-    # for _lista, _listb in zip(qot_osnrs_27, osnrs_27):
-    #     osnr_27_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
-    # osnr_mean_rmse_27.append(np.median(osnr_27_rmse))
+    osnrs_27 = osnrs['osnr_load_27']
+    qot_osnrs_27 = qot_osnrs['osnr_load_qot_27']
+
+    osnr_27_rmse = []
+    for _lista, _listb in zip(qot_osnrs_27, osnrs_27):
+        osnr_27_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
+    osnr_mean_rmse_27.append(np.median(osnr_27_rmse))
 
     gosnrs_54 = gosnrs['gosnr_load_54']
     qot_gosnrs_54 = qot_gosnrs['gosnr_load_qot_54']
+
     gosnr_54_rmse = []
     for _list1, _list2 in zip(gosnrs_54, qot_gosnrs_54):
         gosnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_54.append(np.max(gosnr_54_rmse))
+    gosnr_mean_rmse_54.append(np.median(gosnr_54_rmse))
 
-    # osnrs_54 = osnrs['osnr_load_54']
-    # qot_osnrs_54 = qot_osnrs['osnr_load_qot_54']
-    # osnr_54_rmse = []
-    # for _list1, _list2 in zip(osnrs_54, qot_osnrs_54):
-    #     osnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    # osnr_mean_rmse_54.append(np.median(osnr_54_rmse))
+    osnrs_54 = osnrs['osnr_load_54']
+    qot_osnrs_54 = qot_osnrs['osnr_load_qot_54']
+
+    osnr_54_rmse = []
+    for _list1, _list2 in zip(osnrs_54, qot_osnrs_54):
+        osnr_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+    osnr_mean_rmse_54.append(np.median(osnr_54_rmse))
 
     gosnrs_81 = gosnrs['gosnr_load_81']
     qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
+
     gosnr_81_rmse = []
     for _list1, _list2 in zip(qot_gosnrs_81, gosnrs_81):
         gosnr_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    gosnr_mean_rmse_81.append(np.max(gosnr_81_rmse))
+    gosnr_mean_rmse_81.append(np.median(gosnr_81_rmse))
 
-    # osnrs_81 = osnrs['osnr_load_81']
-    # qot_osnrs_81 = qot_osnrs['osnr_load_qot_81']
-    # osnr_81_rmse = []
-    # for _lista, _listb in zip(qot_osnrs_81, osnrs_81):
-    #     osnr_81_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
-    # osnr_mean_rmse_81.append(np.median(osnr_81_rmse))
+    osnrs_81 = osnrs['osnr_load_81']
+    qot_osnrs_81 = qot_osnrs['osnr_load_qot_81']
+
+    osnr_81_rmse = []
+    for _lista, _listb in zip(qot_osnrs_81, osnrs_81):
+        osnr_81_rmse.append(sqrt(mean_squared_error(_lista, _listb)))
+    osnr_mean_rmse_81.append(np.median(osnr_81_rmse))
 
     del qot_osnrs
     del qot_gosnrs
     del gosnr_27_rmse
-    # del osnr_27_rmse
+    del osnr_27_rmse
     del gosnr_54_rmse
     del gosnr_81_rmse
-    # del osnr_81_rmse
+    del osnr_81_rmse
 
 
 # plt.plot(osnr_mean_rmse_27, color='b', marker='s', markerfacecolor='None')
@@ -136,17 +142,18 @@ while file_id <= 97:
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
 plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
-# plt.yticks(np.arange(0, 27.4, 0.1))
-plt.ylabel("Max RMSE (dB)")
-plt.xlabel("Amplifiers")
-ms = 9
-plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markeredgewidth=3, markersize=ms,
-         markerfacecolor='None', color='silver', label='Monitoring-30%')
-plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markeredgewidth=3, markersize=ms,
-         markerfacecolor='None', color='grey', label='Monitoring-60%')
-plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markeredgewidth=3, markersize=ms,
-         markerfacecolor='None', color='k', label='Monitoring-90%')
+# plt.yticks(np.arange(0, 6.5, 0.5))
+# plt.title("OSNR QoT-E without corrections")
+plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
+plt.xlabel("Index and location of OPM nodes")
+ms = 12
+plt.plot(x, gosnr_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+         markerfacecolor='None', color='b', label='30% ch-load')
+plt.plot(x, gosnr_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+         markerfacecolor='None', color='y', label='60% ch-load')
+plt.plot(x, gosnr_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+         markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-# plt.savefig('../../monitoring_metrics_worst_m14.eps', format='eps')
-plt.show()
+plt.savefig('../monitoring_no_m_random.eps', format='eps')
+# plt.show()

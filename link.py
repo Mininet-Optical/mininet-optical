@@ -72,7 +72,7 @@ class Link(object):
         self.spans = spans or []
 
         self.traffic = []
-        self.monitor_flag = True
+        self.monitor_flag = False
         self.monitor_unit = 14.0
 
         self.srs_effect = True
@@ -187,8 +187,10 @@ class Link(object):
             self.boost_amp.power_excursions_flags_off()
 
             if voa_compensation:
+
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
+                print("(link.py line 193) Calling VOA compensation for roadm: ", prev_roadm.name)
                 prev_roadm.voa_reconf(self, output_power_dict, self.output_port_node1,
                                       accumulated_ASE_noise, accumulated_NLI_noise,
                                       output_power_dict_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot)
@@ -196,6 +198,8 @@ class Link(object):
                 return False
 
             # Compute for the power and ASE noise
+            # tmp_ = [abs_to_db(x) for x in list(self.optical_signal_power_in.values())]
+            tmp_ = [abs_to_db(x) for x in list(accumulated_ASE_noise.values())]
             for optical_signal in signal_keys:
                 in_power = self.optical_signal_power_in[optical_signal]
                 self.boost_amp.input_power[optical_signal] = in_power
@@ -214,10 +218,14 @@ class Link(object):
                                                                           accumulated_noise=accumulated_ASE_noise)
                 self.boost_amp.stage_amplified_spontaneous_emission_noise_qot(optical_signal,
                                                                               accumulated_noise=accumulated_ASE_noise_qot)
+
+            # tmp_ = [abs_to_db(x) for x in list(signal_power_progress.values())]
             # Update accumulated ASE noise structure with respect to
             # the boost amplifier generated noise
             accumulated_ASE_noise.update(self.boost_amp.ase_noise)
             accumulated_ASE_noise_qot.update(self.boost_amp.ase_noise_qot)
+
+            tmp_ = [abs_to_db(x) for x in list(accumulated_ASE_noise.values())]
 
             # Compensate for the ROADM attenuation
             self.boost_amp.nli_compensation(accumulated_NLI_noise)
@@ -272,9 +280,9 @@ class Link(object):
                     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
                         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
                                           accumulated_NLI_noise, span)
-                    signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
-                        self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
-                                          accumulated_NLI_noise_qot, span, flag=False)
+                    # signal_power_progress_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot = \
+                    #     self.zirngibl_srs(signals_list, signal_power_progress_qot, accumulated_ASE_noise_qot,
+                    #                       accumulated_NLI_noise_qot, span, flag=False)
 
             # Compute amplifier compensation
             if amplifier:
@@ -375,8 +383,8 @@ class Link(object):
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency_max - frequency))  # term 1
-                    # beta * total_power * effective_length * (frequency - frequency_min))  # term 1
+                    # beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    beta * total_power * effective_length * (frequency - frequency_min))  # term 1
 
             r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
@@ -384,11 +392,11 @@ class Link(object):
             active_channels[optical_signal] *= delta_p
             accumulated_ASE_noise[optical_signal] *= delta_p
             accumulated_NLI_noise[optical_signal] *= delta_p
-        if flag:
-            min_p = str(round(abs_to_db(min(list(active_channels.values()))), 2))
-            max_p = str(round(abs_to_db(max(list(active_channels.values()))), 2))
-            diff_p_lin = abs_to_db(max(list(active_channels.values()))) - abs_to_db(min(list(active_channels.values())))
-            diff_p = str(round(diff_p_lin, 2))
+        # if flag:
+        #     min_p = str(round(abs_to_db(min(list(active_channels.values()))), 2))
+        #     max_p = str(round(abs_to_db(max(list(active_channels.values()))), 2))
+        #     diff_p_lin = abs_to_db(max(list(active_channels.values()))) - abs_to_db(min(list(active_channels.values())))
+        #     diff_p = str(round(diff_p_lin, 2))
             # print("(link.py line:392) Min p: %s dB --- Max p: %s dB --- Diff: %s dB" % (min_p, max_p, diff_p))
 
         return active_channels, accumulated_ASE_noise, accumulated_NLI_noise
@@ -408,7 +416,8 @@ class Link(object):
 
         out_noise = {}
         for signal, value in _nonlinear_noise.items():
-            out_noise[signal] = value + nonlinear_noise_new[signal]
+            wdg_linear = db_to_abs(amplifier.get_wavelength_dependent_gain(signal.index))
+            out_noise[signal] = (value + nonlinear_noise_new[signal]) * wdg_linear
 
         # # Looking at the recently accumulated nonlinear noise
         # json_struct = {'tests': []}
