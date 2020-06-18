@@ -22,13 +22,20 @@ wget $url
 echo "* Unpacking $archive"
 tar xzf $archive
 
-targetdir=$builddir/onos-$onosver/drivers/opticalemulator
+onosdir=$builddir/onos-$onosver
+targetdir=$onosdir/drivers/opticalemulator
 echo "* Copying $driversrc into $targetdir"
 cp -r $driversrc $targetdir
 
 echo "* Building driver"
 cd $targetdir
 bazel build //drivers/opticalemulator/roadm:onos-drivers-opticalemulator-roadm-oar
+
+oardir=$onosdir/bazel-bin/drivers/opticalemulator/roadm/
+oar=$oardir/onos-drivers-opticalemulator-roadm-oar.oar
+ls $oar
+echo "* Copying $oar to $driversrc"
+cp $oar $driversrc
 
 echo "* Driver build complete"
 echo "* Done"
