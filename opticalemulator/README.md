@@ -1,8 +1,8 @@
 ## emulator driver
 
-### To build .oar file (faster):
+### To build `.oar` file (faster):
 
-1. put the whole folder (opticalemulator) into `onos/drivers/`
+1. put the whole folder (`opticalemulator`) into `onos/drivers/`
 2. `cd onos/drivers`
 3. `bazel build //drivers/opticalemulator/roadm:onos-drivers-opticalemulator-roadm-oar`
 4. copy `bazel-bin/drivers/opticalemulator/roadm/onos-drivers-opticalemulator-roadm-oar.oar`
