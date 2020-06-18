@@ -10,7 +10,7 @@
 
 ### To build as part of ONOS (slower):
 
-1. put the whole folder (opticalemulator) into `onos/drivers/`
+1. put the whole folder (`opticalemulator`) into `onos/drivers/`
 2. at `onos/tools/build/bazel/modules.bzl`
         add     `"//drivers/opticalemulator/roadm:onos-drivers-opticalemulator-roadm-oar": [],`
         into    `DRIVER_MAP`
