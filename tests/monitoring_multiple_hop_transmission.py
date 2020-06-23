@@ -24,19 +24,43 @@ def abs_to_db(absolute_value):
     return db_value
 
 
+# optionally: retrieve WDG seed to pass to EDFAs
+# this seed is created with the wdg_seed.py script
+# currently in my computer at utils/
+with open('seeds/wdg_seed.txt', 'r') as f:
+    lines = f.readlines()
+wdg_seeds = []
+for line in lines:
+    wdg_seed = line.split(',')
+    wdg_seed[-1] = wdg_seed[-1][:-1]
+    wdg_seeds.append(wdg_seed)
+
+loadings = {9: [], 27: [], 81: []}
+for ch_key in loadings.keys():
+    load_str = 'seeds/channel_loading_seed_' + str(ch_key) + '.txt'
+    with open(load_str, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        ch_load = line.split(',')
+        ch_load[-1] = ch_load[-1][:-1]
+        loadings[ch_key].append([int(x) for x in ch_load])
+
 # This won't run unless modified
 test_run = 1
-while test_run <= 2:
+while test_run <= 10:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
     # to 30, 60 and 90 % of wavelength capacity
     j = 0
-    _load = [27, 54, 81]
+    _load = [9, 27, 81]
     while j < 3:
         load = _load[j]
         load_id = str(load)
-        net = LinearTopology.build(op=0, non=15)
+        # with seed
+        net = LinearTopology.build(op=-2, non=15, wdg_seed=wdg_seeds[test_run-1].copy())
+        # without seed
+        # net = LinearTopology.build(op=-2, non=15, wdg_seed=None)
 
         lt_1 = net.name_to_node['lt_1']
 
@@ -57,8 +81,9 @@ while test_run <= 2:
         roadm_15 = net.name_to_node['roadm_15']
 
         # Install switch rules into the ROADM nodes
+        wavelength_indexes = loadings[load][test_run-1]
         # wavelength_indexes = list(range(1, load + 1))
-        wavelength_indexes = random.sample(range(1, 82), load)
+        # wavelength_indexes = random.sample(range(1, 82), load)
         roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
         roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
         roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
@@ -102,10 +127,10 @@ while test_run <= 2:
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
             test = '../../metrics-monitor/'
-            dir_ = test + 'opm-sim-m14/' + opm_name
-            dir_2 = test + 'opm-sim-qot-m14/' + opm_name
-            # dir_ = test + 'opm-sim-no-m/' + opm_name
-            # dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            # dir_ = test + 'opm-sim-m14/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
+            dir_ = test + 'opm-sim-no-m/' + opm_name
+            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)

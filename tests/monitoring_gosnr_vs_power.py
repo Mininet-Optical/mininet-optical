@@ -33,8 +33,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -2
-p_end = 0
+p_start = -10
+p_end = 12
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
@@ -45,7 +45,7 @@ rx_gosnr = []
 rx_gosnr_qot = []
 rx_osnr_nli = []
 rx_osnr = []
-num_channels = 81
+num_channels = 76
 wavelength_indexes = list(range(1, num_channels + 1))
 # index = int(np.floor(len(wavelength_indexes) / 2))
 index = 6 - 1
@@ -123,7 +123,7 @@ for p in power_levels:
     for span, _list in gosnrs_qot.items():
         # gosnr_cut.append(np.mean(_list))
         gosnr_cut_qot.append(_list[index])
-        print(_list[index])
+        # print(_list[index])
     plotting_gosnr_qot.append(gosnr_cut_qot)
     rx_gosnr_qot.append(gosnr_cut_qot[-1])
 
@@ -217,10 +217,10 @@ plt.grid(True)
 #     axs[i].set_yticks(np.arange(12, 50, 6))
 #     axs[i].legend(loc=1, prop={'size': 14})
 #     axs[i].grid(True)
-plt.savefig('../../gosnr_vs_power.eps', format='eps')
-print("=%=%=%=%=%=%=%")
-print(rx_osnr)
-print(rx_gosnr)
-print(rx_gosnr_qot)
-# print(plotting_osnr)
-plt.show()
+# plt.savefig('../../gosnr_vs_power.eps', format='eps')
+# print("=%=%=%=%=%=%=%")
+# print(rx_osnr)
+# print(rx_gosnr)
+# print(rx_gosnr_qot)
+print(rx_osnr_nli)
+# plt.show()

@@ -192,7 +192,7 @@ class LineTerminal(Node):
     def init_noise_structs(self, out_port):
         noise = {}
         for optical_signal, power in self.port_to_optical_signal_power_out[out_port].items():
-            noise[optical_signal] = power / db_to_abs(50)
+            noise[optical_signal] = power / db_to_abs(90)
         return noise, noise
 
     def receiver(self, in_port, signal_power, signal_power_qot):
@@ -643,9 +643,7 @@ class Roadm(Node):
     #         node_attenuation[optical_signal] = total_attenuation
     #     return node_attenuation
 
-    def voa_reconf(self, link, output_power_dict, out_port,
-                   accumulated_ASE_noise, accumulated_NLI_noise,
-                   output_power_dict_qot, accumulated_ASE_noise_qot, accumulated_NLI_noise_qot):
+    def voa_reconf(self, link, output_power_dict, out_port):
         """
         wavelength dependent attenuation
         """
@@ -654,8 +652,6 @@ class Roadm(Node):
 
         tmp_power = list(output_power_dict.values())
         tmp_power_dB = [abs_to_db(x) for x in tmp_power]
-        tmp_power_qot = list(output_power_dict_qot.values())
-        tmp_power_qot_dB = [abs_to_db(x) for x in tmp_power_qot]
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
@@ -664,75 +660,42 @@ class Roadm(Node):
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
                 delta_dB = abs_to_db(delta)
-                # out_difference[k] = delta
-                if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
-                    # negative and within range, we can attenuate further
-                    out_difference[k] = delta
-                elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
-                    # negative and exceeding range, we attenuate the max
-                    out_difference[k] = db_to_abs(-voa_max_dB)
-                elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
-                    # positive and not higher than initial attenuation
-                    out_difference[k] = delta
-                else:
-                    # positive and higher than initial attenuation, saturates
-                    out_difference[k] = self.voa_attenuation
+                voa_rand = 1  #db_to_abs(random.uniform(-1.2, 1.2))
+                out_difference[k] = delta * voa_rand
+                # if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
+                #     # negative and within range, we can attenuate further
+                #     out_difference[k] = delta * voa_rand
+                # elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
+                #     # negative and exceeding range, we attenuate the max
+                #     out_difference[k] = db_to_abs(-voa_max_dB) * voa_rand
+                # elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
+                #     # positive and not higher than initial attenuation
+                #     out_difference[k] = delta * voa_rand
+                # else:
+                #     # positive and higher than initial attenuation, saturates
+                #     out_difference[k] = self.voa_attenuation * voa_rand
             lin_vals = list(out_difference.values())
             db_vals = [abs_to_db(x) for x in lin_vals]
-            max_voa_att = str(round(max(db_vals), 2))
+            # max_voa_att = str(round(max(db_vals), 2))
             # print("(node.py line:683) The max voa att value: %s dB" % max_voa_att)
-            # tmp_ = [abs_to_db(x) for x in list(self.port_to_optical_signal_power_out[out_port].values())]
-            tmp_ = [abs_to_db(x) for x in list(self.port_to_optical_signal_ase_noise_out[out_port].values())]
+            tmp_ = [abs_to_db(x) for x in list(self.port_to_optical_signal_power_out[out_port].values())]
+            # tmp_ = [abs_to_db(x) for x in list(self.port_to_optical_signal_ase_noise_out[out_port].values())]
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                val = self.port_to_optical_signal_power_out[out_port][optical_signal] * voa_att
+                # val = self.port_to_optical_signal_power_out[out_port][optical_signal] * voa_att
                 self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
                 # ase = self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] * voa_att
                 self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] *= voa_att
                 self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
-                # accumulated_ASE_noise[optical_signal] *= voa_att
-                # self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                # accumulated_NLI_noise[optical_signal] *= voa_att
-                # self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
-            ######################################### QOT ESTIMATION BEGINS #########################################
-            out_difference = {}
-            # for k, out_power in output_power_dict_qot.items():
-            #     # From the boost-amp, compute the difference between output power levels
-            #     # and the target output power. Set this as the compensation function.
-            #     delta = self.voa_target_out_power / out_power
-            #     delta_dB = abs_to_db(delta)
-            #     # out_difference[k] = delta
-            #     if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
-            #         # negative and within range, we can attenuate further
-            #         out_difference[k] = delta
-            #     elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
-            #         # negative and exceeding range, we attenuate the max
-            #         out_difference[k] = db_to_abs(-voa_max_dB)
-            #     elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
-            #         # positive and not higher than initial attenuation
-            #         out_difference[k] = delta
-            #     else:
-            #         # positive and higher than initial attenuation, saturates
-            #         out_difference[k] = self.voa_attenuation
-            # for optical_signal, voa_att in out_difference.items():
-            #     # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
-            #     # hence, only inflict now the additional VOA attenuation to compensate
-            #     # for the excursions generated at the boost-amp.
-            #     self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
-            #     accumulated_ASE_noise_qot[optical_signal] *= voa_att
-            #     self.port_to_optical_signal_ase_noise_out_qot[out_port].update(accumulated_ASE_noise_qot)
-            #     accumulated_NLI_noise_qot[optical_signal] *= voa_att
-            #     self.port_to_optical_signal_nli_noise_out_qot[out_port].update(accumulated_NLI_noise_qot)
-            ######################################### QOT ESTIMATION ENDS #########################################
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
             pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
-            # tmp_ = [abs_to_db(x) for x in list(pass_through_signals.values())]
+            tmp_ = [abs_to_db(x) for x in list(pass_through_signals.values())]
             ase = self.port_to_optical_signal_ase_noise_out[out_port].copy()
             nli = self.port_to_optical_signal_nli_noise_out[out_port].copy()
-            tmp_ = [abs_to_db(x) for x in list(ase.values())]
+            # tmp_ = [abs_to_db(x) for x in list(ase.values())]
             pass_through_signals_qot = self.port_to_optical_signal_power_out_qot[out_port].copy()
             ase_qot = self.port_to_optical_signal_ase_noise_out_qot[out_port].copy()
             nli_qot = self.port_to_optical_signal_nli_noise_out_qot[out_port].copy()
@@ -745,10 +708,10 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg2.txt',
-                     'wdg1_yj': 'wdg1_yeo_johnson.txt',
-                     'wdg2_yj': 'wdg2_yeo_johnson.txt'}
+description_files = {'wdg1': 'wdg1_4.txt',
+                     'wdg2': 'wdg2_3.txt'}
+                     # 'wdg1_yj': 'wdg1_yeo_johnson1_1.txt'}
+                     # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
 
 class Amplifier(Node):
@@ -881,11 +844,12 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
-    def output_amplified_power(self, signal, in_power):
+    def output_amplified_power(self, signal, in_power, p_exc=False):
         """
         Compute the output power levels of each signal after amplification
         :param signal: signal object
         :param in_power: input signal power linear (mW)
+        :param p_exc: if called before power excursions calculations
         """
         system_gain = self.system_gain
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
@@ -894,7 +858,10 @@ class Amplifier(Node):
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
         output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
         self.output_power[signal] = output_power
-        return output_power
+        if p_exc:
+            return output_power / wavelength_dependent_gain_linear
+        else:
+            return output_power
 
     def output_amplified_power_qot(self, signal, in_power):
         """
@@ -1015,10 +982,7 @@ class Amplifier(Node):
         """
         for optical_signal, nli_noise in accumulated_NLI_noise.items():
             wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
-            if self.boost:
-                accumulated_NLI_noise[optical_signal] *= db_to_abs(self.system_gain) * wavelength_dependent_gain #* db_to_abs(0.1)
-            else:
-                accumulated_NLI_noise[optical_signal] *= db_to_abs(self.system_gain) #* wavelength_dependent_gain
+            accumulated_NLI_noise[optical_signal] *= db_to_abs(self.system_gain) * wavelength_dependent_gain
         self.nonlinear_noise.update(accumulated_NLI_noise)
 
     def nli_compensation_qot(self, accumulated_NLI_noise_qot):

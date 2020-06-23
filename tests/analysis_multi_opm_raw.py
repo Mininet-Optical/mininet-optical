@@ -17,8 +17,17 @@ from matplotlib.pyplot import figure
 import matplotlib.font_manager
 import sys
 
+
+def compute_errors(y, z):
+    errors = []
+    for j, h in zip(y, z):
+        e = abs(j - h)
+        errors.append(e)
+    return max(errors)
+
+
 # Plot configuration parameters
-figure(num=None, figsize=(8.4, 6.4), dpi=256)
+# figure(num=None, figsize=(8.4, 6.4), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -44,11 +53,11 @@ power_worst_rmse_81 = []
 power_best_rmse_81 = []
 
 file_id = 0
-mon = 'm14'
+mon = 'no-m-tmp'
 while file_id <= 97:
     file_id += 1
     opm = 'opm_' + str(file_id) + '/'
-    directory = '../raw-monitor/opm-sim-' + mon + '/' + opm
+    directory = '../../raw-monitor/opm-sim-' + mon + '/' + opm
     print("*** Running for file: %s" % directory)
 
     powers = {'power_27': [], 'power_54': [], 'power_81': []}
@@ -75,7 +84,7 @@ while file_id <= 97:
                     else:
                         nlis[k].append(element[k])
 
-    qot_directory = '../raw-monitor/opm-sim-qot-' + mon + '/' + opm
+    qot_directory = '../../raw-monitor/opm-sim-qot-' + mon + '/' + opm
     qot_powers = {'power_qot_27': [], 'power_qot_54': [], 'power_qot_81': []}
     qot_ases = {'ase_qot_27': [], 'ase_qot_54': [], 'ase_qot_81': []}
     qot_nlis = {'nli_qot_27': [], 'nli_qot_54': [], 'nli_qot_81': []}
@@ -105,22 +114,23 @@ while file_id <= 97:
     qot_powers_27 = qot_powers['power_qot_27']
     powers_27_rmse = []
     for _list1, _list2 in zip(qot_powers_27, powers_27):
-        powers_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    power_mean_rmse_27.append(np.median(powers_27_rmse))
+        # powers_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
+        powers_27_rmse.append(compute_errors(_list1, _list2))
+    power_mean_rmse_27.append(np.max(powers_27_rmse))
 
     powers_54 = powers['power_54']
     qot_powers_54 = qot_powers['power_qot_54']
     powers_54_rmse = []
     for _list1, _list2 in zip(qot_powers_54, powers_54):
         powers_54_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    power_mean_rmse_54.append(np.median(powers_54_rmse))
+    power_mean_rmse_54.append(np.max(powers_54_rmse))
 
     powers_81 = powers['power_81']
     qot_powers_81 = qot_powers['power_qot_81']
     powers_81_rmse = []
     for _list1, _list2 in zip(qot_powers_81, powers_81):
         powers_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
-    power_mean_rmse_81.append(np.median(powers_81_rmse))
+    power_mean_rmse_81.append(np.max(powers_81_rmse))
 
     # Monitoring ASE noise levels
     ases_27 = ases['ase_27']
@@ -189,40 +199,41 @@ plt.plot(x, power_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
          markerfacecolor='None', color='r', label='90% ch-load')
 plt.legend()
 plt.grid(True)
-fig_name = '../monitoring_power_' + mon + '.eps'
-plt.savefig(fig_name, format='eps')
-plt.clf()
+# fig_name = '../monitoring_power_' + mon + '.eps'
+# plt.savefig(fig_name, format='eps')
+# plt.clf()
+plt.show()
 
-# print ase noise
-plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
-plt.xlabel("Index and location of OPM nodes")
-x = range(0, 98)
-ms = 12
-plt.plot(x, ase_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='30% ch-load')
-plt.plot(x, ase_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='60% ch-load')
-plt.plot(x, ase_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='90% ch-load')
-plt.legend()
-plt.grid(True)
-fig_name = '../monitoring_ase_' + mon + '.eps'
-plt.savefig(fig_name, format='eps')
-plt.clf()
+# # print ase noise
+# plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
+# plt.xlabel("Index and location of OPM nodes")
+# x = range(0, 98)
+# ms = 12
+# plt.plot(x, ase_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+#          markerfacecolor='None', color='b', label='30% ch-load')
+# plt.plot(x, ase_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+#          markerfacecolor='None', color='y', label='60% ch-load')
+# plt.plot(x, ase_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+#          markerfacecolor='None', color='r', label='90% ch-load')
+# plt.legend()
+# plt.grid(True)
+# fig_name = '../monitoring_ase_' + mon + '.eps'
+# plt.savefig(fig_name, format='eps')
+# plt.clf()
 
-# print nli noise
-plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
-plt.xlabel("Index and location of OPM nodes")
-x = range(0, 98)
-ms = 12
-plt.plot(x, nli_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
-         markerfacecolor='None', color='b', label='30% ch-load')
-plt.plot(x, nli_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
-         markerfacecolor='None', color='y', label='60% ch-load')
-plt.plot(x, nli_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
-         markerfacecolor='None', color='r', label='90% ch-load')
-plt.legend()
-plt.grid(True)
-fig_name = '../monitoring_nli_' + mon + '.eps'
-plt.savefig(fig_name, format='eps')
-plt.clf()
+# # print nli noise
+# plt.ylabel("Mean RMSE (dB) of \nSDN-controller QoT-E model")
+# plt.xlabel("Index and location of OPM nodes")
+# x = range(0, 98)
+# ms = 12
+# plt.plot(x, nli_mean_rmse_27, linestyle='None', marker='s', markersize=ms,
+#          markerfacecolor='None', color='b', label='30% ch-load')
+# plt.plot(x, nli_mean_rmse_54, linestyle='None', marker='v', markersize=ms,
+#          markerfacecolor='None', color='y', label='60% ch-load')
+# plt.plot(x, nli_mean_rmse_81, linestyle='None', marker='D', markersize=ms,
+#          markerfacecolor='None', color='r', label='90% ch-load')
+# plt.legend()
+# plt.grid(True)
+# fig_name = '../monitoring_nli_' + mon + '.eps'
+# plt.savefig(fig_name, format='eps')
+# plt.clf()

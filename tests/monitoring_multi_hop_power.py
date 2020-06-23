@@ -26,7 +26,7 @@ def abs_to_db(absolute_value):
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 3:
+while test_run <= 1:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -107,7 +107,7 @@ while test_run <= 3:
             json_struct_qot['tests_qot'].append({_ase_id_qot: ase_qot})
             json_struct_qot['tests_qot'].append({_nli_id_qot: nli_qot})
 
-            test = '../raw-monitor/'
+            test = '../../raw-monitor/'
             dir_ = test + 'opm-sim-no-m-tmp/' + opm_name
             dir_2 = test + 'opm-sim-qot-no-m-tmp/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):

@@ -6,11 +6,12 @@ import numpy as np
 class LinearTopology:
 
     @staticmethod
-    def build(op=-2, non=3):
+    def build(op=-2, non=3, wdg_seed=None):
         """
 
         :param op: operational power in dBm
         :param non: number of nodes (integer)
+        :param wdg_seed: list or None with WDG seed
         :return: Network object
         """
         # Create an optical-network object
@@ -35,9 +36,6 @@ class LinearTopology:
             bi_link = net.add_link(roadm, lt)
             bi_link.add_span(Span('SMF', 0.001), amplifier=None)
 
-        """
-            Create links between inter-city ROADM nodes
-        """
         # Labels for object creation
         us = '_'
         boost_lab = 'boost'
@@ -54,7 +52,11 @@ class LinearTopology:
             r2 = i + 2  # ROADM 2 index
             boost_label = boost_lab + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)  # label of boost amplifier
             # boost amplifier object
+            wdg_id = None
+            if wdg_seed is not None:
+                wdg_id = wdg_seed.pop()
             boost_amp = net.add_amplifier(boost_label, 'EDFA', target_gain=17.0, boost=True,
+                                          wavelength_dependent_gain_id=wdg_id,
                                           tmp_qot_id=tmp_qot_id)
             rl_1 = roadm_lab + us + str(r1)  # label of ROADM1
             rl_2 = roadm_lab + us + str(r2)  # label of ROADM1
@@ -76,7 +78,12 @@ class LinearTopology:
                 span = Span('SMF', 80)
                 in_l = amp_lab + str(in_apm_no+1) + us + 'l' + us + roadm_lab + str(r1) + us + roadm_lab + str(r2)
 
-                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6, tmp_qot_id=tmp_qot_id)
+                wdg_id = None
+                if wdg_seed is not None:
+                    wdg_id = wdg_seed.pop()
+                in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=17.6,
+                                                wavelength_dependent_gain_id=wdg_id,
+                                                tmp_qot_id=tmp_qot_id)
                 # adding span and in-line amplifier to link
                 link_r1_r2.add_span(span, in_line_amp)
                 opm_l = opm_lab + us + str(opm_no + 1)  # label OPM

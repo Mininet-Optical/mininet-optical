@@ -33,8 +33,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-p_start = -2
-p_end = 0
+p_start = 0
+p_end = 2
 power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 osnr_per_span = []
@@ -54,10 +54,11 @@ ase_plt = []
 ase_qot_plt = []
 nli_plt = []
 nli_qot_plt = []
-num_channels = 89
+num_channels = 76
 wavelength_indexes = list(range(1, num_channels + 1))
 # index = int(np.floor(len(wavelength_indexes) / 2))
 index = 15 - 1
+snr_id = 0
 print("Monitoring channel with index: ", index)
 # wavelength_indexes.reverse()
 # wavelength_indexes = random.sample(range(1, 90), 81)
@@ -110,7 +111,7 @@ for p in power_levels:
     net.transmit(lt_1, roadm_1, resources=resources)
 
     print("*** Monitoring interfaces...")
-    num_opm = 98
+    num_opm = 57
     osnrs = {i: [] for i in range(1, num_opm)}
     gosnrs = {i: [] for i in range(1, num_opm)}
     osnrs_qot = {i: [] for i in range(1, num_opm)}
@@ -191,21 +192,24 @@ i = 0
 colors = ['r', 'b', 'y', 'g', 'r', 'b', 'y', 'g', 'r', 'b', 'y', 'g', 'r', 'b', 'y', 'g', 'r', 'b', 'y', 'g']
 color = colors.pop()
 c = 0
-for _list in plotting_gosnr_qot:
+snr = [osnr_per_span, plotting_gosnr]
+for _list in snr[snr_id]:
     # print(_list[index])
     i += 1
-    if i == 8:
+    if i == 5:
         color = colors.pop()
         i = 1
     c += 1
-    if c == 28:
+    if c == 97:
         plt.plot(_list, 'k')
     else:
         plt.plot(_list, color)
 
-
-# plt.ylabel("OSNR, gOSNR(dashed) (dB)")
-# plt.xlabel("Amplifiers")
+if snr_id == 0:
+    plt.ylabel("OSNR (dB)")
+else:
+    plt.ylabel("gOSNR (dB)")
+plt.xlabel("Channel Index")
 # plt.yticks(np.arange(18, 40, 2))
 # ticks = []
 # s = 0
