@@ -50,7 +50,7 @@ gosnr_mean_rmse_9_m14 = []
 gosnr_mean_rmse_27_m14 = []
 gosnr_mean_rmse_81_m14 = []
 
-monitors = ['no-m', 'm14']
+monitors = ['no-m', 'm7']
 for monitor in monitors:
     file_id = 0
     mon = monitor
@@ -111,14 +111,14 @@ for monitor in monitors:
             # gosnr_9_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
             gosnr_9_rmse.append(compute_errors(_list1, _list2))
         if mon == 'no-m':
-            gosnr_mean_rmse_9.append(np.max(gosnr_9_rmse[0][2]))
-            # max_num = np.max(gosnr_9_rmse)
-            # gosnr_mean_rmse_9.append(max_num)
+            # gosnr_mean_rmse_9.append(np.max(gosnr_9_rmse[0][2]))
+            max_num = np.max(gosnr_9_rmse)
+            gosnr_mean_rmse_9.append(max_num)
             # max_channels_9.append(find_max_channel(gosnr_9_rmse[0], max_num))
         else:
-            gosnr_mean_rmse_9_m14.append(np.max(gosnr_9_rmse[0][2]))
-            # max_num = np.max(gosnr_9_rmse)
-            # gosnr_mean_rmse_9_m14.append(max_num)
+            # gosnr_mean_rmse_9_m14.append(np.max(gosnr_9_rmse[0][2]))
+            max_num = np.max(gosnr_9_rmse)
+            gosnr_mean_rmse_9_m14.append(max_num)
         #     max_channels_qot_9.append(find_max_channel(gosnr_9_rmse[0], max_num))
         # with open('../../max_channels_9_seeds.txt', 'a') as f:
         #     for el in max_channels_9:
@@ -136,11 +136,11 @@ for monitor in monitors:
             # gosnr_27_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
             gosnr_27_rmse.append(compute_errors(_list1, _list2))
         if mon == 'no-m':
-            gosnr_mean_rmse_27.append(np.max(gosnr_27_rmse[0][2]))
-            # gosnr_mean_rmse_27.append(np.max(gosnr_27_rmse))
+            # gosnr_mean_rmse_27.append(np.max(gosnr_27_rmse[0][2]))
+            gosnr_mean_rmse_27.append(np.max(gosnr_27_rmse))
         else:
-            gosnr_mean_rmse_27_m14.append(np.max(gosnr_27_rmse[0][2]))
-            # gosnr_mean_rmse_27_m14.append(np.max(gosnr_27_rmse))
+            # gosnr_mean_rmse_27_m14.append(np.max(gosnr_27_rmse[0][2]))
+            gosnr_mean_rmse_27_m14.append(np.max(gosnr_27_rmse))
 
         gosnrs_81 = gosnrs['gosnr_load_81']
         qot_gosnrs_81 = qot_gosnrs['gosnr_load_qot_81']
@@ -149,11 +149,11 @@ for monitor in monitors:
             # gosnr_81_rmse.append(sqrt(mean_squared_error(_list1, _list2)))
             gosnr_81_rmse.append(compute_errors(_list1, _list2))
         if mon == 'no-m':
-            gosnr_mean_rmse_81.append(np.max(gosnr_81_rmse[0][2]))
-            # gosnr_mean_rmse_81.append(np.max(gosnr_81_rmse))
+            # gosnr_mean_rmse_81.append(np.max(gosnr_81_rmse[0][2]))
+            gosnr_mean_rmse_81.append(np.max(gosnr_81_rmse))
         else:
-            gosnr_mean_rmse_81_m14.append(np.max(gosnr_81_rmse[0][2]))
-            # gosnr_mean_rmse_81_m14.append(np.max(gosnr_81_rmse))
+            # gosnr_mean_rmse_81_m14.append(np.max(gosnr_81_rmse[0][2]))
+            gosnr_mean_rmse_81_m14.append(np.max(gosnr_81_rmse))
 
         del qot_osnrs
         del qot_gosnrs
@@ -164,7 +164,7 @@ for monitor in monitors:
 
 x = range(0, 98)
 xt = [1, 14, 28, 42, 56, 70, 84, 98]
-plt.xticks([0, 14, 28, 42, 56, 70, 84, 98], xt)
+plt.xticks([0, 13, 27, 41, 55, 69, 83, 97], xt)
 # plt.yticks(np.arange(0, 10.5, 0.5))
 plt.ylabel("Max Error (dB)")
 plt.xlabel("Amplifiers")
