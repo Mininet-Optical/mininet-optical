@@ -47,7 +47,7 @@ for ch_key in loadings.keys():
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 10:
+while test_run <= 5:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -127,10 +127,14 @@ while test_run <= 10:
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
             test = '../../metrics-monitor/'
+            # dir_ = test + 'opm-sim-m7/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-m7/' + opm_name
             # dir_ = test + 'opm-sim-m14/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
-            dir_ = test + 'opm-sim-no-m/' + opm_name
-            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            dir_ = test + 'opm-sim-m28/' + opm_name
+            dir_2 = test + 'opm-sim-qot-m28/' + opm_name
+            # dir_ = test + 'opm-sim-no-m/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)

@@ -758,8 +758,8 @@ class Amplifier(Node):
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
         self.tmp_qot_id = tmp_qot_id
-        self.monitor_flag = False
-        self.monitor_unit = 14.0
+        self.monitor_flag = True
+        self.monitor_unit = 28.0
 
     def power_excursions_flags_off(self):
         self.power_excursions_flag_1 = False
@@ -986,9 +986,12 @@ class Amplifier(Node):
         self.nonlinear_noise.update(accumulated_NLI_noise)
 
     def nli_compensation_qot(self, accumulated_NLI_noise_qot):
-        for optical_signal, nli_noise in accumulated_NLI_noise_qot.items():
-            accumulated_NLI_noise_qot[optical_signal] = nli_noise * db_to_abs(self.system_gain_qot)
-        self.nonlinear_noise_qot.update(accumulated_NLI_noise_qot)
+        if self.tmp_qot_id % self.monitor_unit == 0.0 and self.monitor_flag:
+            self.nonlinear_noise_qot.update(self.nonlinear_noise.copy())
+        else:
+            for optical_signal, nli_noise in accumulated_NLI_noise_qot.items():
+                accumulated_NLI_noise_qot[optical_signal] = nli_noise * db_to_abs(self.system_gain_qot)
+            self.nonlinear_noise_qot.update(accumulated_NLI_noise_qot)
 
     def clean_optical_signals(self, optical_signals):
         for optical_signal in optical_signals:

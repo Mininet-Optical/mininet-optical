@@ -50,7 +50,7 @@ gosnr_mean_rmse_9_m14 = []
 gosnr_mean_rmse_27_m14 = []
 gosnr_mean_rmse_81_m14 = []
 
-monitors = ['no-m', 'm7']
+monitors = ['no-m', 'm28']
 for monitor in monitors:
     file_id = 0
     mon = monitor
