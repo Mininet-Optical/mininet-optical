@@ -27,7 +27,7 @@ def abs_to_db(absolute_value):
 # optionally: retrieve WDG seed to pass to EDFAs
 # this seed is created with the wdg_seed.py script
 # currently in my computer at utils/
-with open('seeds/wdg_seed.txt', 'r') as f:
+with open('tests/seeds/wdg_seed.txt', 'r') as f:
     lines = f.readlines()
 wdg_seeds = []
 for line in lines:
@@ -37,7 +37,7 @@ for line in lines:
 
 loadings = {9: [], 27: [], 81: []}
 for ch_key in loadings.keys():
-    load_str = 'seeds/channel_loading_seed_' + str(ch_key) + '.txt'
+    load_str = 'tests/seeds/channel_loading_seed_' + str(ch_key) + '.txt'
     with open(load_str, 'r') as f:
         lines = f.readlines()
     for line in lines:
@@ -45,9 +45,11 @@ for ch_key in loadings.keys():
         ch_load[-1] = ch_load[-1][:-1]
         loadings[ch_key].append([int(x) for x in ch_load])
 
+# loadings = {9: [32,48,81,89,50,47,59,86,2], 27: [26,64,1,85,60,37,73,74,16,6,19,34,84,54,21,89,88,52,55,10,45,78,12,40,82,3,59], 81: [45,61,18,64,56,69,31,52,80,76,10,8,86,33,67,44,21,34,40,4,70,25,48,87,83,62,88,49,66,57,1,79,59,7,32,5,54,29,17,50,75,19,41,60,65,72,55,3,38,37,68,28,13,42,77,81,84,63,39,43,20,9,85,78,47,35,82,71,73,6,58,11,2,16,27,14,89,26,51,24,23]}
+
 # This won't run unless modified
 test_run = 1
-while test_run <= 5:
+while test_run <= 50:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -81,6 +83,7 @@ while test_run <= 5:
         roadm_15 = net.name_to_node['roadm_15']
 
         # Install switch rules into the ROADM nodes
+        # wavelength_indexes = loadings[load]
         wavelength_indexes = loadings[load][test_run-1]
         # wavelength_indexes = list(range(1, load + 1))
         # wavelength_indexes = random.sample(range(1, 82), load)
@@ -126,13 +129,13 @@ while test_run <= 5:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            test = '../../metrics-monitor/'
-            # dir_ = test + 'opm-sim-m7/' + opm_name
-            # dir_2 = test + 'opm-sim-qot-m7/' + opm_name
+            test = '../metrics-monitor/'
+            dir_ = test + 'opm-sim-m7/' + opm_name
+            dir_2 = test + 'opm-sim-qot-m7/' + opm_name
             # dir_ = test + 'opm-sim-m14/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
-            dir_ = test + 'opm-sim-m28/' + opm_name
-            dir_2 = test + 'opm-sim-qot-m28/' + opm_name
+            # dir_ = test + 'opm-sim-m28/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-m28/' + opm_name
             # dir_ = test + 'opm-sim-no-m/' + opm_name
             # dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):

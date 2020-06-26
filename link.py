@@ -73,7 +73,7 @@ class Link(object):
 
         self.traffic = []
         self.monitor_flag = True
-        self.monitor_unit = 28.0
+        self.monitor_unit = 7.0
 
         self.srs_effect = True
 
