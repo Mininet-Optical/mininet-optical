@@ -722,8 +722,8 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-description_files = {'wdg1': 'wdg1_4.txt',
-                     'wdg2': 'wdg2_3.txt'}
+description_files = {'wdg1': 'wdg1_3.txt',
+                     'wdg2': 'wdg2_2.txt'}
                      # 'wdg1_yj': 'wdg1_yeo_johnson1_1.txt'}
                      # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -772,8 +772,8 @@ class Amplifier(Node):
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
         self.tmp_qot_id = tmp_qot_id
-        self.monitor_flag = False
-        self.monitor_unit = 7.0
+        self.monitor_flag = True
+        self.monitor_unit = 14.0
 
     def power_excursions_flags_off(self):
         self.power_excursions_flag_1 = False

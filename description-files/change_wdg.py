@@ -1,6 +1,6 @@
 
 
-with open('wdg1_yeo_johnson.txt', 'r') as f:
+with open('wdg2.txt', 'r') as f:
     text = f.readlines()
 
 # Add +1 or -1 to the values
@@ -17,7 +17,7 @@ with open('wdg1_yeo_johnson.txt', 'r') as f:
 #     new_text.append(new_line)
 
 # Increase Nx the original value
-x = 4
+x = 3
 new_text = []
 for line in text:
     print("Line to convert: ", line)
@@ -26,6 +26,6 @@ for line in text:
     new_line = str(increased_float) + '\n'
     new_text.append(new_line)
 
-with open('wdg1_yeo_johnson1_4.txt', 'w') as f:
+with open('wdg2_4.txt', 'w') as f:
     for line in new_text:
         f.write(line)

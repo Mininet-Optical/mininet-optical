@@ -132,12 +132,12 @@ while test_run <= 5:
             test = '../../metrics-monitor/'
             # dir_ = test + 'opm-sim-m7/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m7/' + opm_name
-            # dir_ = test + 'opm-sim-m14/' + opm_name
-            # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
+            dir_ = test + 'opm-sim-m14/' + opm_name
+            dir_2 = test + 'opm-sim-qot-m14/' + opm_name
             # dir_ = test + 'opm-sim-m28/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m28/' + opm_name
-            dir_ = test + 'opm-sim-no-m/' + opm_name
-            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            # dir_ = test + 'opm-sim-no-m/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)

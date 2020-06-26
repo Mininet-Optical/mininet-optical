@@ -72,8 +72,8 @@ class Link(object):
         self.spans = spans or []
 
         self.traffic = []
-        self.monitor_flag = False
-        self.monitor_unit = 7.0
+        self.monitor_flag = True
+        self.monitor_unit = 14.0
 
         self.srs_effect = True
 

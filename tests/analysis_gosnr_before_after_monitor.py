@@ -66,7 +66,7 @@ gosnr_mean_rmse_81_m14 = []
 
 # helper structures and variables for
 # searching and printing purposes
-mon = 'm7'
+mon = 'm14'
 monitors = ['no-m', mon]
 ch_mon = 3
 a_num = False
