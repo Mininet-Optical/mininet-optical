@@ -27,7 +27,7 @@ def abs_to_db(absolute_value):
 # optionally: retrieve WDG seed to pass to EDFAs
 # this seed is created with the wdg_seed.py script
 # currently in my computer at utils/
-with open('tests/seeds/wdg_seed.txt', 'r') as f:
+with open('seeds/wdg_seed.txt', 'r') as f:
     lines = f.readlines()
 wdg_seeds = []
 for line in lines:
@@ -37,7 +37,7 @@ for line in lines:
 
 loadings = {9: [], 27: [], 81: []}
 for ch_key in loadings.keys():
-    load_str = 'tests/seeds/channel_loading_seed_' + str(ch_key) + '.txt'
+    load_str = 'seeds/channel_loading_seed_' + str(ch_key) + '.txt'
     with open(load_str, 'r') as f:
         lines = f.readlines()
     for line in lines:
@@ -49,7 +49,7 @@ for ch_key in loadings.keys():
 
 # This won't run unless modified
 test_run = 1
-while test_run <= 50:
+while test_run <= 5:
     print("*** Running for test %d" % test_run)
     test_id = 't' + str(test_run)
     # different wavelength loads corresponding
@@ -129,15 +129,15 @@ while test_run <= 50:
             json_struct_qot['tests_qot'].append({_osnr_id_qot: osnrs_qot})
             json_struct_qot['tests_qot'].append({_gosnr_id_qot: gosnrs_qot})
 
-            test = '../metrics-monitor/'
-            dir_ = test + 'opm-sim-m7/' + opm_name
-            dir_2 = test + 'opm-sim-qot-m7/' + opm_name
+            test = '../../metrics-monitor/'
+            # dir_ = test + 'opm-sim-m7/' + opm_name
+            # dir_2 = test + 'opm-sim-qot-m7/' + opm_name
             # dir_ = test + 'opm-sim-m14/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m14/' + opm_name
             # dir_ = test + 'opm-sim-m28/' + opm_name
             # dir_2 = test + 'opm-sim-qot-m28/' + opm_name
-            # dir_ = test + 'opm-sim-no-m/' + opm_name
-            # dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
+            dir_ = test + 'opm-sim-no-m/' + opm_name
+            dir_2 = test + 'opm-sim-qot-no-m/' + opm_name
             if not os.path.exists(dir_) and not os.path.exists(dir_2):
                 os.makedirs(dir_)
                 os.makedirs(dir_2)

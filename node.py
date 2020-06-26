@@ -643,7 +643,7 @@ class Roadm(Node):
     #         node_attenuation[optical_signal] = total_attenuation
     #     return node_attenuation
 
-    def voa_reconf(self, link, output_power_dict, out_port):
+    def voa_reconf(self, link, output_power_dict, output_power_dict_qot, out_port):
         """
         wavelength dependent attenuation
         """
@@ -660,8 +660,7 @@ class Roadm(Node):
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
                 delta_dB = abs_to_db(delta)
-                voa_rand = 1  #db_to_abs(random.uniform(-1.2, 1.2))
-                out_difference[k] = delta * voa_rand
+                out_difference[k] = delta
                 # if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
                 #     # negative and within range, we can attenuate further
                 #     out_difference[k] = delta * voa_rand
@@ -674,6 +673,12 @@ class Roadm(Node):
                 # else:
                 #     # positive and higher than initial attenuation, saturates
                 #     out_difference[k] = self.voa_attenuation * voa_rand
+            out_difference_qot = {}
+            for k, out_power in output_power_dict_qot.items():
+                # From the boost-amp, compute the difference between output power levels
+                # and the target output power. Set this as the compensation function.
+                delta = self.voa_target_out_power / out_power
+                out_difference_qot[k] = delta
             lin_vals = list(out_difference.values())
             db_vals = [abs_to_db(x) for x in lin_vals]
             # max_voa_att = str(round(max(db_vals), 2))
@@ -689,6 +694,15 @@ class Roadm(Node):
                 # ase = self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] * voa_att
                 self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] *= voa_att
                 self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
+            for optical_signal, voa_att in out_difference_qot.items():
+                # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
+                # hence, only inflict now the additional VOA attenuation to compensate
+                # for the excursions generated at the boost-amp.
+                # val = self.port_to_optical_signal_power_out[out_port][optical_signal] * voa_att
+                self.port_to_optical_signal_power_out_qot[out_port][optical_signal] *= voa_att
+                # ase = self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] * voa_att
+                self.port_to_optical_signal_ase_noise_out_qot[out_port][optical_signal] *= voa_att
+                self.port_to_optical_signal_nli_noise_out_qot[out_port][optical_signal] *= voa_att
 
             # Proceed with the re-propagation of effects. Same as last step in switch function.
             pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
@@ -707,7 +721,7 @@ class Roadm(Node):
                            voa_compensation=False)
 
 
-description_files_dir = 'description-files/'
+description_files_dir = '../description-files/'
 description_files = {'wdg1': 'wdg1_4.txt',
                      'wdg2': 'wdg2_3.txt'}
                      # 'wdg1_yj': 'wdg1_yeo_johnson1_1.txt'}
@@ -758,7 +772,7 @@ class Amplifier(Node):
         self.nonlinear_noise_qot = {}  # accumulated NLI noise to be used only in boost = True
 
         self.tmp_qot_id = tmp_qot_id
-        self.monitor_flag = True
+        self.monitor_flag = False
         self.monitor_unit = 7.0
 
     def power_excursions_flags_off(self):

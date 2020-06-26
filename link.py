@@ -72,7 +72,7 @@ class Link(object):
         self.spans = spans or []
 
         self.traffic = []
-        self.monitor_flag = True
+        self.monitor_flag = False
         self.monitor_unit = 7.0
 
         self.srs_effect = True
@@ -168,6 +168,7 @@ class Link(object):
         if self.boost_amp:
             output_power_dict, input_power_dict, out_in_difference = None, None, None
             tmp = {}
+            tmp_qot = {}
             output_power_dict_qot, input_power_dict_qot, out_in_difference_qot = None, None, None
             # Enabling amplifier system gain balancing check
             signal_keys = list(self.optical_signal_power_in)
@@ -178,9 +179,10 @@ class Link(object):
                     out_p = self.boost_amp.output_amplified_power(optical_signal, in_power, p_exc=True)
                     tmp[optical_signal] = out_p
 
-                    # in_power_qot = self.optical_signal_power_in_qot[optical_signal]
-                    # self.boost_amp.input_power_qot[optical_signal] = in_power_qot
-                    # self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
+                    in_power_qot = self.optical_signal_power_in_qot[optical_signal]
+                    self.boost_amp.input_power_qot[optical_signal] = in_power_qot
+                    out_p_qot = self.boost_amp.output_amplified_power_qot(optical_signal, in_power_qot)
+                    tmp_qot[optical_signal] = out_p_qot
                 output_power_dict, input_power_dict, out_in_difference = self.boost_amp.compute_power_excursions()
                 # output_power_dict_qot, input_power_dict_qot, out_in_difference_qot = \
                 #     self.boost_amp.compute_power_excursions_qot()
@@ -192,7 +194,7 @@ class Link(object):
 
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
-                prev_roadm.voa_reconf(self, tmp, self.output_port_node1)
+                prev_roadm.voa_reconf(self, tmp, tmp_qot, self.output_port_node1)
                 # return to avoid propagation of effects
                 return False
 
