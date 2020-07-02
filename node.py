@@ -665,11 +665,16 @@ class Roadm(Node):
             node_attenuation[optical_signal] = total_attenuation
         return node_attenuation
 
-    def voa_reconf(self, link, output_power_dict, out_port,
-                   accumulated_ASE_noise, accumulated_NLI_noise):
+    ####### NEW EDITED VOA RECONF #######
+
+    def voa_reconf(self, link, output_power_dict, out_port):
         """
         wavelength dependent attenuation
         """
+        voa_min_dB = 0
+        voa_max_dB = 9  # plus the initial att the max value is 15 dB
+
+        tmp_power = list(output_power_dict.values())
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
@@ -677,27 +682,37 @@ class Roadm(Node):
                 # From the boost-amp, compute the difference between output power levels
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
+                delta_dB = abs_to_db(delta)
                 out_difference[k] = delta
+                if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
+                    # negative and within range, we can attenuate further
+                    out_difference[k] = delta
+                elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
+                    # negative and exceeding range, we attenuate the max
+                    out_difference[k] = db_to_abs(-voa_max_dB)
+                elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
+                    # positive and not higher than initial attenuation
+                    out_difference[k] = delta
+                else:
+                    # positive and higher than initial attenuation, saturates
+                    out_difference[k] = self.voa_attenuation
+
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
                 # hence, only inflict now the additional VOA attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                if voa_att < 0:
-                    self.port_to_optical_signal_power_out[out_port][optical_signal] /= voa_att
-                    if len(accumulated_ASE_noise) > 0:
-                        accumulated_ASE_noise[optical_signal] /= voa_att
-                        self.port_to_optical_signal_ase_noise_out[out_port].update(accumulated_ASE_noise)
-                    if len(accumulated_NLI_noise) > 0:
-                        accumulated_NLI_noise[optical_signal] /= voa_att
-                        self.port_to_optical_signal_nli_noise_out[out_port].update(accumulated_NLI_noise)
+                self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
+                self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] *= voa_att
+                self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
 
-            # Proceed with the re-propagation of effects. Same as last step in switch function.
-            pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
-            ase = accumulated_ASE_noise.copy()
-            nli = accumulated_NLI_noise.copy()
-            link.reset_propagation_struct()
-            # Propagate signals through link and flag voa_compensation to avoid looping
-            link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
+        pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
+        ase = self.port_to_optical_signal_ase_noise_out[out_port].copy()
+        nli = self.port_to_optical_signal_nli_noise_out[out_port].copy()
+
+        link.reset_propagation_struct()
+        link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
+
+    ####### NEW EDITED VOA RECONF - END #######
 
     def print_signals(self):
         "Debugging: print input and output signals"
@@ -717,9 +732,9 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
-# description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg2.txt',
-'wdg2': 'wdg2.txt'}
+description_files = {'linear': 'linear.txt'}
+# description_files = {'wdg1': 'wdg2.txt',
+# 'wdg2': 'wdg2.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -866,7 +881,6 @@ class Amplifier(Node):
             self.power_excursions_flag_2 = True
         if not (self.power_excursions_flag_1 and self.power_excursions_flag_2):
             self.power_excursions_flag_1 = True
-        return self.output_power.copy(), self.input_power.copy(), out_in_difference
 
     def nli_compensation(self, accumulated_NLI_noise):
         """

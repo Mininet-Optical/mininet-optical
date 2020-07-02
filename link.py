@@ -35,7 +35,7 @@ class Link(object):
 
     def __init__(self, node1, node2,
                  output_port_node1=None, input_port_node2=None,
-                 boost_amp=None, spans=None):
+                 boost_amp=None, srs_effect=True, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
@@ -52,6 +52,7 @@ class Link(object):
         self.output_port_node1 = output_port_node1
         self.input_port_node2 = input_port_node2
         self.boost_amp = boost_amp
+        self.srs_effect = srs_effect
 
         self.optical_signal_power_in = {}  # dict of signals and power levels
         self.optical_signal_power_out = {}  # dict of signals and power levels
@@ -159,16 +160,17 @@ class Link(object):
         """
         # keep track of the signal power in link
         signal_power_progress = self.optical_signal_power_in.copy()
+        # get the output power of the signals at output boost port
+        output_power_dict = {}
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
         if self.boost_amp:
-            output_power_dict, input_power_dict, out_in_difference = None, None, None
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal, in_power in self.optical_signal_power_in.items():
                     self.boost_amp.input_power[optical_signal] = in_power
-                    self.boost_amp.output_amplified_power(optical_signal, in_power)
-                output_power_dict, input_power_dict, out_in_difference = self.boost_amp.compute_power_excursions()
+                    output_power_dict[optical_signal] = self.boost_amp.output_amplified_power(optical_signal, in_power)
+                self.boost_amp.compute_power_excursions()
 
             # Reset balancing flags to original settings
             self.boost_amp.power_excursions_flags_off()
@@ -176,8 +178,7 @@ class Link(object):
             if voa_compensation:
                 # procedure for VOA reconfiguration
                 prev_roadm = self.node1
-                prev_roadm.voa_reconf(self, output_power_dict, self.output_port_node1,
-                                      accumulated_ASE_noise, accumulated_NLI_noise)
+                prev_roadm.voa_reconf(self, output_power_dict, self.output_port_node1)
                 # return to avoid propagation of effects
                 return False
 
@@ -214,11 +215,12 @@ class Link(object):
                 accumulated_NLI_noise.update(nonlinear_interference_noise[span])
                 self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
 
-            # # Compute nonlinear effects from the fibre
-            # if len(signal_power_progress) > 1 and prev_amp:
-            #     signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
-            #         self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
-            #                           accumulated_NLI_noise, span)
+            # Compute SRS effects from the fibre
+            if self.srs_effect:
+                if len(signal_power_progress) > 1 and prev_amp:
+                    signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                        self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                          accumulated_NLI_noise, span)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
@@ -300,7 +302,7 @@ class Link(object):
         for optical_signal in optical_signals:
             frequency = optical_signal.frequency
             r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency_max - frequency))  # term 1
+                    beta * total_power * effective_length * (frequency - frequency_min))  # term 1
             r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
             delta_p = float(r1 / r2)  # Does the arithmetic in mW
@@ -362,7 +364,6 @@ class Link(object):
                 bw_ch = symbol_rate_ch
                 pwr_ch = round(signal_power_progress[ch], 2) * 1e-3
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
-                delta_factor = 1 if ch.frequency == optical_signal.frequency else 1
                 psi = self.psi_factor(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
                 g_nli += g_ch ** 2 * g_cut * psi
 
