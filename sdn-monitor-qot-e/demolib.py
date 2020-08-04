@@ -161,13 +161,16 @@ def configureLinearNet(net, channel_no=10):
         r1.connect(port1=local_port, port2=line1, channels=[ch])
 
     # r2: pass through channels r1<->r5
-    r2.connect(port1=line1, port2=line2, channels=channels)
+    for ch in channels:
+        r2.connect(port1=line1, port2=line2, channels=ch)
 
     # r3: pass through channels r1<->r5
-    r3.connect(port1=line1, port2=line2, channels=channels)
+    for ch in channels:
+        r3.connect(port1=line1, port2=line2, channels=ch)
 
     # r4: pass through channels r1<->r5
-    r4.connect(port1=line1, port2=line2, channels=channels)
+    for ch in channels:
+        r4.connect(port1=line1, port2=line2, channels=ch)
 
     # r5: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
