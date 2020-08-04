@@ -146,9 +146,11 @@ def configureLinearNet(net, channel_no=10):
     wdm_ports = list(np.arange(1, channel_no + 2))
 
     # Configure transceivers
-    t1 = net.get('t1')
+    t1, t5 = net.get('t1', 't5')
     for tx_id, ch in enumerate(channels):
         t1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[-1], channel=ch)
+    for tx_id, ch in enumerate(channels):
+        t5.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[-1], channel=ch)
 
     # Configure roadms
     r1, r2, r3, r4, r5 = net.get('r1', 'r2', 'r3', 'r4', 'r5')
