@@ -143,7 +143,7 @@ def configureLinearNet(net, channel_no=10):
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    wdm_ports = list(np.arange(channel_no, channel_no * 2 + 1))
+    wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
 
     # Configure transceivers
     t1, t5 = net.get('t1', 't5')
@@ -161,16 +161,13 @@ def configureLinearNet(net, channel_no=10):
         r1.connect(port1=local_port, port2=line1, channels=[ch])
 
     # r2: pass through channels r1<->r5
-    for ch in channels:
-        r2.connect(port1=line1, port2=line2, channels=ch)
+    r2.connect(port1=line1, port2=line2, channels=channels)
 
     # r3: pass through channels r1<->r5
-    for ch in channels:
-        r3.connect(port1=line1, port2=line2, channels=ch)
+    r3.connect(port1=line1, port2=line2, channels=channels)
 
     # r4: pass through channels r1<->r5
-    for ch in channels:
-        r4.connect(port1=line1, port2=line2, channels=ch)
+    r4.connect(port1=line1, port2=line2, channels=channels)
 
     # r5: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
