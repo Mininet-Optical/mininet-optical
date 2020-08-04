@@ -18,12 +18,12 @@ from mininet.clean import cleanup
 from mininet.node import RemoteController
 
 from collections import namedtuple
+import numpy as np
 
 from ofcdemo.demolib import OpticalCLI
 
 # Routers start listening at 6654
 ListenPortBase = 6653
-
 
 CLI = OpticalCLI
 
@@ -116,17 +116,73 @@ class LinearRoadmTopo(OpticalTopo):
                          monitors=monitors)
 
 
+def configureLinearNet(net, channel_no=10):
+    """Configure linear network locally
+       Channel usage:
+       r1<->r5: 1-10
+    """
+
+    info('*** Configuring linear network \n')
+
+    # Configure routers
+    # eth1: dest1, eth2: dest2, etc. ... ethN: local
+    routers = s1, s5 = net.get('s1', 's5')
+    for pop, dests in enumerate([(s1, s5)], start=1):
+        router, dest1, dest2 = routers[pop - 1], dests[0], dests[1]
+        # XXX Only one host for now
+        hostmac = net.get('h%d' % pop).MAC()
+        router.dpctl('del-flows')
+        for eth, dest in enumerate([dest1, dest2, router], start=1):
+            dstmod = ('mod_dl_dst=%s,' % hostmac) if dest == router else ''
+            for protocol in 'ip', 'icmp', 'arp':
+                flow = (protocol + ',ip_dst=' + dest.params['subnet'] +
+                        'actions=' + dstmod +
+                        'dec_ttl,output:%d' % eth)
+                router.dpctl('add-flow', flow)
+
+    channels = list(np.arange(1, channel_no + 1))
+    # Port numbering
+    eth_ports = list(np.arange(1, channel_no + 2))
+    wdm_ports = list(np.arange(1, channel_no + 2))
+
+    # Configure transceivers
+    t1 = net.get('t1')
+    for tx_id, ch in enumerate(channels):
+        t1.connect(tx=tx_id, ethPort=eth_ports[tx_id], wdmPort=wdm_ports[-1], channel=ch)
+
+    # Configure roadms
+    r1, r2, r3, r4, r5 = net.get('r1', 'r2', 'r3', 'r4', 'r5')
+    line1, line2 = 11, 12
+
+    # r1: add/drop channels r1<->r5
+    for local_port, ch in enumerate(channels, start=1):
+        r1.connect(port1=local_port, port2=line1, channels=[ch])
+
+    # r2: pass through channels r1<->r5
+    r2.connect(port1=line1, port2=line2, channels=channels)
+
+    # r3: pass through channels r1<->r5
+    r3.connect(port1=line1, port2=line2, channels=channels)
+
+    # r4: pass through channels r1<->r5
+    r4.connect(port1=line1, port2=line2, channels=channels)
+
+    # r5: add/drop channels r1<->r5
+    # r5.connect(port1=line1, port2=local2, channels=channels)
+
+
 if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel('info')
-    topo1 = LinearRoadmTopo(n=5, txCount=81)
+    topo1 = LinearRoadmTopo(n=5, txCount=10)
     # topo2 = LinearRoadmTopo(n=15, txCount=9)
     net = Mininet(topo=topo1, autoSetMacs=True,
                   controller=RemoteController)
     disableIPv6(net)
     restServer = RestServer(net)
     net.start()
+    configureLinearNet(net)
     restServer.start()
     CLI(net)
     restServer.stop()
