@@ -398,8 +398,8 @@ class Roadm(Node):
     """
 
     def __init__(self, name, wss_dict=None, voa_function='flatten',
-                 # FIXME: what should the default be?
-                 voa_target_out_power=3):
+                 # Assuming default launch power of 0 dBm for all signals
+                 voa_target_out_power=0):
         """
         :param name:
         :param wss_dict:
