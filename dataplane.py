@@ -636,10 +636,12 @@ class OpticalLink( Link ):
                       for monitorName, ampName in monitors
                       for prefix in ( prefix1, prefix2 ) }
         self.monitors = []
-        for boost in boost1, boost2:
-            if boost and boost.name in monitored:
-                monitor = Monitor( boost, link=link, amplifier=boost )
-                self.monitors.append( monitor )
+        if boost1 and boost1.name in monitored:
+            monitor = Monitor( boost1, link=self.phyLink1, amplifier=boost1 )
+            self.monitors.append( monitor )
+        if boost2 and boost2.name in monitored:
+            monitor = Monitor( boost2, link=self.phyLink2, amplifier=boost2 )
+            self.monitors.append( monitor )
         for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
             for span, amplifier in spans:
                 if amplifier and amplifier.name in monitored:
