@@ -619,7 +619,7 @@ class OpticalLink( Link ):
 
         spans2 = [ PhySpan( length, PhyAmplifier( prefix2 + name, **params )
                             if name else None )
-                   for length, name, params in reversed( spans ) ]
+                   for length, name, params in spans ]
 
         # XXX Output ports have to start at this number for some reason?
         OUT = 100
@@ -639,9 +639,6 @@ class OpticalLink( Link ):
         if boost1 and boost1.name in monitored:
             monitor = Monitor( boost1, link=self.phyLink1, amplifier=boost1 )
             self.monitors.append( monitor )
-        if boost2 and boost2.name in monitored:
-            monitor = Monitor( boost2, link=self.phyLink2, amplifier=boost2 )
-            self.monitors.append( monitor )
         for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
             for span, amplifier in spans:
                 if amplifier and amplifier.name in monitored:
@@ -649,6 +646,9 @@ class OpticalLink( Link ):
                     monitor = Monitor(
                         name, link=link, span=span, amplifier=amplifier )
                     self.monitors.append( monitor )
+        if boost2 and boost2.name in monitored:
+            monitor = Monitor( boost2, link=self.phyLink2, amplifier=boost2 )
+            self.monitors.append( monitor ) 
 
     @staticmethod
     def parseSpans( spans=None ):
