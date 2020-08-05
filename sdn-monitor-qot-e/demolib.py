@@ -104,14 +104,13 @@ class LinearRoadmTopo(OpticalTopo):
         # Inter-POP links
         for i in range(0, n - 1):
             src, dst = roadms[i], roadms[i + 1]
-            boost = ('boost', dict(target_gain=17.0 * dB))
+            boost = ('boost', dict(target_gain=17.0 * dB, boost=True))
             spans = self.spans(spanLength=80 * km, spanCount=3)
             # XXX Unfortunately we currently have to have a priori knowledge of
             # this prefix
             prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
             monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost'),
                        (prefix2 + 'boost' + '-monitor', prefix2 + 'boost')]
-            # monitors = []
             for j in np.arange(1, len(spans), 2):
                 amp_name = spans[j].name
                 monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
@@ -189,7 +188,7 @@ if __name__ == '__main__':
     disableIPv6(net)
     restServer = RestServer(net)
     net.start()
-    #configureLinearNet(net)
+    configureLinearNet(net)
     restServer.start()
     CLI(net)
     restServer.stop()
