@@ -110,7 +110,6 @@ class LinearRoadmTopo(OpticalTopo):
             # this prefix
             prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
             monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost')]
-            inv_j = list(reversed([j for j in np.arange(1, len(spans), 2)]))
             for j in np.arange(1, len(spans), 2):
                 amp_name = spans[j].name
                 monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
