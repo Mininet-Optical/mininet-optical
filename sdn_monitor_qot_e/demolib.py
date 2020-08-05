@@ -109,13 +109,16 @@ class LinearRoadmTopo(OpticalTopo):
             # XXX Unfortunately we currently have to have a priori knowledge of
             # this prefix
             prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
-            monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost')]
-            for j in np.arange(1, len(spans), 2):
-                amp_name = spans[j].name
-                monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
-                amp_name2 = spans[j].name
-                monitors.append((prefix2 + amp_name2 + '-monitor', prefix2 + amp_name2))
-            monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
+            firstAmpName, lastAmpName = spans[1].name, spans[-1].name
+            monitors = [(prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName),
+                        (prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName)]
+            # monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost')]
+            # for j in np.arange(1, len(spans), 2):
+            #     amp_name = spans[j].name
+            #     monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
+            #     amp_name2 = spans[j].name
+            #     monitors.append((prefix2 + amp_name2 + '-monitor', prefix2 + amp_name2))
+            # monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
             self.wdmLink(src, dst, boost=boost, spans=spans,
                          monitors=monitors)
 

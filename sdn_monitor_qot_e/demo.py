@@ -2,7 +2,6 @@ from dataplane import Mininet, disableIPv6
 from sdn_monitor_qot_e.demolib import LinearRoadmTopo, CLI
 from rest import RestServer
 
-from mininet.topo import SingleSwitchTopo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.node import RemoteController
