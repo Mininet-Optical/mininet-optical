@@ -26,6 +26,7 @@ from itertools import chain
 # Routers start listening at 6654
 ListenPortBase = 6653
 
+
 class OpticalCLI( CLI ):
     "Extended CLI with optical network commands"
 
@@ -83,9 +84,11 @@ class OpticalCLI( CLI ):
     def spans( self, minlength=100):
         "Span iterator"
         links = self.opticalLinks()
-        phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
+        phyLinks = sum( [ [link.phyLink1, link.phyLink2]
+                          for link in links], [] )
         for phyLink in sorted( phyLinks, key=natural ):
-            if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < minlength:
+            if ( len( phyLink.spans ) == 1 and
+                 phyLink.spans[0].span.length < minlength ):
                 # Skip short lengths of fiber
                 continue
             yield( phyLink, phyLink.spans )
@@ -97,7 +100,8 @@ class OpticalCLI( CLI ):
             if phyLink.boost_amp:
                 print( phyLink.boost_amp, end=' ' )
             for span in spans:
-                print( span.span, span.amplifier if span.amplifier else '', end=' ' )
+                print( span.span, span.amplifier
+                       if span.amplifier else '', end=' ' )
             print()
 
     def do_plot( self, line ):
@@ -110,8 +114,10 @@ class OpticalCLI( CLI ):
             print( 'Could not import networkx and/or matplotlib.pyplot' )
             return
         g = nx.Graph()
-        g.add_nodes_from( switch for switch in net.switches if isinstance(switch, ROADM) )
-        g.add_edges_from([(link.intf1.node, link.intf2.node) for link in net.links
+        g.add_nodes_from( switch for switch in net.switches
+                          if isinstance(switch, ROADM) )
+        g.add_edges_from([(link.intf1.node, link.intf2.node)
+                          for link in net.links
                           if (isinstance(link.intf1.node, ROADM) and
                               isinstance(link.intf2.node, ROADM))])
         nx.draw_spring( g, with_labels=True, font_weight='bold' )
@@ -172,26 +178,50 @@ class OpticalCLI( CLI ):
 CLI = OpticalCLI
 
 
-### Sanity tests
-
 class OpticalTopo( Topo ):
     "Topo with convenience methods for optical links"
 
     def wdmLink( self, *args, **kwargs ):
         "Convenience function to add an OpticalLink"
         kwargs.update(cls=OpticalLink)
-        self.addLink( *args, **kwargs )
+        return self.addLink( *args, **kwargs )
 
     def ethLink( self, *args, **kwargs ):
         "Clarifying alias for addLink"
-        self.addLink( *args, **kwargs )
+        return self.addLink( *args, **kwargs )
+
+    def addTerminal( self, *args, **kwargs ):
+        "Convenience function to add a Terminal"
+        return self.addSwitch( *args, cls=Terminal, **kwargs )
+
+    def addROADM( self, *args, **kwargs ):
+        "Convenience function to add a ROADM"
+        return self.addSwitch( *args, cls=ROADM, **kwargs )
+
+
+# Syntactic sugar for parameters
+
+def tx( name, power=0.0, band='C' ):
+    """Constructor for transceiver params
+       name: transceiver name
+       power: default launch power in dBm
+       band: 'C' (only supported band atm)"""
+    return ( name, power, band )
+
+def edfa( name, target_gain=0.0, monitor=False ):
+    """Constructor for Amplifier params
+       name: amplifier name
+       target_gain: target gain in dB
+       monitor?: to add a monitor, use True or '-suffix'
+                 (True -> use '-monitor' for monitor name suffix)"""
+    return ( name, dict( target_gain=target_gain, monitor=monitor ) )
 
 SpanSpec = namedtuple( 'SpanSpec', 'length amp' )
 AmpSpec = namedtuple( 'AmpSpec', 'name params ')
 
-def spanSpec( length, amp, targetGain ):
+def spanSpec( length, amp, **params ):
     "Return span specifier [length, (amp, params)]"
-    return SpanSpec( length, AmpSpec(amp, dict(target_gain=targetGain) ) )
+    return SpanSpec( length, AmpSpec(amp, params ) )
 
 
 class LinearRoadmTopo( OpticalTopo ):
@@ -236,28 +266,23 @@ class LinearRoadmTopo( OpticalTopo ):
         """Return a list of span specifiers (length, (amp, params))
            the compensation amplifiers are named prefix-ampN"""
         entries = [ spanSpec( length=spanLength, amp='amp%d' % i,
-                              targetGain=spanLength/km * .22 * dB )
+                              target_gain=spanLength/km * .22 * dB,
+                              monitor=(i == 1 or i == spanCount) )
                     for i in range(1, spanCount+1) ]
         return sum( [ list(entry) for entry in entries ], [] )
 
     def build( self, n=3, txCount=2 ):
         "Add POPs and connect them in a line"
         roadms = [ self.buildPop( p, txCount ) for p in range( 1, n+1 ) ]
-
         # Inter-POP links
         for i in range( 0, n - 1 ):
             src, dst = roadms[i], roadms[i+1]
             boost = ( 'boost', dict(target_gain=17.0*dB) )
             spans = self.spans( spanCount=2 )
-            # XXX Unfortunately we currently have to have a priori knowledge of
-            # this prefix
-            prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
-            firstAmpName, lastAmpName = spans[1].name, spans[-1].name
-            monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
-                         ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
-            self.wdmLink( src, dst, boost=boost, spans=spans,
-                          monitors=monitors )
+            self.wdmLink( src, dst, boost=boost, spans=spans )
 
+
+# Sanity test for LinearRoadmTopo using internal control API
 
 def configureLinearNet( net, packetOnly=False ):
     """Configure linear network locally
@@ -330,8 +355,7 @@ def linearRoadmTest():
 
 
 
-### OFC Demo Topology
-
+### OFC Demo Topology, built on LinearRoadmTopo
 
 class DemoTopo( LinearRoadmTopo ):
     """OFC Demo Topology
@@ -361,21 +385,15 @@ class DemoTopo( LinearRoadmTopo ):
         "Construct a link of four 50km fiber spans"
         boost = ( 'boost', dict(target_gain=17.0*dB) )
         spans = self.spans( spanLength=50*km, spanCount=4 )
-        # XXX Unfortunately we currently have to have a priori knowledge of
-        # this prefix
-        prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
-        firstAmpName, lastAmpName = spans[1].name, spans[-1].name
-        monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
-                     ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
-        self.wdmLink(
-            src, dst, boost=boost, spans=spans, monitors=monitors )
+        self.wdmLink( src, dst, boost=boost, spans=spans )
 
     def build( self, n=6, txCount=5 ):
         "Add POPs and connect them in a ring with some cross-connects"
 
         # Build POPs
-        roadms = {p: self.buildPop( p, txCount=txCount ) for p in range( 1, n+1 ) }
-        print(roadms)
+        roadms = {p: self.buildPop( p, txCount=txCount )
+                  for p in range( 1, n+1 ) }
+        # print(roadms)
 
         # ROADM ring
         odd = list( range( 1, n+1, 2 ) )

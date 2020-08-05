@@ -571,17 +571,13 @@ class OpticalLink( Link ):
     phyLink1 = None
     phyLink2 = None
 
-    def __init__( self, src, dst, port1=None, port2=None,
+    def __init__( self, node1, node2, port1=None, port2=None,
                   boost=None, boost1=None, boost2=None, spans=None,
-                  monitors=None, **kwargs ):
+                  **kwargs ):
         """node1, node2: nodes to connect
            port1, port2: node ports
            boost1, boost2: boost amp (name, {params}) if any
-           spans: list of (length in km, (ampName, params) | None )
-           monitors1: list of (monName, ampName) to monitor
-           NOTE - a prefix of 'src-dst-' will be added to node
-           names, and the ampNames in monitors must match the
-           full (and directional) amplifier name  (r1-r2-amp3)"""
+           spans: list of (length in km, (ampName, params)) | None """
 
         # Default span: 1m of fiber, no amplifier
         spans = spans or [1*m]
@@ -598,54 +594,75 @@ class OpticalLink( Link ):
 
         # Initialize dataplane
         kwargs.update( cls1=OpticalIntf, cls2=OpticalIntf )
-        super( OpticalLink, self).__init__( src, dst, **kwargs )
+        super( OpticalLink, self).__init__( node1, node2, **kwargs )
+
+        # Link component name prefixes
+        prefix1 = '%s-%s-' % ( node1, node2 )
+        prefix2 = '%s-%s-' % ( node2, node1 )
 
         # Boost amplifiers if any
-        prefix1, prefix2 = ('%s-%s-' % (src, dst)), ('%s-%s-' % (dst, src)),
         boost1 = boost1 or (boost and ( prefix1 + boost[0], boost[1] ) )
         boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
+        monitor1, monitor2 = None, None
         if boost1:
-            name, params = boost1
+            name, params = boost1[0], boost1[1].copy()
+            monitor = params.pop( 'monitor', None )
+            if monitor:
+                if not isinstance( monitor, str ):
+                    suffix = '-monitor'
+                monitor1 = name + suffix
+            params.update(boost=True)
             boost1 = PhyAmplifier( name, **params )
         if boost2:
-            name, params = boost2
+            name, params = boost2[0], boost2[1].copy()
+            monitor = params.pop( 'monitor', None )
+            if monitor:
+                if not isinstance( suffix, str ):
+                    suffix = '-monitor'
+                monitor2 = name + suffix
+            params.update(boost=True)
             boost2 = PhyAmplifier( name, **params )
 
         # Create symmetric spans and phy links in both directions
         spans = self.parseSpans( spans )
-        spans1 = [ PhySpan( length, PhyAmplifier( prefix1 + name, **params )
-                            if name else None )
-                   for length, name, params in spans ]
-
-        spans2 = [ PhySpan( length, PhyAmplifier( prefix2 + name, **params )
-                            if name else None )
-                   for length, name, params in reversed( spans ) ]
+        spans1, spans2, monitored = [], [], {}
+        for length, name, params in spans:
+            params = params.copy()
+            monitor = params.pop( 'monitor', None )
+            amp = PhyAmplifier( prefix1 + name, **params ) if name else None
+            spans1 = spans1 + [ PhySpan( length,amp ) ]
+            amp = PhyAmplifier( prefix2 + name, **params ) if name else None
+            spans2 = [ PhySpan( length, amp ) ] + spans2
+            if monitor:
+                suffix = monitor if isinstance( monitor, str) else '-monitor'
+                monitored[ prefix1 + name ] = prefix1 + name + suffix
+                monitored[ prefix2 + name ] = prefix2 + name + suffix
 
         # XXX Output ports have to start at this number for some reason?
         OUT = 100
         self.phyLink1 = PhyLink(
-            src.model, dst.model, output_port_node1=self.port1+OUT,
+            node1.model, node2.model, output_port_node1=self.port1+OUT,
             input_port_node2=self.port2, boost_amp=boost1, spans=spans1 )
         self.phyLink2 = PhyLink(
-            dst.model, src.model, output_port_node1=self.port2+OUT,
+            node2.model, node1.model, output_port_node1=self.port2+OUT,
             input_port_node2=self.port1, boost_amp=boost2, spans=spans2 )
 
-        # Create monitors and store in self.monitors
-        monitors = monitors or {}
-        monitored = { ampName: monitorName
-                      for monitorName, ampName in monitors
-                      for prefix in ( prefix1, prefix2 ) }
+        # Add boost monitors
         self.monitors = []
-        for boost in boost1, boost2:
-            if boost and boost.name in monitored:
-                monitor = Monitor( boost, link=link, amplifier=boost )
+        boosts = boost1, boost2
+        monitors = monitor1, monitor2
+        links = self.phyLink1, self.phyLink2
+        for boost, monitor, link in zip( boosts, monitors, links ):
+            if boost and monitor:
+                monitor = Monitor( monitor, link=link, amplifier=boost )
                 self.monitors.append( monitor )
+
+        # Add amp monitors
         for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
             for span, amplifier in spans:
                 if amplifier and amplifier.name in monitored:
                     name = monitored[ amplifier.name ]
-                    monitor = Monitor(
-                        name, link=link, span=span, amplifier=amplifier )
+                    monitor = Monitor( name, link=link, amplifier=amplifier )
                     self.monitors.append( monitor )
 
     @staticmethod
@@ -654,7 +671,7 @@ class OpticalLink( Link ):
         spans = spans or []
         result = []
         while spans:
-            length, ampName, params = spans.pop(0), None, None
+            length, ampName, params = spans.pop(0), None, {}
             # Maybe there's a better way of doing this polymorphic api
             if spans and isinstance( spans[ 0 ], BaseString ):
                 ampName = spans.pop( 0 )
@@ -662,7 +679,6 @@ class OpticalLink( Link ):
                 ampName, params = spans.pop( 0 )
             result.append( ( length, ampName, params ) )
         return result
-
 
     def intfName( self, node, n ):
         "Construct a canonical interface name node-wdmN for interface N"
