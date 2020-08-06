@@ -1,4 +1,4 @@
-from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy,
+from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, TerminalProxy,
                                     fetchNodes, fetchLinks, fetchPorts)
 from collections import defaultdict
 import numpy as np
@@ -29,9 +29,12 @@ def run(net, N=3):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    install_paths(net.roadms, 10)
+    channel_no = 10
+    install_paths(net.roadms, channel_no)
 
     configure_routers(net.switches)
+
+    configure_terminals(net.terminals, channel_no)
 
 
 def install_paths(roadms, channel_no):
@@ -74,12 +77,29 @@ def configure_routers(routers):
         print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
         routerProxy.dpctl('del-flows')
         # XXX Only one host for now
-        pops = [5, 1]
+        j = 1
         for eth, dest in enumerate([dest1, dest2, router], start=1):
             for protocol in 'ip', 'icmp', 'arp':
-                flow = (protocol + ',ip_dst=' + subnet(pops.pop()) +
+                flow = (protocol + ',ip_dst=' + subnet(j) +
                         ',actions=dec_ttl,output:%d' % eth)
                 routerProxy.dpctl('add-flow', flow)
+                j += 1
+
+
+def configure_terminals(terminals, channel_no):
+    channels = list(np.arange(1, channel_no + 1))
+    # Port numbering
+    eth_ports = list(np.arange(1, channel_no + 2))
+    wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
+
+    # Configure transceivers
+    t1, t5 = net.get('t1', 't5')
+    termProxy1 = TerminalProxy(t1)
+    termProxy5 = TerminalProxy(t5)
+    for tx_id, ch in enumerate(channels):
+        termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+    for tx_id, ch in enumerate(channels):
+        termProxy5.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
 if __name__ == '__main__':
