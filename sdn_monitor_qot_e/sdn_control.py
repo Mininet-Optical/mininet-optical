@@ -61,6 +61,9 @@ def install_paths(roadms, channel_no):
 def configure_routers(routers):
     "Configure Open vSwitch 'routers' using OpenFlow"
 
+    def subnet(pop):
+        return '10.%d.0.0/24' % pop
+
     print("*** Configuring Open vSwitch 'routers' remotely... ")
 
     routers = s1, s5 = routers[0], routers[4]
@@ -71,9 +74,10 @@ def configure_routers(routers):
         print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
         routerProxy.dpctl('del-flows')
         # XXX Only one host for now
+        pops = [5, 1]
         for eth, dest in enumerate([dest1, dest2, router], start=1):
             for protocol in 'ip', 'icmp', 'arp':
-                flow = (protocol + ',ip_dst=' + dest.params['subnet'] +
+                flow = (protocol + ',ip_dst=' + subnet(pops.pop()) +
                         ',actions=dec_ttl,output:%d' % eth)
                 routerProxy.dpctl('add-flow', flow)
 
