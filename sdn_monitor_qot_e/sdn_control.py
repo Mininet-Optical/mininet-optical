@@ -1,7 +1,7 @@
 from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, TerminalProxy,
                                     fetchNodes, fetchLinks, fetchPorts)
-from collections import defaultdict
 import numpy as np
+from time import sleep
 
 
 def run(net, N=3):
@@ -35,6 +35,8 @@ def run(net, N=3):
     configure_routers(net.switches)
 
     configure_terminals(net.terminals, channel_no)
+
+    monitor_osnr(net)
 
 
 def install_paths(roadms, channel_no):
@@ -93,13 +95,36 @@ def configure_terminals(terminals, channel_no):
     wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
 
     # Configure transceivers
-    t1, t5 = net.get('t1', 't5')
+    t1, t5 = terminals[0], terminals[4]
     termProxy1 = TerminalProxy(t1)
     termProxy5 = TerminalProxy(t5)
     for tx_id, ch in enumerate(channels):
         termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
     for tx_id, ch in enumerate(channels):
         termProxy5.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+
+
+def monitorKey(monitor):
+    "Key for sorting monitor names"
+    items = monitor.split('-')
+    return items
+
+
+def monitor_osnr(net):
+    monitors = net.get('monitors').json()['monitors']
+
+    for i in range(5):
+        for monitor in sorted(monitors, key=monitorKey):
+            response = net.get('monitor', params=dict(monitor=monitor))
+            osnrdata = response.json()['osnr']
+
+            for channel, data in osnrdata.items():
+                THz = float(data['freq']) / 1e12
+                osnr, gosnr = data['osnr'], data['gosnr']
+                print("OSNR for channel %s is %s" % (str(channel), str(osnr)))
+                print("gOSNR for channel %s is %s" % (str(channel), str(gosnr)))
+                print()
+        sleep(1)
 
 
 if __name__ == '__main__':
