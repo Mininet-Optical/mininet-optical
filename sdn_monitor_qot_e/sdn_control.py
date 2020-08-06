@@ -122,17 +122,24 @@ def monitor_osnr(net):
     for k in ptl_monitor_keys:
         ptl_monitors[k] = monitors[k]
 
+    gosnrs = []
     for monitor in sorted(ptl_monitors, key=monitorKey):
         response = net.get('monitor', params=dict(monitor=monitor))
         osnrdata = response.json()['osnr']
 
         print(monitor)
+        i = 0
         for channel, data in osnrdata.items():
             THz = float(data['freq']) / 1e12
             osnr, gosnr = data['osnr'], data['gosnr']
-            print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
-            print("gOSNR for channel %s is %s" % (str(THz), str(gosnr)))
-            print()
+            if i == 4:
+                gosnrs.append(gosnr)
+            i += 1
+            # print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
+            # print("gOSNR for channel %s is %s" % (str(THz), str(gosnr)))
+            # print()
+    print(gosnrs)
+
 
 
 def simple_keys(mon_keys, i, j, N):
