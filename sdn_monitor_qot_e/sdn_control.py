@@ -112,8 +112,17 @@ def monitorKey(monitor):
 
 def monitor_osnr(net):
     monitors = net.get('monitors').json()['monitors']
+    mon_keys = simple_keys([], 1, 2, len(net.roadms))
+    ptl_monitor_keys = []
+    for k in mon_keys:
+        for k2 in monitors.keys():
+            if k in k2:
+                ptl_monitor_keys.append(k2)
+    ptl_monitors = []
+    for k in ptl_monitor_keys:
+        ptl_monitors.append(monitors[k])
 
-    for monitor in sorted(monitors, key=monitorKey):
+    for monitor in sorted(ptl_monitors, key=monitorKey):
         response = net.get('monitor', params=dict(monitor=monitor))
         osnrdata = response.json()['osnr']
 
@@ -123,6 +132,16 @@ def monitor_osnr(net):
             print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
             print("gOSNR for channel %s is %s" % (str(THz), str(gosnr)))
             print()
+
+
+def simple_keys(mon_keys, i, j, N):
+    if j is N + 1:
+        return mon_keys
+    k1, k2 = 'r' + str(i) + '-', 'r' + str(j)
+    mon_keys.append(k1 + k2)
+    i = j
+    j = i + 1
+    return simple_keys(mon_keys, i, j, N)
 
 
 if __name__ == '__main__':
