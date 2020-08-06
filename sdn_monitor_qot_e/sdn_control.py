@@ -1,4 +1,5 @@
-from ofcdemo.fakecontroller import (RESTProxy, fetchNodes)
+from ofcdemo.fakecontroller import (RESTProxy, fetchNodes, fetchLinks, fetchPorts)
+from collections import defaultdict
 
 
 def run(net, N=3):
@@ -6,7 +7,64 @@ def run(net, N=3):
 
     # Fetch nodes
     net.allNodes = fetchNodes(net)
-    print(net.allNodes)
+    net.switches = sorted(node for node, cls in net.allNodes.items()
+                          if cls == 'OVSSwitch')
+    net.terminals = sorted(node for node, cls in net.allNodes.items()
+                           if cls == 'Terminal')
+    net.roadms = sorted(node for node, cls in net.allNodes.items()
+                        if cls == 'ROADM')
+    net.nodes = net.terminals + net.roadms
+
+    # Assign POPs for convenience
+    count = len(net.switches)
+    net.pops = {node: i + 1
+                for i in range(count)
+                for node in (net.switches[i], net.terminals[i], net.roadms[i])}
+
+    # Fetch links
+    net.allLinks, net.roadmLinks, net.terminalLinks = fetchLinks(net)
+
+    # Create adjacency dict
+    net.neighbors = adjacencyDict(net.allLinks)
+
+    # Fetch ports
+    net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
+
+    # Calculate inter-pop routes
+    net.routes = {node: route(node, net.neighbors, net.terminals)
+                  for node in net.terminals}
+
+
+def adjacencyDict(links):
+    "Return an adjacency dict for links"
+    # Note we only have to worry about single links between nodes
+    # We handle the terminals separately
+    neighbors = defaultdict(defaultdict)
+    for link in links:
+        src, dst = link  # link is a dict but order doesn't matter
+        srcport, dstport = link[src], link[dst]
+        neighbors.setdefault(src, {})
+        neighbors[src][dst] = dstport
+        neighbors[dst][src] = srcport
+    return dict(neighbors)
+
+
+def route(src, neighbors, destinations):
+    """Route from src to destinations
+       neighbors: adjacency list
+       returns: routes dict"""
+    routes, seen, paths = {}, set((src,)), [(src,)]
+    while paths:
+        path = paths.pop(0)
+        lastNode = path[-1]
+        for neighbor in neighbors[lastNode]:
+            if neighbor not in seen:
+                newPath = (path + (neighbor,))
+                paths.append(newPath)
+                if neighbor in destinations:
+                    routes[neighbor] = newPath
+                seen.add(neighbor)
+    return routes
 
 
 if __name__ == '__main__':
