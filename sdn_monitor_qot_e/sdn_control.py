@@ -4,7 +4,7 @@ import numpy as np
 from time import sleep
 
 
-def run(net, N=3):
+def run(net):
     "Configure and monitor network with N=3 channels for each path"
 
     # Fetch nodes
@@ -113,18 +113,16 @@ def monitorKey(monitor):
 def monitor_osnr(net):
     monitors = net.get('monitors').json()['monitors']
 
-    for i in range(5):
-        for monitor in sorted(monitors, key=monitorKey):
-            response = net.get('monitor', params=dict(monitor=monitor))
-            osnrdata = response.json()['osnr']
+    for monitor in sorted(monitors, key=monitorKey):
+        response = net.get('monitor', params=dict(monitor=monitor))
+        osnrdata = response.json()['osnr']
 
-            for channel, data in osnrdata.items():
-                THz = float(data['freq']) / 1e12
-                osnr, gosnr = data['osnr'], data['gosnr']
-                print("OSNR for channel %s is %s" % (str(channel), str(osnr)))
-                print("gOSNR for channel %s is %s" % (str(channel), str(gosnr)))
-                print()
-        sleep(1)
+        for channel, data in osnrdata.items():
+            THz = float(data['freq']) / 1e12
+            osnr, gosnr = data['osnr'], data['gosnr']
+            print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
+            print("gOSNR for channel %s is %s" % (str(THz), str(gosnr)))
+            print()
 
 
 if __name__ == '__main__':
