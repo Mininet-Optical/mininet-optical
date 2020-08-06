@@ -71,13 +71,10 @@ def configure_routers(routers):
         print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
         routerProxy.dpctl('del-flows')
         # XXX Only one host for now
-        hostmac = net.get('h%d' % pop).MAC()
         for eth, dest in enumerate([dest1, dest2, router], start=1):
-            dstmod = ('mod_dl_dst=%s,' % hostmac) if dest == router else ''
             for protocol in 'ip', 'icmp', 'arp':
                 flow = (protocol + ',ip_dst=' + dest.params['subnet'] +
-                        'actions=' + dstmod +
-                        'dec_ttl,output:%d' % eth)
+                        ',actions=dec_ttl,output:%d' % eth)
                 routerProxy.dpctl('add-flow', flow)
 
 
