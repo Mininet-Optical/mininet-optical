@@ -29,7 +29,7 @@ def run(net):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    channel_no = 10
+    channel_no = 81
     install_paths(net.roadms, channel_no)
 
     configure_routers(net.switches)
@@ -43,7 +43,7 @@ def install_paths(roadms, channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     r1, r2, r3, r4, r5 = roadms[0], roadms[1], roadms[2], roadms[3], roadms[4]
-    line1, line2 = 11, 12
+    line1, line2 = channel_no + 1, channel_no + 2
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -132,7 +132,7 @@ def monitor_osnr(net):
         for channel, data in osnrdata.items():
             THz = float(data['freq']) / 1e12
             osnr, gosnr = data['osnr'], data['gosnr']
-            if i == 4:
+            if i == 40:
                 gosnrs.append(gosnr)
             i += 1
             # print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
