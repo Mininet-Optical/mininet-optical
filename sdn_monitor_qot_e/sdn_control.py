@@ -118,14 +118,15 @@ def monitor_osnr(net):
         for k2 in monitors.keys():
             if k in k2:
                 ptl_monitor_keys.append(k2)
-    ptl_monitors = []
+    ptl_monitors = {}
     for k in ptl_monitor_keys:
-        ptl_monitors.append(monitors[k])
+        ptl_monitors[k] = monitors[k]
 
     for monitor in sorted(ptl_monitors, key=monitorKey):
         response = net.get('monitor', params=dict(monitor=monitor))
         osnrdata = response.json()['osnr']
 
+        print(monitor)
         for channel, data in osnrdata.items():
             THz = float(data['freq']) / 1e12
             osnr, gosnr = data['osnr'], data['gosnr']
