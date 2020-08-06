@@ -1,4 +1,5 @@
-from ofcdemo.fakecontroller import (RESTProxy, fetchNodes, fetchLinks, fetchPorts)
+from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy,
+                                    fetchNodes, fetchLinks, fetchPorts)
 from collections import defaultdict
 
 
@@ -34,6 +35,8 @@ def run(net, N=3):
     net.routes = {node: route(node, net.neighbors, net.terminals)
                   for node in net.terminals}
 
+    install_paths(net.roadms, 10)
+
 
 def adjacencyDict(links):
     "Return an adjacency dict for links"
@@ -65,6 +68,29 @@ def route(src, neighbors, destinations):
                     routes[neighbor] = newPath
                 seen.add(neighbor)
     return routes
+
+
+def install_paths(roadms, channels):
+    # Configure roadms
+    r1, r2, r3, r4, r5 = roadms[0], roadms[1], roadms[2], roadms[3], roadms[4]
+    line1, line2 = 11, 12
+
+    # r1: add/drop channels r1<->r5
+    for local_port, ch in enumerate(channels, start=1):
+        ROADMProxy(r1).connect(port1=local_port, port2=line1, channels=[ch])
+
+    # # r2: pass through channels r1<->r5
+    # r2.connect(port1=line1, port2=line2, channels=channels)
+    #
+    # # r3: pass through channels r1<->r5
+    # r3.connect(port1=line1, port2=line2, channels=channels)
+    #
+    # # r4: pass through channels r1<->r5
+    # r4.connect(port1=line1, port2=line2, channels=channels)
+    #
+    # # r5: add/drop channels r1<->r5
+    # for local_port, ch in enumerate(channels, start=1):
+    #     r5.connect(port1=line1, port2=local_port, channels=[ch])
 
 
 if __name__ == '__main__':
