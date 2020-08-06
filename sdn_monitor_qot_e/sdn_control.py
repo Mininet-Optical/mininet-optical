@@ -1,6 +1,7 @@
-from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy,
+from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy,
                                     fetchNodes, fetchLinks, fetchPorts)
 from collections import defaultdict
+import numpy as np
 
 
 def run(net, N=3):
@@ -25,52 +26,16 @@ def run(net, N=3):
     # Fetch links
     net.allLinks, net.roadmLinks, net.terminalLinks = fetchLinks(net)
 
-    # Create adjacency dict
-    net.neighbors = adjacencyDict(net.allLinks)
-
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    # Calculate inter-pop routes
-    net.routes = {node: route(node, net.neighbors, net.terminals)
-                  for node in net.terminals}
-
     install_paths(net.roadms, 10)
 
-
-def adjacencyDict(links):
-    "Return an adjacency dict for links"
-    # Note we only have to worry about single links between nodes
-    # We handle the terminals separately
-    neighbors = defaultdict(defaultdict)
-    for link in links:
-        src, dst = link  # link is a dict but order doesn't matter
-        srcport, dstport = link[src], link[dst]
-        neighbors.setdefault(src, {})
-        neighbors[src][dst] = dstport
-        neighbors[dst][src] = srcport
-    return dict(neighbors)
+    configure_routers(net.switches)
 
 
-def route(src, neighbors, destinations):
-    """Route from src to destinations
-       neighbors: adjacency list
-       returns: routes dict"""
-    routes, seen, paths = {}, set((src,)), [(src,)]
-    while paths:
-        path = paths.pop(0)
-        lastNode = path[-1]
-        for neighbor in neighbors[lastNode]:
-            if neighbor not in seen:
-                newPath = (path + (neighbor,))
-                paths.append(newPath)
-                if neighbor in destinations:
-                    routes[neighbor] = newPath
-                seen.add(neighbor)
-    return routes
-
-
-def install_paths(roadms, channels):
+def install_paths(roadms, channel_no):
+    channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     r1, r2, r3, r4, r5 = roadms[0], roadms[1], roadms[2], roadms[3], roadms[4]
     line1, line2 = 11, 12
@@ -79,18 +44,41 @@ def install_paths(roadms, channels):
     for local_port, ch in enumerate(channels, start=1):
         ROADMProxy(r1).connect(port1=local_port, port2=line1, channels=[ch])
 
-    # # r2: pass through channels r1<->r5
-    # r2.connect(port1=line1, port2=line2, channels=channels)
-    #
-    # # r3: pass through channels r1<->r5
-    # r3.connect(port1=line1, port2=line2, channels=channels)
-    #
-    # # r4: pass through channels r1<->r5
-    # r4.connect(port1=line1, port2=line2, channels=channels)
-    #
-    # # r5: add/drop channels r1<->r5
-    # for local_port, ch in enumerate(channels, start=1):
-    #     r5.connect(port1=line1, port2=local_port, channels=[ch])
+    # r2: pass through channels r1<->r5
+    ROADMProxy(r2).connect(port1=line1, port2=line2, channels=channels)
+
+    # r3: pass through channels r1<->r5
+    ROADMProxy(r3).connect(port1=line1, port2=line2, channels=channels)
+
+    # r4: pass through channels r1<->r5
+    ROADMProxy(r4).connect(port1=line1, port2=line2, channels=channels)
+
+    # r5: add/drop channels r1<->r5
+    for local_port, ch in enumerate(channels, start=1):
+        ROADMProxy(r5).connect(port1=line1, port2=local_port, channels=[ch])
+
+
+def configure_routers(routers):
+    "Configure Open vSwitch 'routers' using OpenFlow"
+
+    print("*** Configuring Open vSwitch 'routers' remotely... ")
+
+    routers = s1, s5 = routers[0], routers[4]
+    for pop, dests in enumerate([(s1, s5)], start=1):
+        router, dest1, dest2 = routers[pop - 1], dests[0], dests[1]
+        routerProxy = OFSwitchProxy(router)
+        # Initialize flow table
+        print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
+        routerProxy.dpctl('del-flows')
+        # XXX Only one host for now
+        hostmac = net.get('h%d' % pop).MAC()
+        for eth, dest in enumerate([dest1, dest2, router], start=1):
+            dstmod = ('mod_dl_dst=%s,' % hostmac) if dest == router else ''
+            for protocol in 'ip', 'icmp', 'arp':
+                flow = (protocol + ',ip_dst=' + dest.params['subnet'] +
+                        'actions=' + dstmod +
+                        'dec_ttl,output:%d' % eth)
+                routerProxy.dpctl('add-flow', flow)
 
 
 if __name__ == '__main__':
