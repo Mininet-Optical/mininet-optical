@@ -637,7 +637,7 @@ class OpticalLink( Link ):
                       for prefix in ( prefix1, prefix2 ) }
         self.monitors = []
         if boost1 and boost1.name in monitored:
-            monitor = Monitor( boost1, link=self.phyLink1, amplifier=boost1 )
+            monitor = Monitor( boost1.name, link=self.phyLink1, amplifier=boost1 )
             self.monitors.append( monitor )
         for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
             for span, amplifier in spans:
@@ -647,7 +647,7 @@ class OpticalLink( Link ):
                         name, link=link, span=span, amplifier=amplifier )
                     self.monitors.append( monitor )
         if boost2 and boost2.name in monitored:
-            monitor = Monitor( boost2, link=self.phyLink2, amplifier=boost2 )
+            monitor = Monitor( boost2.name, link=self.phyLink2, amplifier=boost2 )
             self.monitors.append( monitor ) 
 
     @staticmethod
