@@ -160,7 +160,7 @@ class LineTerminal(Node):
 
         # clean transceivers
         for transceiver in self.transceivers:
-            self.transceiver_to_optical_signals[transceiver] = {}
+            self.transceiver_to_optical_signals[transceiver] = []
 
     def add_transceivers(self, transceivers):
         """
