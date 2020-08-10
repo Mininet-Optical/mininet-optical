@@ -48,7 +48,7 @@ def reset_terminals(terminals):
 
 
 def clean_roadms(roadms):
-    r1, = roadms[0]
+    r1 = roadms[0]
     ROADMProxy(r1).clean()
 
 

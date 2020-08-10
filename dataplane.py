@@ -249,11 +249,6 @@ class Terminal( SwitchBase ):
         super( SwitchBase, self ).start( controllers=[] )
         self.reset()
 
-    def restResetHandler( self, query ):
-        "REST reset handler"
-        self.reset()
-        return 'OK'
-
     def reset( self ):
         "Reset/clear routes"
         self.dpctl( 'del-flows' )
@@ -445,6 +440,7 @@ class ROADM( SwitchBase ):
     def restCleanHandler(self, query):
         "Handle REST clean request"
         self.clean()
+        return 'OK'
 
     def clean(self):
         self.model.clean()
