@@ -49,7 +49,7 @@ def reset_terminals(terminals):
 
 def clean_roadms(roadms):
     r1 = roadms[0]
-    ROADMProxy(r1).clean()
+    ROADMProxy(r1).cleanRoadm()
 
 
 def install_paths(roadms, channel_no):
