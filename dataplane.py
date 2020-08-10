@@ -304,7 +304,7 @@ class Terminal( SwitchBase ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
-
+        print("*** Dataplane Terminal.connect is being called")
         # Update physical model
         OUT = 100  # Offset for output port
         tx = self.txnum( wdmPort )
