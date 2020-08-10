@@ -249,6 +249,11 @@ class Terminal( SwitchBase ):
         super( SwitchBase, self ).start( controllers=[] )
         self.reset()
 
+    def restResetHandler( self, query ):
+        "REST reset handler"
+        self.reset()
+        return 'OK'
+
     def reset( self ):
         "Reset/clear routes"
         self.dpctl( 'del-flows' )

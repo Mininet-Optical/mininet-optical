@@ -102,7 +102,7 @@ class TerminalProxy( SwitchProxy ):
         print( r )
 
     def reset(self):
-        r = self.get('restResetHandler')
+        r = self.get('reset')
         print(r)
 
 
