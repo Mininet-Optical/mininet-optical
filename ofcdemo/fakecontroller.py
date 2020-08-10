@@ -118,10 +118,9 @@ class ROADMProxy( SwitchProxy ):
         r = self.get( 'connect', params=params)
         print( r )
 
-    def reset(self):
-        r = self.get('reset', params=dict(node=self.name))
+    def clean(self):
+        r = self.get('clean', params=dict(node=self.name))
         print(r)
-
 
 
 ### Configuration Retrieval

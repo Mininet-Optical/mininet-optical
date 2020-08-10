@@ -539,6 +539,9 @@ class Roadm(Node):
         self.insert_signals(in_port, self.port_to_optical_signal_power_in[in_port], ase, nli)
         self.switch(in_port)
 
+    def clean(self):
+        print("Node.ROADM.clean")
+
     def propagate_cleanup(self):
         # Clean and prevent signals from link propagation
         for op, link in self.out_port_to_link.items():

@@ -39,7 +39,7 @@ def run(net):
     monitor_osnr(net)
 
     reset_terminals(net.terminals)
-    reset_roadms(net.roadms)
+    clean_roadms(net.roadms)
 
 
 def reset_terminals(terminals):
@@ -47,9 +47,9 @@ def reset_terminals(terminals):
     TerminalProxy(t1).reset()
 
 
-def reset_roadms(roadms):
+def clean_roadms(roadms):
     r1, = roadms[0]
-    ROADMProxy(r1).reset()
+    ROADMProxy(r1).clean()
 
 
 def install_paths(roadms, channel_no):

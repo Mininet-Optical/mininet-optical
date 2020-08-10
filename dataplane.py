@@ -411,8 +411,7 @@ class ROADM( SwitchBase ):
         "Reset physical model"
         self.ruleIds = {}
         self.nextRuleId = 1
-        # self.model.delete_switch_rules()
-        self.model.propagate_cleanup()
+        self.model.delete_switch_rules()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
@@ -434,11 +433,6 @@ class ROADM( SwitchBase ):
         else:
             raise Exception( 'could not find rule %s' % str( rule ) )
 
-    # Probably obsolete now that we have auto-propagation
-    #def propagate( self ):
-    #    "Propagate signals"
-    #    self.model.propagate()
-
     def dumpStatus( self ):
         "Print out some stuff for debugging"
         self.model.print_switch_rules()
@@ -447,6 +441,10 @@ class ROADM( SwitchBase ):
         "Handle REST rules request"
         return { str(ruleId): rule
                  for rule, ruleId in self.ruleIds.items() }
+
+    def restCleanHandler(self, query):
+        "Handle REST clean request"
+        self.model.clean()
 
     # Dataplane operations
 
