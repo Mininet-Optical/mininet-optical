@@ -437,6 +437,9 @@ class ROADM( SwitchBase ):
         "Print out some stuff for debugging"
         self.model.print_switch_rules()
 
+    def clean(self):
+        self.model.clean()
+
     def restRulesHandler( self, query ):
         "Handle REST rules request"
         return { str(ruleId): rule
@@ -444,7 +447,7 @@ class ROADM( SwitchBase ):
 
     def restCleanHandler(self, query):
         "Handle REST clean request"
-        self.model.clean()
+        self.clean()
 
     # Dataplane operations
 
