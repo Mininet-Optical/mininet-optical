@@ -38,12 +38,18 @@ def run(net):
 
     monitor_osnr(net)
 
-    reset(net.terminals)
+    reset_terminals(net.terminals)
+    reset_roadms(net.roadms)
 
 
-def reset(terminals):
+def reset_terminals(terminals):
     t1 = terminals[0]
     TerminalProxy(t1).reset()
+
+
+def reset_roadms(roadms):
+    r1, = roadms[0]
+    ROADMProxy(r1).reset()
 
 
 def install_paths(roadms, channel_no):
@@ -139,7 +145,7 @@ def monitor_osnr(net):
         for channel, data in osnrdata.items():
             THz = float(data['freq']) / 1e12
             osnr, gosnr = data['osnr'], data['gosnr']
-            if i == 40:
+            if i == 1:
                 gosnrs.append(gosnr)
             i += 1
             # print("OSNR for channel %s is %s" % (str(THz), str(osnr)))

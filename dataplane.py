@@ -411,7 +411,8 @@ class ROADM( SwitchBase ):
         "Reset physical model"
         self.ruleIds = {}
         self.nextRuleId = 1
-        self.model.delete_switch_rules()
+        # self.model.delete_switch_rules()
+        self.model.propagate_cleanup()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
