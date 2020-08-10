@@ -66,7 +66,7 @@ class RESTProxy( Proxy ):
 
     def get( self, path, params=None ):
         "Make a REST request"
-        # print(path, params)
+        print(path, params)
         result = requests.get( self.baseURL + path, params=(params or {}) )
         # print(result.url)
         return result
@@ -102,6 +102,7 @@ class TerminalProxy( SwitchProxy ):
         print( r )
 
     def reset(self):
+        print('reset')
         r = self.get('reset')
         print(r)
 

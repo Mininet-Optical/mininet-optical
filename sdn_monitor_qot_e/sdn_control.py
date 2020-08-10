@@ -38,11 +38,12 @@ def run(net):
 
     monitor_osnr(net)
 
+    reset(net.terminals)
+
 
 def reset(terminals):
     t1 = terminals[0]
-    termProxy1 = TerminalProxy(t1)
-    termProxy1.reset()
+    TerminalProxy(t1).reset()
 
 
 def install_paths(roadms, channel_no):
