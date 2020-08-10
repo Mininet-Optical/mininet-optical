@@ -67,7 +67,9 @@ class RESTProxy( Proxy ):
     def get( self, path, params=None ):
         "Make a REST request"
         print(path, params)
-        result = requests.get( self.baseURL + path, params=(params or {}) )
+        url = self.baseURL + path
+        url = url.rstrip()
+        result = requests.get( url, params=(params or {}) )
         # print(result.url)
         return result
 
