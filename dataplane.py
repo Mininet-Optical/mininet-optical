@@ -436,12 +436,12 @@ class ROADM( SwitchBase ):
         return { str(ruleId): rule
                  for rule, ruleId in self.ruleIds.items() }
 
-    def restCleanRoadmHandler(self, query):
+    def restCleanmeHandler(self, query):
         "Handle REST clean request"
-        self.cleanRoadm()
+        self.cleanme()
         return 'OK'
 
-    def cleanRoadm(self):
+    def cleanme(self):
         self.model.clean()
 
     # Dataplane operations

@@ -67,9 +67,7 @@ class RESTProxy( Proxy ):
     def get( self, path, params=None ):
         "Make a REST request"
         print(path, params)
-        url = self.baseURL + path
-        url = url.rstrip()
-        result = requests.get( url, params=(params or {}) )
+        result = requests.get( self.baseURL + path, params=(params or {}) )
         # print(result.url)
         return result
 
@@ -120,8 +118,8 @@ class ROADMProxy( SwitchProxy ):
         r = self.get( 'connect', params=params)
         print( r )
 
-    def cleanRoadm(self):
-        r = self.get('cleanRoadm', params=dict(node=self.name))
+    def cleanme(self):
+        r = self.get('cleanme', params=dict(node=self.name))
         print(r)
 
 
