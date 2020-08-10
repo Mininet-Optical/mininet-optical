@@ -101,6 +101,10 @@ class TerminalProxy( SwitchProxy ):
         r = self.get( 'connect', params=params )
         print( r )
 
+    def reset(self):
+        r = self.get('reset')
+        print(r)
+
 
 class ROADMProxy( SwitchProxy ):
     "Local proxy for ROADM configuration via REST"

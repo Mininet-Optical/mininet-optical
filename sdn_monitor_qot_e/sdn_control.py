@@ -29,7 +29,7 @@ def run(net):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    channel_no = 81
+    channel_no = 5
     install_paths(net.roadms, channel_no)
 
     configure_routers(net.switches)
@@ -37,6 +37,12 @@ def run(net):
     configure_terminals(net.terminals, channel_no)
 
     monitor_osnr(net)
+
+
+def reset(terminals):
+    t1 = terminals[0]
+    termProxy1 = TerminalProxy(t1)
+    termProxy1.reset()
 
 
 def install_paths(roadms, channel_no):

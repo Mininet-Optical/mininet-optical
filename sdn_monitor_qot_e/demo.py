@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel('info')
-    topo1 = LinearRoadmTopo(n=5, txCount=10)
+    topo1 = LinearRoadmTopo(n=5, txCount=5)
     # topo2 = LinearRoadmTopo(n=15, txCount=9)
     info('*** Creating PTL-Demo Topology \n')
     net = Mininet(topo=topo1, autoSetMacs=True,
