@@ -304,7 +304,6 @@ class Terminal( SwitchBase ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
-        print("*** Dataplane Terminal.connect is being called")
         # Update physical model
         OUT = 100  # Offset for output port
         tx = self.txnum( wdmPort )
@@ -437,12 +436,12 @@ class ROADM( SwitchBase ):
         return { str(ruleId): rule
                  for rule, ruleId in self.ruleIds.items() }
 
-    def restCleanHandler(self, query):
+    def restCleanRoadmHandler(self, query):
         "Handle REST clean request"
-        self.clean()
+        self.cleanRoadm()
         return 'OK'
 
-    def clean(self):
+    def cleanRoadm(self):
         self.model.clean()
 
     # Dataplane operations
