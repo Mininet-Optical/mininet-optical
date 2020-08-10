@@ -129,7 +129,6 @@ class Node(object):
                         print('%s@%.1fdBm' % (signal, abs_to_db(power)), end=' ')
                     print()
 
-
     def __repr__(self):
         "Human-readable representation"
         return '%s' % self.name
@@ -147,6 +146,21 @@ class LineTerminal(Node):
 
         if transceivers:
             self.add_transceivers(transceivers)
+
+    def reset(self):
+        print("*** Resetting LineTerminal %s ", self.name)
+        # first clean the output ports
+        for out_port, _ in self.port_to_optical_signal_power_out.items():
+            self.port_to_optical_signal_power_out[out_port] = {}
+            self.port_to_optical_signal_out[out_port] = []
+        # clean input ports
+        for in_port, _ in self.port_to_optical_signal_power_in.items():
+            self.port_to_optical_signal_power_in[in_port] = {}
+            self.port_to_optical_signal_in[in_port] = []
+
+        # clean transceivers
+        for transceiver in self.transceivers:
+            self.transceiver_to_optical_signals[transceiver] = {}
 
     def add_transceivers(self, transceivers):
         """

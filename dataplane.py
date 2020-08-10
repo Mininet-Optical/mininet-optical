@@ -256,7 +256,7 @@ class Terminal( SwitchBase ):
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
         self.txChannels = {}
         self.failedChannels = set()
-        # self.model.reset_signals()
+        self.model.reset()
 
     # Probably obsolete now that we have auto-propagation
     #def propagate( self ):
