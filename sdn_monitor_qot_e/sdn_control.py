@@ -120,20 +120,21 @@ def amplifiers(n, i, amps):
 def install_paths(roadms, channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    r1, r15 = roadms[0], roadms[-1]
+    r1 = roadms[0]
     line1, line2 = channel_no + 1, channel_no + 2
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
         ROADMProxy(r1).connect(port1=local_port, port2=line1, channels=[ch])
 
-    for roadm in roadms[1:14]:
+    roadm_list = ['r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14']
+    for roadm in roadm_list:
         # next roadms: pass through channels r1<->r15
         ROADMProxy(roadm).connect(port1=line1, port2=line2, channels=channels)
 
     # r15: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
-        ROADMProxy(r15).connect(port1=line1, port2=local_port, channels=[ch])
+        ROADMProxy('r15').connect(port1=line1, port2=local_port, channels=[ch])
 
 
 def configure_routers(routers):
