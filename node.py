@@ -413,7 +413,7 @@ class Roadm(Node):
 
     def __init__(self, name, wss_dict=None, voa_function='flatten',
                  # Assuming default launch power of 0 dBm for all signals
-                 voa_target_out_power=0):
+                 voa_target_out_power=-2):
         """
         :param name:
         :param wss_dict:
@@ -943,6 +943,9 @@ class Amplifier(Node):
     def mock_amp_gain_adjust(self, new_gain):
         self.target_gain = new_gain
         self.system_gain = new_gain
+
+    def mock_func(self, ripple):
+        print("Should work like a charm! Passing %s as a param.\n" % ripple)
 
     def __repr__(self):
         "String representation"

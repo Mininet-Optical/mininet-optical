@@ -28,7 +28,7 @@ def run(net):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    channel_no = 5
+    channel_no = 9
     install_paths(net.roadms, channel_no)
 
     configure_routers(net.switches)
@@ -40,8 +40,7 @@ def run(net):
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
 
-    configure_terminals(net.terminals, channel_no)
-    monitor(net)
+    configure_amps(net)
 
 
 def reset_terminals(terminals):
@@ -53,6 +52,13 @@ def reset_terminals(terminals):
 def clean_roadms(roadms):
     for roadm in roadms:
         ROADMProxy(roadm).cleanme()
+
+
+def configure_amps(net):
+    amp_name = 'r1-r2-boost'
+    ripple = 'The Ripple'
+    net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
+
 
 
 def install_paths(roadms, channel_no):

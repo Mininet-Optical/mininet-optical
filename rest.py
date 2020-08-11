@@ -218,6 +218,11 @@ def setgain():
     "Demo support: tell Mininet to adjust the gain for am amplifier"
     net().restSetgainHandler( request.query )
 
+@get( '/set_ripple' )
+def set_ripple():
+    "Demo support: tell Mininet to adjust the ripple function for am amplifier"
+    net().restSetrippleHandler( request.query )
+
 
 # REST Server
 
