@@ -209,6 +209,8 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
 
 def process_file(outfile):
     # send file to flash drive
+    print("processing file")
+    print(outfile)
     cmd1 = ['scp', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/']
     # delete file
     cmd2 = ['rm', outfile]
