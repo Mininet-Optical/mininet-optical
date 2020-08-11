@@ -1,6 +1,9 @@
 from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, TerminalProxy,
                                     fetchNodes, fetchLinks, fetchPorts)
 import numpy as np
+import os
+import json
+import subprocess
 
 
 # optionally: retrieve WDG seed to pass to EDFAs
@@ -48,7 +51,7 @@ def run(net):
     test_run = 0
     configure_amps(net, test_run)
     configure_terminals(net.terminals, channel_no)
-    monitor(net)
+    monitor(net, test_run, 5)
 
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
@@ -57,7 +60,7 @@ def run(net):
     configure_amps(net, test_run)
 
     configure_terminals(net.terminals, channel_no)
-    monitor(net)
+    monitor(net, test_run, 5)
 
 
 def reset_terminals(terminals):
@@ -101,7 +104,6 @@ def amplifiers(n, i, amps):
         return amps
     amps = appending(7, i, 0, amps)
     return amplifiers(n, i+1, amps)
-
 
 
 def install_paths(roadms, channel_no):
@@ -169,44 +171,7 @@ def configure_terminals(terminals, channel_no):
         termProxy5.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
-def monitorKey(monitor):
-    "Key for sorting monitor names"
-    items = monitor.split('-')
-    return items
-
-
-def monitor_osnr(net):
-    monitors = net.get('monitors').json()['monitors']
-    mon_keys = simple_keys([], 1, 2, len(net.roadms))
-    ptl_monitor_keys = []
-    for k in mon_keys:
-        for k2 in monitors.keys():
-            if k in k2:
-                ptl_monitor_keys.append(k2)
-    ptl_monitors = {}
-    for k in ptl_monitor_keys:
-        ptl_monitors[k] = monitors[k]
-
-    gosnrs = []
-    for monitor in sorted(ptl_monitors, key=monitorKey):
-        response = net.get('monitor', params=dict(monitor=monitor))
-        osnrdata = response.json()['osnr']
-
-        print(monitor)
-        i = 0
-        for channel, data in osnrdata.items():
-            THz = float(data['freq']) / 1e12
-            osnr, gosnr = data['osnr'], data['gosnr']
-            if i == 1:
-                gosnrs.append(gosnr)
-            i += 1
-            # print("OSNR for channel %s is %s" % (str(THz), str(osnr)))
-            # print("gOSNR for channel %s is %s" % (str(THz), str(gosnr)))
-            # print()
-    print(gosnrs)
-
-
-def monitor(net):
+def monitor(net, test_id, load_id):
     monitor_keys = [
         'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
         'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
@@ -214,27 +179,41 @@ def monitor(net):
         'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
     ]
 
-    gosnrs = []
-    for key in monitor_keys:
-        response = net.get('monitor', params=dict(monitor=key))
+    for monitor_key in monitor_keys:
+        json_struct = {'tests': []}
+        response = net.get('monitor', params=dict(monitor=monitor_key))
         osnrdata = response.json()['osnr']
-        i = 0
+
         for channel, data in osnrdata.items():
             osnr, gosnr = data['osnr'], data['gosnr']
-            if i == 1:
-                gosnrs.append(gosnr)
-            i += 1
-    print(gosnrs)
+            write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id)
 
 
-def simple_keys(mon_keys, i, j, N):
-    if j is N + 1:
-        return mon_keys
-    k1, k2 = 'r' + str(i) + '-', 'r' + str(j)
-    mon_keys.append(k1 + k2)
-    i = j
-    j = i + 1
-    return simple_keys(mon_keys, i, j, N)
+def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
+    _osnr_id = 'osnr_load_' + load_id
+    _gosnr_id = 'gosnr_load_' + load_id
+    json_struct['tests'].append({_osnr_id: osnr})
+    json_struct['tests'].append({_gosnr_id: gosnr})
+
+    test = 'metrics-monitor/'
+    dir_ = test + 'opm-sim-no-m/' + monitor_key
+    dir_2 = test + 'opm-sim-qot-no-m/' + monitor_key
+    if not os.path.exists(dir_) and not os.path.exists(dir_2):
+        os.makedirs(dir_)
+        os.makedirs(dir_2)
+    json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
+    with open(json_file_name, 'w+') as outfile:
+        json.dump(json_struct, outfile)
+    process_file(outfile)
+
+
+def process_file(outfile):
+    # send file to flash drive
+    cmd1 = ['scp', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/']
+    # delete file
+    cmd2 = ['rm', outfile]
+    subprocess.call(cmd1)
+    subprocess.call(cmd2)
 
 
 if __name__ == '__main__':
