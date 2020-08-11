@@ -46,7 +46,6 @@ def run(net):
     configure_routers(net.switches)
 
     configure_terminals(net.terminals, channel_no)
-
     monitor(net)
 
     reset_terminals(net.terminals)
@@ -54,6 +53,9 @@ def run(net):
 
     test_run = 0
     configure_amps(net, test_run)
+
+    configure_terminals(net.terminals, channel_no)
+    monitor(net)
 
 
 def reset_terminals(terminals):
@@ -70,7 +72,7 @@ def clean_roadms(roadms):
 def configure_amps(net, tr):
     rip_func = wdg_seeds[tr]
 
-    amps = amplifiers(15, 1, [])
+    amps = amplifiers(5, 1, [])
     for (amp_name, ripple) in zip(amps, rip_func):
         params = dict(amp_name=amp_name, ripple=ripple)
         print('set_ripple', params)
