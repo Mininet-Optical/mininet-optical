@@ -45,13 +45,15 @@ def run(net):
 
     configure_routers(net.switches)
 
+    test_run = 0
+    configure_amps(net, test_run)
     configure_terminals(net.terminals, channel_no)
     monitor(net)
 
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
 
-    test_run = 0
+    test_run = 1
     configure_amps(net, test_run)
 
     configure_terminals(net.terminals, channel_no)
