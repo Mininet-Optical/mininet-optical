@@ -944,9 +944,6 @@ class Amplifier(Node):
         self.target_gain = new_gain
         self.system_gain = new_gain
 
-    def mock_func(self, ripple):
-        print("Should work like a charm! Passing %s as a param.\n" % ripple)
-
     def __repr__(self):
         "String representation"
         return '<%s %.1fdB>' % (self.name, self.target_gain)

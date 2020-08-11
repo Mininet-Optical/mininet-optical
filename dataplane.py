@@ -83,7 +83,7 @@ class OpticalNet( Mininet ):
 
     def restSetrippleHandler( self, query ):
         "Demo/debugging: Support for REST setgain call"
-        amp_name = query.amplifier
+        amp_name = query.amp_name
         ripple = query.ripple
         return self.set_ripple(amp_name, ripple)
 
@@ -111,7 +111,7 @@ class OpticalNet( Mininet ):
         if not amp:
             return '%s not found' % amp_name
         # Set ripple function (wavelength dependent gain)
-        amp.mock_func(ripple)
+        amp.load_wavelength_dependent_gain(ripple)
 
     def restSetgainHandler( self, query ):
         "Demo/debugging: Support for REST setgain call"

@@ -3,6 +3,18 @@ from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, Termin
 import numpy as np
 
 
+# optionally: retrieve WDG seed to pass to EDFAs
+# this seed is created with the wdg_seed.py script
+# currently in my computer at utils/
+with open('seeds/wdg_seed.txt', 'r') as f:
+    lines = f.readlines()
+wdg_seeds = []
+for line in lines:
+    wdg_seed = line.split(',')
+    wdg_seed[-1] = wdg_seed[-1][:-1]
+    wdg_seeds.append(wdg_seed)
+
+
 def run(net):
     "Configure and monitor network with N=3 channels for each path"
 
@@ -40,7 +52,8 @@ def run(net):
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
 
-    configure_amps(net)
+    test_run = 0
+    configure_amps(net, test_run)
 
 
 def reset_terminals(terminals):
@@ -54,11 +67,35 @@ def clean_roadms(roadms):
         ROADMProxy(roadm).cleanme()
 
 
-def configure_amps(net):
-    amp_name = 'r1-r2-boost'
-    ripple = 'The Ripple'
-    response = net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
-    print(response)
+def configure_amps(net, tr):
+    rip_func = wdg_seeds[tr]
+
+    amps = amplifiers(15, 1, [])
+    for (amp_name, ripple) in zip(amps, rip_func):
+        response = net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
+        print(response)
+
+
+def appending(n, i, j, amps):
+    "Helper function of the helper function to get the names of amplifiers"
+    if j == n:
+        return amps
+
+    if j == 0:
+        name = 'r' + str(i) + '-' + 'r' + str(i + 1) + '-' + 'boost'
+    else:
+        name = 'r' + str(i) + '-' + 'r' + str(i + 1) + '-' + 'amp' + str(j)
+    amps.append(name)
+    return appending(7, i, j+1, amps)
+
+
+def amplifiers(n, i, amps):
+    "Helper function to get the names of the amplifiers in linear topology"
+    if i == n:
+        return amps
+    amps = appending(7, i, 0, amps)
+    return amplifiers(n, i+1, amps)
+
 
 
 def install_paths(roadms, channel_no):
@@ -165,10 +202,10 @@ def monitor_osnr(net):
 
 def monitor(net):
     monitor_keys = [
-        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
-        'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
-        'r3-r4-boost', 'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor',
-        'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+        'r1-r2-boost-monitor', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
+        'r2-r3-boost-monitor', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
+        'r3-r4-boost-monitor', 'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor',
+        'r4-r5-boost-monitor', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
     ]
 
     gosnrs = []
