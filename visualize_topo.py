@@ -158,7 +158,7 @@ def visualize(net):
 
     app.layout = html.Div([
         cyto.Cytoscape(
-            id='cytoscape-two-nodes',
+            id='Optical-Topology',
             layout={'name': 'cose'},
             style={'width': '100%', 'height': '800px', "font-size": "1px", "content": "data(label)",
                    "text-valign": "center",
