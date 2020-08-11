@@ -212,7 +212,7 @@ def process_file(outfile, monitor_key):
     # send file to flash drive
     print("processing file")
     print(outfile)
-    cmd1 = ['scp', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/']
+    cmd1 = ['rsync', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/']
     # delete file
     cmd2 = ['rm', outfile]
     subprocess.call(cmd1)
