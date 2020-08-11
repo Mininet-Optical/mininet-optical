@@ -171,11 +171,11 @@ def configure_terminals(terminals, channel_no):
     # Configure transceivers
     t1, t15 = terminals[0], terminals[14]
     termProxy1 = TerminalProxy(t1)
-    # termProxy15 = TerminalProxy(t15)
+    termProxy15 = TerminalProxy(t15)
     for tx_id, ch in enumerate(channels):
         termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
-    # for tx_id, ch in enumerate(channels):
-    #     termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+    for tx_id, ch in enumerate(channels):
+        termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
 def monitor(net, test_id, load_id):
