@@ -823,6 +823,10 @@ class Amplifier(Node):
         with open(description_files_dir + wdg_file, "r") as f:
             return [float(line) for line in f]
 
+    def set_ripple_function(self, wavelength_dependent_gain_id):
+        self.wavelength_dependent_gain = (
+            self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
+
     def get_wavelength_dependent_gain(self, signal_index):
         """
         Retrieve WDG by signal index
