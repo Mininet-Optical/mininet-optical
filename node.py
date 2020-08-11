@@ -556,6 +556,9 @@ class Roadm(Node):
             self.port_to_optical_signal_ase_noise_out[port] = {}
             self.port_to_optical_signal_nli_noise_out[port] = {}
 
+        for _, link in self.out_port_to_link:
+            link.reset_propagation_struct()
+
     def propagate_cleanup(self):
         # Clean and prevent signals from link propagation
         for op, link in self.out_port_to_link.items():
