@@ -51,7 +51,7 @@ def run(net):
     test_run = 0
     configure_amps(net, test_run)
     configure_terminals(net.terminals, channel_no)
-    monitor(net, test_run, 5)
+    monitor(net, str(test_run), str(5))
 
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
@@ -60,7 +60,7 @@ def run(net):
     configure_amps(net, test_run)
 
     configure_terminals(net.terminals, channel_no)
-    monitor(net, test_run, 5)
+    monitor(net, str(test_run), str(5))
 
 
 def reset_terminals(terminals):
