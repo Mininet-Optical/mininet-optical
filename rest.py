@@ -200,6 +200,16 @@ def rules():
     else:
         abort( 404, "No rules handler for %s" % node )
 
+@get( '/cleanme' )
+def cleanme():
+    "Return rules for node"
+    query = request.query
+    node = lookUpNode( query.node )
+    if hasattr( node, 'restCleanmeHandler' ):
+        return node.restCleanmeHandler( query )
+    else:
+        abort( 404, "No cleanme handler for %s" % node )
+
 
 # Demo support (not part of SDN API)
 
