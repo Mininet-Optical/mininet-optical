@@ -43,30 +43,30 @@ def run(net):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    channel_no = 5
-    install_paths(net.roadms, channel_no)
-
     configure_routers(net.switches)
 
     test_run = 0
-    configure_amps(net, test_run)
-    configure_terminals(net.terminals, channel_no)
-    monitor(net, str(test_run), str(5))
+    test_num = 1
+    _loads = [81, 27, 9]
+    for load in _loads:
+        while test_run < test_num:
 
-    reset_terminals(net.terminals)
-    clean_roadms(net.roadms)
+            install_paths(net.roadms, load)
 
-    test_run = 1
-    configure_amps(net, test_run)
+            configure_amps(net, 15, test_run)
+            configure_terminals(net.terminals, load)
+            monitor(net, str(test_run), str(load))
 
-    configure_terminals(net.terminals, channel_no)
-    monitor(net, str(test_run), str(5))
+            reset_terminals(net.terminals)
+            clean_roadms(net.roadms)
+
+            test_run += 1
 
 
 def reset_terminals(terminals):
-    t1, t5 = terminals[0], terminals[4]
+    t1, t15 = terminals[0], terminals[14]
     TerminalProxy(t1).reset()
-    TerminalProxy(t5).reset()
+    TerminalProxy(t15).reset()
 
 
 def clean_roadms(roadms):
@@ -74,10 +74,10 @@ def clean_roadms(roadms):
         ROADMProxy(roadm).cleanme()
 
 
-def configure_amps(net, tr):
+def configure_amps(net, roadm_no, tr):
     rip_func = wdg_seeds[tr]
 
-    amps = amplifiers(5, 1, [])
+    amps = amplifiers(roadm_no, 1, [])
     for (amp_name, ripple) in zip(amps, rip_func):
         params = dict(amp_name=amp_name, ripple=ripple)
         print('set_ripple', params)
@@ -86,7 +86,13 @@ def configure_amps(net, tr):
 
 
 def appending(n, i, j, amps):
-    "Helper function of the helper function to get the names of amplifiers"
+    """
+        Helper function of the helper function to get the names of amplifiers
+        n : number of spans
+        i: node num
+        j: node num + 1
+        amps: list of amps
+    """
     if j == n:
         return amps
 
@@ -99,7 +105,12 @@ def appending(n, i, j, amps):
 
 
 def amplifiers(n, i, amps):
-    "Helper function to get the names of the amplifiers in linear topology"
+    """
+        Helper function to get the names of the amplifiers in linear topology
+        n: number of roadms
+        i: node num
+        amps: list of amps
+    """
     if i == n:
         return amps
     amps = appending(7, i, 0, amps)
@@ -109,25 +120,20 @@ def amplifiers(n, i, amps):
 def install_paths(roadms, channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    r1, r2, r3, r4, r5 = roadms[0], roadms[1], roadms[2], roadms[3], roadms[4]
+    r1, r15 = roadms[0], roadms[-1]
     line1, line2 = channel_no + 1, channel_no + 2
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
         ROADMProxy(r1).connect(port1=local_port, port2=line1, channels=[ch])
 
-    # r2: pass through channels r1<->r5
-    ROADMProxy(r2).connect(port1=line1, port2=line2, channels=channels)
+    for roadm in roadms[1:14]:
+        # next roadms: pass through channels r1<->r15
+        ROADMProxy(roadm).connect(port1=line1, port2=line2, channels=channels)
 
-    # r3: pass through channels r1<->r5
-    ROADMProxy(r3).connect(port1=line1, port2=line2, channels=channels)
-
-    # r4: pass through channels r1<->r5
-    ROADMProxy(r4).connect(port1=line1, port2=line2, channels=channels)
-
-    # r5: add/drop channels r1<->r5
+    # r15: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
-        ROADMProxy(r5).connect(port1=line1, port2=local_port, channels=[ch])
+        ROADMProxy(r15).connect(port1=line1, port2=local_port, channels=[ch])
 
 
 def configure_routers(routers):
@@ -138,8 +144,8 @@ def configure_routers(routers):
 
     print("*** Configuring Open vSwitch 'routers' remotely... ")
 
-    routers = s1, s5 = routers[0], routers[4]
-    for pop, dests in enumerate([(s1, s5)], start=1):
+    routers = s1, s15 = routers[0], routers[14]
+    for pop, dests in enumerate([(s1, s15)], start=1):
         router, dest1, dest2 = routers[pop - 1], dests[0], dests[1]
         routerProxy = OFSwitchProxy(router)
         # Initialize flow table
@@ -162,13 +168,13 @@ def configure_terminals(terminals, channel_no):
     wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
 
     # Configure transceivers
-    t1, t5 = terminals[0], terminals[4]
+    t1, t15 = terminals[0], terminals[14]
     termProxy1 = TerminalProxy(t1)
-    termProxy5 = TerminalProxy(t5)
+    termProxy15 = TerminalProxy(t15)
     for tx_id, ch in enumerate(channels):
         termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
     for tx_id, ch in enumerate(channels):
-        termProxy5.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+        termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
 def monitor(net, test_id, load_id):
@@ -202,7 +208,7 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
     dir_ = test + 'opm-sim-no-m/' + monitor_key
     if not os.path.exists(dir_):
         os.makedirs(dir_)
-    json_file_name = dir_ + '-' + test_id + '_' + str(load_id) + '.json'
+    json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
     with open(json_file_name, 'w+') as outfile:
         json.dump(json_struct, outfile)
     process_file(json_file_name, monitor_key)
