@@ -542,14 +542,19 @@ class Roadm(Node):
     def clean(self):
         print("*** Node.ROADM.clean() - ", self.name)
 
-        self.port_to_optical_signal_out = {}  # dict of ports to output signals
-        self.port_to_optical_signal_power_in = {}  # dict of ports to input signals and power levels
-        self.port_to_optical_signal_power_out = {}  # dict of ports to output signals and power levels
+        for port, _ in self.port_to_optical_signal_out.items():
+            self.port_to_optical_signal_out[port] = {}
+        for port, _ in self.port_to_optical_signal_power_in.items():
+            self.port_to_optical_signal_power_in[port] = {}
+        for port, _ in self.port_to_optical_signal_power_out.items():
+            self.port_to_optical_signal_power_out[port] = {}
 
-        self.port_to_optical_signal_ase_noise_in = {}
-        self.port_to_optical_signal_nli_noise_in = {}
-        self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
-        self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
+        for port, _ in self.port_to_optical_signal_nli_noise_in.items():
+            self.port_to_optical_signal_ase_noise_in[port] = {}
+            self.port_to_optical_signal_nli_noise_in[port] = {}
+        for port, _ in self.port_to_optical_signal_nli_noise_out.items():
+            self.port_to_optical_signal_ase_noise_out[port] = {}
+            self.port_to_optical_signal_nli_noise_out[port] = {}
 
     def propagate_cleanup(self):
         # Clean and prevent signals from link propagation

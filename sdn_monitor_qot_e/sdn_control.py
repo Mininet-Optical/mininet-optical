@@ -45,8 +45,9 @@ def run(net):
 
 
 def reset_terminals(terminals):
-    t1 = terminals[0]
+    t1, t5 = terminals[0], terminals[4]
     TerminalProxy(t1).reset()
+    TerminalProxy(t5).reset()
 
 
 def clean_roadms(roadms):
