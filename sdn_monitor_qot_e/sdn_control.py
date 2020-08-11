@@ -45,10 +45,10 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_run = 0
     test_num = 1
-    _loads = [81, 27, 9]
+    _loads = [9, 27, 81]
     for load in _loads:
+        test_run = 0
         while test_run < test_num:
 
             install_paths(net.roadms, load)
@@ -170,11 +170,11 @@ def configure_terminals(terminals, channel_no):
     # Configure transceivers
     t1, t15 = terminals[0], terminals[14]
     termProxy1 = TerminalProxy(t1)
-    termProxy15 = TerminalProxy(t15)
+    # termProxy15 = TerminalProxy(t15)
     for tx_id, ch in enumerate(channels):
         termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
-    for tx_id, ch in enumerate(channels):
-        termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+    # for tx_id, ch in enumerate(channels):
+    #     termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
 def monitor(net, test_id, load_id):
@@ -187,6 +187,7 @@ def monitor(net, test_id, load_id):
 
     for monitor_key in monitor_keys:
         json_struct = {'tests': []}
+        print('monitor', dict(monitor=monitor_key))
         response = net.get('monitor', params=dict(monitor=monitor_key))
         osnrdata = response.json()['osnr']
 
@@ -216,9 +217,9 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
 
 def process_file(outfile, monitor_key):
     # send file to flash drive
-    print("processing file")
-    print(outfile)
-    cmd1 = ['rsync', '-r', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/']
+    print("processing file: ", outfile)
+    dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/'
+    cmd1 = ['rsync', '-r', outfile, dest_file]
     # delete file
     cmd2 = ['rm', outfile]
     subprocess.call(cmd1)

@@ -75,7 +75,7 @@ class LinearRoadmTopo(OpticalTopo):
         router = self.addSwitch('s%d' % p, subnet=subnet,
                                 listenPort=(ListenPortBase + p))
         transceivers = [
-            ('t%d' % t, 0 * dBm, 'C') for t in range(1, txCount + 1)]
+            ('t%d' % t, -2.0 * dBm, 'C') for t in range(1, txCount + 1)]
         terminal = self.addSwitch(
             't%d' % p, cls=Terminal, transceivers=transceivers)
         roadm = self.addSwitch('r%d' % p, cls=ROADM)
