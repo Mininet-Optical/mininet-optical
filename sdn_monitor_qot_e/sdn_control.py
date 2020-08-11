@@ -28,7 +28,7 @@ def run(net):
     # Fetch ports
     net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
 
-    channel_no = 9
+    channel_no = 5
     install_paths(net.roadms, channel_no)
 
     configure_routers(net.switches)
