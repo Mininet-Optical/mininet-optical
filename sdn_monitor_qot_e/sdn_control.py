@@ -1,7 +1,6 @@
 from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, TerminalProxy,
                                     fetchNodes, fetchLinks, fetchPorts)
 import numpy as np
-from time import sleep
 
 
 def run(net):
@@ -36,7 +35,7 @@ def run(net):
 
     configure_terminals(net.terminals, channel_no)
 
-    monitor_osnr(net)
+    monitor(net)
 
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
@@ -156,6 +155,29 @@ def monitor_osnr(net):
             # print()
     print(gosnrs)
 
+
+def monitor(net):
+    monitors = net.get('monitors').json()['monitors']
+    monitor_keys = [
+        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
+        'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
+        'r3-r4-boost', 'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor',
+        'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+    ]
+
+    gosnrs = []
+    for key in monitor_keys:
+        monitor = monitors[key]
+        print(monitor)
+        response = net.get('monitor', params=dict(monitor=monitor))
+        osnrdata = response.json()['osnr']
+        i = 0
+        for channel, data in osnrdata.items():
+            osnr, gosnr = data['osnr'], data['gosnr']
+            if i == 1:
+                gosnrs.append(gosnr)
+            i += 1
+    print(gosnrs)
 
 
 def simple_keys(mon_keys, i, j, N):
