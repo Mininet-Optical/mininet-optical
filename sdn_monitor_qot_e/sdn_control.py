@@ -168,9 +168,9 @@ def configure_terminals(terminals, channel_no):
     wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
 
     # Configure transceivers
-    t1, t15 = terminals[0], terminals[14]
+    t1 = terminals[0]
     termProxy1 = TerminalProxy(t1)
-    termProxy15 = TerminalProxy(t15)
+    termProxy15 = TerminalProxy('t15')
     for tx_id, ch in enumerate(channels):
         termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
     for tx_id, ch in enumerate(channels):
