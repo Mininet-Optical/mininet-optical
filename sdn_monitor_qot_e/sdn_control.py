@@ -205,14 +205,14 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
     json_file_name = dir_ + '-' + test_id + '_' + str(load_id) + '.json'
     with open(json_file_name, 'w+') as outfile:
         json.dump(json_struct, outfile)
-    process_file(json_file_name)
+    process_file(json_file_name, monitor_key)
 
 
-def process_file(outfile):
+def process_file(outfile, monitor_key):
     # send file to flash drive
     print("processing file")
     print(outfile)
-    cmd1 = ['scp', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/']
+    cmd1 = ['scp', outfile, 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/']
     # delete file
     cmd2 = ['rm', outfile]
     subprocess.call(cmd1)
