@@ -202,7 +202,7 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
     dir_ = test + 'opm-sim-no-m/' + monitor_key
     if not os.path.exists(dir_):
         os.makedirs(dir_)
-    json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
+    json_file_name = dir_ + '-' + test_id + '_' + str(load_id) + '.json'
     with open(json_file_name, 'w+') as outfile:
         json.dump(json_struct, outfile)
     process_file(json_file_name)
