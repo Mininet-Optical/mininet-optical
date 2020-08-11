@@ -41,6 +41,8 @@ def run(net):
     reset_terminals(net.terminals)
     clean_roadms(net.roadms)
 
+    configure_terminals(net.terminals, channel_no)
+
 
 def reset_terminals(terminals):
     t1 = terminals[0]
@@ -48,8 +50,8 @@ def reset_terminals(terminals):
 
 
 def clean_roadms(roadms):
-    r1 = roadms[0]
-    ROADMProxy(r1).cleanme()
+    for roadm in roadms:
+        ROADMProxy(roadm).cleanme()
 
 
 def install_paths(roadms, channel_no):
