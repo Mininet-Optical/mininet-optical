@@ -85,7 +85,8 @@ class OpticalNet( Mininet ):
         "Demo/debugging: Support for REST setgain call"
         amp_name = query.amp_name
         ripple = query.ripple
-        return self.set_ripple(amp_name, ripple)
+        self.set_ripple(amp_name, ripple)
+        return 'OK'
 
     def set_ripple(self, amp_name, ripple):
         srcdst = amp_name.split('-')

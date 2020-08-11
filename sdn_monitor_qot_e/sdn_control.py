@@ -72,7 +72,9 @@ def configure_amps(net, tr):
 
     amps = amplifiers(15, 1, [])
     for (amp_name, ripple) in zip(amps, rip_func):
-        response = net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
+        params = dict(amp_name=amp_name, ripple=ripple)
+        print('set_ripple', params)
+        response = net.get('set_ripple', params=params)
         print(response)
 
 
