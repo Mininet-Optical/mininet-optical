@@ -41,6 +41,7 @@ def run(net):
     clean_roadms(net.roadms)
 
     configure_terminals(net.terminals, channel_no)
+    monitor(net)
 
 
 def reset_terminals(terminals):
@@ -157,7 +158,6 @@ def monitor_osnr(net):
 
 
 def monitor(net):
-    monitors = net.get('monitors').json()['monitors']
     monitor_keys = [
         'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
         'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
@@ -167,9 +167,7 @@ def monitor(net):
 
     gosnrs = []
     for key in monitor_keys:
-        monitor = monitors[key]
-        print(monitor)
-        response = net.get('monitor', params=dict(monitor=monitor))
+        response = net.get('monitor', params=dict(monitor=key))
         osnrdata = response.json()['osnr']
         i = 0
         for channel, data in osnrdata.items():
