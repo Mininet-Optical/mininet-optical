@@ -57,8 +57,8 @@ def clean_roadms(roadms):
 def configure_amps(net):
     amp_name = 'r1-r2-boost'
     ripple = 'The Ripple'
-    net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
-
+    response = net.get('set_ripple', params=dict(amp_name=amp_name, ripple=ripple))
+    print(response)
 
 
 def install_paths(roadms, channel_no):
