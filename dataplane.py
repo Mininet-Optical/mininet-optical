@@ -88,10 +88,11 @@ class OpticalNet( Mininet ):
         return self.set_ripple(amp_name, ripple)
 
     def set_ripple(self, amp_name, ripple):
-        print("DATAPLANE SET RIPPLE")
         srcdst = amp_name.split('-')
         if len(srcdst) < 2:
-            return "couldn't find src-dst in %s" % amp_name
+            print(srcdst)
+            print("couldn't find src-dst in %s" % amp_name)
+            return
         src, dst = srcdst[0:2]
         links = self.linksBetween(*self.get(src, dst))
         # Find amp
