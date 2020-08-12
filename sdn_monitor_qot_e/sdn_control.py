@@ -51,10 +51,10 @@ def run(net):
         test_run = 0
         while test_run < test_num:
 
-            install_paths(net.roadms, load)
+            install_paths(load)
 
             configure_amps(net, 15, test_run)
-            configure_terminals(net.terminals, load)
+            configure_terminals(load)
             monitor(net, str(test_run), str(load))
 
             reset_terminals(net.terminals)
@@ -116,15 +116,14 @@ def amplifiers(n, i, amps):
     return amplifiers(n, i+1, amps)
 
 
-def install_paths(roadms, channel_no):
+def install_paths(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    r1 = roadms[0]
-    line1, line2 = 81 + channel_no + 1, 81 + channel_no + 2
+    line1, line2 = channel_no + 1, channel_no + 2
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
-        ROADMProxy(r1).connect(port1=local_port, port2=line1, channels=[ch])
+        ROADMProxy('r1').connect(port1=local_port, port2=line1, channels=[ch])
 
     roadm_list = ['r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14']
     for roadm in roadm_list:
