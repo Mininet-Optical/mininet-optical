@@ -119,7 +119,7 @@ def amplifiers(n, i, amps):
 def install_paths(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    line1, line2 = channel_no + 1, channel_no + 2
+    line1, line2 = 82, 83
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
