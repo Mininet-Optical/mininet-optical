@@ -164,7 +164,7 @@ def configure_terminals(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    wdm_ports = list(np.arange(81 + channel_no + 1, (81 + channel_no) * 2 + 1))
+    wdm_ports = list(np.arange(82, 82 + channel_no + 1))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
