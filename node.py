@@ -266,7 +266,7 @@ class LineTerminal(Node):
             signalInfoDict[signal]['gosnr'] = gosnr
             if gosnr < 20:
                 print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
-                      (self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                      (self.__class__.__name__, self.name, gosnr))
                 signalInfoDict[signal]['success'] = False
                 self.receiver_callback(in_port, signalInfoDict)
             else:
