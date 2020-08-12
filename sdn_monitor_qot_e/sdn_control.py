@@ -120,7 +120,7 @@ def install_paths(roadms, channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     r1 = roadms[0]
-    line1, line2 = channel_no + 1, channel_no + 2
+    line1, line2 = 81 + channel_no + 1, 81 + channel_no + 2
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -161,19 +161,17 @@ def configure_routers(routers):
                 j += 1
 
 
-def configure_terminals(terminals, channel_no):
+def configure_terminals(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    wdm_ports = list(np.arange(channel_no + 1, channel_no * 2 + 1))
+    wdm_ports = list(np.arange(81 + channel_no + 1, (81 + channel_no) * 2 + 1))
 
     # Configure transceivers
-    termProxy1 = TerminalProxy('t1')
-    termProxy15 = TerminalProxy('t15')
     for tx_id, ch in enumerate(channels):
-        termProxy1.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+        TerminalProxy('t1').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
     for tx_id, ch in enumerate(channels):
-        termProxy15.connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+        TerminalProxy('t15').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
 
 def monitor(net, test_id, load_id):
