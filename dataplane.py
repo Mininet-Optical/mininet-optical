@@ -323,7 +323,7 @@ class Terminal( SwitchBase ):
                          ( self, wdmPort ) )
 
     def restTurnonHandler(self, query):
-        out_ports = query.out_ports
+        out_ports = query.GET.getList('out_ports')
         print("restTurnonHandler", out_ports)
         self.turn_on(out_ports)
         return 'OK'
