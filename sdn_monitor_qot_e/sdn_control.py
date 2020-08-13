@@ -69,16 +69,20 @@ def run(net):
     _loads = [9, 27, 81]
     for load in _loads:
         test_run = 0
+        # Install switching rules to roadms
+        install_paths(load)
         while test_run < test_num:
-
-            install_paths(load)
+            # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
+            # configure terminals with port connections
             term_out_ports = configure_terminals(load)
-
+            # launch transmission at terminals
             transmit(term_out_ports)
+            # monitor all channels
             monitor(net, str(test_run), str(load))
-
+            # clean terminals
             reset_terminals()
+            # clean roadms
             clean_roadms(net.roadms)
 
             test_run += 1
