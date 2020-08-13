@@ -149,6 +149,7 @@ class Link(object):
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
                                     self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
+                return
             else:
                 self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
                                           accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
