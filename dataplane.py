@@ -323,7 +323,6 @@ class Terminal( SwitchBase ):
                          ( self, wdmPort ) )
 
     def restTurnonHandler(self, out_ports):
-        print("restTurnonHandler", out_ports)
         self.turn_on(out_ports)
         return 'OK'
 

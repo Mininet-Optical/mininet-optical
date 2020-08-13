@@ -239,7 +239,6 @@ class LineTerminal(Node):
         self.configure_transceiver(transceiver, out_port)
 
     def turn_on(self, out_ports):
-        print("turn on", out_ports)
         last_port = out_ports[-1]
         is_last_port = False
         for out_port in out_ports:
@@ -624,6 +623,61 @@ class Roadm(Node):
         self.port_to_optical_signal_ase_noise_in[in_port].update(accumulated_ASE_noise)
         self.port_to_optical_signal_nli_noise_in.setdefault(in_port, {})
         self.port_to_optical_signal_nli_noise_in[in_port].update(accumulated_NLI_noise)
+
+    def new_switch(self):
+
+        # Keep track of which output ports/links have signals
+        out_ports_to_links = {}
+
+        for in_port in self.ports_in:
+            # retrieve the WSS wavelength-dependent attenuation
+            node_attenuation = self.get_node_attenuation(in_port)
+            # Iterate over input port's signals since they all might have changed
+            for optical_signal, in_power in self.port_to_optical_signal_power_in[in_port].items():
+                # Find the output port as established when installing a rule
+                out_port = self.signal_index_to_out_port.get((in_port, optical_signal.index), None)
+
+                if out_port is None:
+                    # We can trigger an Exception, but the signals wouldn't be propagated anyway
+                    print("*** %s.%s.switch unable to find rule for signal %s" % (
+                        self.__class__.__name__, self.name, optical_signal.index))
+                    continue
+
+                # retrieve the VOA attenuation function at the output ports
+
+                voa_attenuation = self.voa_attenuation
+                # Attenuate signal power and update it on output port
+                self.port_to_optical_signal_power_out[out_port][optical_signal] = \
+                    in_power / node_attenuation[optical_signal] / voa_attenuation
+
+                # if accumulated_ASE_noise and optical_signal in accumulated_ASE_noise:
+                if optical_signal in self.port_to_optical_signal_ase_noise_in[in_port]:
+                    # Attenuate ASE noise and update it on output port
+                    ase_noise = self.port_to_optical_signal_ase_noise_in[in_port][optical_signal]
+                    ase = ase_noise / node_attenuation[optical_signal] / voa_attenuation
+                    self.port_to_optical_signal_ase_noise_out.setdefault(out_port, {})
+                    self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] = ase
+
+                # if accumulated_NLI_noise:
+                if optical_signal in self.port_to_optical_signal_nli_noise_in[in_port]:
+                    nli_noise = self.port_to_optical_signal_nli_noise_in[in_port][optical_signal]
+                    nli = nli_noise / node_attenuation[optical_signal] / voa_attenuation
+                    self.port_to_optical_signal_nli_noise_out.setdefault(out_port, {})
+                    self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] = nli
+
+                if out_port not in out_ports_to_links.keys():
+                    # keep track of the ports where signals will passed through
+                    out_ports_to_links[out_port] = self.out_port_to_link[out_port]
+
+        for op, link in out_ports_to_links.items():
+            print("*** Switching at %s" % self.name)
+            # Pass only the signals corresponding to the output port
+            pass_through_signals = self.port_to_optical_signal_power_out[op].copy()
+            ase = self.port_to_optical_signal_ase_noise_out[op].copy()
+            nli = self.port_to_optical_signal_nli_noise_out[op].copy()
+            # Propagate signals through link
+            link.propagate(pass_through_signals, ase, nli,
+                           voa_compensation=self.voa_compensation)
 
     def switch(self, in_port):
         """

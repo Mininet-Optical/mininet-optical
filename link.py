@@ -153,7 +153,7 @@ class Link(object):
                     self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
                                               accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
                                               accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
-                    self.node2.switch(self.input_port_node2)
+                    self.node2.new_switch()
             else:
                 pass
 
