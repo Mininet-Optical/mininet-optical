@@ -45,8 +45,8 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 2
-    _loads = [81]
+    test_num = 10
+    _loads = [9, 27, 81]
     for load in _loads:
         test_run = 0
         while test_run < test_num:
