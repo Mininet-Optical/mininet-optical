@@ -102,7 +102,15 @@ class TerminalProxy( SwitchProxy ):
         print( r )
 
     def reset(self):
-        r = self.get('reset', params=dict(node=self.name))
+        params = dict(node=self.name)
+        print('reset', params)
+        r = self.get('reset', params=params)
+        print(r)
+
+    def turn_on(self, out_ports):
+        params = dict(node=self.name, out_ports=out_ports)
+        print('turn_on', params)
+        r = self.get('turn_on', params=params)
         print(r)
 
 

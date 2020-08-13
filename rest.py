@@ -200,15 +200,26 @@ def rules():
     else:
         abort( 404, "No rules handler for %s" % node )
 
+
 @get( '/cleanme' )
 def cleanme():
-    "Return rules for node"
+    "Return cleanme for node"
     query = request.query
     node = lookUpNode( query.node )
     if hasattr( node, 'restCleanmeHandler' ):
         return node.restCleanmeHandler( query )
     else:
         abort( 404, "No cleanme handler for %s" % node )
+
+
+@get( '/turn_on' )
+def turn_on():
+    query = request.query
+    node = lookUpNode(query.node)
+    if hasattr( node, 'restTurnonHandler' ):
+        return node.restTurnonHandler( query )
+    else:
+        abort( 404, "No turn_on handler for %s" % node )
 
 
 # Demo support (not part of SDN API)

@@ -127,13 +127,14 @@ class Link(object):
                 amplifier.clean_optical_signals(optical_signals)
 
     def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
-                  voa_compensation=False):
+                  voa_compensation=False, is_last_port=False):
         """
         Propagate the signals across the link
         :param pass_through_signals:
         :param accumulated_ASE_noise:
         :param accumulated_NLI_noise:
         :param voa_compensation:
+        :param is_last_port:
         :return:
         """
         accumulated_ASE_noise = accumulated_ASE_noise or {}
@@ -143,15 +144,18 @@ class Link(object):
             self.optical_signal_power_in[optical_signal] = power
 
         if self.propagate_simulation(accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
-            # use is instance instead of checking the class
-            if self.node2.__class__.__name__ is 'LineTerminal':
-                self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
-                                    self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
+            if is_last_port:
+                # use is instance instead of checking the class
+                if self.node2.__class__.__name__ is 'LineTerminal':
+                    self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
+                                        self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
+                else:
+                    self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
+                                              accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
+                                              accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
+                    self.node2.switch(self.input_port_node2)
             else:
-                self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
-                                          accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
-                                          accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
-                self.node2.switch(self.input_port_node2)
+                pass
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
         """

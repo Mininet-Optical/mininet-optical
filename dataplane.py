@@ -322,6 +322,14 @@ class Terminal( SwitchBase ):
         raise Exception( '%s could not find tx for port %d' %
                          ( self, wdmPort ) )
 
+    def restTurnonHandler(self, query):
+        out_ports = list(query.out_ports)
+        self.turn_on(out_ports)
+        return 'OK'
+
+    def turn_on(self, out_ports):
+        self.model.turn_on(out_ports)
+
     def restConnectHandler( self, query ):
         "REST connect handler"
         ethPort = int( query.ethPort )
@@ -345,7 +353,7 @@ class Terminal( SwitchBase ):
         channel = self.txChannel.get( tx )
         if channel is None:
             raise Exception( 'must set tx channel before connecting' )
-        self.model.transmit( transceiver, wdmPort+OUT, [ channel ] )
+        self.model.configure_terminal( transceiver, wdmPort+OUT, [ channel ] )
 
         # Remove old flows for transponder
         oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))

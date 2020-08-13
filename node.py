@@ -212,7 +212,7 @@ class LineTerminal(Node):
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_optical_signals[transceiver_name]
 
-    def transmit(self, transceiver, out_port, channels):
+    def configure_terminal(self, transceiver, out_port, channels):
         """
         Begin a transmission from the LT to the connected ROADM
         :param transceiver: transceiver to use for transmission
@@ -235,13 +235,21 @@ class LineTerminal(Node):
             signals.append(new_optical_signal)
             # Associate signals to a transceiver/modulator
             self.transceiver_to_optical_signals[transceiver].append(new_optical_signal)
-        # Start transmission
-        self.start(transceiver, out_port)
-        link = self.out_port_to_link[out_port]
-        accumulated_ASE_noise, accumulated_NLI_noise = self.init_noise_structs(out_port)
-        link.propagate(self.port_to_optical_signal_power_out[out_port],
-                       accumulated_ASE_noise=accumulated_ASE_noise,
-                       accumulated_NLI_noise=accumulated_NLI_noise)
+        # Configure transceiver
+        self.configure_transceiver(transceiver, out_port)
+
+    def turn_on(self, out_ports):
+        last_port = out_ports[-1]
+        is_last_port = False
+        for out_port in out_ports:
+            link = self.out_port_to_link[out_port]
+            accumulated_ASE_noise, accumulated_NLI_noise = self.init_noise_structs(out_port)
+            if out_port == last_port:
+                is_last_port = True
+            link.propagate(self.port_to_optical_signal_power_out[out_port],
+                           accumulated_ASE_noise=accumulated_ASE_noise,
+                           accumulated_NLI_noise=accumulated_NLI_noise,
+                           is_last_port=is_last_port)
 
     def init_noise_structs(self, out_port):
         noise = {}
@@ -309,7 +317,7 @@ class LineTerminal(Node):
         """
         return [key for key, value in self.wavelengths.items() if value is 'off']
 
-    def start(self, transceiver, out_port):
+    def configure_transceiver(self, transceiver, out_port):
         """
         Begin transmission and assign the operational power to the signals
         :param transceiver: transceiver used for transmission

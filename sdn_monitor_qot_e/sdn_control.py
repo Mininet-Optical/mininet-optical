@@ -45,25 +45,32 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 150
-    _loads = [9, 27, 81]
+    test_num = 1
+    _loads = [9]
     for load in _loads:
         test_run = 0
         while test_run < test_num:
 
             install_paths(load)
-
             configure_amps(net, 15, test_run)
-            configure_terminals(load)
+            term_out_ports = configure_terminals(load)
+
+            transmit(term_out_ports)
             monitor(net, str(test_run), str(load))
 
-            reset_terminals(net.terminals)
+            reset_terminals()
             clean_roadms(net.roadms)
 
             test_run += 1
 
 
-def reset_terminals(terminals):
+def transmit(out_ports):
+    # Begin transmission
+    TerminalProxy('t1').turn_on(out_ports)
+    TerminalProxy('t15').turn_on(out_ports)
+
+
+def reset_terminals():
     TerminalProxy('t1').reset()
     TerminalProxy('t15').reset()
 
@@ -171,6 +178,8 @@ def configure_terminals(channel_no):
         TerminalProxy('t1').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
     for tx_id, ch in enumerate(channels):
         TerminalProxy('t15').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+
+    return wdm_ports
 
 
 def monitor(net, test_id, load_id):
