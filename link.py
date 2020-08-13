@@ -137,6 +137,7 @@ class Link(object):
         :param is_last_port:
         :return:
         """
+        print("propagate - ", pass_through_signals, is_last_port)
         accumulated_ASE_noise = accumulated_ASE_noise or {}
         accumulated_NLI_noise = accumulated_NLI_noise or {}
         # Set output signals from node to input of the link
