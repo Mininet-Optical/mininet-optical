@@ -216,8 +216,9 @@ def cleanme():
 def turn_on():
     query = request.query
     node = lookUpNode(query.node)
+    out_ports = request.GET.getlist('out_ports')
     if hasattr( node, 'restTurnonHandler' ):
-        return node.restTurnonHandler( query )
+        return node.restTurnonHandler( out_ports )
     else:
         abort( 404, "No turn_on handler for %s" % node )
 
