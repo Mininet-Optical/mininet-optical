@@ -677,7 +677,7 @@ class Roadm(Node):
             nli = self.port_to_optical_signal_nli_noise_out[op].copy()
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli,
-                           voa_compensation=self.voa_compensation)
+                           voa_compensation=self.voa_compensation, is_last_port=True)
 
     def switch(self, in_port):
         """
