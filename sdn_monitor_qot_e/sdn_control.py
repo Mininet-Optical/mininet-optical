@@ -206,7 +206,7 @@ def monitor(net, test_id, load_id):
             osnr, gosnr = data['osnr'], data['gosnr']
             osnrs.append(osnr)
             gosnrs.append(gosnr)
-#        write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
+        write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
 
 
 def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
