@@ -807,7 +807,7 @@ class Roadm(Node):
         nli = self.port_to_optical_signal_nli_noise_out[out_port].copy()
 
         link.reset_propagation_struct()
-        link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
+        link.propagate(pass_through_signals, ase, nli, voa_compensation=False, is_last_port=True)
 
     ####### NEW EDITED VOA RECONF - END #######
 
