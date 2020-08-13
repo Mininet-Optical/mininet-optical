@@ -1,13 +1,39 @@
-from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy, OFSwitchProxy, TerminalProxy,
-                                    fetchNodes, fetchLinks, fetchPorts)
+"""
+
+sdn_control.py: script to replicate PTL 2020 data collection.
+
+The data collection process consists in:
+1) Deploy a linear 15 x ROADM network connected by 6 x 80km.
+    Each span is optically compensated with an EDFA.
+    At each ROADM we apply signal leveling.
+    There is an OPM node at the output port of each EDFA.
+2) Using 3 channel loads: 10%, 30% and 90%.
+3) Using 2 channel loading strategies: sequential and random.
+4) For each test case (load and strategy) we assign different
+    (randomly allocated) ripple functions to all EDFAs.
+5) After transmission, we collect OSNR and gOSNR data for all
+    channels.
+
+We repeat this for 150 tests.
+
+This script extends functionality from the fakecontroller,
+which is simply a mock-SDN-control API to manage a virtual
+optical network created with Mininet Optical.
+
+"""
+
+
+from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy,
+                                    OFSwitchProxy, TerminalProxy,
+                                    fetchNodes)
 import numpy as np
 import os
 import json
 import subprocess
 
 
-# optionally: retrieve WDG seed to pass to EDFAs
-# this seed is created with the wdg_seed.py script
+# Optionally: retrieve WDG seed to pass to EDFAs.
+# This seed is created with the wdg_seed.py script
 # currently in my computer at utils/
 with open('seeds/wdg_seed.txt', 'r') as f:
     lines = f.readlines()
@@ -37,12 +63,6 @@ def run(net):
                 for i in range(count)
                 for node in (net.switches[i], net.terminals[i], net.roadms[i])}
 
-    # Fetch links
-    net.allLinks, net.roadmLinks, net.terminalLinks = fetchLinks(net)
-
-    # Fetch ports
-    net.ports = fetchPorts(net, net.roadms + net.terminals + net.switches)
-
     configure_routers(net.switches)
 
     test_num = 10
@@ -65,7 +85,10 @@ def run(net):
 
 
 def transmit(out_ports):
-    # Begin transmission
+    """
+    Turn on the channels of a line terminal for all outports.
+    Connection is configured with configure_terminals().
+    """
     TerminalProxy('t1').turn_on(out_ports)
     # FIXME: AD: There is a problem with this out_ports
     # need to check the correct ones, otherwise
@@ -74,16 +97,28 @@ def transmit(out_ports):
 
 
 def reset_terminals():
+    """
+    Reset the structures handling the signals
+    within the line terminals.
+    """
     TerminalProxy('t1').reset()
     TerminalProxy('t15').reset()
 
 
 def clean_roadms(roadms):
+    """
+    Reset the structures handling the signals
+    within the roadms.
+    """
     for roadm in roadms:
         ROADMProxy(roadm).cleanme()
 
 
 def configure_amps(net, roadm_no, tr):
+    """
+    Assign ripple functions at run-time
+    to all amplifiers
+    """
     rip_func = wdg_seeds[tr]
 
     amps = amplifiers(roadm_no, 1, [])
@@ -127,6 +162,9 @@ def amplifiers(n, i, amps):
 
 
 def install_paths(channel_no):
+    """
+    Create switching table for the roadms
+    """
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     line1, line2 = 82, 83
@@ -142,8 +180,8 @@ def install_paths(channel_no):
         ROADMProxy(roadm).connect(port1=line1, port2=line2, channels=channels)
 
     # r15: add/drop channels r1<->r5
-    for local_port, ch in enumerate(channels, start=1):
-        ROADMProxy('r15').connect(port1=line1, port2=local_port, channels=[ch])
+    # for local_port, ch in enumerate(channels, start=1):
+    #     ROADMProxy('r15').connect(port1=line1, port2=local_port, channels=[ch])
 
 
 def configure_routers(routers):
@@ -172,6 +210,9 @@ def configure_routers(routers):
 
 
 def configure_terminals(channel_no):
+    """
+    Configure the transceivers from the terminals.
+    """
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
@@ -188,6 +229,10 @@ def configure_terminals(channel_no):
 
 
 def monitor(net, test_id, load_id):
+    """
+    Monitor the osnr and gosnr at each OPM location,
+    then write a file with these values
+    """
     monitor_keys = [
         'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
         'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
@@ -210,6 +255,9 @@ def monitor(net, test_id, load_id):
 
 
 def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
+    """
+    Write a file with osnr and gosnr information from a given OPM node
+    """
     _osnr_id = 'osnr_load_' + load_id
     _gosnr_id = 'gosnr_load_' + load_id
     json_struct['tests'].append({_osnr_id: osnr})
@@ -226,6 +274,11 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
 
 
 def process_file(outfile, monitor_key):
+    """
+    To avoid memory exhaustion in VM, transfer recently created
+    file to a remote location (flash drive) and remove them
+    from local (VM).
+    """
     # send file to flash drive
     print("processing file: ", outfile)
     dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/'
