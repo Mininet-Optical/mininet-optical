@@ -46,7 +46,7 @@ def run(net):
     configure_routers(net.switches)
 
     test_num = 1
-    _loads = [9]
+    _loads = [81]
     for load in _loads:
         test_run = 0
         while test_run < test_num:
@@ -67,7 +67,10 @@ def run(net):
 def transmit(out_ports):
     # Begin transmission
     TerminalProxy('t1').turn_on(out_ports)
-    TerminalProxy('t15').turn_on(out_ports)
+    # FIXME: AD: There is a problem with this out_ports
+    # need to check the correct ones, otherwise
+    # it loops forever, triggering a recursion error.
+    # TerminalProxy('t15').turn_on(out_ports)
 
 
 def reset_terminals():
@@ -126,8 +129,8 @@ def amplifiers(n, i, amps):
 def install_paths(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    # line1, line2 = 82, 83
-    line1, line2 = 10, 11
+    line1, line2 = 82, 83
+    # line1, line2 = 10, 11
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -172,8 +175,8 @@ def configure_terminals(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    # wdm_ports = list(np.arange(82, 82 + channel_no + 1))
-    wdm_ports = list(np.arange(10, 10 + channel_no))
+    wdm_ports = list(np.arange(82, 82 + channel_no))
+    # wdm_ports = list(np.arange(10, 10 + channel_no))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
