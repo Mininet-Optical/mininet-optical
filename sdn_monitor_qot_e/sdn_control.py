@@ -172,7 +172,6 @@ def install_paths(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     line1, line2 = 82, 83
-    # line1, line2 = 10, 11
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -184,8 +183,8 @@ def install_paths(channel_no):
         ROADMProxy(roadm).connect(port1=line1, port2=line2, channels=channels)
 
     # r15: add/drop channels r1<->r5
-    # for local_port, ch in enumerate(channels, start=1):
-    #     ROADMProxy('r15').connect(port1=line1, port2=local_port, channels=[ch])
+    for local_port, ch in enumerate(channels, start=1):
+        ROADMProxy('r15').connect(port1=line1, port2=local_port, channels=[ch])
 
 
 def configure_routers(routers):
@@ -221,7 +220,6 @@ def configure_terminals(channel_no):
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
     wdm_ports = list(np.arange(82, 82 + channel_no))
-    # wdm_ports = list(np.arange(10, 10 + channel_no))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
