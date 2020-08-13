@@ -126,7 +126,8 @@ def amplifiers(n, i, amps):
 def install_paths(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    line1, line2 = 82, 83
+    # line1, line2 = 82, 83
+    line1, line2 = 10, 11
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -171,7 +172,8 @@ def configure_terminals(channel_no):
     channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    wdm_ports = list(np.arange(82, 82 + channel_no + 1))
+    # wdm_ports = list(np.arange(82, 82 + channel_no + 1))
+    wdm_ports = list(np.arange(10, 10 + channel_no + 1))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
@@ -201,7 +203,7 @@ def monitor(net, test_id, load_id):
             osnr, gosnr = data['osnr'], data['gosnr']
             osnrs.append(osnr)
             gosnrs.append(gosnr)
-        write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
+#        write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
 
 
 def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):

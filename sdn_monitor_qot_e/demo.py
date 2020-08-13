@@ -12,7 +12,7 @@ if __name__ == '__main__':
     cleanup()
     setLogLevel('info')
     # topo1 = LinearRoadmTopo(n=5, txCount=5)
-    topo2 = LinearRoadmTopo(n=15, txCount=81)
+    topo2 = LinearRoadmTopo(n=15, txCount=9)
     info('*** Creating PTL-Demo Topology \n')
     net = Mininet(topo=topo2, autoSetMacs=True,
                   controller=RemoteController)

@@ -239,6 +239,7 @@ class LineTerminal(Node):
         self.configure_transceiver(transceiver, out_port)
 
     def turn_on(self, out_ports):
+        print("turn on", out_ports)
         last_port = out_ports[-1]
         is_last_port = False
         for out_port in out_ports:
