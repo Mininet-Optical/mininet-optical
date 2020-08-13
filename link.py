@@ -137,7 +137,6 @@ class Link(object):
         :param is_last_port:
         :return:
         """
-        print("propagate - ", pass_through_signals, is_last_port)
         accumulated_ASE_noise = accumulated_ASE_noise or {}
         accumulated_NLI_noise = accumulated_NLI_noise or {}
         # Set output signals from node to input of the link
@@ -149,15 +148,12 @@ class Link(object):
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
                                     self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
-                return
             else:
                 self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
                                           accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
                                           accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
                 if is_last_port:
                     self.node2.new_switch()
-                else:
-                    pass
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
         """

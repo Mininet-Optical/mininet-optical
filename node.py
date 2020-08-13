@@ -267,7 +267,7 @@ class LineTerminal(Node):
 
     def receiver(self, in_port, signal_power, accumulated_ASE_noise, accumulated_NLI_noise):
         # Update optical signal power; probably obsolete...
-        self.port_to_optical_signal_power_in[in_port].update(signal_power)
+        # self.port_to_optical_signal_power_in[in_port].update(signal_power)
 
         signalInfoDict = {}
         optical_signals = signal_power.keys()
@@ -677,7 +677,7 @@ class Roadm(Node):
             nli = self.port_to_optical_signal_nli_noise_out[op].copy()
             # Propagate signals through link
             link.propagate(pass_through_signals, ase, nli,
-                           voa_compensation=self.voa_compensation, is_last_port=True)
+                           voa_compensation=self.voa_compensation)
 
     def switch(self, in_port):
         """
