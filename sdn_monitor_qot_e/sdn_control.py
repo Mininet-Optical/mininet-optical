@@ -45,7 +45,7 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 1
+    test_num = 2
     _loads = [81]
     for load in _loads:
         test_run = 0
@@ -181,8 +181,8 @@ def configure_terminals(channel_no):
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
         TerminalProxy('t1').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
-    for tx_id, ch in enumerate(channels):
-        TerminalProxy('t15').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
+    # for tx_id, ch in enumerate(channels):
+    #     TerminalProxy('t15').connect(ethPort=eth_ports[tx_id], wdmPort=wdm_ports[tx_id], channel=ch)
 
     return wdm_ports
 
