@@ -267,7 +267,6 @@ def monitor(net, test_id, load_id):
         'r14-r15-amp6-monitor'
     ]
 
-    all_gosnr = []
     for monitor_key in monitor_keys:
         json_struct = {'tests': []}
         print('monitor', dict(monitor=monitor_key))
@@ -279,10 +278,8 @@ def monitor(net, test_id, load_id):
             osnr, gosnr = data['osnr'], data['gosnr']
             osnrs.append(osnr)
             gosnrs.append(gosnr)
-        all_gosnr.append(gosnrs)
 
         write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
-        return all_gosnr
 
 
 def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
