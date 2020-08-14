@@ -65,10 +65,12 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 10
+    test_num = 1
     _loads = [9, 27, 81]
     for load in _loads:
         test_run = 0
+        # Compute QoT estimation
+        qot_monitor_log = estimation_module(load, str(load))
         # Install switching rules to roadms
         install_paths(load)
         while test_run < test_num:
@@ -78,8 +80,10 @@ def run(net):
             term_out_ports = configure_terminals(load)
             # launch transmission at terminals
             transmit(term_out_ports)
-            # monitor all channels
-            monitor(net, str(test_run), str(load))
+            # monitor all channels and write log
+            gosnrs = monitor(net, str(test_run), str(load))
+            # run QoT-E module and correct
+            # compute_estimation_err(gosnrs, str(test_run), str(load))
             # clean terminals
             reset_terminals()
             # clean roadms
@@ -233,15 +237,36 @@ def configure_terminals(channel_no):
 def monitor(net, test_id, load_id):
     """
     Monitor the osnr and gosnr at each OPM location,
-    then write a file with these values
+    then write a file with these values.
+    Return gosnr for all OPM nodes to be used by the
+    QoT-E module.
     """
     monitor_keys = [
-        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor',
-        'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor', 'r2-r3-amp3-monitor',
-        'r3-r4-boost', 'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor',
-        'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor', 'r1-r2-amp4-monitor',
+        'r1-r2-amp5-monitor', 'r1-r2-amp6-monitor', 'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor',
+        'r2-r3-amp3-monitor', 'r2-r3-amp4-monitor', 'r2-r3-amp5-monitor', 'r2-r3-amp6-monitor', 'r3-r4-boost',
+        'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor', 'r3-r4-amp4-monitor', 'r3-r4-amp5-monitor',
+        'r3-r4-amp6-monitor', 'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+        'r4-r5-amp4-monitor', 'r4-r5-amp5-monitor', 'r4-r5-amp6-monitor', 'r5-r6-boost', 'r5-r6-amp1-monitor',
+        'r5-r6-amp2-monitor', 'r5-r6-amp3-monitor', 'r5-r6-amp4-monitor', 'r5-r6-amp5-monitor', 'r5-r6-amp6-monitor',
+        'r6-r7-boost', 'r6-r7-amp1-monitor', 'r6-r7-amp2-monitor', 'r6-r7-amp3-monitor', 'r6-r7-amp4-monitor',
+        'r6-r7-amp5-monitor', 'r6-r7-amp6-monitor', 'r7-r8-boost', 'r7-r8-amp1-monitor', 'r7-r8-amp2-monitor',
+        'r7-r8-amp3-monitor', 'r7-r8-amp4-monitor', 'r7-r8-amp5-monitor', 'r7-r8-amp6-monitor', 'r8-r9-boost',
+        'r8-r9-amp1-monitor', 'r8-r9-amp2-monitor', 'r8-r9-amp3-monitor', 'r8-r9-amp4-monitor', 'r8-r9-amp5-monitor',
+        'r8-r9-amp6-monitor', 'r9-r10-boost', 'r9-r10-amp1-monitor', 'r9-r10-amp2-monitor', 'r9-r10-amp3-monitor',
+        'r9-r10-amp4-monitor', 'r9-r10-amp5-monitor', 'r9-r10-amp6-monitor', 'r10-r11-boost', 'r10-r11-amp1-monitor',
+        'r10-r11-amp2-monitor', 'r10-r11-amp3-monitor', 'r10-r11-amp4-monitor', 'r10-r11-amp5-monitor',
+        'r10-r11-amp6-monitor', 'r11-r12-boost', 'r11-r12-amp1-monitor', 'r11-r12-amp2-monitor',
+        'r11-r12-amp3-monitor', 'r11-r12-amp4-monitor', 'r11-r12-amp5-monitor', 'r11-r12-amp6-monitor',
+        'r12-r13-boost', 'r12-r13-amp1-monitor', 'r12-r13-amp2-monitor', 'r12-r13-amp3-monitor',
+        'r12-r13-amp4-monitor', 'r12-r13-amp5-monitor', 'r12-r13-amp6-monitor', 'r13-r14-boost',
+        'r13-r14-amp1-monitor', 'r13-r14-amp2-monitor', 'r13-r14-amp3-monitor', 'r13-r14-amp4-monitor',
+        'r13-r14-amp5-monitor', 'r13-r14-amp6-monitor', 'r14-r15-boost', 'r14-r15-amp1-monitor',
+        'r14-r15-amp2-monitor', 'r14-r15-amp3-monitor', 'r14-r15-amp4-monitor', 'r14-r15-amp5-monitor',
+        'r14-r15-amp6-monitor'
     ]
 
+    all_gosnr = []
     for monitor_key in monitor_keys:
         json_struct = {'tests': []}
         print('monitor', dict(monitor=monitor_key))
@@ -253,7 +278,10 @@ def monitor(net, test_id, load_id):
             osnr, gosnr = data['osnr'], data['gosnr']
             osnrs.append(osnr)
             gosnrs.append(gosnr)
+        all_gosnr.append(gosnrs)
+
         write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
+        return all_gosnr
 
 
 def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
