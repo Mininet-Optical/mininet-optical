@@ -105,7 +105,7 @@ class LinearRoadmTopo(OpticalTopo):
         for i in range(0, n - 1):
             src, dst = roadms[i], roadms[i + 1]
             boost = ('boost', dict(target_gain=17.0 * dB, boost=True))
-            spans = self.spans(spanLength=80 * km, spanCount=3)
+            spans = self.spans(spanLength=80 * km, spanCount=6)
             # XXX Unfortunately we currently have to have a priori knowledge of
             # this prefix
             prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
