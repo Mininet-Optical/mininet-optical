@@ -42,7 +42,7 @@ def estimation_module(load, load_id):
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n=s_n, boost=False)
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    write_files(estimation_osnr_log, estimation_gosnr_log, load_id)
+    # write_files(estimation_osnr_log, estimation_gosnr_log, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
@@ -241,7 +241,10 @@ def zirngibl_srs(keys, s_p, s_a, s_n):
                 beta * total_power * effective_length * (frequency - frequency_min))  # term 1
         r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
-        delta_p = float(r1 / r2)  # Does the arithmetic in mW
+        if r2 == 0.0:
+            delta_p = 1
+        else:
+            delta_p = float(r1 / r2)  # Does the arithmetic in mW
         s_p[optical_signal] *= delta_p
         s_a[optical_signal] *= delta_p
         s_n[optical_signal] *= delta_p
