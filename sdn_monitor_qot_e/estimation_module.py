@@ -241,7 +241,6 @@ def zirngibl_srs(keys, s_p, s_a, s_n):
                 beta * total_power * effective_length * (frequency - frequency_min))  # term 1
         r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
-        print(r2)
         if r2 == 0.0:
             delta_p = 1
         else:
