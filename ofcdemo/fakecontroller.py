@@ -97,21 +97,21 @@ class TerminalProxy( SwitchProxy ):
         "Configure terminal/transceiver"
         params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort,
                        channel=channel, power=power)
-        print('connect', params)
+        # print('connect', params)
         r = self.get( 'connect', params=params )
-        print( r )
+        # print( r )
 
     def reset(self):
         params = dict(node=self.name)
-        print('reset', params)
+        # print('reset', params)
         r = self.get('reset', params=params)
-        print(r)
+        # print(r)
 
     def turn_on(self, out_ports):
         params = dict(node=self.name, out_ports=out_ports)
-        print('turn_on', params)
+        # print('turn_on', params)
         r = self.get('turn_on', params=params)
-        print(r)
+        # print(r)
 
 
 class ROADMProxy( SwitchProxy ):
@@ -122,13 +122,14 @@ class ROADMProxy( SwitchProxy ):
         channels = ','.join( str(channel) for channel in channels)
         params = dict(
             node=self.name, port1=port1, port2=port2, channels=channels )
-        print('connect', params)
+        # print('connect', params)
         r = self.get( 'connect', params=params)
-        print( r )
+        # print( r )
 
     def cleanme(self):
+        # print('connect', dict(node=self.name))
         r = self.get('cleanme', params=dict(node=self.name))
-        print(r)
+        # print(r)
 
 
 ### Configuration Retrieval

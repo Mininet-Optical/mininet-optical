@@ -148,7 +148,7 @@ class LineTerminal(Node):
             self.add_transceivers(transceivers)
 
     def reset(self):
-        print("*** Resetting LineTerminal %s ", self.name)
+        # print("*** Resetting LineTerminal %s ", self.name)
         # first clean the output ports
         for out_port, _ in self.port_to_optical_signal_power_out.items():
             self.port_to_optical_signal_power_out[out_port] = {}
@@ -287,12 +287,12 @@ class LineTerminal(Node):
             signalInfoDict[signal]['osnr'] = osnr
             signalInfoDict[signal]['gosnr'] = gosnr
             if gosnr < 20:
-                print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
-                      (self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                # print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
+                #       (self.__class__.__name__, self.name, abs_to_db(gosnr)))
                 signalInfoDict[signal]['success'] = False
                 self.receiver_callback(in_port, signalInfoDict)
             else:
-                print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
+                # print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
                 signalInfoDict[signal]['success'] = True
                 self.receiver_callback(in_port, signalInfoDict)
 
@@ -495,8 +495,8 @@ class Roadm(Node):
         :param signal_indices: signal indices involved in switching procedure
         :return:
         """
-        print("*** Installing switch rule at %s with in_port: %d out_port: %d and %s" % (self.name, in_port, out_port,
-                                                                                         signal_indices))
+        # print("*** Installing switch rule at %s with in_port: %d out_port: %d and %s" % (self.name, in_port, out_port,
+        #                                                                                  signal_indices))
         # arbitrary rule identifier
         self.switch_table[rule_id] = SwitchRule(in_port, out_port, signal_indices)
         for signal_index in signal_indices:
@@ -548,7 +548,7 @@ class Roadm(Node):
         self.switch(in_port)
 
     def clean(self):
-        print("*** Node.ROADM.clean() - ", self.name)
+        # print("*** Node.ROADM.clean() - ", self.name)
 
         for port, _ in self.port_to_optical_signal_out.items():
             self.port_to_optical_signal_out[port] = {}
@@ -670,7 +670,7 @@ class Roadm(Node):
                     out_ports_to_links[out_port] = self.out_port_to_link[out_port]
 
         for op, link in out_ports_to_links.items():
-            print("*** Switching at %s" % self.name)
+            # print("*** Switching at %s" % self.name)
             # Pass only the signals corresponding to the output port
             pass_through_signals = self.port_to_optical_signal_power_out[op].copy()
             ase = self.port_to_optical_signal_ase_noise_out[op].copy()
@@ -730,7 +730,7 @@ class Roadm(Node):
                 out_ports_to_links[out_port] = self.out_port_to_link[out_port]
 
         for op, link in out_ports_to_links.items():
-            print("*** Switching at %s" % self.name)
+            # print("*** Switching at %s" % self.name)
             # Pass only the signals corresponding to the output port
             pass_through_signals = self.port_to_optical_signal_power_out[op].copy()
             if op in self.port_to_optical_signal_ase_noise_out:

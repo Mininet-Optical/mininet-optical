@@ -69,12 +69,14 @@ def run(net):
     test_num = 150
     _loads = [9, 27, 81]
     for load in _loads:
+        print("Running test for load ", load)
         test_run = 0
         # Compute QoT estimation
         qot_monitor_log = estimation_module(load, str(load))
         # Install switching rules to roadms
         install_paths(load)
         while test_run < test_num:
+            print("Running test no. ", test_run)
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
@@ -133,9 +135,9 @@ def configure_amps(net, roadm_no, tr):
     amps = amplifiers(roadm_no, 1, [])
     for (amp_name, ripple) in zip(amps, rip_func):
         params = dict(amp_name=amp_name, ripple=ripple)
-        print('set_ripple', params)
+        # print('set_ripple', params)
         response = net.get('set_ripple', params=params)
-        print(response)
+        # print(response)
 
 
 def appending(n, i, j, amps):
@@ -198,14 +200,14 @@ def configure_routers(routers):
     def subnet(pop):
         return '10.%d.0.0/24' % pop
 
-    print("*** Configuring Open vSwitch 'routers' remotely... ")
+    # print("*** Configuring Open vSwitch 'routers' remotely... ")
 
     routers = s1, s15 = routers[0], routers[14]
     for pop, dests in enumerate([(s1, s15)], start=1):
         router, dest1, dest2 = routers[pop - 1], dests[0], dests[1]
         routerProxy = OFSwitchProxy(router)
         # Initialize flow table
-        print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
+        # print('Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...')
         routerProxy.dpctl('del-flows')
         # XXX Only one host for now
         j = 1
@@ -269,7 +271,7 @@ def monitor(net, test_id, load_id):
 
     for monitor_key in monitor_keys:
         json_struct = {'tests': []}
-        print('monitor', dict(monitor=monitor_key))
+        # print('monitor', dict(monitor=monitor_key))
         response = net.get('monitor', params=dict(monitor=monitor_key))
         osnrdata = response.json()['osnr']
 
@@ -308,7 +310,7 @@ def process_file(outfile, monitor_key):
     from local (VM).
     """
     # send file to flash drive
-    print("processing file: ", outfile)
+    # print("processing file: ", outfile)
     dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/'
     cmd1 = ['rsync', '-r', outfile, dest_file]
     # delete file

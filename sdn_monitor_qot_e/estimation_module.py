@@ -307,7 +307,7 @@ def process_file(outfile, monitor_key):
     from local (VM).
     """
     # send file to flash drive
-    print("processing file: ", outfile)
+    # print("processing file: ", outfile)
     dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/estimation-module/' + monitor_key + '/'
     cmd1 = ['rsync', '-r', outfile, dest_file]
     # delete file
