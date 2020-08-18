@@ -162,6 +162,9 @@ class LineTerminal(Node):
         for transceiver in self.transceivers:
             self.transceiver_to_optical_signals[transceiver] = []
 
+        for out_port, link in self.out_port_to_link.items():
+            link.reset_propagation_struct()
+
     def add_transceivers(self, transceivers):
         """
         For-loop for adding transceivers to LT
