@@ -74,8 +74,6 @@ def run(net):
                 for i in range(count)
                 for node in (net.switches[i], net.terminals[i], net.roadms[i])}
 
-    configure_routers(net.switches)
-
     test_num = 150
     _loads = [9, 27, 81]
     for load in _loads:
@@ -87,6 +85,7 @@ def run(net):
             # Compute QoT estimation
             estimation_module(load, str(load), str(test_run), signal_ids=w_i)
 
+            configure_routers(net.switches)
             # Install switching rules to roadms
             install_paths(load, signal_ids=w_i)
             # assign ripple functions to EDFAs
@@ -186,10 +185,10 @@ def install_paths(channel_no, signal_ids=None):
     """
     Create switching table for the roadms
     """
-    if signal_ids:
-        channels = signal_ids
-    else:
-        channels = list(np.arange(1, channel_no + 1))
+    # if signal_ids:
+    channels = signal_ids
+    # else:
+    #     channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     line1, line2 = 82, 83
 
