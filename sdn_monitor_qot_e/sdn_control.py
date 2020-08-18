@@ -81,14 +81,14 @@ def run(net):
     for load in _loads:
         print("Running test for load ", load)
         test_run = 0
-        # Install switching rules to roadms
-        install_paths(load)
         while test_run < test_num:
             print("Running test no. ", test_run)
             w_i = loadings[load][test_run]
             # Compute QoT estimation
             estimation_module(load, str(load), signal_ids=w_i)
 
+            # Install switching rules to roadms
+            install_paths(load, signal_ids=w_i)
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
@@ -97,8 +97,6 @@ def run(net):
             transmit(term_out_ports)
             # monitor all channels and write log
             monitor(net, str(test_run), str(load))
-            # run QoT-E module and correct
-            # compute_estimation_err(gosnrs, str(test_run), str(load))
             # clean terminals
             reset_terminals()
             # clean roadms
@@ -184,11 +182,14 @@ def amplifiers(n, i, amps):
     return amplifiers(n, i+1, amps)
 
 
-def install_paths(channel_no):
+def install_paths(channel_no, signal_ids=None):
     """
     Create switching table for the roadms
     """
-    channels = list(np.arange(1, channel_no + 1))
+    if signal_ids:
+        channels=signal_ids
+    else:
+        channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     line1, line2 = 82, 83
 
