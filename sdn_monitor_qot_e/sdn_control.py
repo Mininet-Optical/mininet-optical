@@ -31,6 +31,7 @@ import os
 from estimation_module import *
 import json
 import subprocess
+from time import sleep
 
 
 # Optionally: retrieve WDG seed to pass to EDFAs.
@@ -92,6 +93,7 @@ def run(net):
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
             term_out_ports = configure_terminals(load, signal_ids=w_i)
+            sleep(2)
             # launch transmission at terminals
             transmit(term_out_ports)
             # monitor all channels and write log
