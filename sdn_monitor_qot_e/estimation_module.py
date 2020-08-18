@@ -24,7 +24,7 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-def estimation_module(load, load_id, signal_ids=None):
+def estimation_module(load, load_id, test_id, signal_ids=None):
     keys, s_p, s_a, s_n = build_struct(load, signal_ids=signal_ids)
     estimation_osnr_log = []
     estimation_gosnr_log = []
@@ -42,7 +42,7 @@ def estimation_module(load, load_id, signal_ids=None):
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n=s_n, boost=False)
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    write_files(estimation_osnr_log, estimation_gosnr_log, load_id)
+    write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
@@ -255,7 +255,7 @@ def zirngibl_srs(keys, s_p, s_a, s_n):
     return s_p, s_a, s_n
 
 
-def write_files(estimation_osnr_log, estimation_gosnr_log, load_id):
+def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
     """
     Write a file with osnr and gosnr information from a given OPM node
     """
@@ -297,7 +297,7 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, load_id):
 
         if not os.path.exists(dir_):
             os.makedirs(dir_)
-        json_file_name = dir_ + '/' + str(load_id) + '.json'
+        json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
         process_file(json_file_name, monitor_key)

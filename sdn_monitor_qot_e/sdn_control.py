@@ -85,7 +85,7 @@ def run(net):
             print("Running test no. ", test_run)
             w_i = loadings[load][test_run]
             # Compute QoT estimation
-            estimation_module(load, str(load), signal_ids=w_i)
+            estimation_module(load, str(load), str(test_run), signal_ids=w_i)
 
             # Install switching rules to roadms
             install_paths(load, signal_ids=w_i)
