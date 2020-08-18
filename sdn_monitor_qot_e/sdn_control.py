@@ -309,7 +309,7 @@ def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
     json_struct['tests'].append({_gosnr_id: gosnr})
 
     test = 'metrics-monitor/'
-    dir_ = test + 'opm-sim-no-m/' + monitor_key
+    dir_ = test + 'opm-all/' + monitor_key
     if not os.path.exists(dir_):
         os.makedirs(dir_)
     json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
@@ -326,7 +326,7 @@ def process_file(outfile, monitor_key):
     """
     # send file to flash drive
     # print("processing file: ", outfile)
-    dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-sim-no-m/' + monitor_key + '/'
+    dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-all/' + monitor_key + '/'
     cmd1 = ['rsync', '-r', outfile, dest_file]
     # delete file
     cmd2 = ['rm', outfile]
