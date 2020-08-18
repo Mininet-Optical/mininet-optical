@@ -24,8 +24,8 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-def estimation_module(load, load_id):
-    keys, s_p, s_a, s_n = build_struct(load)
+def estimation_module(load, load_id, signal_ids=None):
+    keys, s_p, s_a, s_n = build_struct(load, signal_ids=signal_ids)
     estimation_osnr_log = []
     estimation_gosnr_log = []
     roadms = 15
@@ -46,9 +46,12 @@ def estimation_module(load, load_id):
     return estimation_osnr_log, estimation_gosnr_log
 
 
-def build_struct(load):
+def build_struct(load, signal_ids=None):
     s_p, s_a, s_n = {}, {}, {}
-    keys = range(1, load + 1)
+    if signal_ids:
+        keys = signal_ids
+    else:
+        keys = range(1, load + 1)
     for key in keys:
         s_p[key] = db_to_abs(-2)
         s_a[key] = db_to_abs(-2) / db_to_abs(50)
