@@ -502,8 +502,9 @@ class Roadm(Node):
         for signal_index in signal_indices:
             self.signal_index_to_out_port[in_port, signal_index] = out_port
 
-        if len(self.port_to_optical_signal_power_in[in_port]) > 0:
-            self.switch(in_port)
+        # AD: removing for current transmission for PTL paper
+        # if len(self.port_to_optical_signal_power_in[in_port]) > 0:
+        #     self.switch(in_port)
 
     def update_switch_rule(self, rule_id, new_out_port):
         """
