@@ -77,7 +77,7 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 150
+    test_num = 3
     _loads = [9, 27, 81]
     for load in _loads:
         print("Running test for load ", load)
