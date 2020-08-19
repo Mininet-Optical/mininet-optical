@@ -75,7 +75,7 @@ def run(net):
                 for i in range(count)
                 for node in (net.switches[i], net.terminals[i], net.roadms[i])}
 
-    configure_routers(net.switches)
+    # configure_routers(net.switches)
 
     test_num = 2
     _loads = [9, 27, 81]
