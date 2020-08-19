@@ -31,6 +31,7 @@ import os
 from estimation_module import *
 import json
 import subprocess
+from time import sleep
 
 
 # Optionally: retrieve WDG seed to pass to EDFAs.
@@ -43,6 +44,16 @@ for line in lines:
     wdg_seed = line.split(',')
     wdg_seed[-1] = wdg_seed[-1][:-1]
     wdg_seeds.append(wdg_seed)
+
+loadings = {9: [], 27: [], 81: []}
+for ch_key in loadings.keys():
+    load_str = 'seeds/channel_loading_seed_' + str(ch_key) + '.txt'
+    with open(load_str, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        ch_load = line.split(',')
+        ch_load[-1] = ch_load[-1][:-1]
+        loadings[ch_key].append([int(x) for x in ch_load])
 
 
 def run(net):
@@ -64,23 +75,26 @@ def run(net):
                 for i in range(count)
                 for node in (net.switches[i], net.terminals[i], net.roadms[i])}
 
-    configure_routers(net.switches)
-
     test_num = 1
     _loads = [9, 27, 81]
     for load in _loads:
         print("Running test for load ", load)
-        # Install switching rules to roadms
-        install_paths(load)
-        # # Compute QoT estimation
-        estimation_module(load, str(load), str(0))
         test_run = 0
         while test_run < test_num:
             print("Running test no. ", test_run)
+            w_i = loadings[load][test_run]
+
+            # Install switching rules to roadms
+            install_paths(load, signal_ids=w_i)
+            configure_routers(net.switches)
+
+            # # Compute QoT estimation
+            estimation_module(load, str(load), str(test_run), signal_ids=w_i)
+
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
-            term_out_ports = configure_terminals(load)
+            term_out_ports = configure_terminals(load, signal_ids=w_i)
             # launch transmission at terminals
             transmit(term_out_ports)
             # monitor all channels and write log
@@ -180,7 +194,6 @@ def install_paths(channel_no, signal_ids=None):
         channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
     line1, line2 = 82, 83
-    # line1, line2 = 10, 11
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -232,7 +245,6 @@ def configure_terminals(channel_no, signal_ids=None):
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
     wdm_ports = list(np.arange(82, 82 + channel_no))
-    # wdm_ports = list(np.arange(10, 10 + channel_no))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
