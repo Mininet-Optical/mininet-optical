@@ -569,8 +569,8 @@ class Roadm(Node):
             self.port_to_optical_signal_nli_noise_out[port] = {}
 
         # AD: Included only for random loading scenario PTL paper
-        # self.switch_table = {}
-        # self.signal_index_to_out_port = {}
+        self.switch_table = {}
+        self.signal_index_to_out_port = {}
 
         for _, link in self.out_port_to_link.items():
             link.reset_propagation_struct()
