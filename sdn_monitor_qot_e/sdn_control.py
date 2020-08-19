@@ -92,7 +92,7 @@ def run(net):
             install_paths(load, signal_ids=w_i)
 
             # Compute QoT estimation
-            estimation_module(load, str(load), str(test_run))
+            estimation_module(load, str(load), str(test_run), signal_ids=w_i)
 
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
