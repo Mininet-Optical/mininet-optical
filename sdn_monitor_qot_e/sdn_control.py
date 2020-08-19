@@ -97,7 +97,8 @@ def run(net):
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
-            term_out_ports = configure_terminals(load)
+            term_out_ports = configure_terminals(load, signal_ids=w_i)
+            # term_out_ports = configure_terminals(load)
             # sleep(2)
             # launch transmission at terminals
             transmit(term_out_ports)
