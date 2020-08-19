@@ -77,15 +77,14 @@ def run(net):
 
     configure_routers(net.switches)
 
-    test_num = 1
+    test_num = 2
     _loads = [9, 27, 81]
     for load in _loads:
         print("Running test for load ", load)
-        # install_paths(load)
+        install_paths(load)
         estimation_module(load, str(load), str(0))
         test_run = 0
         while test_run < test_num:
-            break
             print("Running test no. ", test_run)
             # w_i = loadings[load][test_run]
             # Compute QoT estimation
@@ -197,8 +196,8 @@ def install_paths(channel_no, signal_ids=None):
     else:
         channels = list(np.arange(1, channel_no + 1))
     # Configure roadms
-    # line1, line2 = 82, 83
-    line1, line2 = 10, 11
+    line1, line2 = 82, 83
+    # line1, line2 = 10, 11
 
     # r1: add/drop channels r1<->r5
     for local_port, ch in enumerate(channels, start=1):
@@ -249,8 +248,8 @@ def configure_terminals(channel_no, signal_ids=None):
         channels = list(np.arange(1, channel_no + 1))
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
-    # wdm_ports = list(np.arange(82, 82 + channel_no))
-    wdm_ports = list(np.arange(10, 10 + channel_no))
+    wdm_ports = list(np.arange(82, 82 + channel_no))
+    # wdm_ports = list(np.arange(10, 10 + channel_no))
 
     # Configure transceivers
     for tx_id, ch in enumerate(channels):
