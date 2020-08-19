@@ -35,7 +35,7 @@ class Link(object):
 
     def __init__(self, node1, node2,
                  output_port_node1=None, input_port_node2=None,
-                 boost_amp=None, srs_effect=False, spans=None):
+                 boost_amp=None, srs_effect=True, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
