@@ -81,7 +81,7 @@ def run(net):
     _loads = [9, 27, 81]
     for load in _loads:
         print("Running test for load ", load)
-        install_paths(load)
+        # install_paths(load)
         estimation_module(load, str(load), str(0))
         test_run = 0
         while test_run < test_num:
