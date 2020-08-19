@@ -81,18 +81,19 @@ def run(net):
     _loads = [9, 27, 81]
     for load in _loads:
         print("Running test for load ", load)
-        install_paths(load)
-        estimation_module(load, str(load), str(0))
+        # install_paths(load)
+        # estimation_module(load, str(load), str(0))
         test_run = 0
         while test_run < test_num:
             print("Running test no. ", test_run)
-            # w_i = loadings[load][test_run]
-            # Compute QoT estimation
-            # estimation_module(load, str(load), str(test_run))
-
-            # configure_routers(net.switches)
+            w_i = loadings[load][test_run]
+            configure_routers(net.switches)
             # Install switching rules to roadms
-            # install_paths(load, signal_ids=w_i)
+            install_paths(load, signal_ids=w_i)
+
+            # Compute QoT estimation
+            estimation_module(load, str(load), str(test_run))
+
             # assign ripple functions to EDFAs
             configure_amps(net, 15, test_run)
             # configure terminals with port connections
