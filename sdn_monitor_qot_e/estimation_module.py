@@ -33,13 +33,13 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     for roadm in range(1, roadms + 1):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        s_p, s_a, _ = process_amp(keys, s_p, s_a, s_n=None, boost=True)
+        s_p, s_a, _ = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
             # process span attenuation
             s_p, s_a, s_n = process_span(keys, s_p, s_a, s_n)
-            s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n=s_n, boost=False)
+            s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
     write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
@@ -96,8 +96,7 @@ def process_amp(keys, s_p, s_a, s_n=None, boost=False):
 
         s_a[ch] = stage_amplified_spontaneous_emission_noise(ch, s_a[ch], gain)
 
-        if s_n is not None:
-            s_n[ch] *= gain
+        s_n[ch] *= gain
 
     return s_p, s_a, s_n
 

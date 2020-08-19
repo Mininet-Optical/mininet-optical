@@ -791,12 +791,12 @@ class Roadm(Node):
                 if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
                     # negative and within range, we can attenuate further
                     out_difference[k] = delta
-                # elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
-                #     # negative and exceeding range, we attenuate the max
-                #     out_difference[k] = db_to_abs(-voa_max_dB)
-                # elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
-                #     # positive and not higher than initial attenuation
-                #     out_difference[k] = delta
+                elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
+                    # negative and exceeding range, we attenuate the max
+                    out_difference[k] = db_to_abs(-voa_max_dB)
+                elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
+                    # positive and not higher than initial attenuation
+                    out_difference[k] = delta
                 else:
                     # positive and higher than initial attenuation, saturates
                     out_difference[k] = self.voa_attenuation
@@ -838,7 +838,7 @@ class Roadm(Node):
 description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1_4.txt',
-                     'wdg2': 'wdg1_4.txt'}
+                     'wdg2': 'wdg2_3.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -983,7 +983,7 @@ class Amplifier(Node):
         # Compute the balanced system gain
         power_excursions = out_in_difference - self.target_gain
         system_gain_balance = self.system_gain - power_excursions
-        # self.system_gain = system_gain_balance
+        self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
