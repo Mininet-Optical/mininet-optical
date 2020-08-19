@@ -807,7 +807,7 @@ class Roadm(Node):
                 # for the excursions generated at the boost-amp.
                 self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
                 self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] *= voa_att
-                # self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
+                self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
 
         pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
         ase = self.port_to_optical_signal_ase_noise_out[out_port].copy()
@@ -983,7 +983,7 @@ class Amplifier(Node):
         # Compute the balanced system gain
         power_excursions = out_in_difference - self.target_gain
         system_gain_balance = self.system_gain - power_excursions
-        self.system_gain = system_gain_balance
+        # self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
