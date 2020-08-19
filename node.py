@@ -807,7 +807,7 @@ class Roadm(Node):
                 # for the excursions generated at the boost-amp.
                 self.port_to_optical_signal_power_out[out_port][optical_signal] *= voa_att
                 self.port_to_optical_signal_ase_noise_out[out_port][optical_signal] *= voa_att
-                self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
+                # self.port_to_optical_signal_nli_noise_out[out_port][optical_signal] *= voa_att
 
         pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
         ase = self.port_to_optical_signal_ase_noise_out[out_port].copy()
