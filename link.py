@@ -35,7 +35,7 @@ class Link(object):
 
     def __init__(self, node1, node2,
                  output_port_node1=None, input_port_node2=None,
-                 boost_amp=None, srs_effect=True, spans=None):
+                 boost_amp=None, srs_effect=False, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
@@ -218,11 +218,11 @@ class Link(object):
                 self.accumulated_NLI_noise.update(nonlinear_interference_noise[span])
 
             # Compute SRS effects from the fibre
-            # if self.srs_effect:
-            #     if len(signal_power_progress) > 1 and prev_amp:
-            #         signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
-            #             self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
-            #                               accumulated_NLI_noise, span)
+            if self.srs_effect:
+                if len(signal_power_progress) > 1 and prev_amp:
+                    signal_power_progress, accumulated_ASE_noise, accumulated_NLI_noise = \
+                        self.zirngibl_srs(signals_list, signal_power_progress, accumulated_ASE_noise,
+                                          accumulated_NLI_noise, span)
 
             # Compute linear effects from the fibre
             for optical_signal, power in signal_power_progress.items():
