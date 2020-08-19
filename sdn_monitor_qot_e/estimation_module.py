@@ -78,6 +78,8 @@ def gosnr(keys, s_p, s_a, s_n):
 def process_roadm(keys, s_p, s_a, s_n):
     attenuation = db_to_abs(17.0)
     for ch in keys:
+        s_p[ch] = abs_to_db(-2.0)
+    for ch in keys:
         s_p[ch] /= attenuation
         s_a[ch] /= attenuation
         s_n[ch] /= attenuation
