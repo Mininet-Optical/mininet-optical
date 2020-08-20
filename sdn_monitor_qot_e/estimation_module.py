@@ -46,6 +46,27 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     return estimation_osnr_log, estimation_gosnr_log
 
 
+def estimation_module_dyn(main_struct, m):
+    keys, s_p, s_a, s_n = main_struct
+    estimation_osnr_log = []
+    estimation_gosnr_log = []
+    roadms = m
+    spans = 6
+    for roadm in range(1, roadms + 1):
+        # process roadm attenuation
+        s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+        s_p, s_a, _ = process_amp(keys, s_p, s_a, s_n, boost=True)
+        estimation_osnr_log.append(osnr(keys, s_p, s_a))
+        estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+        for span in range(spans):
+            # process span attenuation
+            s_p, s_a, s_n = process_span(keys, s_p, s_a, s_n)
+            s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+            estimation_osnr_log.append(osnr(keys, s_p, s_a))
+            estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    return estimation_osnr_log, estimation_gosnr_log
+
+
 def build_struct(load, signal_ids=None):
     s_p, s_a, s_n = {}, {}, {}
     if signal_ids:
@@ -60,18 +81,18 @@ def build_struct(load, signal_ids=None):
 
 
 def osnr(keys, s_p, s_a):
-    osnrs = []
+    osnrs = {}
     for ch in keys:
         osnr = s_p[ch] / s_a[ch]
-        osnrs.append(abs_to_db(osnr))
+        osnrs[ch] = abs_to_db(osnr)
     return osnrs
 
 
 def gosnr(keys, s_p, s_a, s_n):
-    gosnrs = []
+    gosnrs = {}
     for ch in keys:
         gosnr = s_p[ch] / (s_a[ch] + s_n[ch])
-        gosnrs.append(abs_to_db(gosnr))
+        gosnrs[ch] = abs_to_db(gosnr)
     return gosnrs
 
 
