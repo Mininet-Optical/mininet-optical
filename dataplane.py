@@ -192,7 +192,10 @@ class Monitor( PhyMonitor ):
         "Return OSNR to REST agent"
         osnr = { signal.index:
                  dict(freq=signal.frequency, osnr=self.get_osnr( signal ),
-                      gosnr=self.get_gosnr( signal))
+                      gosnr=self.get_gosnr( signal),
+                      power=self.get_power(signal),
+                      ase=self.get_ase_noise(signal),
+                      nli=self.get_nli_noise(signal))
                  for signal in sorted( self.amplifier.output_power,
                                       key=attrgetter( 'index' ) ) }
         return dict( osnr=osnr )

@@ -1066,6 +1066,15 @@ class Monitor(Node):
         ordered_optical_signals = [signal_by_index[i] for i in ordered_optical_signals_by_index]
         return ordered_optical_signals
 
+    def get_power(self, optical_signal):
+        return self.amplifier.output_power[optical_signal]
+
+    def get_ase_noise(self, optical_signal):
+        return self.amplifier.ase_noise[optical_signal]
+
+    def get_nli_noise(self, optical_signal):
+        return self.amplifier.nonlinear_noise[optical_signal]
+
     def get_list_gosnr(self):
         """
         Get the gOSNR values at this OPM as a list
@@ -1097,10 +1106,10 @@ class Monitor(Node):
         """
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
-        if self.amplifier.boost:
-            nli_noise = self.amplifier.nonlinear_noise[optical_signal]
-        else:
-            nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
+        # if self.amplifier.boost:
+        nli_noise = self.amplifier.nonlinear_noise[optical_signal]
+        # else:
+        #     nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
         gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9/32.0e9))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr

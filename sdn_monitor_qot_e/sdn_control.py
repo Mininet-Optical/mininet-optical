@@ -281,11 +281,16 @@ def monitor(net, test_id, load_id):
         response = net.get('monitor', params=dict(monitor=monitor_key))
         osnrdata = response.json()['osnr']
 
-        osnrs, gosnrs = [], []
+        osnrs, gosnrs = {}, {}
+        powers, ases, nlis = {}, {}, {}
         for channel, data in osnrdata.items():
             osnr, gosnr = data['osnr'], data['gosnr']
-            osnrs.append(osnr)
-            gosnrs.append(gosnr)
+            power, ase, nli = data['power'], data['ase'], data['nli']
+            osnrs[channel] = osnr
+            gosnrs[channel] = gosnr
+            powers[channel] = power
+            ases[channel] = ase
+            nlis[channel] = nli
 
         write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
 
