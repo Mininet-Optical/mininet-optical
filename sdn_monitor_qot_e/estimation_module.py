@@ -93,7 +93,7 @@ def gosnr(keys, s_p, s_a, s_n):
     for ch in keys:
         gosnr = s_p[ch] / (s_a[ch] + s_n[ch] * (12.5e9/32.0e9))
         gosnrs[ch] = abs_to_db(gosnr)
-    print(gosnrs)
+
     return gosnrs
 
 
