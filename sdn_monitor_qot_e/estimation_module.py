@@ -91,8 +91,9 @@ def osnr(keys, s_p, s_a):
 def gosnr(keys, s_p, s_a, s_n):
     gosnrs = {}
     for ch in keys:
-        gosnr = s_p[ch] / (s_a[ch] + s_n[ch])
+        gosnr = s_p[ch] / (s_a[ch] + s_n[ch] * (12.5e9/32.0e9))
         gosnrs[ch] = abs_to_db(gosnr)
+    print(gosnrs)
     return gosnrs
 
 
@@ -105,7 +106,7 @@ def process_roadm(keys, s_p, s_a, s_n):
     return s_p, s_a, s_n
 
 
-def process_amp(keys, s_p, s_a, s_n=None, boost=False):
+def process_amp(keys, s_p, s_a, s_n, boost=False):
     boost_gain = db_to_abs(17.0)
     amp_gain = db_to_abs(17.6)
     for ch in keys:
