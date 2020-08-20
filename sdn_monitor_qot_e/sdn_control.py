@@ -292,17 +292,25 @@ def monitor(net, test_id, load_id):
             ases[channel] = ase
             nlis[channel] = nli
 
-        write_files(osnrs, gosnrs, json_struct, load_id, monitor_key, test_id)
+        write_files(osnrs, gosnrs, powers, ases, nlis,
+                    json_struct, load_id, monitor_key, test_id)
 
 
-def write_files(osnr, gosnr, json_struct, load_id, monitor_key, test_id):
+def write_files(osnr, gosnr, powers, ases, nlis,
+                json_struct, load_id, monitor_key, test_id):
     """
     Write a file with osnr and gosnr information from a given OPM node
     """
     _osnr_id = 'osnr_load_' + load_id
     _gosnr_id = 'gosnr_load_' + load_id
+    _power_id = 'power_load_' + load_id
+    _ase_id = 'ase_load_' + load_id
+    _nli_id = 'nli_load_' + load_id
     json_struct['tests'].append({_osnr_id: osnr})
     json_struct['tests'].append({_gosnr_id: gosnr})
+    json_struct['tests'].append({_power_id: powers})
+    json_struct['tests'].append({_ase_id: ases})
+    json_struct['tests'].append({_nli_id: nlis})
 
     test = 'metrics-monitor/'
     dir_ = test + 'opm-all/' + monitor_key
