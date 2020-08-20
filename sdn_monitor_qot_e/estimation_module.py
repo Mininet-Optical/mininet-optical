@@ -30,10 +30,10 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     estimation_gosnr_log = []
     roadms = 15
     spans = 6
-    for roadm in range(1, roadms + 1):
+    for roadm in range(roadms):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        s_p, s_a, _ = process_amp(keys, s_p, s_a, s_n, boost=True)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
