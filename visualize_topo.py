@@ -22,6 +22,62 @@ import dash_cytoscape as cyto
 import dash_html_components as html
 import threading
 import node
+from node import db_to_abs, abs_to_db
+import dash_core_components as dcc
+from dash.dependencies import Input, Output
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+
+
+def extract_power(component,mode='in'):
+    """
+                        :param component : Component (Amplifiers, ROADM) for which power needs to be extracted
+                        :param mode: The power values to extracted from input or output mode
+                        :return signal_index: Returns signal_index (channel index used for transmission)
+                        :return power: Returns power (power values at the port in transmission)
+
+    """
+
+    power_list = []
+    signal_index = []
+
+    if (isinstance(component,node.Amplifier)):
+        if mode=='in':
+            for signal, power in component.input_power.items():
+                signal_index.append(signal.index)
+                power_list.append(abs_to_db(power))
+
+            return signal_index, power_list
+        if mode=='out':
+            for signal, power in component.output_power.items():
+                signal_index.append(signal.index)
+                power_list.append(abs_to_db(power))
+
+            return signal_index, power_list
+
+
+
+
+
+    if (isinstance(component,node.Roadm)):
+        roadm_power_type = {}
+        if mode == 'in':
+            roadm_power_type = component.port_to_optical_signal_power_in
+        if mode == 'out':
+            roadm_power_type = component.port_to_optical_signal_power_out
+
+        for port in sorted(roadm_power_type):
+            signal_powers = roadm_power_type[port]
+            signal_index = []
+            if signal_powers:
+
+                for signal, power in signal_powers.items():
+                    signal_index.append(signal.index)
+                    power_list.append(abs_to_db(power))
+
+        return signal_index, power_list
+
 
 
 
@@ -111,7 +167,8 @@ def visualize(net):
             elements.append({'data': {'source': str(start), 'target': str(link.node2)}})
 
 
-    app = dash.Dash('__main__') # Calling the Dash-App
+    app = dash.Dash() # Calling the Dash-App
+
 
     # Stylesheet for styling different components in the Topology
 
@@ -156,17 +213,73 @@ def visualize(net):
 
     # Layout of the Dash-App
 
+
     app.layout = html.Div([
-        cyto.Cytoscape(
-            id='Optical-Topology',
+        html.Div(cyto.Cytoscape(
+            id='mininet-optical',
             layout={'name': 'cose'},
             style={'width': '100%', 'height': '800px', "font-size": "1px", "content": "data(label)",
                    "text-valign": "center",
                    "text-halign": "center", 'radius': '10%'},
             elements= elements,
             stylesheet=stylesheet
-        )
+        ), className="container"),
+
+        html.Div(id='graph')
+
+
+
     ])
+
+    @app.callback(
+        Output('graph', 'children'),
+        [Input('mininet-optical', 'tapNodeData')])
+    def plot_power(data):
+
+        """
+                    :param tapNodeData: Selected Node
+                    :return: Returns the plot division to graph container
+        """
+
+        n = net.name_to_node   # extract network object
+        component = n[data['id']]  # extract the selected component from the network
+
+        # Extract input and output power for the component
+
+        signal_index_in, power_in = extract_power(component,mode='in')
+        signal_index_out, power_out= extract_power(component, mode='out')
+
+        layout = go.Layout(
+            xaxis={ 'type':'category','title': "Channel-Index"},
+            yaxis={'type': 'linear', 'title': "Power (dBm)"},
+            # margin={'l': 60, 'b': 40, 'r': 10, 't': 10},
+        )
+
+        fig = make_subplots(rows=1, cols=2,subplot_titles=(str(data['id']),str(data['id'])))
+
+        # Plot input power
+
+        fig.add_trace(
+            go.Scatter(x=signal_index_in, y=power_in, name="Power-In"),
+            row=1, col=1
+        )
+
+        # plot output power
+
+        fig.add_trace(
+            go.Scatter(x=signal_index_out, y=power_out,name="Power-Out"),
+            row=1, col=2
+        )
+
+        fig.update_layout(layout)
+        fig.update_xaxes(title_text="Channel-Index", row=1, col=2,type='category')
+        fig.update_yaxes(title_text="Power (dBm)", row=1, col=2)
+
+        return html.Div(dcc.Graph(figure=fig))
+
+
+
+
 
     app.run_server(debug= False)
 
