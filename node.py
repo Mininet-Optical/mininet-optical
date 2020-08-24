@@ -793,13 +793,13 @@ class Roadm(Node):
                     out_difference[k] = delta
                 elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
                     # negative and exceeding range, we attenuate the max
-                    out_difference[k] = db_to_abs(-voa_max_dB)
+                    out_difference[k] = delta  # db_to_abs(-voa_max_dB)
                 elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
                     # positive and not higher than initial attenuation
                     out_difference[k] = delta
                 else:
                     # positive and higher than initial attenuation, saturates
-                    out_difference[k] = self.voa_attenuation
+                    out_difference[k] = delta  # self.voa_attenuation
 
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,

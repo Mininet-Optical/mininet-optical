@@ -24,6 +24,19 @@ def abs_to_db(absolute_value):
     return db_value
 
 
+def leveling(keys, s_p, s_a, s_n):
+    op = db_to_abs(-2)
+    delta = {}
+    for ch in keys:
+        delta[ch] = op / s_p[ch]
+
+    for ch in keys:
+        s_p[ch] *= delta[ch]
+        s_a[ch] *= delta[ch]
+        s_n[ch] *= delta[ch]
+    return s_p, s_a, s_n
+
+
 def estimation_module(load, load_id, test_id, signal_ids=None):
     keys, s_p, s_a, s_n = build_struct(load, signal_ids=signal_ids)
     estimation_osnr_log = []
@@ -34,6 +47,7 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
@@ -42,7 +56,7 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
+    # write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
@@ -55,7 +69,7 @@ def estimation_module_dyn(main_struct, m):
     for roadm in range(1, roadms + 1):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        s_p, s_a, _ = process_amp(keys, s_p, s_a, s_n, boost=True)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
@@ -128,7 +142,7 @@ def process_span(keys, s_p, s_a, s_n):
 
     s_n = nonlinear_noise(s_n, s_p, keys)
 
-    # s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
 
     for ch in keys:
         s_p[ch] /= attenuation
@@ -265,10 +279,7 @@ def zirngibl_srs(keys, s_p, s_a, s_n):
                 beta * total_power * effective_length * (frequency - frequency_min))  # term 1
         r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
-        if r2 == 0.0:
-            delta_p = 1
-        else:
-            delta_p = float(r1 / r2)  # Does the arithmetic in mW
+        delta_p = float(r1 / r2)  # Does the arithmetic in mW
         s_p[optical_signal] *= delta_p
         s_a[optical_signal] *= delta_p
         s_n[optical_signal] *= delta_p
