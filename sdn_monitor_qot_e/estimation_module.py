@@ -189,11 +189,11 @@ def gn_model(s_p, keys):
     for channel in keys:
         nonlinear_noise_struct[channel] = None
 
-    length = 80 * 1e3
-    fibre_attenuation = 0.22 / 1e3
+    length = 80.0 * 1.0e3
+    fibre_attenuation = 0.22 / 1.0e3
     alpha = fibre_attenuation / (20 * np.log10(np.e))  # linear value fibre attenuation
     beta2 = get_beta2()
-    gamma = 0.78 / 1e3  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+    gamma = 0.78 / 1.0e3  # gamma fiber non-linearity coefficient [W^-1 km^-1]
     effective_length = (1 - np.exp(-2 * alpha * length)) / (2 * alpha)
     asymptotic_length = 1 / (2 * alpha)
 
@@ -225,7 +225,7 @@ def get_beta2():
     """
     ref_wavelength = 1550e-9
     D = abs(2.1e-05)
-    b2 = (ref_wavelength ** 2) * D / (2 * np.pi * sc.c)  # 10^21 scales [ps^2/km]
+    b2 = (ref_wavelength ** 2) * D / (2 * math.pi * 299792458.0)  # 10^21 scales [ps^2/km]
     return b2  # s/Hz/m
 
 
@@ -237,9 +237,11 @@ def psi_factor(carrier, interfering_carrier, beta2, asymptotic_length):
     bw_ch = 32e9
 
     if carrier == interfering_carrier:  # SCI, SPM
-        psi = np.arcsinh(0.5 * np.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
+        psi = np.arcsinh(0.5 * math.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
     else:  # XCI, XPM
-        delta_f = carrier - interfering_carrier
+        carrier_f = 191.3e12 + (50e9 * carrier)
+        interfering_carrier_f = 191.3e12 + (50e9 * interfering_carrier)
+        delta_f = carrier_f - interfering_carrier_f
         psi = np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                          bw_cut * (delta_f + 0.5 * bw_ch))
         psi -= np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
