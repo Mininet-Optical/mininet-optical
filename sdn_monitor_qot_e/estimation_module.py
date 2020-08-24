@@ -143,7 +143,7 @@ def process_span(keys, s_p, s_a, s_n):
 
     s_n = nonlinear_noise(s_n, s_p, keys)
 
-    s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
+    # s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
 
     for ch in keys:
         s_p[ch] /= attenuation
