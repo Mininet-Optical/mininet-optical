@@ -24,19 +24,6 @@ def abs_to_db(absolute_value):
     return db_value
 
 
-def leveling(keys, s_p, s_a, s_n):
-    op = db_to_abs(-2)
-    delta = {}
-    for ch in keys:
-        delta[ch] = op / s_p[ch]
-
-    for ch in keys:
-        s_p[ch] *= delta[ch]
-        s_a[ch] *= delta[ch]
-        s_n[ch] *= delta[ch]
-    return s_p, s_a, s_n
-
-
 def estimation_module(load, load_id, test_id, signal_ids=None):
     keys, s_p, s_a, s_n = build_struct(load, signal_ids=signal_ids)
     estimation_osnr_log = []
@@ -46,8 +33,8 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     for roadm in range(roadms):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
@@ -56,7 +43,7 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    # write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
+    write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
@@ -69,6 +56,7 @@ def estimation_module_dyn(main_struct, m):
     for roadm in range(1, roadms + 1):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
@@ -117,6 +105,19 @@ def process_roadm(keys, s_p, s_a, s_n):
         s_p[ch] /= attenuation
         s_a[ch] /= attenuation
         s_n[ch] /= attenuation
+    return s_p, s_a, s_n
+
+
+def leveling(keys, s_p, s_a, s_n):
+    op = db_to_abs(-19)
+    delta = {}
+    for ch in keys:
+        delta[ch] = op / s_p[ch]
+
+    for ch in keys:
+        s_p[ch] *= delta[ch]
+        s_a[ch] *= delta[ch]
+        s_n[ch] *= delta[ch]
     return s_p, s_a, s_n
 
 
