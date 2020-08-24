@@ -33,7 +33,7 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     for roadm in range(roadms):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        # s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
