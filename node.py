@@ -4,7 +4,6 @@ import numpy as np
 import scipy.constants as sc
 import random
 from collections import namedtuple
-import math
 
 
 def db_to_abs(db_value):
@@ -46,7 +45,6 @@ class Node(object):
         self.ports_out = []
         self.port_to_node_in = {}  # dict of port no. to ingress connecting nodes
         self.port_to_node_out = {}  # dict of port no. to egress connecting nodes
-        # self.port_to_optical_signal_in = {} is a @property (see below)
         self.port_to_optical_signal_out = {}  # dict of ports to output signals
         self.port_to_optical_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_optical_signal_power_out = {}  # dict of ports to output signals and power levels
@@ -90,6 +88,7 @@ class Node(object):
         Create a new input port for a node
         to connect to another node
         :param connected_node:
+        :param portnum:
         :return: new input port
         """
         if portnum is not None:
@@ -128,7 +127,6 @@ class Node(object):
                     for signal, power in signal_powers.items():
                         print('%s@%.1fdBm' % (signal, abs_to_db(power)), end=' ')
                     print()
-
 
     def __repr__(self):
         "Human-readable representation"
@@ -382,6 +380,7 @@ class OpticalSignal(object):
         if not signal:
             signal = cls.instances[params] = cls(*params)
         return signal
+
 
 # Replace class constructor with factory method
 OpticalSignal = OpticalSignal.getOpticalSignal
@@ -665,16 +664,13 @@ class Roadm(Node):
             node_attenuation[optical_signal] = total_attenuation
         return node_attenuation
 
-    ####### NEW EDITED VOA RECONF #######
-
     def voa_reconf(self, link, output_power_dict, out_port):
         """
         wavelength dependent attenuation
         """
         voa_min_dB = 0
-        voa_max_dB = 9  # plus the initial att the max value is 15 dB
+        voa_max_dB = 12  # plus the initial att the max value is 15 dB
 
-        tmp_power = list(output_power_dict.values())
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
@@ -695,7 +691,7 @@ class Roadm(Node):
                     out_difference[k] = delta
                 else:
                     # positive and higher than initial attenuation, saturates
-                    out_difference[k] = self.voa_attenuation
+                    out_difference[k] = delta
 
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
@@ -711,8 +707,6 @@ class Roadm(Node):
 
         link.reset_propagation_struct()
         link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
-
-    ####### NEW EDITED VOA RECONF - END #######
 
     def print_signals(self):
         "Debugging: print input and output signals"
@@ -989,10 +983,7 @@ class Monitor(Node):
         """
         output_power = self.amplifier.output_power[optical_signal]
         ase_noise = self.amplifier.ase_noise[optical_signal]
-        if self.amplifier.boost:
-            nli_noise = self.amplifier.nonlinear_noise[optical_signal]
-        else:
-            nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
+        nli_noise = self.amplifier.nonlinear_noise[optical_signal]
         gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9/32.0e9))
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
