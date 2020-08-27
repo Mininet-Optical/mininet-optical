@@ -59,37 +59,38 @@ for opm_key in monitor_keys:
     files = os.listdir(opm_mon_path)
 
     for filename in files:
-        # there are 150 files per load (450 iterations).
-        file_path = opm_mon_path + '/' + filename
-        name_split = filename.split('_')
-        test_id = int(name_split[0])
-        name_split = name_split[1].split('.')
-        load = int(name_split[0])
+        if filename.endswith(".json"):
+            # there are 150 files per load (450 iterations).
+            file_path = opm_mon_path + '/' + filename
+            name_split = filename.split('_')
+            test_id = int(name_split[0])
+            name_split = name_split[1].split('.')
+            load = int(name_split[0])
 
-        gosnr_label = 'gosnr_load_' + str(load)
+            gosnr_label = 'gosnr_load_' + str(load)
 
-        power_label = 'power_load_' + str(load)
-        ase_label = 'ase_load_' + str(load)
-        nli_label = 'nli_load_' + str(load)
+            power_label = 'power_load_' + str(load)
+            ase_label = 'ase_load_' + str(load)
+            nli_label = 'nli_load_' + str(load)
 
-        with open(file_path) as json_file:
-            f = json.load(json_file)
-        json_items = list(f.items())
-        metric_items = json_items[0][1]
-        gosnr_dict = metric_items[1]
-        power_dict = metric_items[2]
-        ase_dict = metric_items[3]
-        nli_dict = metric_items[4]
+            with open(file_path) as json_file:
+                f = json.load(json_file)
+            json_items = list(f.items())
+            metric_items = json_items[0][1]
+            gosnr_dict = metric_items[1]
+            power_dict = metric_items[2]
+            ase_dict = metric_items[3]
+            nli_dict = metric_items[4]
 
-        gosnr_opm = gosnr_dict[gosnr_label]
-        power_opm = power_dict[power_label]
-        ase_opm = ase_dict[ase_label]
-        nli_opm = nli_dict[nli_label]
-        # record gosnr estimation per load
-        gosnr_opm_dict[opm_key][load][test_id] = gosnr_opm
-        power_opm_dict[opm_key][load][test_id] = power_opm
-        ase_opm_dict[opm_key][load][test_id] = ase_opm
-        nli_opm_dict[opm_key][load][test_id] = nli_opm
+            gosnr_opm = gosnr_dict[gosnr_label]
+            power_opm = power_dict[power_label]
+            ase_opm = ase_dict[ase_label]
+            nli_opm = nli_dict[nli_label]
+            # record gosnr estimation per load
+            gosnr_opm_dict[opm_key][load][test_id] = gosnr_opm
+            power_opm_dict[opm_key][load][test_id] = power_opm
+            ase_opm_dict[opm_key][load][test_id] = ase_opm
+            nli_opm_dict[opm_key][load][test_id] = nli_opm
 
 
 def obsolete(load, signals_id=None):

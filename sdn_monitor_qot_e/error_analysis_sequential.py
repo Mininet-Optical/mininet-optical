@@ -9,7 +9,7 @@ import matplotlib.font_manager
 from correction_procedure import *
 
 # Plot configuration parameters
-# figure(num=None, figsize=(9, 7), dpi=256)
+figure(num=None, figsize=(9, 7), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -78,31 +78,32 @@ for opm_key in monitor_keys:
     est_mon_path = est_path + opm_key
     files = os.listdir(est_mon_path)
     for filename in files:
-        # identify load from name
-        file_path = est_mon_path + '/' + filename
-        name_split = filename.split('.')
-        load = int(name_split[0])
+        if filename.endswith(".json"):
+            # identify load from name
+            file_path = est_mon_path + '/' + filename
+            name_split = filename.split('.')
+            load = int(name_split[0])
 
-        # process file
-        with open(file_path) as json_file:
-            f = json.load(json_file)
-        json_items = list(f.items())
-        metric_items = json_items[0][1]
-        gosnr_dict = metric_items[1]
-        # osnr_dict = metric_items[0]
-        # retrieve gosnr as a list
-        osnr_label = 'osnr_load_' + str(load)
-        # osnr = osnr_dict[osnr_label]
+            # process file
+            with open(file_path) as json_file:
+                f = json.load(json_file)
+            json_items = list(f.items())
+            metric_items = json_items[0][1]
+            gosnr_dict = metric_items[1]
+            # osnr_dict = metric_items[0]
+            # retrieve gosnr as a list
+            osnr_label = 'osnr_load_' + str(load)
+            # osnr = osnr_dict[osnr_label]
 
-        # record osnr estimation per load
-        # osnr_est_dict[opm_key][load] = osnr
+            # record osnr estimation per load
+            # osnr_est_dict[opm_key][load] = osnr
 
-        # retrieve gosnr as a list
-        gosnr_label = 'gosnr_load_' + str(load)
-        gosnr = gosnr_dict[gosnr_label]
+            # retrieve gosnr as a list
+            gosnr_label = 'gosnr_load_' + str(load)
+            gosnr = gosnr_dict[gosnr_label]
 
-        # record gosnr estimation per load
-        gosnr_est_dict[opm_key][load] = gosnr
+            # record gosnr estimation per load
+            gosnr_est_dict[opm_key][load] = gosnr
 
 # record max error from 150 samples at each OPM
 errors_orig = {9: [], 27: [], 81: []}
@@ -128,39 +129,40 @@ for mk, opm_key in enumerate(monitor_keys):
     # temp record errors OPM vs. QoT-E corrected
     errors_c_tmp = {9: [], 27: [], 81: []}
     for filename in files:
-        # there are 150 files per load (450 iterations).
-        file_path = opm_mon_path + '/' + filename
-        name_split = filename.split('_')
-        test_id = int(name_split[0])
-        name_split = name_split[1].split('.')
-        load = int(name_split[0])
+        if filename.endswith(".json"):
+            # there are 150 files per load (450 iterations).
+            file_path = opm_mon_path + '/' + filename
+            name_split = filename.split('_')
+            test_id = int(name_split[0])
+            name_split = name_split[1].split('.')
+            load = int(name_split[0])
 
-        gosnr_label = 'gosnr_load_' + str(load)
-        # osnr_label = 'osnr_load_' + str(load)
+            gosnr_label = 'gosnr_load_' + str(load)
+            # osnr_label = 'osnr_load_' + str(load)
 
-        with open(file_path) as json_file:
-            f = json.load(json_file)
-        json_items = list(f.items())
-        metric_items = json_items[0][1]
-        gosnr_dict = metric_items[1]
-        # osnr_dict = metric_items[0]
+            with open(file_path) as json_file:
+                f = json.load(json_file)
+            json_items = list(f.items())
+            metric_items = json_items[0][1]
+            gosnr_dict = metric_items[1]
+            # osnr_dict = metric_items[0]
 
-        # get gosnr from OPM
-        gosnr_opm = gosnr_dict[gosnr_label]
-        # osnr_opm = osnr_dict[osnr_label]
-        # get gosnr from QoT-E
-        gosnr_est = gosnr_est_dict[opm_key][load]
-        # osnr_est = osnr_est_dict[opm_key][load]
-        # Compute errors for the above
-        error = compute_errors(gosnr_opm, gosnr_est)
-        # error = compute_errors(osnr_opm, osnr_est)
-        errors_tmp[load].append(error)
+            # get gosnr from OPM
+            gosnr_opm = gosnr_dict[gosnr_label]
+            # osnr_opm = osnr_dict[osnr_label]
+            # get gosnr from QoT-E
+            gosnr_est = gosnr_est_dict[opm_key][load]
+            # osnr_est = osnr_est_dict[opm_key][load]
+            # Compute errors for the above
+            error = compute_errors(gosnr_opm, gosnr_est)
+            # error = compute_errors(osnr_opm, osnr_est)
+            errors_tmp[load].append(error)
 
-        # get gosnr from QoT-E corrected
-        gosnr_corrected = gosnr_corr[load][opm_key][load][test_id]
-        # Compute errors for OPM and QoT-E corrected
-        error_c = compute_errors(gosnr_opm, gosnr_corrected)
-        errors_c_tmp[load].append(error_c)
+            # get gosnr from QoT-E corrected
+            gosnr_corrected = gosnr_corr[load][opm_key][load][test_id]
+            # Compute errors for OPM and QoT-E corrected
+            error_c = compute_errors(gosnr_opm, gosnr_corrected)
+            errors_c_tmp[load].append(error_c)
 
     for _load, _errors in errors_tmp.items():
         errors_orig[_load].append(max(_errors))
@@ -194,9 +196,9 @@ plt.plot(error_c_27, linestyle='None', marker='v', markeredgewidth=2, markersize
              markerfacecolor='None', color='orange', label='M-30%')
 plt.plot(error_c_81, linestyle='None', marker='D', markeredgewidth=2, markersize=ms,
              markerfacecolor='None', color='g', label='M-90%')
-plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1, bbox_to_anchor=(0.5, 0.9))
+plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1)  # , bbox_to_anchor=(0.5, 0.9))
 plt.grid(True)
-fig_name = '../../images/sequential_analysis.eps'
+fig_name = '../../images/sequential_analysis_50.eps'
 plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
 # plt.show()
 

@@ -75,6 +75,8 @@ def run(net):
                 for i in range(count)
                 for node in (net.switches[i], net.terminals[i], net.roadms[i])}
 
+    configure_routers(net.switches)
+
     test_num = 1
     _loads = [9, 27, 81]
     for load in _loads:
@@ -86,7 +88,6 @@ def run(net):
 
             # Install switching rules to roadms
             install_paths(load, signal_ids=w_i)
-            configure_routers(net.switches)
 
             # # Compute QoT estimation
             estimation_module(load, str(load), str(test_run), signal_ids=w_i)
