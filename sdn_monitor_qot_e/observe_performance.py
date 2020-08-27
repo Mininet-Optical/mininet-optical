@@ -89,13 +89,13 @@ for mk, opm_key in enumerate(monitor_keys):
             name_split = name_split[1].split('.')
             load = int(name_split[0])
 
-            power_label = 'nli_load_' + str(load)
+            power_label = 'power_load_' + str(load)
 
             with open(file_path) as json_file:
                 f = json.load(json_file)
             json_items = list(f.items())
             metric_items = json_items[0][1]
-            power_dict = metric_items[4]
+            power_dict = metric_items[2]
 
             # get gosnr from OPM
             power_opm = power_dict[power_label]
@@ -103,10 +103,12 @@ for mk, opm_key in enumerate(monitor_keys):
 
 
 obs_range_start = 0
-obs_range_end = 100
+obs_range_end = 51
 
-obs_obj = powers[9][obs_range_start:obs_range_end]
+obs_obj = []
+for i in np.arange(0, 4900, 50):
+    obs_obj.append(powers[9][i])
 obs_plot = get_power_list(obs_obj)
 
-plt.plot(obs_plot)
+plt.plot(obs_plot, marker='o')
 plt.show()

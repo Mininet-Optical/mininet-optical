@@ -9,7 +9,7 @@ import matplotlib.font_manager
 from correction_procedure import *
 
 # Plot configuration parameters
-figure(num=None, figsize=(9, 7), dpi=256)
+# figure(num=None, figsize=(9, 7), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -56,6 +56,7 @@ def compute_errors(y, z):
     return max(_errors)
 
 
+monitor_keys = ['r1-r2-boost']
 # locations of the json files
 root_dir = '../../data/sequential-loading/'
 est_dir = 'estimation-module/'
@@ -198,7 +199,7 @@ plt.plot(error_c_81, linestyle='None', marker='D', markeredgewidth=2, markersize
              markerfacecolor='None', color='g', label='M-90%')
 plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1)  # , bbox_to_anchor=(0.5, 0.9))
 plt.grid(True)
-fig_name = '../../images/sequential_analysis_50.eps'
-plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
-# plt.show()
+#fig_name = '../../images/sequential_analysis_50.eps'
+#plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
+plt.show()
 

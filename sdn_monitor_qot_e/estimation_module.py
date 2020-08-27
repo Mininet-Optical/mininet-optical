@@ -35,15 +35,19 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
         # s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+        sn_tmp = {x: abs_to_db(i) for x, i in s_a.items()}
+        print("roadm", gosnr(keys, s_p, s_a, s_n))
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
             # process span attenuation
             s_p, s_a, s_n = process_span(keys, s_p, s_a, s_n)
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+            sn_tmp = {x: abs_to_db(i) for x, i in s_a.items()}
+            print("amp", gosnr(keys, s_p, s_a, s_n))
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
+    # write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
