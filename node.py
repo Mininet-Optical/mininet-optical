@@ -652,7 +652,6 @@ class Roadm(Node):
                     continue
 
                 # retrieve the VOA attenuation function at the output ports
-
                 voa_attenuation = self.voa_attenuation
                 # Attenuate signal power and update it on output port
                 self.port_to_optical_signal_power_out[out_port][optical_signal] = \
@@ -833,8 +832,8 @@ class Roadm(Node):
 
 description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'linear.txt',
-                     'wdg2': 'linear.txt'}
+description_files = {'wdg1': 'wdg1_3.txt',
+                     'wdg2': 'wdg2_2.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -930,11 +929,12 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
-    def output_amplified_power(self, signal, in_power):
+    def output_amplified_power(self, signal, in_power, p_exc=False):
         """
         Compute the output power levels of each signal after amplification
         :param signal: signal object
         :param in_power: input signal power linear (mW)
+        :param p_exc:
         """
         system_gain = self.system_gain
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
@@ -943,7 +943,10 @@ class Amplifier(Node):
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
         output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
         self.output_power[signal] = output_power
-        return output_power
+        if p_exc:
+            return output_power / wavelength_dependent_gain_linear
+        else:
+            return output_power
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, accumulated_noise=None):
         """
