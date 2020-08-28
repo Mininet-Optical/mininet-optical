@@ -171,7 +171,8 @@ class Link(object):
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal, in_power in self.optical_signal_power_in.items():
                     self.boost_amp.input_power[optical_signal] = in_power
-                    output_power_dict[optical_signal] = self.boost_amp.output_amplified_power(optical_signal, in_power)
+                    output_power_dict[optical_signal] = \
+                        self.boost_amp.output_amplified_power(optical_signal, in_power, p_exc=True)
                 self.boost_amp.compute_power_excursions()
 
             # Reset balancing flags to original settings
