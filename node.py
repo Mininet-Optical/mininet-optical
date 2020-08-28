@@ -833,8 +833,8 @@ class Roadm(Node):
 
 description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1_3.txt',
-                     'wdg2': 'wdg2_2.txt'}
+description_files = {'wdg1': 'linear.txt',
+                     'wdg2': 'linear.txt'}
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -977,9 +977,9 @@ class Amplifier(Node):
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
-        # power_excursions = out_in_difference - self.target_gain
-        # system_gain_balance = self.system_gain - power_excursions
-        # self.system_gain = system_gain_balance
+        power_excursions = out_in_difference - self.target_gain
+        system_gain_balance = self.system_gain - power_excursions
+        self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
