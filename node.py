@@ -770,8 +770,6 @@ class Roadm(Node):
             node_attenuation[optical_signal] = total_attenuation
         return node_attenuation
 
-    ####### NEW EDITED VOA RECONF #######
-
     def voa_reconf(self, link, output_power_dict, out_port):
         """
         wavelength dependent attenuation
@@ -788,18 +786,18 @@ class Roadm(Node):
                 delta = self.voa_target_out_power / out_power
                 delta_dB = abs_to_db(delta)
                 out_difference[k] = delta
-                if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
-                    # negative and within range, we can attenuate further
-                    out_difference[k] = delta
-                elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
-                    # negative and exceeding range, we attenuate the max
-                    out_difference[k] = delta  # db_to_abs(-voa_max_dB)
-                elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
-                    # positive and not higher than initial attenuation
-                    out_difference[k] = delta
-                else:
-                    # positive and higher than initial attenuation, saturates
-                    out_difference[k] = delta  # self.voa_attenuation
+                # if delta_dB < 0 and voa_min_dB <= abs(delta_dB) <= voa_max_dB:
+                #     # negative and within range, we can attenuate further
+                #     out_difference[k] = delta
+                # elif delta_dB < 0 and voa_min_dB > abs(delta_dB) or abs(delta_dB) > voa_max_dB:
+                #     # negative and exceeding range, we attenuate the max
+                #     out_difference[k] = delta  # db_to_abs(-voa_max_dB)
+                # elif 0 < delta_dB <= abs_to_db(self.voa_attenuation):
+                #     # positive and not higher than initial attenuation
+                #     out_difference[k] = delta
+                # else:
+                #     # positive and higher than initial attenuation, saturates
+                #     out_difference[k] = delta  # self.voa_attenuation
 
             for optical_signal, voa_att in out_difference.items():
                 # WSS attenuation and fixed VOA attenuation was inflicted at switching time,
@@ -815,8 +813,6 @@ class Roadm(Node):
 
         link.reset_propagation_struct()
         link.propagate(pass_through_signals, ase, nli, voa_compensation=False, is_last_port=True)
-
-    ####### NEW EDITED VOA RECONF - END #######
 
     def print_signals(self):
         "Debugging: print input and output signals"
@@ -981,9 +977,9 @@ class Amplifier(Node):
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
-        power_excursions = out_in_difference - self.target_gain
-        system_gain_balance = self.system_gain - power_excursions
-        self.system_gain = system_gain_balance
+        # power_excursions = out_in_difference - self.target_gain
+        # system_gain_balance = self.system_gain - power_excursions
+        # self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
