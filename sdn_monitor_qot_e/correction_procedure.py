@@ -93,49 +93,16 @@ for opm_key in monitor_keys:
             nli_opm_dict[opm_key][load][test_id] = nli_opm
 
 
-def obsolete(load, signals_id=None):
-    # initialize signal structures
-    if signals_id:
-        signals_id = [int(x) for x in signals_id]
-    main_struct = build_struct(load, signal_ids=signals_id)
-    # store gosnr values at each OPM
-    gosnr_correct = []
-
-    # determines the node intervals
-    m = 1
-    test_id = 0
-    opm_index = 6
-
-    for i in range(14):
-        # run estimation for 6 span x m
-        _, estimation_gosnr_log = estimation_module_dyn(main_struct, m)
-
-        opm_key = monitor_keys[opm_index]
-
-        gosnr_dict = keys_to_int(gosnr_opm_dict[opm_key][load][test_id])
-        #  correction point
-        estimation_gosnr_log[-1] = gosnr_dict
-        for _list in estimation_gosnr_log:
-            gosnr_correct.append(_list)
-
-        power_dict = keys_to_int(power_opm_dict[opm_key][load][test_id])
-        ase_dict = keys_to_int(ase_opm_dict[opm_key][load][test_id])
-        nli_dict = keys_to_int(nli_opm_dict[opm_key][load][test_id])
-
-        main_struct = power_dict.keys(), power_dict, ase_dict, nli_dict
-        opm_index += 7
-    return gosnr_correct
-
-
 def get_corrected_struct(load, signals_id=None):
     gosnr_corr_dict = dict.fromkeys(monitor_keys)
 
     for key in monitor_keys:
         gosnr_corr_dict[key] = {9: {}, 27: {}, 81: {}}
 
-    for test_id in range(50):
-        prev_opm_index = 0
-        opm_index = 7
+    for test_id in range(1):
+        # iterate through the number of files
+        prev_opm_index = 0  # initial loc of monitors
+        opm_index = 7  # initial step
 
         # initialize signal structures
         if signals_id:

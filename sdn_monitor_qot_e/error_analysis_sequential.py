@@ -56,7 +56,6 @@ def compute_errors(y, z):
     return max(_errors)
 
 
-monitor_keys = ['r1-r2-boost']
 # locations of the json files
 root_dir = '../../data/sequential-loading/'
 est_dir = 'estimation-module/'
@@ -67,10 +66,8 @@ opm_path = root_dir + opm_dir
 
 # only save the estimated values per load
 gosnr_est_dict = dict.fromkeys(monitor_keys)
-# osnr_est_dict = dict.fromkeys(monitor_keys)
 for key in monitor_keys:
     gosnr_est_dict[key] = {9: None, 27: None, 81: None}
-    # osnr_est_dict[key] = {9: None, 27: None, 81: None}
 
 # #for each OPM node there are 150 samples
 # #to be compared against 1 estimated value
@@ -91,13 +88,6 @@ for opm_key in monitor_keys:
             json_items = list(f.items())
             metric_items = json_items[0][1]
             gosnr_dict = metric_items[1]
-            # osnr_dict = metric_items[0]
-            # retrieve gosnr as a list
-            osnr_label = 'osnr_load_' + str(load)
-            # osnr = osnr_dict[osnr_label]
-
-            # record osnr estimation per load
-            # osnr_est_dict[opm_key][load] = osnr
 
             # retrieve gosnr as a list
             gosnr_label = 'gosnr_load_' + str(load)
@@ -108,9 +98,7 @@ for opm_key in monitor_keys:
 
 # record max error from 150 samples at each OPM
 errors_orig = {9: [], 27: [], 81: []}
-# errors = {9: []}
 errors_corr = {9: [], 27: [], 81: []}
-# corrects = {9: []}
 
 gosnr_corr_log_9 = get_corrected_struct(9)
 gosnr_corr_log_27 = get_corrected_struct(27)
@@ -139,24 +127,19 @@ for mk, opm_key in enumerate(monitor_keys):
             load = int(name_split[0])
 
             gosnr_label = 'gosnr_load_' + str(load)
-            # osnr_label = 'osnr_load_' + str(load)
 
             with open(file_path) as json_file:
                 f = json.load(json_file)
             json_items = list(f.items())
             metric_items = json_items[0][1]
             gosnr_dict = metric_items[1]
-            # osnr_dict = metric_items[0]
 
             # get gosnr from OPM
             gosnr_opm = gosnr_dict[gosnr_label]
-            # osnr_opm = osnr_dict[osnr_label]
             # get gosnr from QoT-E
             gosnr_est = gosnr_est_dict[opm_key][load]
-            # osnr_est = osnr_est_dict[opm_key][load]
             # Compute errors for the above
             error = compute_errors(gosnr_opm, gosnr_est)
-            # error = compute_errors(osnr_opm, osnr_est)
             errors_tmp[load].append(error)
 
             # get gosnr from QoT-E corrected

@@ -30,24 +30,19 @@ def estimation_module(load, load_id, test_id, signal_ids=None):
     estimation_gosnr_log = []
     roadms = 15
     spans = 6
-    for roadm in range(roadms):
+    for roadm in range(roadms - 1):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        # s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
-        sn_tmp = {x: abs_to_db(i) for x, i in s_a.items()}
-        print("roadm", gosnr(keys, s_p, s_a, s_n))
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
         for span in range(spans):
             # process span attenuation
             s_p, s_a, s_n = process_span(keys, s_p, s_a, s_n)
             s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
-            sn_tmp = {x: abs_to_db(i) for x, i in s_a.items()}
-            print("amp", gosnr(keys, s_p, s_a, s_n))
             estimation_osnr_log.append(osnr(keys, s_p, s_a))
             estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    # write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
+    write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id)
     return estimation_osnr_log, estimation_gosnr_log
 
 
@@ -57,10 +52,10 @@ def estimation_module_dyn(main_struct, m):
     estimation_gosnr_log = []
     roadms = m
     spans = 6
-    for roadm in range(1, roadms + 1):
+    for roadm in range(roadms):
         # process roadm attenuation
         s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
-        # s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
@@ -113,11 +108,10 @@ def process_roadm(keys, s_p, s_a, s_n):
 
 
 def leveling(keys, s_p, s_a, s_n):
-    op = db_to_abs(-19)
+    op = db_to_abs(-19.0)
     delta = {}
     for ch in keys:
         delta[ch] = op / s_p[ch]
-
     for ch in keys:
         s_p[ch] *= delta[ch]
         s_a[ch] *= delta[ch]
