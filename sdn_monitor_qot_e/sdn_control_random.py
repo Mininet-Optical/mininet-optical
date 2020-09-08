@@ -239,10 +239,7 @@ def configure_terminals(channel_no, signal_ids=None):
     """
     Configure the transceivers from the terminals.
     """
-    if signal_ids:
-        channels = signal_ids
-    else:
-        channels = list(np.arange(1, channel_no + 1))
+    channels = signal_ids
     # Port numbering
     eth_ports = list(np.arange(1, channel_no + 2))
     wdm_ports = list(np.arange(82, 82 + channel_no))
