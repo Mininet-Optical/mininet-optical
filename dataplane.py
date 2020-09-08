@@ -487,6 +487,9 @@ class ROADM( SwitchBase ):
 
     def cleanme(self):
         self.model.clean()
+        self.ruleIds = {}
+        self.nextRuleId = 1
+        self.model.delete_switch_rules()
 
     # Dataplane operations
 
