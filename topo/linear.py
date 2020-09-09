@@ -37,9 +37,9 @@ class LinearTopology:
 
         opm_i = 0
         # number of spans per link
-        span_no = 3
+        span_no = 6
         # span distance in km
-        span_distance = 80
+        span_distance = 100
         # target gain
         target_gain = 0.22 * span_distance
         for i in range(non-1):
