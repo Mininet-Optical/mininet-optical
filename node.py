@@ -217,7 +217,7 @@ class LineTerminal(Node):
 
     def configure_terminal(self, transceiver, out_port, channels):
         """
-        Begin a transmission from the LT to the connected ROADM
+        Program the channels that will be launched at transceivers
         :param transceiver: transceiver to use for transmission
         :param out_port: output port for transmission
         :param channels: the channels to be transmitted
@@ -333,6 +333,20 @@ class LineTerminal(Node):
             self.port_to_optical_signal_power_out[out_port][channel] = output_power
             self.port_to_optical_signal_out[out_port].append(channel)
 
+    def configure_symbol_rate(self, tr, new_symbol_rate):
+        if tr not in self.name_to_transceivers:
+            raise ValueError("Node.LineTerminal.configure_symbol_rate: transceiver does not exist!")
+        transceiver = self.name_to_transceivers[tr]
+        transceiver.configure_symbol_rate(new_symbol_rate)
+
+        for ch in self.transceiver_to_optical_signals[transceiver]:
+            ch.symbol_rate = new_symbol_rate
+
+    def configure_modulation_format(self, transceiver, new_modulation_format):
+        if transceiver not in self.name_to_transceivers:
+            raise ValueError("Node.LineTerminal.configure_modulation_format: transceiver does not exist!")
+        transceiver.configure_modulation_format(new_modulation_format)
+
     def print_signals(self, names=(('output', 'tx ->'), ('input','rx <-'))):
         "Print TX and RX signals"
         super().print_signals( names )
@@ -342,7 +356,7 @@ class Transceiver(object):
     def __init__(self, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
                  bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=32e9):
+                 bits_per_symbol=4.0, symbol_rate=25e9):
         """
         :param channel_spacing: channel spacing in nanometers - float
         :param bandwidth: channel bandwidth in GHz - float
@@ -365,6 +379,12 @@ class Transceiver(object):
 
     def compute_gross_bit_rate(self):
         self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
+
+    def configure_symbol_rate(self, new_symbol_rate):
+        self.symbol_rate = new_symbol_rate
+
+    def configure_modulation_format(self, new_modulation_format):
+        self.modulation_format = new_modulation_format
 
     def describe(self):
         pprint(vars(self))
@@ -1084,6 +1104,17 @@ class Monitor(Node):
         for optical_signal in optical_signals:
             optical_signals_list.append(self.get_gosnr(optical_signal))
         return optical_signals_list
+
+    def get_dict_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        optical_signals_dict = {}
+        for optical_signal in optical_signals:
+            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
+        return optical_signals_dict
 
     def get_osnr(self, optical_signal):
         """
