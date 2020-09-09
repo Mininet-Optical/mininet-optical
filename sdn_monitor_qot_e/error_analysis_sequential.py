@@ -9,7 +9,7 @@ import matplotlib.font_manager
 from correction_procedure import *
 
 # Plot configuration parameters
-# figure(num=None, figsize=(9, 7), dpi=256)
+figure(num=None, figsize=(9, 7), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -170,19 +170,19 @@ plt.xlabel("Amplifiers")
 
 ms = 12
 ls = 6
-plt.plot(error_9, color='b', linewidth=ls, label='NM-10%')
-plt.plot(error_27, color='orange', linewidth=ls, label='NM-30%')
-plt.plot(error_81, color='g', linewidth=ls, label='NM-90%')
+plt.plot(error_9, color='r', linewidth=ls, label='NM-10%')
+plt.plot(error_27, color='lightblue', linewidth=ls, label='NM-30%')
+plt.plot(error_81, color='darkblue', linewidth=ls, label='NM-90%')
 
 plt.plot(error_c_9, linestyle='None', marker='s', markeredgewidth=2, markersize=ms,
-             markerfacecolor='None', color='b', label='M-10%')
+             markerfacecolor='None', color='r', label='M-10%')
 plt.plot(error_c_27, linestyle='None', marker='v', markeredgewidth=2, markersize=ms,
-             markerfacecolor='None', color='orange', label='M-30%')
+             markerfacecolor='None', color='lightblue', label='M-30%')
 plt.plot(error_c_81, linestyle='None', marker='D', markeredgewidth=2, markersize=ms,
-             markerfacecolor='None', color='g', label='M-90%')
+             markerfacecolor='None', color='darkblue', label='M-90%')
 plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1)  # , bbox_to_anchor=(0.5, 0.9))
 plt.grid(True)
-#fig_name = '../../images/sequential_analysis_50.eps'
-#plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
-plt.show()
+fig_name = '../../images/sequential_analysis.eps'
+plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
+# plt.show()
 

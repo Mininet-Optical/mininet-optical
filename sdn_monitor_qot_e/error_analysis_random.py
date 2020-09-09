@@ -96,7 +96,6 @@ for opm_key in monitor_keys:
 
 # record max error from 150 samples at each OPM
 errors_orig = {9: [], 27: [], 81: []}
-# errors = {9: [], 27: []}
 errors_corr = {9: [], 27: [], 81: []}
 
 gosnr_corr_log_9 = get_corrected_struct(9)
@@ -113,7 +112,6 @@ for mk, opm_key in enumerate(monitor_keys):
 
     errors_tmp = {9: [], 27: [], 81: []}
     errors_c_tmp = {9: [], 27: [], 81: []}
-    # errors_tmp = {9: []}
     for filename in files:
         # there are 150 files per load (450 iterations).
         file_path = opm_mon_path + '/' + filename
@@ -155,13 +153,13 @@ error_c_9 = errors_corr[9]
 error_c_27 = errors_corr[27]
 error_c_81 = errors_corr[81]
 
-plt.plot(error_9, color='b')
-plt.plot(error_27, color='m')
-plt.plot(error_81, color='g')
+plt.plot(error_9, color='r')
+plt.plot(error_27, color='lightblue')
+plt.plot(error_81, color='darkblue')
 
-plt.plot(error_c_9, linestyle='None', marker='o', color='b')
-plt.plot(error_c_27, linestyle='None', marker='o', color='m')
-plt.plot(error_c_81, linestyle='None', marker='o', color='g')
+# plt.plot(error_c_9, linestyle='None', marker='o', color='b')
+# plt.plot(error_c_27, linestyle='None', marker='o', color='m')
+# plt.plot(error_c_81, linestyle='None', marker='o', color='g')
 plt.grid(True)
 plt.show()
 

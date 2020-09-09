@@ -99,7 +99,7 @@ def get_corrected_struct(load, signals_id=None):
     for key in monitor_keys:
         gosnr_corr_dict[key] = {9: {}, 27: {}, 81: {}}
 
-    for test_id in range(1):
+    for test_id in range(10):
         # iterate through the number of files
         prev_opm_index = 0  # initial loc of monitors
         opm_index = 7  # initial step
