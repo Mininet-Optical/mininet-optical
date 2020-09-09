@@ -820,11 +820,12 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
-    def output_amplified_power(self, signal, in_power):
+    def output_amplified_power(self, signal, in_power, p_exc=False):
         """
         Compute the output power levels of each signal after amplification
         :param signal: signal object
         :param in_power: input signal power linear (mW)
+        :param p_exc:
         """
         system_gain = self.system_gain
         wavelength_dependent_gain = self.get_wavelength_dependent_gain(signal.index)
@@ -833,7 +834,10 @@ class Amplifier(Node):
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
         output_power = in_power * system_gain_linear * wavelength_dependent_gain_linear
         self.output_power[signal] = output_power
-        return output_power
+        if p_exc:
+            return output_power / wavelength_dependent_gain_linear
+        else:
+            return output_power
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, accumulated_noise=None):
         """
