@@ -2,6 +2,7 @@ import units as unit
 from pprint import pprint
 import numpy as np
 import scipy.constants as sc
+from scipy.special import erfc
 import random
 from collections import namedtuple
 
@@ -196,7 +197,7 @@ class LineTerminal(Node):
         del self.name_to_transceivers[transceiver_name]
         del self.transceiver_to_optical_signals[transceiver_name]
 
-    def transmit(self, transceiver, out_port, channels):
+    def transmit(self, transceiver, out_port, channels, modulation_method = None):
         """
         Begin a transmission from the LT to the connected ROADM
         :param transceiver: transceiver to use for transmission
@@ -225,7 +226,8 @@ class LineTerminal(Node):
         accumulated_ASE_noise, accumulated_NLI_noise = self.init_noise_structs(out_port)
         link.propagate(self.port_to_optical_signal_power_out[out_port],
                        accumulated_ASE_noise=accumulated_ASE_noise,
-                       accumulated_NLI_noise=accumulated_NLI_noise)
+                       accumulated_NLI_noise=accumulated_NLI_noise,
+                       modulation_method=modulation_method)
 
     def init_noise_structs(self, out_port):
         noise = {}
@@ -241,7 +243,19 @@ class LineTerminal(Node):
     def gosnr(power, ase_noise, nli_noise):
         return abs_to_db(power / (ase_noise + nli_noise))
 
-    def receiver(self, in_port, signal_power, accumulated_ASE_noise, accumulated_NLI_noise):
+    @staticmethod
+    def ber(modulation_method, gosnr):
+        """Bit Error Rate calculation based on formulas from
+        """
+        if modulation_method == None or modulation_method == {}: return None
+        if modulation_method == 'bpsk': return 0.5 * erfc(np.sqrt(gosnr))
+        if modulation_method == 'qpsk': return 0.5 * erfc(np.sqrt(gosnr/2))
+        if modulation_method == '8qam': return (2/3) * erfc(np.sqrt(3 * gosnr/14))
+        if modulation_method == '16qam': return (3 / 8) * erfc(np.sqrt(gosnr / 10))
+        if modulation_method == 'Batman'or modulation_method == 'batman': return "I am Batman" #A fun little Easter Egg
+        else: raise ValueError("Invalid Signal Modulation Format", modulation_method)
+
+    def receiver(self, in_port, signal_power, accumulated_ASE_noise, accumulated_NLI_noise, modulation_method):
         # Update optical signal power; probably obsolete...
         self.port_to_optical_signal_power_in[in_port].update(signal_power)
 
@@ -259,9 +273,11 @@ class LineTerminal(Node):
             # Compute OSNR and gOSNR
             osnr = self.osnr(power, ase_noise)
             gosnr = self.gosnr(power, ase_noise, nli_noise)
+            ber = self.ber(modulation_method, gosnr)
 
             signalInfoDict[signal]['osnr'] = osnr
             signalInfoDict[signal]['gosnr'] = gosnr
+            signalInfoDict[signal]['ber'] = ber
             if gosnr < 20:
                 print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
                       (self.__class__.__name__, self.name, abs_to_db(gosnr)))
@@ -270,6 +286,7 @@ class LineTerminal(Node):
             else:
                 print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
                 signalInfoDict[signal]['success'] = True
+                print(signalInfoDict)  # Uncomment to see Channel information
                 self.receiver_callback(in_port, signalInfoDict)
 
     def receiver_callback(self, in_port, signalDictInfo):
@@ -421,6 +438,7 @@ class Roadm(Node):
         self.port_to_optical_signal_nli_noise_in = {}
         self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
+        self.modulation_method = None
 
     def voa_safety_check(self, voa_function, voa_target_out_power):
         """
@@ -572,7 +590,7 @@ class Roadm(Node):
         for ruleId in list(self.switch_table):
             self.delete_switch_rule( ruleId )
 
-    def insert_signals(self, in_port, optical_signals, accumulated_ASE_noise=None, accumulated_NLI_noise=None):
+    def insert_signals(self, in_port, optical_signals, accumulated_ASE_noise=None, accumulated_NLI_noise=None, modulation_method=None):
         # Update input port structure for monitoring purposes
         self.port_to_optical_signal_power_in[in_port].update(optical_signals)
         # if in_port not in self.port_to_optical_signal_ase_noise_in:
@@ -580,6 +598,7 @@ class Roadm(Node):
         self.port_to_optical_signal_ase_noise_in[in_port].update(accumulated_ASE_noise)
         self.port_to_optical_signal_nli_noise_in.setdefault(in_port, {})
         self.port_to_optical_signal_nli_noise_in[in_port].update(accumulated_NLI_noise)
+        self.modulation_method = modulation_method
 
     def switch(self, in_port):
         """
@@ -635,6 +654,7 @@ class Roadm(Node):
             print("*** Switching at %s" % self.name)
             # Pass only the signals corresponding to the output port
             pass_through_signals = self.port_to_optical_signal_power_out[op].copy()
+            modulation_method =self.modulation_method
             if op in self.port_to_optical_signal_ase_noise_out:
                 ase = self.port_to_optical_signal_ase_noise_out[op].copy()
             else:
@@ -645,7 +665,7 @@ class Roadm(Node):
             else:
                 nli = self.port_to_optical_signal_nli_noise_in[in_port].copy()
             # Propagate signals through link
-            link.propagate(pass_through_signals, ase, nli,
+            link.propagate(pass_through_signals, ase, nli, modulation_method,
                            voa_compensation=self.voa_compensation)
 
     def get_node_attenuation(self, in_port):
@@ -704,9 +724,10 @@ class Roadm(Node):
         pass_through_signals = self.port_to_optical_signal_power_out[out_port].copy()
         ase = self.port_to_optical_signal_ase_noise_out[out_port].copy()
         nli = self.port_to_optical_signal_nli_noise_out[out_port].copy()
+        modulation_method = self.modulation_method
 
         link.reset_propagation_struct()
-        link.propagate(pass_through_signals, ase, nli, voa_compensation=False)
+        link.propagate(pass_through_signals, ase, nli, modulation_method, voa_compensation=False)
 
     def print_signals(self):
         "Debugging: print input and output signals"

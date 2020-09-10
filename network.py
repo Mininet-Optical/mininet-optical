@@ -149,7 +149,7 @@ class Network(object):
 
         link.add_span(span, amplifier)
 
-    def transmit(self, src_node, dst_node, bit_rate=100*1e9, resources=None):
+    def transmit(self, src_node, dst_node, bit_rate=100*1e9, modulation_method = None, resources=None):
         if resources:
             transceiver = resources['transceiver']
             wavelengths = resources['required_wavelengths']
@@ -157,7 +157,7 @@ class Network(object):
             transceiver, wavelengths = self.wavelength_allocation(src_node, bit_rate)
 
         out_port = self.find_link_and_out_port_from_nodes(src_node, dst_node)
-        src_node.transmit(transceiver, out_port, wavelengths)
+        src_node.transmit(transceiver, out_port, wavelengths, modulation_method)
 
     def find_link_and_out_port_from_nodes(self, src_node, dst_node):
         out_port = None
