@@ -32,11 +32,10 @@ from plotly.subplots import make_subplots
 
 def extract_power(component,mode='in'):
     """
-                        :param component : Component (Amplifiers, ROADM) for which power needs to be extracted
-                        :param mode: The power values to extracted from input or output mode
-                        :return signal_index: Returns signal_index (channel index used for transmission)
-                        :return power: Returns power (power values at the port in transmission)
-
+    :param component : Component (Amplifiers, ROADM) for which power needs to be extracted
+    :param mode: The power values to extracted from input or output mode
+    :return signal_index: Returns signal_index (channel index used for transmission)
+    :return power: Returns power (power values at the port in transmission)
     """
 
     power_list = []
@@ -56,10 +55,6 @@ def extract_power(component,mode='in'):
 
             return signal_index, power_list
 
-
-
-
-
     if (isinstance(component,node.Roadm)):
         roadm_power_type = {}
         if mode == 'in':
@@ -78,50 +73,22 @@ def extract_power(component,mode='in'):
 
         return signal_index, power_list
 
-
-
-
 def visualize_topology(net):
 
     """
-        :param net: Network Object
-        :return: Calls the Network Visualization function in a separate thread
+    :param net: Network Object
+    :return: Calls the Network Visualization function in a separate thread
     """
 
     t = threading.Thread(target=visualize, args=(net,))  # Calls the visualization function as a separate thread from the calling script
     t.setDaemon(True)
     t.start()  # Start the thread
 
-
-"""
-Absolute : Required for preset configuration/position of elements
-
-def point(h, k, r,theta):
-    #theta = random() * 2 * i
-    return h + cos(theta) * r, k + sin(theta) * r
-
-def get_position(component,theta):
-    pos_dict={'lt': 40, 'roadm': 80,'amp': 80}
-    circle_centre=(1,2)
-    for key in pos_dict.keys():
-        if key in str(component):
-            x,y=point(circle_centre[0],circle_centre[1],pos_dict[key],theta)
-    return x,y
-
-def get_theta(net,theta):
-    theta_value = theta / len(net.topology)
-    return theta_value
-
-
-"""
-
-
-
 def visualize(net):
 
     """
-            :param net: Network Object
-            :return: Creates a server accessible at http://127.0.0.1:8050 with Network Topology
+    :param net: Network Object
+    :return: Creates a server accessible at http://127.0.0.1:8050 with Network Topology
     """
 
     elements = [] # Consists Data-Point for Input for Dash
@@ -169,7 +136,6 @@ def visualize(net):
 
     app = dash.Dash() # Calling the Dash-App
 
-
     # Stylesheet for styling different components in the Topology
 
     stylesheet = [
@@ -180,8 +146,6 @@ def visualize(net):
                 'content': 'data(label)'
             }
         },
-
-        # Class selectors
         {
             'selector': '.lt',
             'style': {
@@ -212,8 +176,6 @@ def visualize(net):
     ]
 
     # Layout of the Dash-App
-
-
     app.layout = html.Div([
         html.Div(cyto.Cytoscape(
             id='mininet-optical',
@@ -276,10 +238,6 @@ def visualize(net):
         fig.update_yaxes(title_text="Power (dBm)", row=1, col=2)
 
         return html.Div(dcc.Graph(figure=fig))
-
-
-
-
 
     app.run_server(debug= False)
 
