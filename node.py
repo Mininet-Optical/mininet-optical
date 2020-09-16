@@ -4,7 +4,6 @@ import numpy as np
 import scipy.constants as sc
 import random
 from collections import namedtuple
-import math
 
 
 def db_to_abs(db_value):
@@ -46,7 +45,6 @@ class Node(object):
         self.ports_out = []
         self.port_to_node_in = {}  # dict of port no. to ingress connecting nodes
         self.port_to_node_out = {}  # dict of port no. to egress connecting nodes
-        # self.port_to_optical_signal_in = {} is a @property (see below)
         self.port_to_optical_signal_out = {}  # dict of ports to output signals
         self.port_to_optical_signal_power_in = {}  # dict of ports to input signals and power levels
         self.port_to_optical_signal_power_out = {}  # dict of ports to output signals and power levels
@@ -90,6 +88,7 @@ class Node(object):
         Create a new input port for a node
         to connect to another node
         :param connected_node:
+        :param portnum:
         :return: new input port
         """
         if portnum is not None:
@@ -425,6 +424,7 @@ class OpticalSignal(object):
             signal = cls.instances[params] = cls(*params)
         return signal
 
+
 # Replace class constructor with factory method
 OpticalSignal = OpticalSignal.getOpticalSignal
 
@@ -721,7 +721,6 @@ class Roadm(Node):
         """
         wavelength dependent attenuation
         """
-
         if self.voa_function is 'flatten':
             # compute VOA compensation and re-propagate only if there is a function
             out_difference = {}
@@ -729,7 +728,6 @@ class Roadm(Node):
                 # From the boost-amp, compute the difference between output power levels
                 # and the target output power. Set this as the compensation function.
                 delta = self.voa_target_out_power / out_power
-                delta_dB = abs_to_db(delta)
                 out_difference[k] = delta
 
             for optical_signal, voa_att in out_difference.items():
