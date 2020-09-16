@@ -43,6 +43,7 @@ def run(net):
     transmit(lt_1)
 
     # monitor(net)
+    plot_monitor(net)
 
 
 def configure_transceiver(term, tid):
@@ -149,8 +150,7 @@ def plot_monitor(net):
     plt.xlabel('amplifier number')
     plt.ylabel('OSNR and gOSNR [dB]')
     plt.grid(True)
-    #plt.show()
-    print(plotting_gosnr)
+    plt.show()
 
 
 def monitor(net):
@@ -165,6 +165,7 @@ def monitor(net):
     for key, _ in osnrs.items():
         opm_name = opm_name_base + str(key)
         opm = net.name_to_node[opm_name]
+        osnrs[key] = opm.get_dict_osnr()
         gosnrs[key] = opm.get_dict_gosnr()
 
     for opm, _dict in gosnrs.items():
@@ -184,6 +185,9 @@ def monitor(net):
 
 
 def simple_analysis():
+    """
+    Obsolete function from studying BVT configuration.
+    """
     prev = [10.91133808116804, 10.59341742427818, 10.367168188505353, 10.1565395852077, 9.998458013805658,
             9.879226327315331, 9.803409729494852, 9.765737181844992, 9.755465803803798, 9.756810639526234,
             9.765396843553688, 9.78168392584163, 9.807929401600399, 9.848526965621229, 9.917174362583747,
