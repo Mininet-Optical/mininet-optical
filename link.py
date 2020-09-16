@@ -153,7 +153,7 @@ class Link(object):
                                           accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
                                           accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
                 if is_last_port:
-                    self.node2.new_switch()
+                    self.node2.switch()
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
         """
