@@ -333,7 +333,7 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
-        process_file(json_file_name, monitor_key)
+        # process_file(json_file_name, monitor_key)
 
 
 def process_file(outfile, monitor_key):
