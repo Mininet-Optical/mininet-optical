@@ -1,7 +1,5 @@
 import json
 import os
-from sklearn.metrics import mean_squared_error, mean_absolute_error
-from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import figure
@@ -9,7 +7,7 @@ import matplotlib.font_manager
 from correction_procedure import *
 
 # Plot configuration parameters
-# figure(num=None, figsize=(9, 7), dpi=256)
+figure(num=None, figsize=(9, 7), dpi=256)
 del matplotlib.font_manager.weight_dict['roman']
 matplotlib.font_manager._rebuild()
 
@@ -43,6 +41,7 @@ monitor_keys = [
         'r13-r14-amp5-monitor', 'r13-r14-amp6-monitor', 'r14-r15-boost', 'r14-r15-amp1-monitor',
         'r14-r15-amp2-monitor', 'r14-r15-amp3-monitor', 'r14-r15-amp4-monitor', 'r14-r15-amp5-monitor',
         'r14-r15-amp6-monitor'
+
     ]
 
 
@@ -94,16 +93,47 @@ for opm_key in monitor_keys:
         # record gosnr estimation per load
         gosnr_est_dict[opm_key][load][test_id] = gosnr
 
-# record max error from 150 samples at each OPM
-errors_orig = {9: [], 27: [], 81: []}
-errors_corr = {9: [], 27: [], 81: []}
+loadings = {9: [], 27: [], 81: []}
+for ch_key in loadings.keys():
+    load_str = 'seeds/channel_loading_seed_' + str(ch_key) + '.txt'
+    with open(load_str, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        ch_load = line.split(',')
+        ch_load[-1] = ch_load[-1][:-1]
+        loadings[ch_key].append([int(x) for x in ch_load])
 
-gosnr_corr_log_9 = get_corrected_struct(9)
-gosnr_corr_log_27 = get_corrected_struct(27)
-gosnr_corr_log_81 = get_corrected_struct(81)
+load_9 = loadings[9]
+gosnr_corr_log_9 = dict.fromkeys(monitor_keys)
+for key in monitor_keys:
+    gosnr_corr_log_9[key] = {9: {}, 27: {}, 81: {}}
+for test_id, _load in enumerate(load_9):
+    gosnr_corr_log_9.update(get_corrected_struct_ran(9, gosnr_corr_log_9, signals_id=_load, test_id=test_id))
+
+
+load_27 = loadings[27]
+gosnr_corr_log_27 = dict.fromkeys(monitor_keys)
+for key in monitor_keys:
+    gosnr_corr_log_27[key] = {9: {}, 27: {}, 81: {}}
+for test_id, _load in enumerate(load_27):
+    gosnr_corr_log_27.update(get_corrected_struct_ran(27, gosnr_corr_log_27, signals_id=_load, test_id=test_id))
+
+
+load_81 = loadings[81]
+gosnr_corr_log_81 = dict.fromkeys(monitor_keys)
+for key in monitor_keys:
+    gosnr_corr_log_81[key] = {9: {}, 27: {}, 81: {}}
+for test_id, _load in enumerate(load_81):
+    gosnr_corr_log_81.update(get_corrected_struct_ran(81, gosnr_corr_log_81, signals_id=_load, test_id=test_id))
+
+
 gosnr_corr = {9: gosnr_corr_log_9,
               27: gosnr_corr_log_27,
               81: gosnr_corr_log_81}
+
+# record max error from 150 samples at each OPM
+errors_orig = {9: [], 27: [], 81: []}
+errors_corr = {9: [], 27: [], 81: []}
 
 for mk, opm_key in enumerate(monitor_keys):
     # enter the folder and locate the files
@@ -135,6 +165,7 @@ for mk, opm_key in enumerate(monitor_keys):
 
         # get gosnr from QoT-E corrected
         gosnr_corrected = gosnr_corr[load][opm_key][load][test_id]
+
         # Compute errors for OPM and QoT-E corrected
         error_c = compute_errors(gosnr_opm, gosnr_corrected)
         errors_c_tmp[load].append(error_c)
@@ -153,13 +184,28 @@ error_c_9 = errors_corr[9]
 error_c_27 = errors_corr[27]
 error_c_81 = errors_corr[81]
 
-plt.plot(error_9, color='r')
-plt.plot(error_27, color='lightblue')
-plt.plot(error_81, color='darkblue')
+xt = [1, 14, 28, 42, 56, 70, 84, 98]
+plt.xticks([0, 13, 27, 41, 55, 69, 83, 97], xt)
+plt.yticks(np.arange(0, 7.5, 0.5))
+plt.ylabel("Max Error (dB)")
+plt.xlabel("Amplifiers")
 
-# plt.plot(error_c_9, linestyle='None', marker='o', color='b')
-# plt.plot(error_c_27, linestyle='None', marker='o', color='m')
-# plt.plot(error_c_81, linestyle='None', marker='o', color='g')
+ms = 12
+ls = 6
+plt.plot(error_9, color='r', linewidth=ls, label='NM-10%')
+plt.plot(error_27, color='lightblue', linewidth=ls, label='NM-30%')
+plt.plot(error_81, color='darkblue', linewidth=ls, label='NM-90%')
+
+plt.plot(error_c_9, linestyle='None', marker='s', markeredgewidth=2, markersize=ms,
+             markerfacecolor='None', color='r', label='M-10%')
+plt.plot(error_c_27, linestyle='None', marker='v', markeredgewidth=2, markersize=ms,
+             markerfacecolor='None', color='lightblue', label='M-30%')
+plt.plot(error_c_81, linestyle='None', marker='D', markeredgewidth=2, markersize=ms,
+             markerfacecolor='None', color='darkblue', label='M-90%')
+plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1)  # , bbox_to_anchor=(0.5, 0.9))
 plt.grid(True)
-plt.show()
+fig_name = '../../images/random_analysis_m14.eps'
+plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
+# plt.show()
+
 

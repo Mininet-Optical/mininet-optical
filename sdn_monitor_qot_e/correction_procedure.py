@@ -99,17 +99,17 @@ def get_corrected_struct(load, signals_id=None):
     for key in monitor_keys:
         gosnr_corr_dict[key] = {9: {}, 27: {}, 81: {}}
 
-    for test_id in range(10):
+    for test_id in range(150):
         # iterate through the number of files
         prev_opm_index = 0  # initial loc of monitors
-        opm_index = 7  # initial step
+        opm_index = 14  # initial step
 
         # initialize signal structures
         if signals_id:
             signals_id = [int(x) for x in signals_id]
         main_struct = build_struct(load, signal_ids=signals_id)
-        for i in range(14):
-            m = 1
+        for i in range(7):
+            m = 2
             opm_key = monitor_keys[opm_index - 1]
             # run estimation for 6 span x m
             _, estimation_gosnr_log = estimation_module_dyn(main_struct, m)
@@ -129,7 +129,44 @@ def get_corrected_struct(load, signals_id=None):
 
             main_struct = power_dict.keys(), power_dict, ase_dict, nli_dict
             prev_opm_index = opm_index
-            opm_index += 7
+            opm_index += 14
     return gosnr_corr_dict
 
 
+def get_corrected_struct_ran(load, gosnr_corr_dict, signals_id=None, test_id=None):
+    # gosnr_corr_dict = dict.fromkeys(monitor_keys)
+    #
+    # for key in monitor_keys:
+    #     gosnr_corr_dict[key] = {9: {}, 27: {}, 81: {}}
+
+    # iterate through the number of files
+    prev_opm_index = 0  # initial loc of monitors
+    opm_index = 14  # initial step
+
+    # initialize signal structures
+    if signals_id:
+        signals_id = [int(x) for x in signals_id]
+    main_struct = build_struct(load, signal_ids=signals_id)
+    for i in range(7):
+        m = 2
+        opm_key = monitor_keys[opm_index - 1]
+        # run estimation for 6 span x m
+        _, estimation_gosnr_log = estimation_module_dyn(main_struct, m)
+
+        gosnr_dict = keys_to_int(gosnr_opm_dict[opm_key][load][test_id])
+
+        #  correction point
+        estimation_gosnr_log[-1] = gosnr_dict
+        # store in dict
+        tmp_m_keys = monitor_keys[prev_opm_index:opm_index]
+        for i, mk in enumerate(tmp_m_keys):
+            gosnr_corr_dict[mk][load][test_id] = keys_to_str(estimation_gosnr_log[i])
+
+        power_dict = keys_to_int(power_opm_dict[opm_key][load][test_id])
+        ase_dict = keys_to_int(ase_opm_dict[opm_key][load][test_id])
+        nli_dict = keys_to_int(nli_opm_dict[opm_key][load][test_id])
+
+        main_struct = power_dict.keys(), power_dict, ase_dict, nli_dict
+        prev_opm_index = opm_index
+        opm_index += 14
+    return gosnr_corr_dict

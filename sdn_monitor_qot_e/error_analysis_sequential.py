@@ -182,7 +182,7 @@ plt.plot(error_c_81, linestyle='None', marker='D', markeredgewidth=2, markersize
              markerfacecolor='None', color='darkblue', label='M-90%')
 plt.legend(ncol=2, loc='best', columnspacing=0.1, handletextpad=0.1)  # , bbox_to_anchor=(0.5, 0.9))
 plt.grid(True)
-fig_name = '../../images/sequential_analysis.eps'
+fig_name = '../../images/sequential_analysis_m14.eps'
 plt.savefig(fig_name, format='eps', bbox_inches='tight', pad_inches=0)
 # plt.show()
 
