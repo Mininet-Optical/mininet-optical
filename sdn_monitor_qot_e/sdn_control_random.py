@@ -31,7 +31,6 @@ import os
 from estimation_module import *
 import json
 import subprocess
-from time import sleep
 
 
 # Optionally: retrieve WDG seed to pass to EDFAs.
@@ -135,7 +134,7 @@ def clean_roadms(roadms):
     within the roadms.
     """
     for roadm in roadms:
-        ROADMProxy(roadm).cleanme()
+        ROADMProxy(roadm).reset()
 
 
 def configure_amps(net, roadm_no, tr):

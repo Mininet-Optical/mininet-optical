@@ -120,7 +120,7 @@ def clean_roadms(roadms):
     within the roadms.
     """
     for roadm in roadms:
-        ROADMProxy(roadm).cleanme()
+        ROADMProxy(roadm).reset()
 
 
 def configure_amps(net, roadm_no, tr):

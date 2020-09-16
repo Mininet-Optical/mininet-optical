@@ -256,7 +256,6 @@ class SwitchBase( OVSSwitch ):
         return 'OK'
 
 
-
 class Terminal( SwitchBase ):
     """
     Simple terminal which is just a bank of transceivers
@@ -293,14 +292,6 @@ class Terminal( SwitchBase ):
         self.txChannels = {}
         self.failedChannels = set()
         self.model.reset()
-
-    # Probably obsolete now that we have auto-propagation
-    #def propagate( self ):
-    #    "Propagate output signals"
-    #    outport = self.model.ports_out[0]
-    #     for txChannel in self.txChannel.items():
-    #        transceiver = self.model.transceivers[ tx ]
-    #        self.model.transmit(transceiver, outport, [channel])
 
     def configTx( self, txNum, channel=None, power=None ):
         """Configure transceiver txNum
@@ -449,7 +440,7 @@ class ROADM( SwitchBase ):
         "Reset physical model"
         self.ruleIds = {}
         self.nextRuleId = 1
-        self.model.delete_switch_rules()
+        self.model.clean()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
@@ -484,12 +475,6 @@ class ROADM( SwitchBase ):
         "Handle REST clean request"
         self.cleanme()
         return 'OK'
-
-    def cleanme(self):
-        self.model.clean()
-        self.ruleIds = {}
-        self.nextRuleId = 1
-        self.model.delete_switch_rules()
 
     # Dataplane operations
 

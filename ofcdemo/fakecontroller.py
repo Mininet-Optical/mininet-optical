@@ -126,10 +126,10 @@ class ROADMProxy( SwitchProxy ):
         r = self.get( 'connect', params=params)
         # print( r )
 
-    def cleanme(self):
-        # print('connect', dict(node=self.name))
-        r = self.get('cleanme', params=dict(node=self.name))
-        # print(r)
+    def reset(self):
+        params = dict(node=self.name)
+        # print('reset', params)
+        r = self.get('reset', params=params)
 
 
 ### Configuration Retrieval
