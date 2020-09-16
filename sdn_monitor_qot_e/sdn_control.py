@@ -336,7 +336,7 @@ def process_file(outfile, monitor_key):
     """
     # send file to flash drive
     # print("processing file: ", outfile)
-    dest_file = 'adiaz@192.168.56.1:/Volumes/LEXAR/opm-all/' + monitor_key + '/'
+    dest_file = '../tmp/'
     cmd1 = ['rsync', '-r', outfile, dest_file]
     # delete file
     cmd2 = ['rm', outfile]
