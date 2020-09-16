@@ -5,8 +5,12 @@ performance of the physical models.
 """
 
 
-import numpy as np
 from topo.linear import LinearTopology
+from estimation_module import *
+import numpy as np
+import os
+from operator import attrgetter
+import json
 import matplotlib.pyplot as plt
 
 
@@ -29,26 +33,29 @@ def abs_to_db(absolute_value):
 
 
 def run(net):
-    load = 81
     lt_1 = net.name_to_node['lt_1']
 
-    configure_terminal(lt_1, load)
+    test_num = 1
+    _loads = [9, 27, 81]
+    for load in _loads:
+        print("Processing load", load)
+        estimation_module(load, str(load), str(0))
+        test_run = 0
+        while test_run < test_num:
+            print("Running test no. ", test_run)
+            configure_terminal(lt_1, load)
 
-    for i in range(1, load + 1):
-        pass
-        #configure_transceiver(lt_1, i)
+            configure_roadms(net, load)
 
-    configure_roadms(net, load)
+            transmit(lt_1)
 
-    transmit(lt_1)
+            monitor(net, str(test_run), str(load))
 
-    # monitor(net)
-    plot_monitor(net)
+            reset_terminal(lt_1)
 
+            clean_roadms()
 
-def configure_transceiver(term, tid):
-    tr_name = 't' + str(tid)
-    term.configure_symbol_rate(tr_name, 64e9)
+            test_run += 1
 
 
 def configure_terminal(term, channel_no, signal_ids=None):
@@ -68,48 +75,33 @@ def configure_terminal(term, channel_no, signal_ids=None):
         term.configure_terminal(t, out_port, [ch])
 
 
-def configure_roadms(net, channel_no, signal_ids=None):
-    roadm_1 = net.name_to_node['roadm_1']
-    roadm_2 = net.name_to_node['roadm_2']
-    roadm_3 = net.name_to_node['roadm_3']
-    roadm_4 = net.name_to_node['roadm_4']
-    roadm_5 = net.name_to_node['roadm_5']
-    roadm_6 = net.name_to_node['roadm_6']
-    roadm_7 = net.name_to_node['roadm_7']
-    roadm_8 = net.name_to_node['roadm_8']
-    roadm_9 = net.name_to_node['roadm_9']
-    roadm_10 = net.name_to_node['roadm_10']
-    roadm_11 = net.name_to_node['roadm_11']
-    roadm_12 = net.name_to_node['roadm_12']
-    roadm_13 = net.name_to_node['roadm_13']
-    roadm_14 = net.name_to_node['roadm_14']
-    roadm_15 = net.name_to_node['roadm_15']
+def configure_roadms(net, channel_no):
+    channels = list(np.arange(1, channel_no + 1))
 
-    if signal_ids:
-        channels = signal_ids
-    else:
-        channels = list(np.arange(1, channel_no + 1))
+    for i in range(1, 16):
+        roadm = net.name_to_node['r' + str(i)]
 
-    roadm_1.install_switch_rule(1, 0, 101, channels)
-    roadm_2.install_switch_rule(1, 1, 102, channels)
-    roadm_3.install_switch_rule(1, 1, 102, channels)
-    roadm_4.install_switch_rule(1, 1, 102, channels)
-    roadm_5.install_switch_rule(1, 1, 102, channels)
-    roadm_6.install_switch_rule(1, 1, 102, channels)
-    roadm_7.install_switch_rule(1, 1, 102, channels)
-    roadm_8.install_switch_rule(1, 1, 102, channels)
-    roadm_9.install_switch_rule(1, 1, 102, channels)
-    roadm_10.install_switch_rule(1, 1, 102, channels)
-    roadm_11.install_switch_rule(1, 1, 102, channels)
-    roadm_12.install_switch_rule(1, 1, 102, channels)
-    roadm_13.install_switch_rule(1, 1, 102, channels)
-    roadm_14.install_switch_rule(1, 1, 102, channels)
-    roadm_15.install_switch_rule(1, 1, 100, channels)
+        if i == 1:
+            roadm.install_switch_rule(1, 0, 101, channels)
+        elif i == 15:
+            roadm.install_switch_rule(1, 1, 100, channels)
+        else:
+            roadm.install_switch_rule(1, 1, 102, channels)
 
 
 def transmit(term):
     out_port = [100]
     term.turn_on(out_port)
+
+
+def reset_terminal(term):
+    term.reset()
+
+
+def clean_roadms():
+    for i in range(1, 16):
+        roadm = net.name_to_node['r' + str(i)]
+        roadm.clean()
 
 
 def plot_monitor(net):
@@ -153,62 +145,90 @@ def plot_monitor(net):
     plt.show()
 
 
-def monitor(net):
-    # Retrieve number of amplifiers (or monitoring nodes)
-    num_amplifiers = int((len(net.amplifiers) / 2) + 1)
-    osnrs = {i: [] for i in range(1, num_amplifiers)}
-    gosnrs = {i: [] for i in range(1, num_amplifiers)}
-
-    # Retrieve from each monitoring points the
-    # OSNR and gOSNR of all the channels
-    opm_name_base = 'opm_'
-    for key, _ in osnrs.items():
-        opm_name = opm_name_base + str(key)
-        opm = net.name_to_node[opm_name]
-        osnrs[key] = opm.get_dict_osnr()
-        gosnrs[key] = opm.get_dict_gosnr()
-
-    for opm, _dict in gosnrs.items():
-        _gosnrs = _dict.values()
-        max_val = max(_gosnrs)
-        min_val = min(_gosnrs)
-        mean = np.mean(list(_gosnrs))
-        print(list(_gosnrs))
-        for ch, _gosnr in _dict.items():
-            if _gosnr == max_val:
-                print("max val ", ch, max_val)
-            if _gosnr == min_val:
-                print("min val ", ch, min_val)
-            if ch.index == 9:
-                print(_gosnr)
-        print("mean val ", mean)
-
-
-def simple_analysis():
+def monitor(net, test_id, load_id):
     """
-    Obsolete function from studying BVT configuration.
+    Monitor the osnr and gosnr at each OPM location,
+    then write a file with these values.
+    Return gosnr for all OPM nodes to be used by the
+    QoT-E module.
     """
-    prev = [10.91133808116804, 10.59341742427818, 10.367168188505353, 10.1565395852077, 9.998458013805658,
-            9.879226327315331, 9.803409729494852, 9.765737181844992, 9.755465803803798, 9.756810639526234,
-            9.765396843553688, 9.78168392584163, 9.807929401600399, 9.848526965621229, 9.917174362583747,
-            10.010434884244484, 10.129728168686942, 10.267557037662606, 10.42558326679633, 10.581650569290051,
-            10.72709210865555, 10.854194621240786, 10.956673905236062, 11.031066445816666, 11.083748586481102,
-            11.117653940258009, 11.139813933811602, 11.15854078395282, 11.188468656534347, 11.26361729035635]
-    conf = [11.592270784099142, 11.22118475602138, 10.943603779033868, 10.67655900640524, 10.468696040881998,
-            10.303991846685804, 10.187619008480503, 10.112765490270096, 10.069569359559825, 10.041219184717605,
-            10.02044852066506, 10.011304699519943, 10.018919228494793, 10.04693679986018, 10.111335264209554,
-            10.207159097557897, 10.338916905493472, 10.494966526390282, 10.678958782401725, 10.86575590299666,
-            11.04573711718996, 11.20598881663537, 11.338581354423592, 11.436847948110657, 11.503713717837456,
-            11.541097084274348, 11.55351706535826, 11.553573715177528, 11.545261126989192, 11.552912844085352]
-    th = [10] * 30
+    monitor_keys = [
+        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor', 'r1-r2-amp4-monitor',
+        'r1-r2-amp5-monitor', 'r1-r2-amp6-monitor', 'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor',
+        'r2-r3-amp3-monitor', 'r2-r3-amp4-monitor', 'r2-r3-amp5-monitor', 'r2-r3-amp6-monitor', 'r3-r4-boost',
+        'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor', 'r3-r4-amp4-monitor', 'r3-r4-amp5-monitor',
+        'r3-r4-amp6-monitor', 'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+        'r4-r5-amp4-monitor', 'r4-r5-amp5-monitor', 'r4-r5-amp6-monitor', 'r5-r6-boost', 'r5-r6-amp1-monitor',
+        'r5-r6-amp2-monitor', 'r5-r6-amp3-monitor', 'r5-r6-amp4-monitor', 'r5-r6-amp5-monitor', 'r5-r6-amp6-monitor',
+        'r6-r7-boost', 'r6-r7-amp1-monitor', 'r6-r7-amp2-monitor', 'r6-r7-amp3-monitor', 'r6-r7-amp4-monitor',
+        'r6-r7-amp5-monitor', 'r6-r7-amp6-monitor', 'r7-r8-boost', 'r7-r8-amp1-monitor', 'r7-r8-amp2-monitor',
+        'r7-r8-amp3-monitor', 'r7-r8-amp4-monitor', 'r7-r8-amp5-monitor', 'r7-r8-amp6-monitor', 'r8-r9-boost',
+        'r8-r9-amp1-monitor', 'r8-r9-amp2-monitor', 'r8-r9-amp3-monitor', 'r8-r9-amp4-monitor', 'r8-r9-amp5-monitor',
+        'r8-r9-amp6-monitor', 'r9-r10-boost', 'r9-r10-amp1-monitor', 'r9-r10-amp2-monitor', 'r9-r10-amp3-monitor',
+        'r9-r10-amp4-monitor', 'r9-r10-amp5-monitor', 'r9-r10-amp6-monitor', 'r10-r11-boost', 'r10-r11-amp1-monitor',
+        'r10-r11-amp2-monitor', 'r10-r11-amp3-monitor', 'r10-r11-amp4-monitor', 'r10-r11-amp5-monitor',
+        'r10-r11-amp6-monitor', 'r11-r12-boost', 'r11-r12-amp1-monitor', 'r11-r12-amp2-monitor',
+        'r11-r12-amp3-monitor', 'r11-r12-amp4-monitor', 'r11-r12-amp5-monitor', 'r11-r12-amp6-monitor',
+        'r12-r13-boost', 'r12-r13-amp1-monitor', 'r12-r13-amp2-monitor', 'r12-r13-amp3-monitor',
+        'r12-r13-amp4-monitor', 'r12-r13-amp5-monitor', 'r12-r13-amp6-monitor', 'r13-r14-boost',
+        'r13-r14-amp1-monitor', 'r13-r14-amp2-monitor', 'r13-r14-amp3-monitor', 'r13-r14-amp4-monitor',
+        'r13-r14-amp5-monitor', 'r13-r14-amp6-monitor', 'r14-r15-boost', 'r14-r15-amp1-monitor',
+        'r14-r15-amp2-monitor', 'r14-r15-amp3-monitor', 'r14-r15-amp4-monitor', 'r14-r15-amp5-monitor',
+        'r14-r15-amp6-monitor'
+    ]
 
-    plt.xlabel('channel index')
-    plt.ylabel('gOSNR [dB]')
-    plt.plot(prev, 'b', label='R = 25 GBaud')
-    plt.plot(conf, 'g', label='R = 64 GBaud')
-    plt.plot(th, 'r', label='QoT threshold')
-    plt.legend()
-    plt.show()
+    for monitor_key in monitor_keys:
+        json_struct = {'tests': []}
+        # print('monitor', dict(monitor=monitor_key))
+        monitor = net.name_to_node[monitor_key]
+
+        osnrdata = {int(signal.index):
+                    dict(freq=signal.frequency, osnr=monitor.get_osnr(signal),
+                         gosnr=monitor.get_gosnr(signal),
+                         power=monitor.get_power(signal),
+                         ase=monitor.get_ase_noise(signal),
+                         nli=monitor.get_nli_noise(signal))
+                for signal in sorted(monitor.amplifier.output_power,
+                                     key=attrgetter('index'))}
+
+        osnrs, gosnrs = {}, {}
+        powers, ases, nlis = {}, {}, {}
+        for channel, data in osnrdata.items():
+            osnr, gosnr = data['osnr'], data['gosnr']
+            power, ase, nli = data['power'], data['ase'], data['nli']
+            osnrs[channel] = osnr
+            gosnrs[channel] = gosnr
+            powers[channel] = power
+            ases[channel] = ase
+            nlis[channel] = nli
+
+        write_files(osnrs, gosnrs, powers, ases, nlis,
+                    json_struct, load_id, monitor_key, test_id)
+
+
+def write_files(osnr, gosnr, powers, ases, nlis,
+                json_struct, load_id, monitor_key, test_id):
+    """
+    Write a file with osnr and gosnr information from a given OPM node
+    """
+    _osnr_id = 'osnr_load_' + load_id
+    _gosnr_id = 'gosnr_load_' + load_id
+    _power_id = 'power_load_' + load_id
+    _ase_id = 'ase_load_' + load_id
+    _nli_id = 'nli_load_' + load_id
+    json_struct['tests'].append({_osnr_id: osnr})
+    json_struct['tests'].append({_gosnr_id: gosnr})
+    json_struct['tests'].append({_power_id: powers})
+    json_struct['tests'].append({_ase_id: ases})
+    json_struct['tests'].append({_nli_id: nlis})
+
+    test = 'metrics-monitor/'
+    dir_ = test + 'opm-all/' + monitor_key
+    if not os.path.exists(dir_):
+        os.makedirs(dir_)
+    json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
+    with open(json_file_name, 'w+') as outfile:
+        json.dump(json_struct, outfile)
 
 
 if __name__ == '__main__':
