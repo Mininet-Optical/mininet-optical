@@ -20,6 +20,12 @@ This script extends functionality from the fakecontroller,
 which is simply a mock-SDN-control API to manage a virtual
 optical network created with Mininet Optical.
 
+IMPORTANT NOTE!
+In order to execute this script smoothly, you will need to
+comment out line 591 in node.py (self.delete_switch_rules()).
+This is because, in order to run these tests faster, we don't
+re-install the sequential load every time.
+
 """
 
 
