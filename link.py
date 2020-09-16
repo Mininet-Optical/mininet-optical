@@ -127,13 +127,14 @@ class Link(object):
                 amplifier.clean_optical_signals(optical_signals)
 
     def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
-                  voa_compensation=False):
+                  voa_compensation=False, is_last_port=False):
         """
         Propagate the signals across the link
         :param pass_through_signals:
         :param accumulated_ASE_noise:
         :param accumulated_NLI_noise:
         :param voa_compensation:
+        :param is_last_port:
         :return:
         """
         accumulated_ASE_noise = accumulated_ASE_noise or {}
@@ -151,7 +152,8 @@ class Link(object):
                 self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
                                           accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
                                           accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
-                self.node2.switch(self.input_port_node2)
+                if is_last_port:
+                    self.node2.new_switch()
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
         """

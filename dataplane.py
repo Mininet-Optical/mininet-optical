@@ -81,6 +81,39 @@ class OpticalNet( Mininet ):
 
     # Demo/debugging: support for setgain command
 
+    def restSetrippleHandler( self, query ):
+        "Demo/debugging: Support for REST setgain call"
+        amp_name = query.amp_name
+        ripple = query.ripple
+        self.set_ripple(amp_name, ripple)
+        return 'OK'
+
+    def set_ripple(self, amp_name, ripple):
+        srcdst = amp_name.split('-')
+        if len(srcdst) < 2:
+            print(srcdst)
+            print("couldn't find src-dst in %s" % amp_name)
+            return
+        src, dst = srcdst[0:2]
+        links = self.linksBetween(*self.get(src, dst))
+        # Find amp
+        l, amp = None, None
+        for link in links:
+            if not isinstance(link, OpticalLink):
+                continue
+            for phyLink in link.phyLink1, link.phyLink2:
+                if phyLink.boost_amp.name == amp_name:
+                    l, amp = phyLink, phyLink.boost_amp
+                    break
+                for span, spanamp in phyLink.spans:
+                    if spanamp and spanamp.name == amp_name:
+                        l, amp = phyLink, spanamp
+                        break
+        if not amp:
+            return '%s not found' % amp_name
+        # Set ripple function (wavelength dependent gain)
+        amp.set_ripple_function(ripple)
+
     def restSetgainHandler( self, query ):
         "Demo/debugging: Support for REST setgain call"
         ampName = query.amplifier
@@ -159,7 +192,10 @@ class Monitor( PhyMonitor ):
         "Return OSNR to REST agent"
         osnr = { signal.index:
                  dict(freq=signal.frequency, osnr=self.get_osnr( signal ),
-                      gosnr=self.get_gosnr( signal))
+                      gosnr=self.get_gosnr( signal),
+                      power=self.get_power(signal),
+                      ase=self.get_ase_noise(signal),
+                      nli=self.get_nli_noise(signal))
                  for signal in sorted( self.amplifier.output_power,
                                       key=attrgetter( 'index' ) ) }
         return dict( osnr=osnr )
@@ -220,7 +256,6 @@ class SwitchBase( OVSSwitch ):
         return 'OK'
 
 
-
 class Terminal( SwitchBase ):
     """
     Simple terminal which is just a bank of transceivers
@@ -256,15 +291,7 @@ class Terminal( SwitchBase ):
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
         self.txChannels = {}
         self.failedChannels = set()
-        # self.model.reset_signals()
-
-    # Probably obsolete now that we have auto-propagation
-    #def propagate( self ):
-    #    "Propagate output signals"
-    #    outport = self.model.ports_out[0]
-    #     for txChannel in self.txChannel.items():
-    #        transceiver = self.model.transceivers[ tx ]
-    #        self.model.transmit(transceiver, outport, [channel])
+        self.model.reset()
 
     def configTx( self, txNum, channel=None, power=None ):
         """Configure transceiver txNum
@@ -289,6 +316,14 @@ class Terminal( SwitchBase ):
         raise Exception( '%s could not find tx for port %d' %
                          ( self, wdmPort ) )
 
+    def restTurnonHandler(self, out_ports):
+        self.turn_on(out_ports)
+        return 'OK'
+
+    def turn_on(self, out_ports):
+        out_ports = [100 + int(x) for x in out_ports]
+        self.model.turn_on(out_ports)
+
     def restConnectHandler( self, query ):
         "REST connect handler"
         ethPort = int( query.ethPort )
@@ -304,7 +339,6 @@ class Terminal( SwitchBase ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
-
         # Update physical model
         OUT = 100  # Offset for output port
         tx = self.txnum( wdmPort )
@@ -313,7 +347,7 @@ class Terminal( SwitchBase ):
         channel = self.txChannel.get( tx )
         if channel is None:
             raise Exception( 'must set tx channel before connecting' )
-        self.model.transmit( transceiver, wdmPort+OUT, [ channel ] )
+        self.model.configure_terminal( transceiver, wdmPort+OUT, [ channel ] )
 
         # Remove old flows for transponder
         oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))
@@ -406,7 +440,7 @@ class ROADM( SwitchBase ):
         "Reset physical model"
         self.ruleIds = {}
         self.nextRuleId = 1
-        self.model.delete_switch_rules()
+        self.model.clean()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
@@ -428,11 +462,6 @@ class ROADM( SwitchBase ):
         else:
             raise Exception( 'could not find rule %s' % str( rule ) )
 
-    # Probably obsolete now that we have auto-propagation
-    #def propagate( self ):
-    #    "Propagate signals"
-    #    self.model.propagate()
-
     def dumpStatus( self ):
         "Print out some stuff for debugging"
         self.model.print_switch_rules()
@@ -441,6 +470,11 @@ class ROADM( SwitchBase ):
         "Handle REST rules request"
         return { str(ruleId): rule
                  for rule, ruleId in self.ruleIds.items() }
+
+    def restCleanmeHandler(self, query):
+        "Handle REST clean request"
+        self.cleanme()
+        return 'OK'
 
     # Dataplane operations
 
@@ -619,7 +653,7 @@ class OpticalLink( Link ):
 
         spans2 = [ PhySpan( length, PhyAmplifier( prefix2 + name, **params )
                             if name else None )
-                   for length, name, params in reversed( spans ) ]
+                   for length, name, params in spans ]
 
         # XXX Output ports have to start at this number for some reason?
         OUT = 100
@@ -636,10 +670,9 @@ class OpticalLink( Link ):
                       for monitorName, ampName in monitors
                       for prefix in ( prefix1, prefix2 ) }
         self.monitors = []
-        for boost in boost1, boost2:
-            if boost and boost.name in monitored:
-                monitor = Monitor( boost, link=link, amplifier=boost )
-                self.monitors.append( monitor )
+        if boost1 and boost1.name in monitored:
+            monitor = Monitor( boost1.name, link=self.phyLink1, amplifier=boost1 )
+            self.monitors.append( monitor )
         for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
             for span, amplifier in spans:
                 if amplifier and amplifier.name in monitored:
@@ -647,6 +680,9 @@ class OpticalLink( Link ):
                     monitor = Monitor(
                         name, link=link, span=span, amplifier=amplifier )
                     self.monitors.append( monitor )
+        if boost2 and boost2.name in monitored:
+            monitor = Monitor( boost2.name, link=self.phyLink2, amplifier=boost2 )
+            self.monitors.append( monitor ) 
 
     @staticmethod
     def parseSpans( spans=None ):
