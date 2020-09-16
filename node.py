@@ -470,10 +470,6 @@ class Roadm(Node):
         self.port_to_optical_signal_ase_noise_out = {}  # dict out port to OpticalSignal and ASE noise
         self.port_to_optical_signal_nli_noise_out = {}  # dict out port to OpticalSignal and NLI noise
 
-    def modify_monitor_mode(self,mode='out'):
-        if self.monitor:
-            self.monitor.mode=mode
-
 
     def voa_safety_check(self, voa_function, voa_target_out_power):
         """
@@ -823,9 +819,6 @@ class Amplifier(Node):
         self.boost = boost
         self.nonlinear_noise = {}  # accumulated NLI noise to be used only in boost = True
 
-    def modify_monitor_mode(self,mode='out'):
-        if self.monitor:
-            self.monitor.mode=mode
 
 
     def power_excursions_flags_off(self):
@@ -1101,6 +1094,8 @@ class Node_Monitor(Node):
         self.link=link
         self.span=span
 
+    def modify_mode(self, mode='out'):
+            self.mode = mode
 
     def extract_optical_signal(self):
         """

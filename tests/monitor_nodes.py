@@ -53,6 +53,10 @@ def monitor_nodes():
     print("GOSNR in '" + opm_2.mode + "' mode at " + opm_2.component.name + " : " + str(opm_2.get_list_gosnr()))
     opm_3 = roadm_2.monitor
     print("GOSNR in '" + opm_3.mode + "' mode at " + opm_3.component.name + " : " + str(opm_3.get_list_gosnr()))
+    opm_3.modify_mode(mode='out') # change modes
+    print("GOSNR in '" + opm_3.mode + "' mode at " + opm_3.component.name + " : " + str(opm_3.get_list_gosnr()))
+
+
 
     opm = Node_Monitor("boost_amp_2_opm", component=boost_amp_1) # initializing monitors separately for any component (ROADM, Amplifiers)
     print("GOSNR in '" + opm.mode + "' mode at " + opm.component.name + " : " + str(opm.get_list_gosnr()))
