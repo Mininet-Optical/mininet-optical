@@ -88,14 +88,14 @@ class Network(object):
         :param amplifier_type: amplifier type (currently supporting only EDFA)
         :return: added Amplifier
         """
-        if name in self.name_to_node:
-            raise ValueError("Network.add_amplifier: Amplifier with this name already exist!!")
+        # if name in self.name_to_node:
+        #     raise ValueError("Network.add_amplifier: Amplifier with this name already exist!!")
         configs = {'name': name,
                    'amplifier_type': amplifier_type}
         configs.update(params)
         amplifier = Amplifier(**configs)
         self.name_to_node[name] = amplifier
-        self.amplifiers.append(amplifier)
+        # self.amplifiers.append(amplifier)
         return amplifier
 
     def add_link(self, node1, node2, ports=None, boost_amp=None, spans=None):
