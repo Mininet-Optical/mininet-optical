@@ -2,6 +2,7 @@ import units as unit
 from pprint import pprint
 import numpy as np
 import scipy.constants as sc
+from scipy.special import erfc
 import random
 from collections import namedtuple
 

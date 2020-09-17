@@ -127,7 +127,7 @@ def Topology3():
     boost_amp = net.add_amplifier("boost_amp", 'edfa', target_gain = 15)
 
     transceivers = [('t%s' %(i), operational_power, 'C') for i in range (0,6)]
-    line_terminals = [net.add_lt('lt_%s' % (i), transceivers=[transceivers[i]], Modulation_Format='Batman') for i in range (0,6)]
+    line_terminals = [net.add_lt('lt_%s' % (i), transceivers=[transceivers[i]], Modulation_Format='bpsk') for i in range (0,6)]
 
     roadm = net.add_roadm('roadm')
 
