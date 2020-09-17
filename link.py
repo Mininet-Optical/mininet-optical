@@ -126,7 +126,7 @@ class Link(object):
             if amplifier:
                 amplifier.clean_optical_signals(optical_signals)
 
-    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise,
+    def propagate(self, pass_through_signals, accumulated_ASE_noise, accumulated_NLI_noise, Modulation_Format,
                   voa_compensation=False):
         """
         Propagate the signals across the link
@@ -146,11 +146,13 @@ class Link(object):
             # use is instance instead of checking the class
             if self.node2.__class__.__name__ is 'LineTerminal':
                 self.node2.receiver(self.input_port_node2, self.optical_signal_power_out,
-                                    self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy())
+                                    self.accumulated_ASE_noise.copy(), self.accumulated_NLI_noise.copy(),
+                                    Modulation_Format=Modulation_Format)
             else:
                 self.node2.insert_signals(self.input_port_node2, self.optical_signal_power_out.copy(),
                                           accumulated_ASE_noise=self.accumulated_ASE_noise.copy(),
-                                          accumulated_NLI_noise=self.accumulated_NLI_noise.copy())
+                                          accumulated_NLI_noise=self.accumulated_NLI_noise.copy(),
+                                          Modulation_Format=Modulation_Format)
                 self.node2.switch(self.input_port_node2)
 
     def propagate_simulation(self, accumulated_ASE_noise, accumulated_NLI_noise, voa_compensation):
