@@ -1,3 +1,25 @@
+"""
+    This script is a simple demo to test:
+     - deployment of the Cost239 topology
+     - installation of traffic into the network
+     - configuration of network devices
+     - deployment of OPM nodes following various strategies
+     - monitoring (writing log files)
+
+    The Cost239 is a mesh topology with a mean ROADM degree of 4.
+    In the network, all links are bidirectional. Though,
+    transmissions are launched uni-directionally.
+
+    For this simple demo, we're only using locations:
+    ldn, cph, ber, par, pra and vie.
+    The configuration corresponds to the installation of the
+    following 15 channels for end-to-end link:
+    ldn -> cph -> ber (1400 km, 28 inline EDFAs + 2 boosters) - ch1-15
+    par -> ber (900 km, 18 inline EDFAs + 1 booster) - ch16-30
+    pra -> vie (350 km, 7 inline EDFAs + 1 booster) - ch31-45
+
+"""
+
 from topo.cost239 import Cost239Topology
 import numpy as np
 from operator import attrgetter
@@ -9,46 +31,31 @@ def run(net):
     configure_terminals(net)
     configure_roadms(net)
     transmit(net)
-    monitor(net, density=10)
+   # monitor(net, density=10)
 
 
 def configure_terminals(net):
+    # retrieve the terminal objects from net
     lt_london = net.name_to_node['lt_london']
     lt_paris = net.name_to_node['lt_paris']
     lt_prague = net.name_to_node['lt_prague']
 
-    transceivers_ldn = lt_london.transceivers
-    channels1 = range(1, 16)
-    out_port = 100
-    for i, ch in enumerate(channels1):
-        t = transceivers_ldn[i]
-        # transceiver, out_port, channels
-        lt_london.configure_terminal(t, out_port, [ch])
+    lt_list = [lt_london, lt_paris, lt_prague]
+    ch_list = [range(1, 16), range(16, 31), range(31, 46)]
 
-    transceivers_par = lt_paris.transceivers
-    channels2 = range(16, 31)
-    for i, ch in enumerate(channels2):
-        t = transceivers_par[i]
-        # transceiver, out_port, channels
-        lt_paris.configure_terminal(t, out_port, [ch])
-
-    transceivers_pra = lt_prague.transceivers
-    channels3 = range(31, 46)
-    for i, ch in enumerate(channels3):
-        t = transceivers_pra[i]
-        # transceiver, out_port, channels
-        lt_prague.configure_terminal(t, out_port, [ch])
+    for lt, channels in zip(lt_list, ch_list):
+        transceivers = lt.transceivers
+        out_port = 100
+        for i, ch in enumerate(channels):
+            t = transceivers[i]
+            # transceiver, out_port and channels
+            lt.configure_terminal(t, out_port, [ch])
+            out_port += 1
 
 
 def configure_roadms(net):
     """
-    For this simple configuration, we're only using locations:
-    ldn, cph, ber, par, pra and vie.
-    The configuration corresponds to the installation of the
-    following lightpaths:
-    ldn -> cph -> ber (1400 km, 28 inline EDFAs + 2 boosters)
-    par -> ber (900 km, 18 inline EDFAs + 1 booster)
-    pra -> vie (350 km, 7 inline EDFAs + 1 booster)
+    This procedure is long because everything is done manually.
     """
     ber = net.name_to_node['r_berlin']
     cph = net.name_to_node['r_copenhagen']
@@ -57,39 +64,89 @@ def configure_roadms(net):
     pra = net.name_to_node['r_prague']
     vie = net.name_to_node['r_vienna']
 
-    channels1 = range(1, 16)
-    # ldn to cph
-    ldn.install_switch_rule(1, 0, 103, channels1)
-    # cph to ber
-    cph.install_switch_rule(1, 3, 102, channels1)
-    ber.install_switch_rule(1, 2, 100, channels1)
+    ber_lt = net.name_to_node['lt_berlin']
+    vie_lt = net.name_to_node['lt_vienna']
 
+    # first setup: configure channels 1-15 from
+    # london to berlin following:
+    # ldn -> cph -> ber.
+    channels1 = range(1, 16)
+    # input port of roadm when coming from terminal
+    in_port_lt = 0
+    # ldn -> cph
+    out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
+    for i, channel in enumerate(channels1, start=1):
+        ldn.install_switch_rule(i, in_port_lt, out_port, [channel])
+        in_port_lt += 1
+    # cph -> ber
+    # this input port is the one of cph when coming from ldn
+    in_port = net.find_link_and_in_port_from_nodes(ldn, cph)
+    out_port = net.find_link_and_out_port_from_nodes(cph, ber)
+    cph.install_switch_rule(1, in_port, out_port, channels1)
+    # cph -> ber and ber -> ber_lt
+    in_port = net.find_link_and_in_port_from_nodes(cph, ber)
+    out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
+    ber.install_switch_rule(1, in_port, out_port, channels1)
+
+    # second setup: configure channel 16-30 from
+    # paris to berlin following:
+    # par -> ber
     channels2 = range(16, 31)
     # par to ber
-    par.install_switch_rule(1, 0, 101, channels2)
-    ber.install_switch_rule(2, 3, 100, channels2)
+    out_port = net.find_link_and_out_port_from_nodes(par, ber)
+    for i, channel in enumerate(channels2, start=1):
+        par.install_switch_rule(i, in_port_lt, out_port, [channel])
+        in_port_lt += 1
+    # par -> ber and ber -> bet_lt
+    in_port = net.find_link_and_in_port_from_nodes(par, ber)
+    out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
+    ber.install_switch_rule(2, in_port, out_port, channels2)
 
+    # third setup: configure channels 31-45 from
+    # prague to vienna following:
+    # pra -> vie
     channels3 = range(31, 46)
-    # pra to vie
-    pra.install_switch_rule(1, 0, 105, channels3)
-    vie.install_switch_rule(1, 3, 100, channels3)
+    # pra -> vie
+    out_port = net.find_link_and_out_port_from_nodes(pra, vie)
+    for i, channel in enumerate(channels3, start=1):
+        pra.install_switch_rule(i, in_port_lt, out_port, [channel])
+        in_port_lt += 1
+    # pra -> vie and vie -> vie_lt
+    in_port = net.find_link_and_in_port_from_nodes(pra, vie)
+    out_port = net.find_link_and_out_port_from_nodes(vie, vie_lt)
+    vie.install_switch_rule(1, in_port, out_port, channels3)
 
 
 def transmit(net):
     lt_london = net.name_to_node['lt_london']
     lt_paris = net.name_to_node['lt_paris']
     lt_prague = net.name_to_node['lt_prague']
-    out_port = [100]
+    # turning on ports with the same index as
+    # the channels being transmitted
+    # out_ports commence from 100
+    london_ports = [99 + i for i in range(1, 16)]
+    paris_ports = [99 + i for i in range(16, 31)]
+    prague_ports = [99 + i for i in range(31, 46)]
 
-    lt_london.turn_on(out_port)
-    lt_paris.turn_on(out_port)
-    lt_prague.turn_on(out_port)
+    lt_london.turn_on(london_ports)
+    lt_paris.turn_on(paris_ports)
+    lt_prague.turn_on(prague_ports)
 
 
 def monitor(net, density=10, first_last='first'):
+    """
+    net: network object
+    density: density percentage (10 = 10%, 30 = 30%, etc)
+    first_last: when 1 OPM is to be used, decide whether using
+    the first one (boost-monitor) or last one (pre-amp-monitor) in the link
+    """
+    # build the monitors list
     mon_ldn_cph = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+    # insert booster monitor at the beginning
     mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost-monitor')
+    # consider only the number of monitors given by the density %
     mon_ldn_cph = monitor_deployment(mon_ldn_cph, density=density, first_last=first_last)
+    # query the OPMs and write log files
     for monitor_name in mon_ldn_cph:
         monitor_query(net, monitor_name)
 
@@ -113,24 +170,31 @@ def monitor(net, density=10, first_last='first'):
 
 
 def monitor_deployment(monitor_link, density=10, first_last='first'):
+    # if using 100% OPM density
     if density == 100:
         return monitor_link
 
+    # compute number of OPMs given the density
     monitor_no = int(len(monitor_link) * density*1e-2)
+    # list with the monitors to be used
     monitors = []
 
     if monitor_no <= 1:
+        # if monitor_no is 0 or 1, use either the
+        # first one (boost) or last one (pre-amp)
         if first_last == 'first':
             monitors.append(monitor_link[0])
         else:
             monitors.append(monitor_link[-1])
     else:
+        # if monitor_no >= 2, select monitors in an even manner
         monitors = monitor_select(monitor_link, monitor_no)
     return monitors
 
 
 def monitor_select(monitor_link, monitor_no):
     n = len(monitor_link)
+    # select indices from even_select algorithm
     indices = even_select(n, monitor_no)
     monitors = []
     for i, k in enumerate(indices):
@@ -140,6 +204,13 @@ def monitor_select(monitor_link, monitor_no):
 
 
 def even_select(n, m):
+    """
+    n: number of OPMs in link
+    m: number of OPMs required
+    return: list [0,1] with location of OPMs
+    to be considered (0) and ignored (1) as per
+    their location in the link
+    """
     if m > n/2:
         cut = np.zeros(n, dtype=int)
         q, r = divmod(n, n-m)

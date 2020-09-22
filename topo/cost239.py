@@ -84,7 +84,7 @@ class Cost239Topology:
 
         # Create line terminals
         operational_power = op  # power in dBm
-        ran = np.arange(1, 82)
+        ran = np.arange(1, 46)
         tr_labels = ['t%s' % str(x) for x in ran]
         transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
         city_names = ['amsterdam', 'berlin', 'brussels', 'copenhagen', 'london',
@@ -99,10 +99,11 @@ class Cost239Topology:
 
         # Create bi-directional links between LTs and ROADMs
         for lt, roadm in zip(line_terminals, roadms):
-            link = net.add_link(lt, roadm)
-            link.add_span(Span('SMF', 0.001), amplifier=None)
-            bi_link = net.add_link(roadm, lt)
-            bi_link.add_span(Span('SMF', 0.001), amplifier=None)
+            for tr in lt.transceivers:
+                link = net.add_link(lt, roadm)
+                link.add_span(Span('SMF', 0.001), amplifier=None)
+                bi_link = net.add_link(roadm, lt)
+                bi_link.add_span(Span('SMF', 0.001), amplifier=None)
 
         # build links per roadm
         ams = name_to_roadm['r_amsterdam']
