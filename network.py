@@ -166,6 +166,13 @@ class Network(object):
                 out_port = l.output_port_node1
         return out_port
 
+    def find_link_and_in_port_from_nodes(self, src_node, dst_node):
+        out_port = None
+        for l in self.links:
+            if l.node1 == src_node and l.node2 == dst_node:
+                out_port = l.input_port_node2
+        return out_port
+
     def routing(self, src_node, dst_node):
         """
         Dijkstra algorithm for finding shortest path
