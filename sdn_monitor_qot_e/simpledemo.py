@@ -31,7 +31,7 @@ def run(net):
     configure_terminals(net)
     configure_roadms(net)
     transmit(net)
-   # monitor(net, density=10)
+    monitor(net, density=60)
 
 
 def configure_terminals(net):
@@ -148,25 +148,25 @@ def monitor(net, density=10, first_last='first'):
     mon_ldn_cph = monitor_deployment(mon_ldn_cph, density=density, first_last=first_last)
     # query the OPMs and write log files
     for monitor_name in mon_ldn_cph:
-        monitor_query(net, monitor_name)
+        monitor_query(net, monitor_name, density)
 
     mon_cph_ber = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
     mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
     mon_cph_ber = monitor_deployment(mon_cph_ber, density=density, first_last=first_last)
     for monitor_name in mon_cph_ber:
-        monitor_query(net, monitor_name)
+        monitor_query(net, monitor_name, density)
 
     mon_par_ber = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
     mon_par_ber.insert(0, 'r_paris-r_berlin-boost-monitor')
     mon_par_ber = monitor_deployment(mon_par_ber, density=density, first_last=first_last)
     for monitor_name in mon_par_ber:
-        monitor_query(net, monitor_name)
+        monitor_query(net, monitor_name, density)
 
     mon_pra_vie = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
     mon_pra_vie.insert(0, 'r_prague-r_vienna-boost-monitor')
     mon_pra_vie = monitor_deployment(mon_pra_vie, density=density, first_last=first_last)
     for monitor_name in mon_pra_vie:
-        monitor_query(net, monitor_name)
+        monitor_query(net, monitor_name, density)
 
 
 def monitor_deployment(monitor_link, density=10, first_last='first'):
@@ -224,7 +224,7 @@ def even_select(n, m):
     return cut
 
 
-def monitor_query(net, monitor_name):
+def monitor_query(net, monitor_name, density):
     x = monitor_name.split('-', 2)
     link_label = x[0] + '-' + x[1]
     monitor = net.name_to_node[monitor_name]
@@ -251,11 +251,11 @@ def monitor_query(net, monitor_name):
 
     json_struct = {'tests': []}
     write_files(osnrs, gosnrs, powers, ases, nlis,
-                json_struct, link_label, monitor_name)
+                json_struct, link_label, monitor_name, density)
 
 
 def write_files(osnr, gosnr, powers, ases, nlis,
-                json_struct, link_label, monitor_name):
+                json_struct, link_label, monitor_name, density):
     """
     Write a file with osnr and gosnr information from a given OPM node
     """
@@ -271,7 +271,7 @@ def write_files(osnr, gosnr, powers, ases, nlis,
     json_struct['tests'].append({_nli_id: nlis})
 
     test = 'cost239-monitor/'
-    dir_ = test + link_label + '/'
+    dir_ = test + link_label + '/density_' + str(density) + '/'
     if not os.path.exists(dir_):
         os.makedirs(dir_)
     json_file_name = dir_ + monitor_name + '.json'
