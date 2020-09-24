@@ -441,7 +441,7 @@ class Roadm(Node):
 
     def __init__(self, name, wss_dict=None, voa_function='flatten',
                  # Assuming default launch power of 0 dBm for all signals
-                 voa_target_out_power=-2,monitor={}):
+                 voa_target_out_power=-2,monitor_mode=None):
 
         """
         :param name:
@@ -461,9 +461,8 @@ class Roadm(Node):
         self.switch_table = {}  # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.signal_index_to_out_port = {}  # dict (port, signal_index) to output port in ROADM
 
-        monitor.setdefault('mode', None)
-        if (monitor['mode'] != None):
-            self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor['mode'])
+        if (monitor_mode != None):
+            self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor_mode)
 
         self.port_to_optical_signal_ase_noise_in = {}
         self.port_to_optical_signal_nli_noise_in = {}
@@ -781,7 +780,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 90), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False,monitor={}):
+                 boost=False,monitor_mode=None):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -803,15 +802,8 @@ class Amplifier(Node):
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
-        monitor.setdefault('mode', 'out')
-        monitor.setdefault('link', None)
-        monitor.setdefault('span', None)
-
-        if (boost==True):
-            self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor['mode'])
-        elif (monitor['link'] != None):
-           self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor['mode'], link=monitor['link'],
-                                        span=monitor['span'])
+        if(monitor_mode!=None):
+            self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor_mode)
 
         self.power_excursions_flag_1 = False  # When both are True system gain balancing is complete
         self.power_excursions_flag_2 = False
@@ -1081,7 +1073,7 @@ class Node_Monitor(Node):
     This implementation of Monitors could be used for ROADMs and Amplifiers.
     """
 
-    def __init__(self, name, component , mode='out', link=None, span=None):
+    def __init__(self, name, component , mode='out'):
         """
         :param name: name of the monitor.
         :param component: Node object currently ROADM and Amplifiers.
@@ -1091,8 +1083,6 @@ class Node_Monitor(Node):
         self.node_id = id(self)
         self.component = component
         self.mode = mode
-        self.link=link
-        self.span=span
 
     def modify_mode(self, mode='out'):
             self.mode = mode
@@ -1101,24 +1091,17 @@ class Node_Monitor(Node):
         """
         :return power: Returns Optical signals for the required objects
         """
-
-
+        
         if (isinstance(self.component, Amplifier)):
-
             optical_signals = []
-
             if self.mode == 'in':
                 optical_signals = self.component.input_power.keys()
-
             if self.mode == 'out':
                 optical_signals = self.component.output_power.keys()
-
             return optical_signals
 
         if (isinstance(self.component, Roadm)):
-
             optical_signals = {}
-
             roadm_power_type = {}
             if self.mode == 'in':
                 roadm_power_type = self.component.port_to_optical_signal_power_in
@@ -1133,17 +1116,7 @@ class Node_Monitor(Node):
                     optical_signals_list= signal_powers.keys()
                 optical_signals[port]=optical_signals_list
 
-
             return optical_signals
-
-
-
-
-
-
-
-
-
 
 
     def get_list_osnr(self):
@@ -1169,9 +1142,6 @@ class Node_Monitor(Node):
                     signals_list.append(self.get_osnr(optical_signal,port=port))
                 signal_dict[port] = signals_list
             return signal_dict
-
-
-
 
 
     @staticmethod
@@ -1214,9 +1184,6 @@ class Node_Monitor(Node):
             return signal_dict
 
 
-
-
-
     def get_osnr(self, optical_signal,port=None):
         """
         Compute OSNR levels of the signal
@@ -1225,6 +1192,7 @@ class Node_Monitor(Node):
         :return: OSNR (linear)
         """
         if (isinstance(self.component, Amplifier)):
+
             output_power = self.component.output_power[optical_signal]
             ase_noise = self.component.ase_noise[optical_signal]
             osnr_linear = output_power / ase_noise
@@ -1241,16 +1209,9 @@ class Node_Monitor(Node):
                     ase_noise = self.component.port_to_optical_signal_ase_noise_in[port][optical_signal]
                     power = self.component.port_to_optical_signal_power_in[port][optical_signal]
 
-
             osnr_linear = power / ase_noise
             osnr = abs_to_db(osnr_linear)
             return osnr
-
-
-
-
-
-
 
     def get_gosnr(self, optical_signal, port=None):
         """
@@ -1263,23 +1224,13 @@ class Node_Monitor(Node):
         if (isinstance(self.component, Amplifier)):
             output_power = self.component.output_power[optical_signal]
             ase_noise = self.component.ase_noise[optical_signal]
-            if self.component.boost:
-                nli_noise = self.component.nonlinear_noise[optical_signal]
-            else:
-
-                for span, amplifier in self.link.spans:
-
-                    if amplifier:
-                        if (self.component.name == amplifier.name):
-                            self.span = span
-                nli_noise = self.link.nonlinear_interference_noise[self.span][optical_signal]
+            nli_noise = self.component.nonlinear_noise[optical_signal]
             gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
             gosnr = abs_to_db(gosnr_linear)
             return gosnr
 
         if (isinstance(self.component, Roadm)):
             if (port!=None):
-
 
                 if (self.mode=='out'):
                     ase_noise=self.component.port_to_optical_signal_ase_noise_out[port][optical_signal]
@@ -1290,14 +1241,9 @@ class Node_Monitor(Node):
                     nli_noise = self.component.port_to_optical_signal_nli_noise_in[port][optical_signal]
                     power = self.component.port_to_optical_signal_power_in[port][optical_signal]
 
-
             gosnr_linear = power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
             gosnr = abs_to_db(gosnr_linear)
             return gosnr
 
-
-
-
     def __repr__( self ):
-        return "<%s,link=%s,span=%s,amp=%s>" % (
-           self.name, self.link, self.span, self.component)
+        return "<%s,link=%s,span=%s,amp=%s>" % (self.name, self.component)
