@@ -65,7 +65,7 @@ class Network(object):
         configs.update(params)
         lt.add_transceiver(**configs)
 
-    def add_roadm(self, name, **params):
+    def add_roadm(self, name: object, **params: object) -> object:
         """
         Add a ROADM node.
         :param name: name of ROADM

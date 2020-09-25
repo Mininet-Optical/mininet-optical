@@ -129,7 +129,7 @@ def Topology3():
     transceivers = [('t%s' %(i), operational_power, 'C') for i in range (0,6)]
     line_terminals = [net.add_lt('lt_%s' % (i), transceivers=[transceivers[i]], Modulation_Format='bpsk') for i in range (0,6)]
 
-    roadm = net.add_roadm('roadm')
+    roadm = net.add_roadm(name='roadm')
 
     net.add_link(line_terminals[0], roadm,  spans=[fiber_span], boost_amp=boost_amp)
 
