@@ -1,5 +1,6 @@
 import network
 from link import Span
+import numpy as np
 
 
 class LinearTopology:
@@ -16,7 +17,9 @@ class LinearTopology:
 
         # Create line terminals
         operational_power = op  # power in dBm
-        transceivers = [('t1', operational_power, 'C')]
+        ran = np.arange(1, 82)
+        tr_labels = ['t%s' % str(x) for x in ran]
+        transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
         line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
 
         # Create ROADMs
@@ -34,9 +37,9 @@ class LinearTopology:
 
         opm_i = 0
         # number of spans per link
-        span_no = 3
+        span_no = 6
         # span distance in km
-        span_distance = 80
+        span_distance = 100
         # target gain
         target_gain = 0.22 * span_distance
         for i in range(non-1):
