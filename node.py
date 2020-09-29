@@ -135,11 +135,15 @@ class Node(object):
 
 class LineTerminal(Node):
 
-    def __init__(self, name, transceivers=None):
+    def __init__(self, name, transceivers=None,monitor_mode=None):
         Node.__init__(self, name)
         self.transceivers = []
         self.name_to_transceivers = {}  # dict of name of transceiver to transceiver objects
         self.transceiver_to_optical_signals = {}  # dict of transceivers name to list of optical signal objects
+        self.signal_info_dict_transceiver={}
+
+        if (monitor_mode != None):
+            self.monitor = Node_Monitor(name + "-opm", component=self, mode=monitor_mode)
 
         self.wavelengths = {k: 'off' for k in range(1, 91)}  # only supporting 90 channels per LT
 
@@ -290,10 +294,12 @@ class LineTerminal(Node):
                 # print("*** %s.receiver.%s: Failure!\ngOSNR: %f dB" %
                 #       (self.__class__.__name__, self.name, abs_to_db(gosnr)))
                 signalInfoDict[signal]['success'] = False
+                self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
             else:
                 # print("*** %s.receiver.%s: Success!" % (self.__class__.__name__, self.name))
                 signalInfoDict[signal]['success'] = True
+                self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
 
     def receiver_callback(self, in_port, signalDictInfo):
@@ -1091,7 +1097,14 @@ class Node_Monitor(Node):
         """
         :return power: Returns Optical signals for the required objects
         """
-        
+
+        if (isinstance(self.component, LineTerminal)):
+            optical_signals = {}
+            for port in sorted(self.component.signal_info_dict_transceiver):
+                signals = self.component.signal_info_dict_transceiver[port]
+                optical_signals[port] = signals.keys()
+            return optical_signals
+
         if (isinstance(self.component, Amplifier)):
             optical_signals = []
             if self.mode == 'in':
@@ -1132,6 +1145,18 @@ class Node_Monitor(Node):
             for optical_signal in ordered_signals:
                 signals_list.append(self.get_osnr(optical_signal))
             return signals_list
+
+        if (isinstance(self.component, LineTerminal)):
+            optical_signals = self.extract_optical_signal()
+            signal_dict = {}
+            for port in sorted(optical_signals):
+                signals_list = []
+                ordered_signals = self.order_signals(optical_signals[port])
+                for optical_signal in ordered_signals:
+                    signals_list.append(self.get_gosnr(optical_signal, port=port))
+                signal_dict[port] = signals_list
+            return signal_dict
+
         if (isinstance(self.component, Roadm)):
             optical_signals = self.extract_optical_signal()
             signal_dict={}
@@ -1170,6 +1195,18 @@ class Node_Monitor(Node):
             for optical_signal in ordered_signals:
                 signals_list.append(self.get_gosnr(optical_signal))
             return signals_list
+
+        if (isinstance(self.component, LineTerminal)):
+            optical_signals = self.extract_optical_signal()
+            signal_dict = {}
+            for port in sorted(optical_signals):
+                signals_list = []
+                ordered_signals = self.order_signals(optical_signals[port])
+                for optical_signal in ordered_signals:
+                    signals_list.append(self.get_gosnr(optical_signal, port=port))
+                signal_dict[port] = signals_list
+            return signal_dict
+
         if (isinstance(self.component, Roadm)):
             optical_signals = self.extract_optical_signal()
             signal_dict = {}
@@ -1179,8 +1216,6 @@ class Node_Monitor(Node):
                 for optical_signal in ordered_signals:
                     signals_list.append(self.get_gosnr(optical_signal, port=port))
                 signal_dict[port] = signals_list
-
-
             return signal_dict
 
 
@@ -1198,6 +1233,12 @@ class Node_Monitor(Node):
             osnr_linear = output_power / ase_noise
             osnr = abs_to_db(osnr_linear)
             return osnr
+
+        if (isinstance(self.component, LineTerminal)):
+            if (port!=None):
+                osnr=self.signal_info_dict_transceiver[port][optical_signal]['osnr']
+                return osnr
+
 
         if (isinstance(self.component, Roadm)):
             if (port!=None):
@@ -1228,6 +1269,11 @@ class Node_Monitor(Node):
             gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
             gosnr = abs_to_db(gosnr_linear)
             return gosnr
+
+        if (isinstance(self.component, LineTerminal)):
+            if (port != None):
+                gosnr= self.component.signal_info_dict_transceiver[port][optical_signal]['gosnr']
+                return gosnr
 
         if (isinstance(self.component, Roadm)):
             if (port!=None):

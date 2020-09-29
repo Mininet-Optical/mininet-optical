@@ -13,7 +13,7 @@ def monitor_nodes():
     transceiver1 = ('t1', 0, 'C')
     transceiver2 = ('t2', 0, 'C')
     lt_1 = net.add_lt('lt_1', transceivers=[transceiver1])
-    lt_2 = net.add_lt('lt_2', transceivers=[transceiver2])
+    lt_2 = net.add_lt('lt_2', transceivers=[transceiver2],monitor_mode='in') # Monitor for RX Transceivers
     roadm_1 = net.add_roadm("roadm_1",monitor_mode='out') # initialization of monitor in the output mode for ROADM
     roadm_2 = net.add_roadm("roadm_2",monitor_mode='in') # initialization of monitor in the input mode for ROADM
 
@@ -56,7 +56,8 @@ def monitor_nodes():
     print("GOSNR in '" + opm_3.mode + "' mode at " + opm_3.component.name + " : " + str(opm_3.get_list_gosnr()))
     opm_3.modify_mode(mode='out') # change modes
     print("GOSNR in '" + opm_3.mode + "' mode at " + opm_3.component.name + " : " + str(opm_3.get_list_gosnr()))
-
+    opm_4 = lt_2.monitor
+    print("GOSNR in '" + opm_4.mode + "' mode at " + opm_4.component.name + " : " + str(opm_4.get_list_gosnr()))
 
 
     opm = Node_Monitor("boost_amp_2_opm", component=boost_amp_1) # initializing monitors separately for any component (ROADM, Amplifiers)
