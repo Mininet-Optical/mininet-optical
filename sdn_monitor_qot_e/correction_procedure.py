@@ -243,6 +243,108 @@ def get_corrected_struct_approx(load, signals_id=None):
     return gosnr_corr_dict
 
 
+def get_spans_and_channels_from_link_key(link_key):
+    if link_key == 'r_london-r_copenhagen':
+        return [50.0] * 20, range(1, 16)
+    elif link_key == 'r_copenhagen-r_berlin':
+        return [50.0] * 8, range(1, 16)
+    elif link_key == 'r_paris-r_berlin':
+        return [50.0] * 18, range(16, 31)
+    elif link_key == 'r_prague-r_vienna':
+        return [50.0] * 7, range(31, 46)
+
+
+def get_opm_struct(link_key, monitors):
+    # locations of the json files
+    _opm_path = 'cost239-monitor/monitor-module/' + link_key + '/'
+
+    osnr_opm_dict = dict.fromkeys(monitors)
+    gosnr_opm_dict = dict.fromkeys(monitors)
+    power_opm_dict = dict.fromkeys(monitors)
+    ase_opm_dict = dict.fromkeys(monitors)
+    nli_opm_dict = dict.fromkeys(monitors)
+
+    files = os.listdir(_opm_path)
+
+    for filename in files:
+        if filename.endswith(".json"):
+            file_path = _opm_path + filename
+            monitor_name = filename.split('.')[0]
+
+            osnr_label = 'osnr'
+            gosnr_label = 'gosnr'
+
+            power_label = 'power'
+            ase_label = 'ase'
+            nli_label = 'nli'
+
+            with open(file_path) as json_file:
+                f = json.load(json_file)
+            json_items = list(f.items())
+            metric_items = json_items[0][1]
+            osnr_dict = metric_items[0]
+            gosnr_dict = metric_items[1]
+            power_dict = metric_items[2]
+            ase_dict = metric_items[3]
+            nli_dict = metric_items[4]
+
+            osnr_opm = osnr_dict[osnr_label]
+            gosnr_opm = gosnr_dict[gosnr_label]
+            power_opm = power_dict[power_label]
+            ase_opm = ase_dict[ase_label]
+            nli_opm = nli_dict[nli_label]
+            # record gosnr estimation per load
+            osnr_opm_dict[monitor_name] = osnr_opm
+            gosnr_opm_dict[monitor_name] = gosnr_opm
+            power_opm_dict[monitor_name] = power_opm
+            ase_opm_dict[monitor_name] = ase_opm
+            nli_opm_dict[monitor_name] = nli_opm
+
+    return osnr_opm_dict, gosnr_opm_dict, power_opm_dict, ase_opm_dict, nli_opm_dict
+
+
+def get_corrected_struct_simpledemo(link_key, monitors, monitors_by_density, main_struct=None):
+    osnr_opm_dict, gosnr_opm_dict, power_opm_dict, ase_opm_dict, nli_opm_dict = get_opm_struct(link_key, monitors)
+
+    gosnr_corr_dict = dict.fromkeys(monitors, {})
+
+    spans, channels = get_spans_and_channels_from_link_key(link_key)
+    spans.insert(0, 0)  # to comply with monitors length
+
+    for i, (span, monitor) in enumerate(zip(spans, monitors)):
+        if i == 0:
+            # the first span does not matter because is booster
+            est_osnr, est_gosnr, power, ase, nli = \
+                estimation_module_simpledemo_correct(main_struct, span, first=True)
+        else:
+            est_osnr, est_gosnr, power, ase, nli = \
+                estimation_module_simpledemo_correct(main_struct, span)
+
+        if monitor in monitors_by_density:
+            opm_osnr = keys_to_int(osnr_opm_dict[monitor])
+            opm_nli = keys_to_int(nli_opm_dict[monitor])
+            # compute and apply to NLI noise the correction factor based
+            # on the OSNR difference
+            # this is used for the correction algorithm
+            nli = nli_correction_algorithm(opm_osnr, est_osnr, nli)
+            est_gosnr = correct_gosnr(power, ase, nli)
+
+            # this is used for correcting everything
+            power_dict = keys_to_int(power_opm_dict[monitor])
+            ase_dict = keys_to_int(ase_opm_dict[monitor])
+            # nli = opm_nli
+            # est_gosnr = correct_gosnr(power_dict, ase_dict, nli)
+
+            gosnr_corr_dict[monitor] = keys_to_str(est_gosnr)
+
+            main_struct = power_dict.keys(), power_dict, ase_dict, nli
+        else:
+            gosnr_corr_dict[monitor] = keys_to_str(est_gosnr)
+            main_struct = power.keys(), power, ase, nli
+
+    return main_struct, gosnr_corr_dict
+
+
 def nli_correction_algorithm(osnr_dB, osnr_qot_dB, nli):
     osnr_lin = {k: db_to_abs(x) for k, x in osnr_dB.items()}
     osnr_qot_lin = {k: db_to_abs(x) for k, x in osnr_qot_dB.items()}
