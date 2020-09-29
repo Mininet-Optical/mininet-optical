@@ -84,8 +84,8 @@ class Cost239Topology:
 
         # Create line terminals
         operational_power = op  # power in dBm
-        ran = np.arange(1, 46)
-        tr_labels = ['t%s' % str(x) for x in ran]
+        tr_no = np.arange(1, 91)
+        tr_labels = ['t%s' % str(x) for x in tr_no]
         transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
         city_names = ['amsterdam', 'berlin', 'brussels', 'copenhagen', 'london',
                       'luxembourg', 'milan', 'paris', 'prague', 'vienna', 'zurich']

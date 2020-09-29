@@ -21,6 +21,7 @@
 """
 
 from topo.cost239 import Cost239Topology
+from estimation_module import *
 import numpy as np
 from operator import attrgetter
 import os
@@ -28,24 +29,61 @@ import json
 
 
 def run(net):
-    configure_terminals(net)
-    configure_roadms(net)
-    transmit(net)
-    monitor(net, density=60)
+    # the estimation module needs to be launched only once.
+    channels_list = [range(1, 16), range(16, 31), range(75, 91)]  # estimation
+    # channels_list = [range(1, 16), range(16, 31), range(31, 46)]  # estimation
+
+    estimation(net, channels_list)
+    configure_terminals(net, channels_list)
+    configure_roadms(net, channels_list)
+    transmit(net, channels_list)
+    densities = [100]
+    for density in densities:
+        monitor(net, density=density)
 
 
-def configure_terminals(net):
+def estimation(net, channels_list):
+    ber = net.name_to_node['r_berlin']
+    cph = net.name_to_node['r_copenhagen']
+    ldn = net.name_to_node['r_london']
+    par = net.name_to_node['r_paris']
+    pra = net.name_to_node['r_prague']
+    vie = net.name_to_node['r_vienna']
+
+    links_dir = [('r_london-r_copenhagen/', 'r_copenhagen-r_berlin/'), 'r_paris-r_berlin/', 'r_prague-r_vienna/']
+    links = [((ldn, cph), (cph, ber)), (par, ber), (pra, vie)]
+
+    for _tuple, channels, link_dir in zip(links, channels_list, links_dir):
+        main_struct = build_struct(15, signal_ids=channels)
+        if type(_tuple[0]) is not tuple:
+            link = net.find_link_from_nodes(_tuple[0], _tuple[1])
+            spans = []
+            for span in link.spans:
+                spans.append(span.span.length / 1.0e3)
+            estimation_module_simpledemo(main_struct, spans, link_dir)
+        else:
+            for i, (subtuple, link_dir_it) in enumerate(zip(_tuple, link_dir), start=1):
+                link = net.find_link_from_nodes(subtuple[0], subtuple[1])
+                spans = []
+                for span in link.spans:
+                    spans.append(span.span.length / 1.0e3)
+                if i == len(_tuple):
+                    estimation_module_simpledemo(main_struct, spans, link_dir_it)
+                else:
+                    main_struct = estimation_module_simpledemo(main_struct, spans, link_dir_it, last=False)
+
+
+def configure_terminals(net, channels_list):
     # retrieve the terminal objects from net
     lt_london = net.name_to_node['lt_london']
     lt_paris = net.name_to_node['lt_paris']
     lt_prague = net.name_to_node['lt_prague']
 
     lt_list = [lt_london, lt_paris, lt_prague]
-    ch_list = [range(1, 16), range(16, 31), range(31, 46)]
 
-    for lt, channels in zip(lt_list, ch_list):
+    for lt, channels in zip(lt_list, channels_list):
         transceivers = lt.transceivers
-        out_port = 100
+        out_port = channels[0] + 99
         for i, ch in enumerate(channels):
             t = transceivers[i]
             # transceiver, out_port and channels
@@ -53,7 +91,7 @@ def configure_terminals(net):
             out_port += 1
 
 
-def configure_roadms(net):
+def configure_roadms(net, channels_list):
     """
     This procedure is long because everything is done manually.
     """
@@ -70,9 +108,9 @@ def configure_roadms(net):
     # first setup: configure channels 1-15 from
     # london to berlin following:
     # ldn -> cph -> ber.
-    channels1 = range(1, 16)
+    channels1 = channels_list[0]
     # input port of roadm when coming from terminal
-    in_port_lt = 0
+    in_port_lt = channels1[0] - 1
     # ldn -> cph
     out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
     for i, channel in enumerate(channels1, start=1):
@@ -91,7 +129,8 @@ def configure_roadms(net):
     # second setup: configure channel 16-30 from
     # paris to berlin following:
     # par -> ber
-    channels2 = range(16, 31)
+    channels2 = channels_list[1]
+    in_port_lt = channels2[0] - 1
     # par to ber
     out_port = net.find_link_and_out_port_from_nodes(par, ber)
     for i, channel in enumerate(channels2, start=1):
@@ -105,7 +144,8 @@ def configure_roadms(net):
     # third setup: configure channels 31-45 from
     # prague to vienna following:
     # pra -> vie
-    channels3 = range(31, 46)
+    channels3 = channels_list[2]
+    in_port_lt = channels3[0] - 1
     # pra -> vie
     out_port = net.find_link_and_out_port_from_nodes(pra, vie)
     for i, channel in enumerate(channels3, start=1):
@@ -117,16 +157,16 @@ def configure_roadms(net):
     vie.install_switch_rule(1, in_port, out_port, channels3)
 
 
-def transmit(net):
+def transmit(net, channels_list):
     lt_london = net.name_to_node['lt_london']
     lt_paris = net.name_to_node['lt_paris']
     lt_prague = net.name_to_node['lt_prague']
     # turning on ports with the same index as
     # the channels being transmitted
     # out_ports commence from 100
-    london_ports = [99 + i for i in range(1, 16)]
-    paris_ports = [99 + i for i in range(16, 31)]
-    prague_ports = [99 + i for i in range(31, 46)]
+    london_ports = [99 + i for i in channels_list[0]]
+    paris_ports = [99 + i for i in channels_list[1]]
+    prague_ports = [99 + i for i in channels_list[2]]
 
     lt_london.turn_on(london_ports)
     lt_paris.turn_on(paris_ports)
@@ -270,8 +310,9 @@ def write_files(osnr, gosnr, powers, ases, nlis,
     json_struct['tests'].append({_ase_id: ases})
     json_struct['tests'].append({_nli_id: nlis})
 
-    test = 'cost239-monitor/'
-    dir_ = test + link_label + '/density_' + str(density) + '/'
+    test = 'cost239-monitor/monitor-module/'
+    dir_ = test + link_label + '/'
+    #dir_ = test + link_label + '/density_' + str(density) + '/'
     if not os.path.exists(dir_):
         os.makedirs(dir_)
     json_file_name = dir_ + monitor_name + '.json'
@@ -280,5 +321,11 @@ def write_files(osnr, gosnr, powers, ases, nlis,
 
 
 if __name__ == '__main__':
+    with open('seeds/wdg_seed_simpledemo.txt', 'r') as filename:
+        data = filename.readline()
+        seeds2 = data.split(',')
+        seeds2 = seeds2[:-1]
     net = Cost239Topology.build()
+    for amp, ripple in zip(net.amplifiers, seeds2):
+        amp.set_ripple_function(ripple)
     run(net)

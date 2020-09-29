@@ -90,6 +90,47 @@ def estimation_module_approx(main_struct, m):
     return estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n
 
 
+def estimation_module_simpledemo(main_struct, spans, link_dir, last=True):
+    keys, s_p, s_a, s_n = main_struct
+    estimation_osnr_log = []
+    estimation_gosnr_log = []
+    # process roadm attenuation
+    s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+    estimation_osnr_log.append(osnr(keys, s_p, s_a))
+    estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    for span in spans:
+        # process span attenuation
+        s_p, s_a, s_n = process_span_dyn(keys, s_p, s_a, s_n, span)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+        estimation_osnr_log.append(osnr(keys, s_p, s_a))
+        estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, link_dir)
+    if last:
+        return estimation_osnr_log, estimation_gosnr_log
+    else:
+        return keys, s_p, s_a, s_n
+
+
+def estimation_module_simpledemo_correct(main_struct, span, first=False):
+    keys, s_p, s_a, s_n = main_struct
+    if first:
+        # process roadm attenuation
+        s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+        _osnr = osnr(keys, s_p, s_a)
+        _gosnr = gosnr(keys, s_p, s_a, s_n)
+        return _osnr, _gosnr, s_p, s_a, s_n
+    # process span attenuation
+    s_p, s_a, s_n = process_span_dyn(keys, s_p, s_a, s_n, span)
+    s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+    _osnr = osnr(keys, s_p, s_a)
+    _gosnr = gosnr(keys, s_p, s_a, s_n)
+    return _osnr, _gosnr, s_p, s_a, s_n
+
+
 def build_struct(load, signal_ids=None):
     s_p, s_a, s_n = {}, {}, {}
     if signal_ids:
@@ -130,7 +171,7 @@ def process_roadm(keys, s_p, s_a, s_n):
 
 
 def leveling(keys, s_p, s_a, s_n):
-    op = db_to_abs(-19.0)
+    op = db_to_abs(-17.0)
     delta = {}
     for ch in keys:
         delta[ch] = op / s_p[ch]
@@ -143,7 +184,7 @@ def leveling(keys, s_p, s_a, s_n):
 
 def process_amp(keys, s_p, s_a, s_n, boost=False):
     boost_gain = db_to_abs(17.0)
-    amp_gain = db_to_abs(17.6)
+    amp_gain = db_to_abs(11)
     for ch in keys:
         if boost:
             gain = boost_gain
@@ -160,6 +201,21 @@ def process_amp(keys, s_p, s_a, s_n, boost=False):
 
 def process_span(keys, s_p, s_a, s_n):
     attenuation = db_to_abs(80 * 0.22)
+
+    s_n = nonlinear_noise(s_n, s_p, keys)
+
+    # s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
+
+    for ch in keys:
+        s_p[ch] /= attenuation
+        s_a[ch] /= attenuation
+        s_n[ch] /= attenuation
+
+    return s_p, s_a, s_n
+
+
+def process_span_dyn(keys, s_p, s_a, s_n, _len):
+    attenuation = db_to_abs(_len * 0.22)
 
     s_n = nonlinear_noise(s_n, s_p, keys)
 
@@ -356,6 +412,39 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
         # process_file(json_file_name, monitor_key)
+
+
+def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, link_dir):
+    monitors = None
+    if link_dir == 'r_london-r_copenhagen/':
+        # build the monitors list
+        monitors = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+        # insert booster monitor at the beginning
+        monitors.insert(0, 'r_london-r_copenhagen-boost-monitor')
+    elif link_dir == 'r_copenhagen-r_berlin/':
+        monitors = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
+        monitors.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
+    elif link_dir == 'r_paris-r_berlin/':
+        monitors = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
+        monitors.insert(0, 'r_paris-r_berlin-boost-monitor')
+    elif link_dir == 'r_prague-r_vienna/':
+        monitors = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
+        monitors.insert(0, 'r_prague-r_vienna-boost-monitor')
+
+    _osnr_id = 'osnr'
+    _gosnr_id = 'gosnr'
+
+    for index, monitor_key in enumerate(monitors):
+        json_struct = {'tests': []}
+        json_struct['tests'].append({_osnr_id: estimation_osnr_log[index]})
+        json_struct['tests'].append({_gosnr_id: estimation_gosnr_log[index]})
+        dir_ = 'cost239-monitor/estimation-module/' + link_dir + monitor_key
+
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+        json_file_name = dir_ + '/log_data.json'
+        with open(json_file_name, 'w+') as outfile:
+            json.dump(json_struct, outfile)
 
 
 def process_file(outfile, monitor_key):
