@@ -513,7 +513,7 @@ class Roadm(Node):
             if wd_tuple[1]:
                 tmp_dict[wss_id] = wd_tuple
             else:
-                wd_func = [0.0] * 90  # linear function with no extra attenuation
+                wd_func = [0.0] * 91  # linear function with no extra attenuation
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
@@ -774,6 +774,7 @@ class Roadm(Node):
 
 
 description_files_dir = '../description-files/'
+# description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1_3.txt',
                      'wdg2': 'wdg2_2.txt'}
@@ -784,7 +785,7 @@ description_files = {'wdg1': 'wdg1_3.txt',
 class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
-                 noise_figure=(5.5, 90), noise_figure_function=None,
+                 noise_figure=(5.5, 91), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
                  boost=False,monitor_mode=None):
         """
