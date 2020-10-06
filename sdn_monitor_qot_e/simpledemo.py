@@ -21,7 +21,7 @@
 """
 
 from topo.cost239 import Cost239Topology
-from estimation_module import *
+from sdn_monitor_qot_e.estimation_module import *
 import numpy as np
 from operator import attrgetter
 import os

@@ -94,19 +94,29 @@ def estimation_module_simpledemo(main_struct, spans, link_dir, last=True):
     keys, s_p, s_a, s_n = main_struct
     estimation_osnr_log = []
     estimation_gosnr_log = []
+    estimation_power_log = []
+    estimation_ase_log = []
+    estimation_nli_log = []
     # process roadm attenuation
     s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
     s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
     s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
     estimation_osnr_log.append(osnr(keys, s_p, s_a))
     estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    estimation_power_log.append(s_p)
+    estimation_ase_log.append(s_a)
+    estimation_nli_log.append(s_n)
     for span in spans:
         # process span attenuation
         s_p, s_a, s_n = process_span_dyn(keys, s_p, s_a, s_n, span)
         s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
         estimation_osnr_log.append(osnr(keys, s_p, s_a))
         estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
-    write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, link_dir)
+        estimation_power_log.append(s_p)
+        estimation_ase_log.append(s_a)
+        estimation_nli_log.append(s_n)
+    write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, estimation_power_log,
+                           estimation_ase_log, estimation_nli_log, link_dir)
     if last:
         return estimation_osnr_log, estimation_gosnr_log
     else:
@@ -157,7 +167,6 @@ def gosnr(keys, s_p, s_a, s_n):
     for ch in keys:
         gosnr = s_p[ch] / (s_a[ch] + s_n[ch] * (12.5e9/32.0e9))
         gosnrs[ch] = abs_to_db(gosnr)
-
     return gosnrs
 
 
@@ -414,7 +423,7 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         # process_file(json_file_name, monitor_key)
 
 
-def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, link_dir):
+def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n, link_dir):
     monitors = None
     if link_dir == 'r_london-r_copenhagen/':
         # build the monitors list
@@ -433,11 +442,17 @@ def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, link_dir):
 
     _osnr_id = 'osnr'
     _gosnr_id = 'gosnr'
+    _power_id = 'power'
+    _ase_id = 'ase'
+    _nli_id = 'nli'
 
     for index, monitor_key in enumerate(monitors):
         json_struct = {'tests': []}
         json_struct['tests'].append({_osnr_id: estimation_osnr_log[index]})
         json_struct['tests'].append({_gosnr_id: estimation_gosnr_log[index]})
+        json_struct['tests'].append({_power_id: s_p[index]})
+        json_struct['tests'].append({_ase_id: s_a[index]})
+        json_struct['tests'].append({_nli_id: s_n[index]})
         dir_ = 'cost239-monitor/estimation-module/' + link_dir + monitor_key
 
         if not os.path.exists(dir_):
