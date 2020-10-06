@@ -29,6 +29,7 @@ def abs_to_db(absolute_value):
     db_value = 10 * np.log10(absolute_value)
     return db_value
 
+
 # dummy boolean
 tmp_bool = False
 if tmp_bool:
