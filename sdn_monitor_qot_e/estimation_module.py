@@ -425,23 +425,22 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         # process_file(json_file_name, monitor_key)
 
 
-
 def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n, link_dir):
     monitors = None
     if link_dir == 'r_london-r_copenhagen/':
         # build the monitors list
-        monitors = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+        monitors = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
         # insert booster monitor at the beginning
-        monitors.insert(0, 'r_london-r_copenhagen-boost-monitor')
+        monitors.insert(0, 'r_london-r_copenhagen-boost')
     elif link_dir == 'r_copenhagen-r_berlin/':
-        monitors = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
-        monitors.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
+        monitors = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+        monitors.insert(0, 'r_copenhagen-r_berlin-boost')
     elif link_dir == 'r_paris-r_berlin/':
-        monitors = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
-        monitors.insert(0, 'r_paris-r_berlin-boost-monitor')
+        monitors = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+        monitors.insert(0, 'r_paris-r_berlin-boost')
     elif link_dir == 'r_prague-r_vienna/':
-        monitors = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
-        monitors.insert(0, 'r_prague-r_vienna-boost-monitor')
+        monitors = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+        monitors.insert(0, 'r_prague-r_vienna-boost')
 
     _osnr_id = 'osnr'
     _gosnr_id = 'gosnr'
@@ -457,7 +456,7 @@ def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, 
         json_struct['tests'].append({_ase_id: s_a[index]})
         json_struct['tests'].append({_nli_id: s_n[index]})
 
-        dir_ = 'cost239-monitor/estimation-module/' + link_dir + monitor_key
+        dir_ = 'cost239-monitor/estimation-module-new/' + link_dir + monitor_key
 
         if not os.path.exists(dir_):
             os.makedirs(dir_)

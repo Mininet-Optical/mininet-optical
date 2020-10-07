@@ -10,6 +10,8 @@ from sdn_monitor_qot_e.correction_procedure import *
 def compute_errors(y, z):
     _errors = []
     keys = z.keys()
+    print("uno", y)
+    print("dos", z)
     for k in keys:
         e = abs(y[k] - z[k])
         _errors.append(e)
@@ -28,18 +30,18 @@ def get_monitors(link_dir):
     monitors = None
     if link_dir == 'r_london-r_copenhagen/':
         # build the monitors list
-        monitors = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+        monitors = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
         # insert booster monitor at the beginning
-        monitors.insert(0, 'r_london-r_copenhagen-boost-monitor')
+        monitors.insert(0, 'r_london-r_copenhagen-boost')
     elif link_dir == 'r_copenhagen-r_berlin/':
-        monitors = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
-        monitors.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
+        monitors = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+        monitors.insert(0, 'r_copenhagen-r_berlin-boost')
     elif link_dir == 'r_paris-r_berlin/':
-        monitors = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
-        monitors.insert(0, 'r_paris-r_berlin-boost-monitor')
+        monitors = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+        monitors.insert(0, 'r_paris-r_berlin-boost')
     elif link_dir == 'r_prague-r_vienna/':
-        monitors = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
-        monitors.insert(0, 'r_prague-r_vienna-boost-monitor')
+        monitors = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+        monitors.insert(0, 'r_prague-r_vienna-boost')
     return monitors
 
 
@@ -83,28 +85,28 @@ def get_monitor_deploy(link_key, density=10, first_last='first'):
     """
     if link_key == 'r_london-r_copenhagen':
         # build the monitors list
-        mon_ldn_cph = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+        mon_ldn_cph = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
         # insert booster monitor at the beginning
-        mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost-monitor')
+        mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost')
         # consider only the number of monitors given by the density %
         mon_ldn_cph = monitor_deployment(mon_ldn_cph, density=density, first_last=first_last)
         return mon_ldn_cph
 
     elif link_key == 'r_copenhagen-r_berlin':
-        mon_cph_ber = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
-        mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
+        mon_cph_ber = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+        mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost')
         mon_cph_ber = monitor_deployment(mon_cph_ber, density=density, first_last=first_last)
         return mon_cph_ber
 
     elif link_key == 'r_paris-r_berlin':
-        mon_par_ber = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
-        mon_par_ber.insert(0, 'r_paris-r_berlin-boost-monitor')
+        mon_par_ber = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+        mon_par_ber.insert(0, 'r_paris-r_berlin-boost')
         mon_par_ber = monitor_deployment(mon_par_ber, density=density, first_last=first_last)
         return mon_par_ber
 
     elif link_key == 'r_prague-r_vienna':
-        mon_pra_vie = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
-        mon_pra_vie.insert(0, 'r_prague-r_vienna-boost-monitor')
+        mon_pra_vie = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+        mon_pra_vie.insert(0, 'r_prague-r_vienna-boost')
         mon_pra_vie = monitor_deployment(mon_pra_vie, density=density, first_last=first_last)
         return mon_pra_vie
 
@@ -166,7 +168,7 @@ def even_select(n, m):
 
 def get_opm_struct(link_dir, monitors):
     # locations of the json files
-    _opm_path = 'cost239-monitor/monitor-module/' + link_dir
+    _opm_path = 'cost239-monitor/monitor-module-new/' + link_dir
 
     osnr_opm_dict = dict.fromkeys(monitors)
     gosnr_opm_dict = dict.fromkeys(monitors)
@@ -225,7 +227,7 @@ def plot_error_to_density(l_id, e_o, e_c):
 tmp_bool = True
 if tmp_bool:
 
-    root_dir = 'cost239-monitor/estimation-module/'
+    root_dir = 'cost239-monitor/estimation-module-new/'
     links_dir = ['r_london-r_copenhagen/', 'r_copenhagen-r_berlin/', 'r_paris-r_berlin/', 'r_prague-r_vienna/']
     densities_dir = ['density_10/', 'density_30/', 'density_60/']
 
@@ -255,7 +257,6 @@ if tmp_bool:
 
                     mon_est[link_key][monitor]['osnr'] = osnr
                     mon_est[link_key][monitor]['gosnr'] = gosnr
-
 
     link_keys = [('r_london-r_copenhagen', 'r_copenhagen-r_berlin'), 'r_paris-r_berlin', 'r_prague-r_vienna']
     # channels_list = [range(1, 16), range(16, 31), range(31, 46)]

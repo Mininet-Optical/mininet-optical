@@ -43,26 +43,18 @@ def build_spans(total_len):
 def build_link(net, r1, r2, total_len):
     # boost amplifier object
     boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
-    boost_amp = net.add_amplifier(boost_l, 'EDFA', target_gain=17.0, boost=True)
+    boost_amp = net.add_amplifier(boost_l, 'EDFA', target_gain=17.0, boost=True, monitor_mode='out')
 
     # link object
     link_r1_r2 = net.add_link(r1, r2, boost_amp=boost_amp)
-
-    # OPM object
-    opm_l = '%s-monitor' % boost_l  # label OPM boost
-    net.add_monitor(opm_l, link=None, span=None, amplifier=boost_amp)
-
     spans = build_spans(total_len)
 
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
         in_l = '%s-%s-amp%d' % (r1, r2, step)  # label inline amp
-        in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22)
+        in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22, monitor_mode='out')
         # adding span and in-line amplifier to link
         link_r1_r2.add_span(span, in_line_amp)
-        # OPM object
-        opm_l = '%s-monitor' % in_l  # label OPM
-        net.add_monitor(opm_l, link=link_r1_r2, span=span, amplifier=in_line_amp)
 
 
 def build_links(net, r1, r2, total_len):
@@ -73,10 +65,9 @@ def build_links(net, r1, r2, total_len):
 class Cost239Topology:
 
     @staticmethod
-    def build(op=0, non=11):
+    def build(op=0):
         """
         :param op: operational power in dBm
-        :param non: number of nodes (integer)
         :return: Network object
         """
         # Create an optical-network object
@@ -84,7 +75,7 @@ class Cost239Topology:
 
         # Create line terminals
         operational_power = op  # power in dBm
-        tr_no = np.arange(1, 91)
+        tr_no = np.arange(90)
         tr_labels = ['t%s' % str(x) for x in tr_no]
         transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
         city_names = ['amsterdam', 'berlin', 'brussels', 'copenhagen', 'london',
@@ -94,12 +85,13 @@ class Cost239Topology:
         # Create ROADMs
         wss_dict = {1: (7.0, None), 2: (7.0, None)}
         roadms = [net.add_roadm('r_%s' % name, wss_dict=wss_dict,
-                                voa_function='flatten', voa_target_out_power=op) for name in city_names]
+                                equalization_function='flatten',
+                                equalization_target_out_power=op) for name in city_names]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Create bi-directional links between LTs and ROADMs
         for lt, roadm in zip(line_terminals, roadms):
-            for tr in lt.transceivers:
+            for _ in lt.transceivers:
                 link = net.add_link(lt, roadm)
                 link.add_span(Span('SMF', 0.001), amplifier=None)
                 bi_link = net.add_link(roadm, lt)

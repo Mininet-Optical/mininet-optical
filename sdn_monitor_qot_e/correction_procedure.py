@@ -260,7 +260,7 @@ def get_spans_and_channels_from_link_key(link_key):
 
 def get_opm_struct(link_key, monitors):
     # locations of the json files
-    _opm_path = 'cost239-monitor/monitor-module/' + link_key + '/'
+    _opm_path = 'cost239-monitor/monitor-module-new/' + link_key + '/'
 
     osnr_opm_dict = dict.fromkeys(monitors)
     gosnr_opm_dict = dict.fromkeys(monitors)

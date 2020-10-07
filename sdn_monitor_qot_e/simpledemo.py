@@ -22,8 +22,6 @@
 
 from topo.cost239 import Cost239Topology
 from sdn_monitor_qot_e.estimation_module import *
-import numpy as np
-from operator import attrgetter
 import os
 import json
 
@@ -33,13 +31,11 @@ def run(net):
     channels_list = [range(1, 16), range(16, 31), range(75, 91)]  # estimation
     # channels_list = [range(1, 16), range(16, 31), range(31, 46)]  # estimation
 
-    estimation(net, channels_list)
+    # estimation(net, channels_list)
     configure_terminals(net, channels_list)
     configure_roadms(net, channels_list)
     transmit(net, channels_list)
-    densities = [100]
-    for density in densities:
-        monitor(net, density=density)
+    # monitor(net)
 
 
 def estimation(net, channels_list):
@@ -83,12 +79,10 @@ def configure_terminals(net, channels_list):
 
     for lt, channels in zip(lt_list, channels_list):
         transceivers = lt.transceivers
-        out_port = channels[0] + 99
-        for i, ch in enumerate(channels):
-            t = transceivers[i]
+        for i, ch in enumerate(channels, start=channels[0]):
+            t = transceivers[i - 1]
             # transceiver, out_port and channels
-            lt.configure_terminal(t, out_port, [ch])
-            out_port += 1
+            lt.configure_terminal(t, [ch])
 
 
 def configure_roadms(net, channels_list):
@@ -161,19 +155,16 @@ def transmit(net, channels_list):
     lt_london = net.name_to_node['lt_london']
     lt_paris = net.name_to_node['lt_paris']
     lt_prague = net.name_to_node['lt_prague']
-    # turning on ports with the same index as
-    # the channels being transmitted
-    # out_ports commence from 100
-    london_ports = [99 + i for i in channels_list[0]]
-    paris_ports = [99 + i for i in channels_list[1]]
-    prague_ports = [99 + i for i in channels_list[2]]
 
-    lt_london.turn_on(london_ports)
-    lt_paris.turn_on(paris_ports)
-    lt_prague.turn_on(prague_ports)
+    out_ports = [i - 1 for i in channels_list[0]]
+    lt_london.turn_on(out_ports)
+    out_ports = [i - 1 for i in channels_list[1]]
+    lt_paris.turn_on(out_ports)
+    out_ports = [i - 1 for i in channels_list[2]]
+    lt_prague.turn_on(out_ports)
 
 
-def monitor(net, density=10, first_last='first'):
+def monitor(net):
     """
     net: network object
     density: density percentage (10 = 10%, 30 = 30%, etc)
@@ -181,93 +172,33 @@ def monitor(net, density=10, first_last='first'):
     the first one (boost-monitor) or last one (pre-amp-monitor) in the link
     """
     # build the monitors list
-    mon_ldn_cph = ['r_london-r_copenhagen-amp%s-monitor' % str(i) for i in range(1, 21)]
+    mon_ldn_cph = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
     # insert booster monitor at the beginning
-    mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost-monitor')
-    # consider only the number of monitors given by the density %
-    mon_ldn_cph = monitor_deployment(mon_ldn_cph, density=density, first_last=first_last)
+    mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost')
     # query the OPMs and write log files
     for monitor_name in mon_ldn_cph:
-        monitor_query(net, monitor_name, density)
+        monitor_query(net, monitor_name)
 
-    mon_cph_ber = ['r_copenhagen-r_berlin-amp%s-monitor' % str(i) for i in range(1, 9)]
-    mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost-monitor')
-    mon_cph_ber = monitor_deployment(mon_cph_ber, density=density, first_last=first_last)
+    mon_cph_ber = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+    mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost')
     for monitor_name in mon_cph_ber:
-        monitor_query(net, monitor_name, density)
+        monitor_query(net, monitor_name)
 
-    mon_par_ber = ['r_paris-r_berlin-amp%s-monitor' % str(i) for i in range(1, 19)]
-    mon_par_ber.insert(0, 'r_paris-r_berlin-boost-monitor')
-    mon_par_ber = monitor_deployment(mon_par_ber, density=density, first_last=first_last)
+    mon_par_ber = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+    mon_par_ber.insert(0, 'r_paris-r_berlin-boost')
     for monitor_name in mon_par_ber:
-        monitor_query(net, monitor_name, density)
+        monitor_query(net, monitor_name)
 
-    mon_pra_vie = ['r_prague-r_vienna-amp%s-monitor' % str(i) for i in range(1, 8)]
-    mon_pra_vie.insert(0, 'r_prague-r_vienna-boost-monitor')
-    mon_pra_vie = monitor_deployment(mon_pra_vie, density=density, first_last=first_last)
+    mon_pra_vie = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+    mon_pra_vie.insert(0, 'r_prague-r_vienna-boost')
     for monitor_name in mon_pra_vie:
-        monitor_query(net, monitor_name, density)
+        monitor_query(net, monitor_name)
 
 
-def monitor_deployment(monitor_link, density=10, first_last='first'):
-    # if using 100% OPM density
-    if density == 100:
-        return monitor_link
-
-    # compute number of OPMs given the density
-    monitor_no = int(len(monitor_link) * density*1e-2)
-    # list with the monitors to be used
-    monitors = []
-
-    if monitor_no <= 1:
-        # if monitor_no is 0 or 1, use either the
-        # first one (boost) or last one (pre-amp)
-        if first_last == 'first':
-            monitors.append(monitor_link[0])
-        else:
-            monitors.append(monitor_link[-1])
-    else:
-        # if monitor_no >= 2, select monitors in an even manner
-        monitors = monitor_select(monitor_link, monitor_no)
-    return monitors
-
-
-def monitor_select(monitor_link, monitor_no):
-    n = len(monitor_link)
-    # select indices from even_select algorithm
-    indices = even_select(n, monitor_no)
-    monitors = []
-    for i, k in enumerate(indices):
-        if k == 0:
-            monitors.append(monitor_link[i])
-    return monitors
-
-
-def even_select(n, m):
-    """
-    n: number of OPMs in link
-    m: number of OPMs required
-    return: list [0,1] with location of OPMs
-    to be considered (0) and ignored (1) as per
-    their location in the link
-    """
-    if m > n/2:
-        cut = np.zeros(n, dtype=int)
-        q, r = divmod(n, n-m)
-        indices = [q*i + min(i, r) for i in range(n-m)]
-        cut[indices] = True
-    else:
-        cut = np.ones(n, dtype=int)
-        q, r = divmod(n, m)
-        indices = [q*i + min(i, r) for i in range(m)]
-        cut[indices] = False
-    return cut
-
-
-def monitor_query(net, monitor_name, density):
-    x = monitor_name.split('-', 2)
+def monitor_query(net, component_name):
+    x = component_name.split('-', 2)
     link_label = x[0] + '-' + x[1]
-    monitor = net.name_to_node[monitor_name]
+    monitor = net.name_to_node[component_name].monitor
 
     osnrdata = {int(signal.index):
                     dict(freq=signal.frequency, osnr=monitor.get_osnr(signal),
@@ -275,8 +206,7 @@ def monitor_query(net, monitor_name, density):
                          power=monitor.get_power(signal),
                          ase=monitor.get_ase_noise(signal),
                          nli=monitor.get_nli_noise(signal))
-                for signal in sorted(monitor.amplifier.output_power,
-                                     key=attrgetter('index'))}
+                for signal in net.name_to_node[component_name].optical_signals}
 
     osnrs, gosnrs = {}, {}
     powers, ases, nlis = {}, {}, {}
@@ -291,11 +221,11 @@ def monitor_query(net, monitor_name, density):
 
     json_struct = {'tests': []}
     write_files(osnrs, gosnrs, powers, ases, nlis,
-                json_struct, link_label, monitor_name, density)
+                json_struct, link_label, component_name)
 
 
 def write_files(osnr, gosnr, powers, ases, nlis,
-                json_struct, link_label, monitor_name, density):
+                json_struct, link_label, monitor_name):
     """
     Write a file with osnr and gosnr information from a given OPM node
     """
@@ -310,9 +240,8 @@ def write_files(osnr, gosnr, powers, ases, nlis,
     json_struct['tests'].append({_ase_id: ases})
     json_struct['tests'].append({_nli_id: nlis})
 
-    test = 'cost239-monitor/monitor-module/'
+    test = 'cost239-monitor/monitor-module-new/'
     dir_ = test + link_label + '/'
-    #dir_ = test + link_label + '/density_' + str(density) + '/'
     if not os.path.exists(dir_):
         os.makedirs(dir_)
     json_file_name = dir_ + monitor_name + '.json'
