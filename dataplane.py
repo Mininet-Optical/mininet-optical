@@ -502,7 +502,7 @@ class ROADM( SwitchBase ):
             flow = self.dpFlow( inport, outport, channel, 'add-flow' )
             self.dpctl( cmd, flow )
 
-    def dpRemove( self, inport, outport, channels, cmd='add-flow' ):
+    def dpRemove( self, inport, outport, channels ):
         "Remove a switching rule from the dataplane"
         dpInstall( self, inport, outport, channels, cmd='del-flows' )
 
@@ -516,17 +516,18 @@ class ROADM( SwitchBase ):
     def install( self, inport, outport, channels, action='install' ):
         "Install rules into dataplane and physical model"
         if action == 'install':
-            self.dpInstall( inport, outport, channels, cmd='add-flow' )
+            self.dpInstall( inport, outport, channels )
             self.phyInstall( inport, outport, channels )
         elif action == 'remove':
-            self.dpInstall( inport, outport, channels  )
+            self.dpRemove( inport, outport, channels  )
             self.phyRemove( inport, outport, channels )
         else:
             raise Exception( 'unknown action <%s>' % action )
 
-    def restDisconnectHandler( self, query ):
-        "REST remove handler"
-        return restConnectHandler( query, action='remove' )
+    # Here for symmetry, but not actually used by REST API
+    def remove( self, inport, outport, channels ):
+        "Remove rules from dataplane and physical model"
+        install( self, inport, outport, channels, action='remove' ):
 
     def restConnectHandler( self, query ):
         "REST connect handler"
@@ -536,6 +537,10 @@ class ROADM( SwitchBase ):
         action = query.get( 'action', 'install' )
         self.connect( port1, port2, channels, action )
         return 'OK'
+
+    def restDisconnectHandler( self, query ):
+        "REST remove handler"
+        return restConnectHandler( query, action='remove' )
 
     def connect( self, port1, port2, channels, action='install' ):
         "Install bidirectional rule connecting port1 and port2"
@@ -682,7 +687,7 @@ class OpticalLink( Link ):
                     self.monitors.append( monitor )
         if boost2 and boost2.name in monitored:
             monitor = Monitor( boost2.name, link=self.phyLink2, amplifier=boost2 )
-            self.monitors.append( monitor ) 
+            self.monitors.append( monitor )
 
     @staticmethod
     def parseSpans( spans=None ):

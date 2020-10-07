@@ -30,7 +30,6 @@ class Link(object):
     ROADM-ROADM). In the future we must enable network-element-node to controller-node
     connectivity.
     """
-
     def __init__(self, node1, node2, boost_amp=None, srs_effect=True, spans=None):
         """
         :param node1: source Node object

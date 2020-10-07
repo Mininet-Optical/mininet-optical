@@ -42,6 +42,7 @@ class Node(object):
         Create a new input port for a node
         to connect to another node
         :param connected_node:
+        :param portnum:
         :return: new input port
         """
         new_input_port = self.input_port_base
@@ -69,6 +70,7 @@ class Node(object):
 
         if in_port or in_port == 0:
             self.port_to_optical_signal_in[in_port].append(optical_signal)
+
 
     def include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None, out_port=None):
         """
@@ -224,7 +226,6 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise))
 
     def receiver(self, in_port):
-
         signalInfoDict = {}
         for optical_signal in self.optical_signals:
             signalInfoDict[optical_signal] = {'osnr': None, 'gosnr': None,
@@ -318,6 +319,12 @@ class Transceiver(object):
     def compute_gross_bit_rate(self):
         self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
 
+    def configure_symbol_rate(self, new_symbol_rate):
+        self.symbol_rate = new_symbol_rate
+
+    def configure_modulation_format(self, new_modulation_format):
+        self.modulation_format = new_modulation_format
+
     def describe(self):
         pprint(vars(self))
 
@@ -407,7 +414,6 @@ class Roadm(Node):
 
     def __init__(self, name, wss_dict=None, equalization_function='flatten',
                  equalization_target_out_power=0, monitor_mode=None):
-
         """
         :param name:
         :param wss_dict:
@@ -511,6 +517,28 @@ class Roadm(Node):
         for port, _ in self.port_to_optical_signal_out.items():
             self.port_to_optical_signal_in[port] = []
             self.port_to_optical_signal_out[port] = []
+
+        self.delete_switch_rules()
+
+        for _, link in self.out_port_to_link.items():
+            link.reset_propagation_struct()
+
+    def clean(self):
+        # print("*** Node.ROADM.clean() - ", self.name)
+
+        for port, _ in self.port_to_optical_signal_out.items():
+            self.port_to_optical_signal_out[port] = {}
+        for port, _ in self.port_to_optical_signal_power_in.items():
+            self.port_to_optical_signal_power_in[port] = {}
+        for port, _ in self.port_to_optical_signal_power_out.items():
+            self.port_to_optical_signal_power_out[port] = {}
+
+        for port, _ in self.port_to_optical_signal_nli_noise_in.items():
+            self.port_to_optical_signal_ase_noise_in[port] = {}
+            self.port_to_optical_signal_nli_noise_in[port] = {}
+        for port, _ in self.port_to_optical_signal_nli_noise_out.items():
+            self.port_to_optical_signal_ase_noise_out[port] = {}
+            self.port_to_optical_signal_nli_noise_out[port] = {}
 
         self.delete_switch_rules()
 
@@ -681,8 +709,6 @@ description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1_3.txt',
                      'wdg2': 'wdg2_2.txt'}
-
-
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -718,6 +744,8 @@ class Amplifier(Node):
         self.power_excursions_flag_2 = False
 
         self.boost = boost
+
+
 
     def power_excursions_flags_off(self):
         self.power_excursions_flag_1 = False
@@ -947,6 +975,17 @@ class Monitor(Node):
         else:
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         return nli_noise
+
+    def get_dict_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        optical_signals_dict = {}
+        for optical_signal in optical_signals:
+            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
+        return optical_signals_dict
 
     def get_osnr(self, optical_signal):
         """

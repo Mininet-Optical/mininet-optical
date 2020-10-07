@@ -3,8 +3,6 @@ This is a helper script to check fast and easy
 performance of the physical models.
 
 """
-
-
 from topo.linear import LinearTopology
 from estimation_module import *
 import numpy as np
@@ -134,7 +132,7 @@ def configure_terminal(term, channel_no, signal_ids=None):
         t = transceivers[i]
         term.configure_terminal(t, out_port, [ch])
 
-
+        
 def configure_roadms(net, channel_no):
     channels = list(np.arange(1, channel_no + 1))
 
@@ -148,7 +146,7 @@ def configure_roadms(net, channel_no):
         else:
             roadm.install_switch_rule(1, 1, 102, channels)
 
-
+            
 def transmit(term):
     out_port = [100]
     term.turn_on(out_port)

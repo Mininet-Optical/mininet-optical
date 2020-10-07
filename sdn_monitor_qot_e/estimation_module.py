@@ -239,7 +239,7 @@ def process_span_dyn(keys, s_p, s_a, s_n, _len):
 
     return s_p, s_a, s_n
 
-
+  
 def stage_amplified_spontaneous_emission_noise(index, ase_noise_acc,
                                                system_gain):
     """
