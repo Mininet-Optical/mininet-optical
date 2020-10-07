@@ -32,9 +32,8 @@ while test_run <= 1:
     # different wavelength loads corresponding
     # to 3, 11 and 90 % of wavelength capacity
     j = 0
-    _load = [3, 4, 5]
-    while j < 3:
-        load = _load[j]
+    _load = [9, 27, 81]
+    for load in _load:
         load_id = str(load)
         net = LinearTopology.build(non=15)
 
@@ -93,8 +92,8 @@ while test_run <= 1:
             json_struct['tests'].append({_osnr_id: osnrs})
             json_struct['tests'].append({_gosnr_id: gosnrs})
 
-            test = '../../'
-            dir_ = test + 'opm-sim-no-m-tmp/' + opm_name
+            test = '../../sim-data/'
+            dir_ = test + 'sequential/' + opm_name
             if not os.path.exists(dir_):
                 os.makedirs(dir_)
             json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
