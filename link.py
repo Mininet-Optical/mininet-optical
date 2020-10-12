@@ -121,6 +121,7 @@ class Link(object):
         output_power_dict = {}
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
+
         if self.boost_amp:  # Implementing boost as part of ROADM? Probably yes.
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface

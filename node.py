@@ -42,6 +42,7 @@ class Node(object):
         Create a new input port for a node
         to connect to another node
         :param connected_node:
+        :param portnum:
         :return: new input port
         """
         new_input_port = self.input_port_base
@@ -343,6 +344,12 @@ class Transceiver(object):
 
     def compute_gross_bit_rate(self):
         self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
+
+    def configure_symbol_rate(self, new_symbol_rate):
+        self.symbol_rate = new_symbol_rate
+
+    def configure_modulation_format(self, new_modulation_format):
+        self.modulation_format = new_modulation_format
 
     def describe(self):
         pprint(vars(self))
@@ -701,8 +708,6 @@ description_files_dir = '../description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1_3.txt',
                      'wdg2': 'wdg2_2.txt'}
-
-
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -938,6 +943,15 @@ class Monitor(Node):
         ordered_optical_signals = [signal_by_index[i] for i in ordered_optical_signals_by_index]
         return ordered_optical_signals
 
+    def get_power(self, optical_signal):
+        return self.amplifier.output_power[optical_signal]
+
+    def get_ase_noise(self, optical_signal):
+        return self.amplifier.ase_noise[optical_signal]
+
+    def get_nli_noise(self, optical_signal):
+        return self.amplifier.nonlinear_noise[optical_signal]
+
     def get_list_gosnr(self):
         """
         Get the gOSNR values at this OPM as a list/dictionary
@@ -970,6 +984,17 @@ class Monitor(Node):
         else:
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         return nli_noise
+
+    def get_dict_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.amplifier.output_power.keys()
+        optical_signals_dict = {}
+        for optical_signal in optical_signals:
+            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
+        return optical_signals_dict
 
     def get_osnr(self, optical_signal):
         """
@@ -1007,3 +1032,4 @@ class Monitor(Node):
 
     def __repr__(self):
         return "<name: %s, component: %s,>" % (self.name, self.component)
+      

@@ -148,7 +148,6 @@ def configure_roadms(net, channel_no):
         else:
             roadm.install_switch_rule(1, 1, 102, channels)
 
-
 def transmit(term):
     out_port = [100]
     term.turn_on(out_port)

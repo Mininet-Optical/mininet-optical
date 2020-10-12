@@ -201,7 +201,6 @@ def get_corrected_struct_ran(load, gosnr_corr_dict, signals_id=None, test_id=Non
         opm_index += 14
     return gosnr_corr_dict
 
-
 def get_corrected_struct_approx(load, signals_id=None):
     gosnr_corr_dict = dict.fromkeys(monitor_keys)
 
