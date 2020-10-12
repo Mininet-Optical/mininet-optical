@@ -201,12 +201,39 @@ def rules():
         abort( 404, "No rules handler for %s" % node )
 
 
+@get( '/cleanme' )
+def cleanme():
+    "Return cleanme for node"
+    query = request.query
+    node = lookUpNode( query.node )
+    if hasattr( node, 'restCleanmeHandler' ):
+        return node.restCleanmeHandler( query )
+    else:
+        abort( 404, "No cleanme handler for %s" % node )
+
+
+@get( '/turn_on' )
+def turn_on():
+    query = request.query
+    node = lookUpNode(query.node)
+    out_ports = request.GET.getlist('out_ports')
+    if hasattr( node, 'restTurnonHandler' ):
+        return node.restTurnonHandler( out_ports )
+    else:
+        abort( 404, "No turn_on handler for %s" % node )
+
+
 # Demo support (not part of SDN API)
 
 @get( '/setgain' )
 def setgain():
     "Demo support: tell Mininet to adjust the gain for am amplifier"
     net().restSetgainHandler( request.query )
+
+@get( '/set_ripple' )
+def set_ripple():
+    "Demo support: tell Mininet to adjust the ripple function for am amplifier"
+    net().restSetrippleHandler( request.query )
 
 
 # REST Server
