@@ -68,6 +68,82 @@ def estimation_module_dyn(main_struct, m):
     return estimation_osnr_log, estimation_gosnr_log
 
 
+def estimation_module_approx(main_struct, m):
+    keys, s_p, s_a, s_n = main_struct
+    estimation_osnr_log = []
+    estimation_gosnr_log = []
+    roadms = m
+    spans = 6
+    for roadm in range(roadms):
+        # process roadm attenuation
+        s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+        estimation_osnr_log.append(osnr(keys, s_p, s_a))
+        estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+        for span in range(spans):
+            # process span attenuation
+            s_p, s_a, s_n = process_span(keys, s_p, s_a, s_n)
+            s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+            estimation_osnr_log.append(osnr(keys, s_p, s_a))
+            estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    return estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n
+
+
+def estimation_module_simpledemo(main_struct, spans, link_dir, last=True, to_write_files=False):
+    keys, s_p, s_a, s_n = main_struct
+    estimation_osnr_log = []
+    estimation_gosnr_log = []
+    estimation_power_log = []
+    estimation_ase_log = []
+    estimation_nli_log = []
+
+    # process roadm attenuation
+    s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+    estimation_osnr_log.append(osnr(keys, s_p, s_a))
+    estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+    estimation_power_log.append(s_p)
+    estimation_ase_log.append(s_a)
+    estimation_nli_log.append(s_n)
+    for span in spans:
+        # process span attenuation
+        s_p, s_a, s_n = process_span_dyn(keys, s_p, s_a, s_n, span)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+        estimation_osnr_log.append(osnr(keys, s_p, s_a))
+        estimation_gosnr_log.append(gosnr(keys, s_p, s_a, s_n))
+        estimation_power_log.append(s_p)
+        estimation_ase_log.append(s_a)
+        estimation_nli_log.append(s_n)
+    if to_write_files:
+        write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, estimation_power_log,
+                               estimation_ase_log, estimation_nli_log, link_dir)
+
+    if last:
+        return estimation_osnr_log, estimation_gosnr_log
+    else:
+        return keys, s_p, s_a, s_n
+
+
+def estimation_module_simpledemo_correct(main_struct, span, first=False):
+    keys, s_p, s_a, s_n = main_struct
+    if first:
+        # process roadm attenuation
+        s_p, s_a, s_n = process_roadm(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = leveling(keys, s_p, s_a, s_n)
+        s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=True)
+        _osnr = osnr(keys, s_p, s_a)
+        _gosnr = gosnr(keys, s_p, s_a, s_n)
+        return _osnr, _gosnr, s_p, s_a, s_n
+    # process span attenuation
+    s_p, s_a, s_n = process_span_dyn(keys, s_p, s_a, s_n, span)
+    s_p, s_a, s_n = process_amp(keys, s_p, s_a, s_n, boost=False)
+    _osnr = osnr(keys, s_p, s_a)
+    _gosnr = gosnr(keys, s_p, s_a, s_n)
+    return _osnr, _gosnr, s_p, s_a, s_n
+
+
 def build_struct(load, signal_ids=None):
     s_p, s_a, s_n = {}, {}, {}
     if signal_ids:
@@ -75,9 +151,9 @@ def build_struct(load, signal_ids=None):
     else:
         keys = range(1, load + 1)
     for key in keys:
-        s_p[key] = db_to_abs(-2)
-        s_a[key] = db_to_abs(-2) / db_to_abs(50)
-        s_n[key] = db_to_abs(-2) / db_to_abs(50)
+        s_p[key] = db_to_abs(0)
+        s_a[key] = db_to_abs(0) / db_to_abs(50)
+        s_n[key] = db_to_abs(0) / db_to_abs(50)
     return keys, s_p, s_a, s_n
 
 
@@ -94,7 +170,6 @@ def gosnr(keys, s_p, s_a, s_n):
     for ch in keys:
         gosnr = s_p[ch] / (s_a[ch] + s_n[ch] * (12.5e9/32.0e9))
         gosnrs[ch] = abs_to_db(gosnr)
-
     return gosnrs
 
 
@@ -108,7 +183,7 @@ def process_roadm(keys, s_p, s_a, s_n):
 
 
 def leveling(keys, s_p, s_a, s_n):
-    op = db_to_abs(-19.0)
+    op = db_to_abs(-17.0)
     delta = {}
     for ch in keys:
         delta[ch] = op / s_p[ch]
@@ -121,7 +196,7 @@ def leveling(keys, s_p, s_a, s_n):
 
 def process_amp(keys, s_p, s_a, s_n, boost=False):
     boost_gain = db_to_abs(17.0)
-    amp_gain = db_to_abs(17.6)
+    amp_gain = db_to_abs(11)
     for ch in keys:
         if boost:
             gain = boost_gain
@@ -138,6 +213,21 @@ def process_amp(keys, s_p, s_a, s_n, boost=False):
 
 def process_span(keys, s_p, s_a, s_n):
     attenuation = db_to_abs(80 * 0.22)
+
+    s_n = nonlinear_noise(s_n, s_p, keys)
+
+    # s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
+
+    for ch in keys:
+        s_p[ch] /= attenuation
+        s_a[ch] /= attenuation
+        s_n[ch] /= attenuation
+
+    return s_p, s_a, s_n
+
+
+def process_span_dyn(keys, s_p, s_a, s_n, _len):
+    attenuation = db_to_abs(_len * 0.22)
 
     s_n = nonlinear_noise(s_n, s_p, keys)
 
@@ -293,26 +383,26 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
     Write a file with osnr and gosnr information from a given OPM node
     """
     monitor_keys = [
-        'r1-r2-boost', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor', 'r1-r2-amp4-monitor',
-        'r1-r2-amp5-monitor', 'r1-r2-amp6-monitor', 'r2-r3-boost', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor',
-        'r2-r3-amp3-monitor', 'r2-r3-amp4-monitor', 'r2-r3-amp5-monitor', 'r2-r3-amp6-monitor', 'r3-r4-boost',
+        'r1-r2-boost-monitor', 'r1-r2-amp1-monitor', 'r1-r2-amp2-monitor', 'r1-r2-amp3-monitor', 'r1-r2-amp4-monitor',
+        'r1-r2-amp5-monitor', 'r1-r2-amp6-monitor', 'r2-r3-boost-monitor', 'r2-r3-amp1-monitor', 'r2-r3-amp2-monitor',
+        'r2-r3-amp3-monitor', 'r2-r3-amp4-monitor', 'r2-r3-amp5-monitor', 'r2-r3-amp6-monitor', 'r3-r4-boost-monitor',
         'r3-r4-amp1-monitor', 'r3-r4-amp2-monitor', 'r3-r4-amp3-monitor', 'r3-r4-amp4-monitor', 'r3-r4-amp5-monitor',
-        'r3-r4-amp6-monitor', 'r4-r5-boost', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
-        'r4-r5-amp4-monitor', 'r4-r5-amp5-monitor', 'r4-r5-amp6-monitor', 'r5-r6-boost', 'r5-r6-amp1-monitor',
+        'r3-r4-amp6-monitor', 'r4-r5-boost-monitor', 'r4-r5-amp1-monitor', 'r4-r5-amp2-monitor', 'r4-r5-amp3-monitor',
+        'r4-r5-amp4-monitor', 'r4-r5-amp5-monitor', 'r4-r5-amp6-monitor', 'r5-r6-boost-monitor', 'r5-r6-amp1-monitor',
         'r5-r6-amp2-monitor', 'r5-r6-amp3-monitor', 'r5-r6-amp4-monitor', 'r5-r6-amp5-monitor', 'r5-r6-amp6-monitor',
-        'r6-r7-boost', 'r6-r7-amp1-monitor', 'r6-r7-amp2-monitor', 'r6-r7-amp3-monitor', 'r6-r7-amp4-monitor',
-        'r6-r7-amp5-monitor', 'r6-r7-amp6-monitor', 'r7-r8-boost', 'r7-r8-amp1-monitor', 'r7-r8-amp2-monitor',
-        'r7-r8-amp3-monitor', 'r7-r8-amp4-monitor', 'r7-r8-amp5-monitor', 'r7-r8-amp6-monitor', 'r8-r9-boost',
+        'r6-r7-boost-monitor', 'r6-r7-amp1-monitor', 'r6-r7-amp2-monitor', 'r6-r7-amp3-monitor', 'r6-r7-amp4-monitor',
+        'r6-r7-amp5-monitor', 'r6-r7-amp6-monitor', 'r7-r8-boost-monitor', 'r7-r8-amp1-monitor', 'r7-r8-amp2-monitor',
+        'r7-r8-amp3-monitor', 'r7-r8-amp4-monitor', 'r7-r8-amp5-monitor', 'r7-r8-amp6-monitor', 'r8-r9-boost-monitor',
         'r8-r9-amp1-monitor', 'r8-r9-amp2-monitor', 'r8-r9-amp3-monitor', 'r8-r9-amp4-monitor', 'r8-r9-amp5-monitor',
-        'r8-r9-amp6-monitor', 'r9-r10-boost', 'r9-r10-amp1-monitor', 'r9-r10-amp2-monitor', 'r9-r10-amp3-monitor',
-        'r9-r10-amp4-monitor', 'r9-r10-amp5-monitor', 'r9-r10-amp6-monitor', 'r10-r11-boost', 'r10-r11-amp1-monitor',
+        'r8-r9-amp6-monitor', 'r9-r10-boost-monitor', 'r9-r10-amp1-monitor', 'r9-r10-amp2-monitor', 'r9-r10-amp3-monitor',
+        'r9-r10-amp4-monitor', 'r9-r10-amp5-monitor', 'r9-r10-amp6-monitor', 'r10-r11-boost-monitor', 'r10-r11-amp1-monitor',
         'r10-r11-amp2-monitor', 'r10-r11-amp3-monitor', 'r10-r11-amp4-monitor', 'r10-r11-amp5-monitor',
-        'r10-r11-amp6-monitor', 'r11-r12-boost', 'r11-r12-amp1-monitor', 'r11-r12-amp2-monitor',
+        'r10-r11-amp6-monitor', 'r11-r12-boost-monitor', 'r11-r12-amp1-monitor', 'r11-r12-amp2-monitor',
         'r11-r12-amp3-monitor', 'r11-r12-amp4-monitor', 'r11-r12-amp5-monitor', 'r11-r12-amp6-monitor',
-        'r12-r13-boost', 'r12-r13-amp1-monitor', 'r12-r13-amp2-monitor', 'r12-r13-amp3-monitor',
-        'r12-r13-amp4-monitor', 'r12-r13-amp5-monitor', 'r12-r13-amp6-monitor', 'r13-r14-boost',
+        'r12-r13-boost-monitor', 'r12-r13-amp1-monitor', 'r12-r13-amp2-monitor', 'r12-r13-amp3-monitor',
+        'r12-r13-amp4-monitor', 'r12-r13-amp5-monitor', 'r12-r13-amp6-monitor', 'r13-r14-boost-monitor',
         'r13-r14-amp1-monitor', 'r13-r14-amp2-monitor', 'r13-r14-amp3-monitor', 'r13-r14-amp4-monitor',
-        'r13-r14-amp5-monitor', 'r13-r14-amp6-monitor', 'r14-r15-boost', 'r14-r15-amp1-monitor',
+        'r13-r14-amp5-monitor', 'r13-r14-amp6-monitor', 'r14-r15-boost-monitor', 'r14-r15-amp1-monitor',
         'r14-r15-amp2-monitor', 'r14-r15-amp3-monitor', 'r14-r15-amp4-monitor', 'r14-r15-amp5-monitor',
         'r14-r15-amp6-monitor'
     ]
@@ -333,7 +423,47 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         json_file_name = dir_ + '/' + test_id + '_' + str(load_id) + '.json'
         with open(json_file_name, 'w+') as outfile:
             json.dump(json_struct, outfile)
-        process_file(json_file_name, monitor_key)
+        # process_file(json_file_name, monitor_key)
+
+
+def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n, link_dir):
+    monitors = None
+    if link_dir == 'r_london-r_copenhagen/':
+        # build the monitors list
+        monitors = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
+        # insert booster monitor at the beginning
+        monitors.insert(0, 'r_london-r_copenhagen-boost')
+    elif link_dir == 'r_copenhagen-r_berlin/':
+        monitors = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+        monitors.insert(0, 'r_copenhagen-r_berlin-boost')
+    elif link_dir == 'r_paris-r_berlin/':
+        monitors = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+        monitors.insert(0, 'r_paris-r_berlin-boost')
+    elif link_dir == 'r_prague-r_vienna/':
+        monitors = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+        monitors.insert(0, 'r_prague-r_vienna-boost')
+
+    _osnr_id = 'osnr'
+    _gosnr_id = 'gosnr'
+    _power_id = 'power'
+    _ase_id = 'ase'
+    _nli_id = 'nli'
+
+    for index, monitor_key in enumerate(monitors):
+        json_struct = {'tests': []}
+        json_struct['tests'].append({_osnr_id: estimation_osnr_log[index]})
+        json_struct['tests'].append({_gosnr_id: estimation_gosnr_log[index]})
+        json_struct['tests'].append({_power_id: s_p[index]})
+        json_struct['tests'].append({_ase_id: s_a[index]})
+        json_struct['tests'].append({_nli_id: s_n[index]})
+
+        dir_ = 'cost239-monitor/estimation-module-new/' + link_dir + monitor_key
+
+        if not os.path.exists(dir_):
+            os.makedirs(dir_)
+        json_file_name = dir_ + '/log_data.json'
+        with open(json_file_name, 'w+') as outfile:
+            json.dump(json_struct, outfile)
 
 
 def process_file(outfile, monitor_key):

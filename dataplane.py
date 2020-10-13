@@ -687,7 +687,7 @@ class OpticalLink( Link ):
                     self.monitors.append( monitor )
         if boost2 and boost2.name in monitored:
             monitor = Monitor( boost2.name, link=self.phyLink2, amplifier=boost2 )
-            self.monitors.append( monitor )
+            self.monitors.append( monitor ) 
 
     @staticmethod
     def parseSpans( spans=None ):
