@@ -13,7 +13,8 @@ class Link(object):
     connectivity.
     """
 
-    def __init__(self, node1, node2, boost_amp=None, srs_effect=True, spans=None):
+    def __init__(self, node1, node2, src_out_port=None, dst_in_port=None,
+                 boost_amp=None, srs_effect=True, spans=None):
         """
         :param node1: source Node object
         :param node2: destination Node object
@@ -24,17 +25,24 @@ class Link(object):
         self.id = id(self)
         self.node1 = node1
         self.node2 = node2
-        output_port_node1 = node1.new_output_port(node2)
-        input_port_node2 = node2.new_input_port(node1)
-        node1.port_out_to_link[output_port_node1] = self
-        self.output_port_node1 = output_port_node1
-        self.input_port_node2 = input_port_node2
+        self.output_port_node1, self.input_port_node2 = \
+            self.set_ports(node1, node2, src_out_port, dst_in_port)
         self.boost_amp = boost_amp
         self.srs_effect = srs_effect
         self.spans = spans or []
 
         # state attributes
         self.optical_signals = []
+
+    def set_ports(self, src, dst, src_out_port, dst_in_port):
+        if not src_out_port or not dst_in_port:
+            output_port_node1 = src.new_output_port(dst)
+            input_port_node2 = dst.new_input_port(src)
+            src.port_out_to_link[output_port_node1] = self
+            return output_port_node1, input_port_node2
+        else:
+            src.port_out_to_link[src_out_port] = self
+            return src_out_port, dst_in_port
 
     def add_span(self, span, amplifier):
         """

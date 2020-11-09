@@ -20,40 +20,47 @@ class Node(object):
 
         self.optical_signals = []
 
-    def new_output_port(self, connected_node):
+    def new_output_port(self, connected_node, out_port=None):
         """
         Create a new output port for a node
         to connect to another node
         :param connected_node:
+        :param out_port:
         :return: new output port
         """
-        new_output_port = self.output_port_base
-        self.output_port_base += 1
+        if out_port:
+            self.output_port_base = out_port
+        else:
+            self.output_port_base += 1
+            out_port = self.output_port_base
         # Enable discovery of output ports
-        self.ports_out.append(new_output_port)
+        self.ports_out.append(out_port)
         # Enable discovery of connected node through output port
-        self.port_to_node_out[new_output_port] = connected_node
+        self.port_to_node_out[out_port] = connected_node
         # Enable monitoring of signals at output port
-        self.port_to_optical_signal_out[new_output_port] = []
-        return new_output_port
+        self.port_to_optical_signal_out[out_port] = []
+        return out_port
 
-    def new_input_port(self, connected_node):
+    def new_input_port(self, connected_node, in_port=None):
         """
         Create a new input port for a node
         to connect to another node
         :param connected_node:
-        :param portnum:
+        :param in_port:
         :return: new input port
         """
-        new_input_port = self.input_port_base
-        self.input_port_base += 1
+        if in_port:
+            self.input_port_base = in_port
+        else:
+            self.input_port_base += 1
+            in_port = self.input_port_base
         # Enable discovery of input ports
-        self.ports_in.append(new_input_port)
+        self.ports_in.append(in_port)
         # Enable discovery of connected node through input port
-        self.port_to_node_in[new_input_port] = connected_node
+        self.port_to_node_in[in_port] = connected_node
         # Enable monitoring of signals at input port
-        self.port_to_optical_signal_in[new_input_port] = []
-        return new_input_port
+        self.port_to_optical_signal_in[in_port] = []
+        return in_port
 
     def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=None):
         """
