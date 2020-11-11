@@ -950,15 +950,6 @@ class Monitor(Node):
         ordered_optical_signals = [signal_by_index[i] for i in ordered_optical_signals_by_index]
         return ordered_optical_signals
 
-    def get_power(self, optical_signal):
-        return self.amplifier.output_power[optical_signal]
-
-    def get_ase_noise(self, optical_signal):
-        return self.amplifier.ase_noise[optical_signal]
-
-    def get_nli_noise(self, optical_signal):
-        return self.amplifier.nonlinear_noise[optical_signal]
-
     def get_list_gosnr(self):
         """
         Get the gOSNR values at this OPM as a list/dictionary
@@ -968,7 +959,7 @@ class Monitor(Node):
         signals_list = []
         ordered_signals = self.order_signals(optical_signals)
         for optical_signal in ordered_signals:
-            signals_list.append(self.get_osnr(optical_signal))
+            signals_list.append(self.get_gosnr(optical_signal))
         return signals_list
 
     def get_power(self, optical_signal):
@@ -997,7 +988,7 @@ class Monitor(Node):
         Get the gOSNR values at this OPM as a list
         :return: gOSNR values at this OPM as a list
         """
-        optical_signals = self.amplifier.output_power.keys()
+        optical_signals = self.extract_optical_signal()
         optical_signals_dict = {}
         for optical_signal in optical_signals:
             optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
@@ -1039,4 +1030,3 @@ class Monitor(Node):
 
     def __repr__(self):
         return "<name: %s, component: %s,>" % (self.name, self.component)
-      
