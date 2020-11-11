@@ -20,47 +20,39 @@ class Node(object):
 
         self.optical_signals = []
 
-    def new_output_port(self, connected_node, out_port=None):
+    def new_output_port(self, connected_node):
         """
         Create a new output port for a node
         to connect to another node
         :param connected_node:
-        :param out_port:
         :return: new output port
         """
-        if out_port:
-            self.output_port_base = out_port
-        else:
-            self.output_port_base += 1
-            out_port = self.output_port_base
+        new_output_port = self.output_port_base
+        self.output_port_base += 1
         # Enable discovery of output ports
-        self.ports_out.append(out_port)
+        self.ports_out.append(new_output_port)
         # Enable discovery of connected node through output port
-        self.port_to_node_out[out_port] = connected_node
+        self.port_to_node_out[new_output_port] = connected_node
         # Enable monitoring of signals at output port
-        self.port_to_optical_signal_out[out_port] = []
-        return out_port
+        self.port_to_optical_signal_out[new_output_port] = []
+        return new_output_port
 
-    def new_input_port(self, connected_node, in_port=None):
+    def new_input_port(self, connected_node):
         """
         Create a new input port for a node
         to connect to another node
         :param connected_node:
-        :param in_port:
         :return: new input port
         """
-        if in_port:
-            self.input_port_base = in_port
-        else:
-            self.input_port_base += 1
-            in_port = self.input_port_base
+        new_input_port = self.input_port_base
+        self.input_port_base += 1
         # Enable discovery of input ports
-        self.ports_in.append(in_port)
+        self.ports_in.append(new_input_port)
         # Enable discovery of connected node through input port
-        self.port_to_node_in[in_port] = connected_node
+        self.port_to_node_in[new_input_port] = connected_node
         # Enable monitoring of signals at input port
-        self.port_to_optical_signal_in[in_port] = []
-        return in_port
+        self.port_to_optical_signal_in[new_input_port] = []
+        return new_input_port
 
     def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=None):
         """
@@ -163,9 +155,6 @@ class LineTerminal(Node):
             self.port_to_optical_signal_in[in_port] = []
 
         self.optical_signals = []
-
-        for out_port, link in self.port_out_to_link.items():
-            link.reset_propagation_struct()
 
     def add_transceivers(self, transceivers):
         """
@@ -351,12 +340,6 @@ class Transceiver(object):
 
     def compute_gross_bit_rate(self):
         self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
-
-    def configure_symbol_rate(self, new_symbol_rate):
-        self.symbol_rate = new_symbol_rate
-
-    def configure_modulation_format(self, new_modulation_format):
-        self.modulation_format = new_modulation_format
 
     def describe(self):
         pprint(vars(self))
@@ -638,7 +621,10 @@ class Roadm(Node):
             for optical_signal in self.port_to_optical_signal_out[out_port]:
                 link.include_optical_signal_in(optical_signal)
             # Propagate signals through link
-            link.propagate(equalization=self.equalization_compensation)
+            if self.equalization_compensation:
+                link.propagate(equalization=self.equalization_compensation)
+            else:
+                link.propagate(equalization=self.equalization_compensation, is_last_port=True)
 
     def get_node_attenuation(self, in_port):
         """
@@ -710,11 +696,13 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = '../description-files/'
+description_files_dir = 'description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1_3.txt',
-                     'wdg2': 'wdg2_2.txt'}
+                     'wdg2': 'wdg2_3.txt'}
+
+
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
 # 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
 
@@ -724,7 +712,8 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
                  noise_figure=(5.5, 91), noise_figure_function=None,
                  bandwidth=12.5e9, wavelength_dependent_gain_id=None,
-                 boost=False, monitor_mode=None):
+                 boost=False, monitor_mode=None, equalization_function=None,
+                 equalization_target_out_power=0):
         """
         :param target_gain: units: dB - float
         :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
@@ -749,7 +738,68 @@ class Amplifier(Node):
         self.power_excursions_flag_1 = False  # When both are True system gain balancing is complete
         self.power_excursions_flag_2 = False
 
+        if equalization_function:
+            self.equalization_attenuation = db_to_abs(3)
+            self.equalization_function = equalization_function
+            self.equalization_target_out_power = None
+            self.equalization_compensation = \
+                self.equalization_safety_check(equalization_function, equalization_target_out_power)
+            self.equalization_flag_1 = True
+            self.equalization_flag_2 = True
+        else:
+            self.equalization_flag_1 = False
+            self.equalization_flag_2 = False
+
         self.boost = boost
+
+    def equalization_safety_check(self, equalization_function, equalization_target_out_power):
+        """
+        Safety check for the declaration of equalization reconfiguration parameters
+        :param equalization_function: string (i.e., 'flatten')
+        :param equalization_target_out_power: float
+        :return: True equalization reconf False otherwise
+        """
+        if equalization_target_out_power is not None:
+            # This check is to avoid pythonic-responses
+            # if equalization_target_out_power is set to zero
+            equalization_target_out_power = db_to_abs(equalization_target_out_power)
+            self.equalization_target_out_power = equalization_target_out_power
+        try:
+            err_msg = "Roadm.equalization_safety_check: inconsistent declaration of equalization params."
+            # Either both are passed or None
+            assert all([equalization_function, equalization_target_out_power]) or \
+                   all(x is None for x in [equalization_function, equalization_target_out_power]), err_msg
+        except AssertionError as err:
+            raise err
+        if all([equalization_function, equalization_target_out_power]):
+            return True
+        return False
+
+    def equalization_reconf(self, link, output_power_dict):
+        """
+        wavelength dependent attenuation
+        """
+
+        print(self.name)
+        if self.equalization_function is 'flatten':
+            # compute equalization compensation and re-propagate only if there is a function
+            out_difference = {}
+            for k, out_power in output_power_dict.items():
+                # From the boost-amp, compute the difference between output power levels
+                # and the target output power. Set this as the compensation function.
+                delta = self.equalization_target_out_power / out_power
+                out_difference[k] = delta
+
+            for optical_signal, equalization_att in out_difference.items():
+                power = optical_signal.loc_in_to_state[self]['power'] * equalization_att
+                ase_noise = optical_signal.loc_in_to_state[self]['ase_noise'] * equalization_att
+                nli_noise = optical_signal.loc_in_to_state[self]['nli_noise'] * equalization_att
+                self.include_optical_signal_in(optical_signal, power=power, ase_noise=ase_noise, nli_noise=nli_noise)
+
+                # self.include_optical_signal_in(optical_signal)
+
+        # self.equalization_flag_1=False
+        # link.propagate_simulation(equalization=False, is_last_port=True)
 
     def reset_gain(self):
         self.system_gain = self.target_gain
@@ -950,15 +1000,6 @@ class Monitor(Node):
         ordered_optical_signals = [signal_by_index[i] for i in ordered_optical_signals_by_index]
         return ordered_optical_signals
 
-    def get_power(self, optical_signal):
-        return self.amplifier.output_power[optical_signal]
-
-    def get_ase_noise(self, optical_signal):
-        return self.amplifier.ase_noise[optical_signal]
-
-    def get_nli_noise(self, optical_signal):
-        return self.amplifier.nonlinear_noise[optical_signal]
-
     def get_list_gosnr(self):
         """
         Get the gOSNR values at this OPM as a list/dictionary
@@ -968,7 +1009,7 @@ class Monitor(Node):
         signals_list = []
         ordered_signals = self.order_signals(optical_signals)
         for optical_signal in ordered_signals:
-            signals_list.append(self.get_osnr(optical_signal))
+            signals_list.append(self.get_gosnr(optical_signal))
         return signals_list
 
     def get_power(self, optical_signal):
@@ -991,17 +1032,6 @@ class Monitor(Node):
         else:
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         return nli_noise
-
-    def get_dict_gosnr(self):
-        """
-        Get the gOSNR values at this OPM as a list
-        :return: gOSNR values at this OPM as a list
-        """
-        optical_signals = self.amplifier.output_power.keys()
-        optical_signals_dict = {}
-        for optical_signal in optical_signals:
-            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
-        return optical_signals_dict
 
     def get_osnr(self, optical_signal):
         """
@@ -1030,13 +1060,12 @@ class Monitor(Node):
             ase_noise = optical_signal.loc_out_to_state[self.component]['ase_noise']
             nli_noise = optical_signal.loc_out_to_state[self.component]['nli_noise']
         else:
-            output_power = optical_signal.loc_out_to_state[self.component]['power']
-            ase_noise = optical_signal.loc_out_to_state[self.component]['ase_noise']
-            nli_noise = optical_signal.loc_out_to_state[self.component]['nli_noise']
+            output_power = optical_signal.loc_in_to_state[self.component]['power']
+            ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
+            nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         osnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
         osnr = abs_to_db(osnr_linear)
         return osnr
 
     def __repr__(self):
         return "<name: %s, component: %s,>" % (self.name, self.component)
-      
