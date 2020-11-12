@@ -1033,6 +1033,17 @@ class Monitor(Node):
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         return nli_noise
 
+    def get_dict_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
+        """
+        optical_signals = self.extract_optical_signal()
+        optical_signals_dict = {}
+        for optical_signal in optical_signals:
+            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
+        return optical_signals_dict
+
     def get_osnr(self, optical_signal):
         """
         Compute OSNR levels of the signal
