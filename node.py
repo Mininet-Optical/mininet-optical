@@ -258,7 +258,7 @@ class LineTerminal(Node):
 
     @staticmethod
     def gosnr(power, ase_noise, nli_noise):
-        return abs_to_db(power / (ase_noise + nli_noise))
+        return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, in_port):
         print("*** %s.receiver: %s" % (self, self.optical_signals))
@@ -279,7 +279,7 @@ class LineTerminal(Node):
 
             signalInfoDict[optical_signal]['osnr'] = osnr
             signalInfoDict[optical_signal]['gosnr'] = gosnr
-            if abs_to_db(gosnr) < 20:
+            if gosnr < 20:
                 print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB" %
                       (optical_signal, self.__class__.__name__, self.name, abs_to_db(gosnr)))
                 signalInfoDict[optical_signal]['success'] = False
