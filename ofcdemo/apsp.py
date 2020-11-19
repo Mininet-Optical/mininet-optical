@@ -230,8 +230,9 @@ def configureTerminals( net, power=0.0):
     "Configure terminals statically: ethN <-> wdmM:channel"
     print("*** Configuring terminals")
     count = len( net.terminals )
+    proxies = { terminal: TerminalProxy(terminal) for terminal in net.terminals }
     for i, terminal in enumerate( net.terminals ):
-        termProxy = TerminalProxy( terminal )
+        termProxy = proxies[ terminal ]
         # XXX Hacky - should implement port info and use that
         ethPorts = sorted( int(port) for port, intf in net.ports[ terminal ].items()
                            if 'eth' in intf )
@@ -241,6 +242,10 @@ def configureTerminals( net, power=0.0):
         for ethPort, wdmPort, channel in zip(ethPorts, wdmPorts, channels):
             termProxy.connect( ethPort=ethPort, wdmPort=wdmPort,
                                channel=channel, power=power )
+    print("*** Turning on terminals")
+    for terminal in net.terminals:
+        proxies[terminal].turn_on()
+
 
 def configurePacketSwitches( net ):
     "Configure Open vSwitch 'routers' using OpenFlow"
