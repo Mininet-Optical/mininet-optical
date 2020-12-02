@@ -103,8 +103,10 @@ class Network(object):
                     dst_in_port=dst_in_port,
                     boost_amp=boost_amp,
                     spans=spans)
-        node1_output_port = link.output_port_node1
-        node1.port_out_to_link[node1_output_port] = link
+
+        node1.set_output_port(src_out_port, node2)
+        node2.set_input_port(dst_in_port, node1)
+        node1.port_out_to_link[src_out_port] = link
         self.links.append(link)
         self.topology[node1].append((node2, link))
         return link
