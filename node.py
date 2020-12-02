@@ -54,6 +54,26 @@ class Node(object):
         self.port_to_optical_signal_in[new_input_port] = []
         return new_input_port
 
+    def set_output_port(self, output_port, connected_node):
+        self.output_port_base = output_port + 1
+        # Enable discovery of output ports
+        self.ports_out.append(output_port)
+        # Enable discovery of connected node through output port
+        self.port_to_node_out[output_port] = connected_node
+        # Enable monitoring of signals at output port
+        self.port_to_optical_signal_out[output_port] = []
+        return output_port
+
+    def set_input_port(self, input_port, connected_node):
+        self.input_port_base = input_port + 1
+        # Enable discovery of input ports
+        self.ports_in.append(input_port)
+        # Enable discovery of connected node through input port
+        self.port_to_node_in[input_port] = connected_node
+        # Enable monitoring of signals at input port
+        self.port_to_optical_signal_in[input_port] = []
+        return input_port
+
     def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=None):
         """
         Include optical signal in optical_signals
