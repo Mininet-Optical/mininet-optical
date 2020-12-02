@@ -278,7 +278,7 @@ class LineTerminal(Node):
 
     @staticmethod
     def gosnr(power, ase_noise, nli_noise):
-        return abs_to_db(power / (ase_noise + nli_noise))
+        return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, in_port):
         print("*** %s.receiver: %s" % (self, self.optical_signals))
@@ -299,15 +299,15 @@ class LineTerminal(Node):
 
             signalInfoDict[optical_signal]['osnr'] = osnr
             signalInfoDict[optical_signal]['gosnr'] = gosnr
-            if abs_to_db(gosnr) < 20:
+            if gosnr < 20:
                 print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB" %
-                      (optical_signal, self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                      (optical_signal, self.__class__.__name__, self.name, gosnr))
                 signalInfoDict[optical_signal]['success'] = False
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
             else:
                 print("*** %s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
-                      (optical_signal, self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                      (optical_signal, self.__class__.__name__, self.name, gosnr))
                 signalInfoDict[optical_signal]['success'] = True
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
@@ -1094,9 +1094,9 @@ class Monitor(Node):
             output_power = optical_signal.loc_in_to_state[self.component]['power']
             ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
-        osnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
-        osnr = abs_to_db(osnr_linear)
-        return osnr
+        gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
+        gosnr = abs_to_db(gosnr_linear)
+        return gosnr
 
     def __repr__(self):
         return "<name: %s, component: %s,>" % (self.name, self.component)
