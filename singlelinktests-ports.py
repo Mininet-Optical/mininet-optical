@@ -72,7 +72,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
 
     # Eastbound WAN link consisting of a boost amplifier going into
     # one or more segments of fiber with compensating amplifiers
-    boost = net.add_amplifier( 'boost1e', target_gain=3*dB, boost=True )
+    boost = net.add_amplifier( 'boost1e', target_gain=17*dB, boost=True )
     spans = []
     for i, length in enumerate( lengths, start=1 ):
         amp = net.add_amplifier(
@@ -85,7 +85,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
 
     # Westbound WAN link consisting of a boost amplifier going into
     # one or more segments of fiber with compensating amplifiers
-    boost = net.add_amplifier( 'boost1w', target_gain=3*dB, boost=True )
+    boost = net.add_amplifier( 'boost1w', target_gain=17*dB, boost=True )
     spans = []
     for i, length in enumerate( lengths, start=1 ):
         amp = net.add_amplifier(
@@ -118,7 +118,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
         print( node, 'outputs', node.port_to_node_in )
         print( node, 'flow table', node.port_to_optical_signal_out )
 
-    print( '*** Verifying correct ROADM flow tables' )
+    print( '*** Checking correct ROADM flow tables' )
     print(r1, r1.switch_table)
     print(r2, r2.switch_table)
     return net
