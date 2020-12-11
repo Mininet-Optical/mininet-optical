@@ -40,13 +40,20 @@ def twoRoadmPhyNetwork( lengths=(25*km, 50*km, 25*km) ):
     spans1 = [ span( 25*km, amp1 ) ]
     spans2 = [ span( 25*km, amp2 ) ]
 
-    net.add_link( tx1, r1, spans=[ span(1*m) ] )
-    net.add_link(r1, r2, boost_amp=boost1, spans=spans1)
-    net.add_link( r2, tx2, spans=[ span(1*m) ] )
+    # ROADM port numbers (input and output)
+    LINE_0 = 0
+    ADD_DROP_1 = 1
 
-    net.add_link(r1, tx1, spans=[span(1 * m)])
-    net.add_link(r2, r1, boost_amp=boost2, spans=spans2)
-    net.add_link( tx2, r2, spans=[ span(1*m) ] )
+    # Line terminal port numbers (input and output)
+    TX_0 = 0
+
+    net.add_link( tx1, r1, src_out_port=TX_0, dst_in_port=ADD_DROP_1, spans=[ span(1*m) ] )
+    net.add_link(r1, r2, src_out_port=LINE_0, dst_in_port=LINE_0, boost_amp=boost1, spans=spans1)
+    net.add_link( r2, tx2, src_out_port=ADD_DROP_1, dst_in_port=TX_0, spans=[ span(1*m) ] )
+
+    net.add_link(r1, tx1, src_out_port=ADD_DROP_1, dst_in_port=TX_0, spans=[span(1 * m)])
+    net.add_link(r2, r1, src_out_port=LINE_0, dst_in_port=LINE_0, boost_amp=boost2, spans=spans2)
+    net.add_link( tx2, r2, src_out_port=TX_0, dst_in_port=ADD_DROP_1, spans=[ span(1*m) ] )
 
     # Switching rules - add/drop to/from line port 0
     r1.install_switch_rule(
