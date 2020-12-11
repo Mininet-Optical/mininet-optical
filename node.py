@@ -739,8 +739,8 @@ class Equalizer(Node):
 description_files_dir = 'description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'linear.txt',
-                     'wdg2': 'linear.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg1.txt'}
 
 
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
@@ -903,7 +903,8 @@ class Amplifier(Node):
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(self.system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
-        output_power = optical_signal.loc_in_to_state[self]['power'] * system_gain_linear * \
+        input_power = optical_signal.loc_in_to_state[self]['power']
+        output_power = input_power * system_gain_linear * \
                        wavelength_dependent_gain_linear
 
         # the NLI noise als gets affected
@@ -914,9 +915,6 @@ class Amplifier(Node):
         # and update the optical signal state (power)
         self.include_optical_signal_out(optical_signal, power=output_power, nli_noise=nli_noise_out, out_port=0)
 
-        #if p_exc:
-        #    return output_power / wavelength_dependent_gain_linear
-        #else:
         return output_power
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal):
@@ -947,16 +945,18 @@ class Amplifier(Node):
         optical_signals_in = self.port_to_optical_signal_in[0]
         optical_signals_out = self.port_to_optical_signal_out[0]
 
-        output_power_dBm = [abs_to_db(x.loc_in_to_state[self]['power'] * self.target_gain) for x in optical_signals_in]
-        input_power_dBm = [abs_to_db(x.loc_out_to_state[self]['power']) for x in optical_signals_out]
+        # compute input_power * target gain for all signals
+        output_power_target_dBm = [abs_to_db(x.loc_in_to_state[self]['power'] *
+                                             db_to_abs(self.target_gain)) for x in optical_signals_in]
+        # get output power real
+        output_power_real_dBm = [abs_to_db(x.loc_out_to_state[self]['power']) for x in optical_signals_out]
 
-        # Mean difference between output and input power levels
-        out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
-        # Compute the balanced system gain
-        power_excursions = out_in_difference - self.target_gain
-        system_gain_balance = self.system_gain + power_excursions
-        #self.system_gain = system_gain_balance
-        # Flag check for enabling the repeated computation of balancing
+        # compute power excursions using the means
+        power_excursions = np.mean(output_power_real_dBm) - np.mean(output_power_target_dBm)
+        # update EDFA system gain
+        self.system_gain += power_excursions
+
+        # Flag-check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
         if not (self.power_excursions_flag_1 and self.power_excursions_flag_2):
