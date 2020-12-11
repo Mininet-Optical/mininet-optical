@@ -104,8 +104,12 @@ class Network(object):
                     boost_amp=boost_amp,
                     spans=spans)
 
-        node1.set_output_port(src_out_port, node2)
-        node2.set_input_port(dst_in_port, node1)
+        if src_out_port is None and dst_in_port is None:
+            node1.new_output_port(src_out_port)
+            node2.new_input_port(dst_in_port)
+        else:
+            node1.set_output_port(src_out_port, node2)
+            node2.set_input_port(dst_in_port, node1)
         node1.port_out_to_link[src_out_port] = link
         self.links.append(link)
         self.topology[node1].append((node2, link))

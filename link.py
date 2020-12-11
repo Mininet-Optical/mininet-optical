@@ -31,11 +31,16 @@ class Link(object):
         self.srs_effect = srs_effect
         self.spans = spans or []
 
-        # state attributes
         self.optical_signals = []
 
+        self.port_to_optical_signal_in = {}
+        self.port_to_optical_signal_out = {}
+
+        self.optical_signal_to_port_in = {}
+        self.optical_signal_to_port_out = {}
+
     def set_ports(self, src, dst, src_out_port, dst_in_port):
-        if not src_out_port or not dst_in_port:
+        if src_out_port is None or dst_in_port is None:
             output_port_node1 = src.new_output_port(dst)
             input_port_node2 = dst.new_input_port(src)
             src.port_out_to_link[output_port_node1] = self
@@ -70,12 +75,22 @@ class Link(object):
     def remove_optical_signal(self, optical_signal):
         print("%s - %s removing signal: %s" % (self.__class__.__name__, self, optical_signal))
         self.optical_signals.remove(optical_signal)
-        self.node2.remove_optical_signal(optical_signal)
+        port_in = self.optical_signal_to_port_in[optical_signal]
+        port_out = self.optical_signal_to_port_out[optical_signal]
+        del self.optical_signal_to_port_in[optical_signal]
+        del self.optical_signal_to_port_out[optical_signal]
 
-    def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, tup_key=None):
+        self.port_to_optical_signal_in[port_in] = None
+        self.port_to_optical_signal_out[port_out] = None
+        if self.node2 is not None:
+            self.node2.remove_optical_signal(optical_signal)
+
+    def include_optical_signal_in(self, optical_signal, in_port=None, power=None,
+                                  ase_noise=None, nli_noise=None, tup_key=None):
         """
         Include optical signal in optical_signals_in
         :param optical_signal: OpticalSignal object
+        :param in_port: output port from Node
         :param power: power level of OpticalSignal
         :param ase_noise: ase noise level of OpticalSignal
         :param nli_noise: nli noise  level of OpticalSignal
@@ -83,6 +98,11 @@ class Link(object):
         """
         if optical_signal not in self.optical_signals:
             self.optical_signals.append(optical_signal)
+
+        if in_port:
+            self.optical_signal_to_port_in[optical_signal] = in_port
+            self.port_to_optical_signal_in[in_port] = optical_signal
+
         if tup_key:
             optical_signal.assoc_loc_in(tup_key, power, ase_noise, nli_noise)
         else:
@@ -111,14 +131,16 @@ class Link(object):
         """
         print("*** %s.propagate: %s" % (self, self.optical_signals))
         if self.propagate_simulation(equalization):
-            for optical_signal in self.optical_signals:
-                self.node2.include_optical_signal_in(optical_signal, in_port=self.input_port_node2)
             # use is instance instead of checking the class
             if self.node2.__class__.__name__ is 'LineTerminal':
+                for optical_signal in self.optical_signals:
+                    self.node2.include_optical_signal_in(optical_signal, in_port=self.input_port_node2)
                 self.node2.receiver(self.input_port_node2)
             else:
+                for optical_signal in self.optical_signals:
+                    self.node2.include_optical_signal_in_roadm(optical_signal, in_port=self.input_port_node2)
                 if is_last_port:
-                    self.node2.switch()
+                    self.node2.switch(self.input_port_node2)
 
     def propagate_simulation(self, equalization):
         """
@@ -133,12 +155,12 @@ class Link(object):
         if self.boost_amp:  # Implementing boost as part of ROADM? Probably yes.
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
-                self.boost_amp.include_optical_signal_in(optical_signal)
+                self.boost_amp.include_optical_signal_in(optical_signal, in_port=0)  # EDFAs only have 2 ports
             # Enabling amplifier system gain balancing check
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal in self.optical_signals:
                     output_power_dict[optical_signal] = \
-                        self.boost_amp.output_amplified_power(optical_signal, p_exc=True)
+                        self.boost_amp.output_amplified_power(optical_signal)
                 self.boost_amp.compute_power_excursions()
 
             if equalization:
@@ -147,14 +169,10 @@ class Link(object):
                 # return False to avoid propagation of effects
                 return False
 
-            # Compute for the resulting output power
             for optical_signal in self.optical_signals:
                 self.boost_amp.output_amplified_power(optical_signal)
                 # Compute ASE noise generation
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(optical_signal)
-
-            # Compensate for the ROADM attenuation
-            self.boost_amp.nli_compensation()
 
         # Needed for the subsequent computations
         prev_amp = self.boost_amp
@@ -189,7 +207,7 @@ class Link(object):
             if amplifier:
                 for optical_signal in self.optical_signals:
                     # associate amp to optical signal at input interface
-                    amplifier.include_optical_signal_in(optical_signal)
+                    amplifier.include_optical_signal_in(optical_signal, in_port=0)
                 # Enabling balancing check
                 while not (amplifier.power_excursions_flag_1 and amplifier.power_excursions_flag_2):
                     for optical_signal in self.optical_signals:
@@ -203,8 +221,6 @@ class Link(object):
                     amplifier.output_amplified_power(optical_signal, p_exc=True)
                     # Compute ASE noise generation
                     amplifier.stage_amplified_spontaneous_emission_noise(optical_signal)
-
-                amplifier.nli_compensation()
 
             prev_amp = amplifier
         return True
