@@ -18,7 +18,8 @@ class Node(object):
         self.port_to_optical_signal_out = {}  # dict of ports to output signals
         self.port_out_to_link = {}
 
-        self.optical_signals = []
+        self.optical_signal_to_port_in = {}
+        self.optical_signal_to_port_out = {}
 
     def new_output_port(self, connected_node):
         """
@@ -83,13 +84,11 @@ class Node(object):
         :param nli_noise: nli noise  level of OpticalSignal
         :param in_port: input port of node (optional)
         """
-        if optical_signal not in self.optical_signals:
-            self.optical_signals.append(optical_signal)
-        optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
+        self.port_to_optical_signal_in.setdefault(in_port, []).append(optical_signal)
+        self.optical_signal_to_port_in[optical_signal] = in_port
 
-        if in_port or in_port == 0:
-            if optical_signal not in self.port_to_optical_signal_in[in_port]:
-                self.port_to_optical_signal_in[in_port].append(optical_signal)
+        # associate a component with the state of the signal
+        optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
 
     def include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None, out_port=None):
         """
@@ -100,47 +99,25 @@ class Node(object):
         :param nli_noise: nli noise  level of OpticalSignal
         :param out_port: output port of node (optional)
         """
-        optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
+        self.port_to_optical_signal_out.setdefault(out_port, []).append(optical_signal)
+        self.optical_signal_to_port_out[optical_signal] = out_port
 
-        if out_port or out_port == 0:
-            if optical_signal not in self.port_to_optical_signal_out[out_port]:
-                self.port_to_optical_signal_out[out_port].append(optical_signal)
+        optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
     def remove_optical_signal(self, optical_signal):
         print("%s - %s removing signal: %s" % (self.__class__.__name__, self.name, optical_signal))
-        if optical_signal in self.optical_signals:
-            self.optical_signals.remove(optical_signal)
 
-        for port_in in self.ports_in:
-            if optical_signal in self.port_to_optical_signal_in[port_in]:
-                self.port_to_optical_signal_in[port_in].remove(optical_signal)
+        port_in = self.optical_signal_to_port_in[optical_signal]
+        port_out = self.optical_signal_to_port_out[optical_signal]
 
-        for port_out in self.ports_out:
-            if optical_signal in self.port_to_optical_signal_out[port_out]:
-                self.port_to_optical_signal_out[port_out].remove(optical_signal)
-                link = self.port_out_to_link[port_out]
-                link.remove_optical_signal(optical_signal)
+        self.port_to_optical_signal_in[port_in].remove(optical_signal)
+        self.port_to_optical_signal_out[port_out].remove(optical_signal)
 
-    def propagate(self):
-        print("*** %s.propagate: %s" % (self, self.optical_signals))
-        ports_out = []
-        for port_out in self.ports_out:
-            if len(self.port_to_optical_signal_out[port_out]) > 0:
-                if port_out not in ports_out:
-                    ports_out.append(port_out)
-        if len(ports_out) > 0:
-            last_port = sorted(ports_out)[-1]
-            for port_out in ports_out:
-                optical_signal = self.port_to_optical_signal_out[port_out][0]
-                optical_signal.reset()
-                self.include_optical_signal_out(optical_signal)
+        del self.optical_signal_to_port_out[optical_signal]
+        del self.optical_signal_to_port_in[optical_signal]
 
-                link = self.port_out_to_link[port_out]
-                link.include_optical_signal_in(optical_signal)
-                if port_out == last_port:
-                    link.propagate(is_last_port=True)
-                else:
-                    link.propagate()
+        link = self.port_out_to_link[port_out]
+        link.remove_optical_signal(optical_signal)
 
     def describe(self):
         pprint(vars(self))
@@ -173,8 +150,6 @@ class LineTerminal(Node):
         # clean input ports
         for in_port, _ in self.port_to_optical_signal_in.items():
             self.port_to_optical_signal_in[in_port] = []
-
-        self.optical_signals = []
 
     def add_transceivers(self, transceivers):
         """
@@ -228,11 +203,12 @@ class LineTerminal(Node):
         self.transceivers.remove(transceiver)
         del self.name_to_transceivers[transceiver_name]
 
-    def configure_terminal(self, transceiver, channel):
+    def configure_terminal(self, transceiver, channel, in_port=-1):
         """
         Program the channels that will be launched at transceivers
         :param transceiver: transceiver to use for transmission
         :param channel: the channels to be transmitted
+        :param in_port: input port to terminal, 0 if none.
         :return:
         """
         # instantiate OpticalSignal object
@@ -243,7 +219,7 @@ class LineTerminal(Node):
                                        power=transceiver.operation_power, ase_noise=ase_noise, nli_noise=nli_noise)
 
         # include optical signal in LineTerminal list
-        self.include_optical_signal_in(optical_signal)
+        self.include_optical_signal_in(optical_signal, in_port=in_port)
 
         # associate transceiver to optical_signal
         transceiver.assoc_optical_signal(optical_signal)
@@ -253,6 +229,41 @@ class LineTerminal(Node):
 
     def turn_on(self):
         self.propagate()
+
+    def propagate(self):
+        """
+        Propagate must indicate a direction!
+        """
+        print("*** %s.propagate:" % self)
+        ports_out = []
+        for port_out in self.ports_out:
+            # check all output ports in the node
+            if len(self.port_to_optical_signal_out[port_out]) > 0:
+                # if there is a signal at an output port
+                if port_out not in ports_out:
+                    # add port to list of ports to check
+                    ports_out.append(port_out)
+        if len(ports_out) > 0:
+            # if there are active signals in the node
+            last_port = sorted(ports_out)[-1]
+            for port_out in ports_out:
+                # ports and signals for LTs are 1:1 match
+                optical_signal = self.port_to_optical_signal_out[port_out][0]
+                # init optical signal structs
+                optical_signal.reset()
+                # associate signal to port in LT
+                self.include_optical_signal_out(optical_signal, out_port=port_out)
+
+                # pass signal info to link
+                link = self.port_out_to_link[port_out]
+                link.include_optical_signal_in(optical_signal)
+                if port_out == last_port:
+                    # LTs are connected to one ROADM only,
+                    # thus, we can simply check when all
+                    # ports of interest are being checked
+                    link.propagate(is_last_port=True)
+                else:
+                    link.propagate()
 
     def turn_off(self, ports_out):
         optical_signals = []
@@ -281,10 +292,10 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise))
 
     def receiver(self, in_port):
-        print("*** %s.receiver: %s" % (self, self.optical_signals))
+        print("*** %s.receiver:" % self)
 
         signalInfoDict = {}
-        for optical_signal in self.optical_signals:
+        for optical_signal in self.port_to_optical_signal_in[in_port]:
             signalInfoDict[optical_signal] = {'osnr': None, 'gosnr': None,
                                               'ber': None, 'success': False}
 
@@ -299,15 +310,15 @@ class LineTerminal(Node):
 
             signalInfoDict[optical_signal]['osnr'] = osnr
             signalInfoDict[optical_signal]['gosnr'] = gosnr
-            if abs_to_db(gosnr) < 20:
+            if gosnr < 20:
                 print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB" %
-                      (optical_signal, self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                      (optical_signal, self.__class__.__name__, self.name, gosnr))
                 signalInfoDict[optical_signal]['success'] = False
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
             else:
                 print("*** %s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
-                      (optical_signal, self.__class__.__name__, self.name, abs_to_db(gosnr)))
+                      (optical_signal, self.__class__.__name__, self.name, gosnr))
                 signalInfoDict[optical_signal]['success'] = True
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
@@ -373,6 +384,7 @@ class OpticalSignal(object):
     def __init__(self, index, spectrum_band, channel_spacing_H,
                  channel_spacing_nm, symbol_rate, bits_per_symbol,
                  power=None, ase_noise=None, nli_noise=None, data=None):
+        self.uid = id(self)
         # configuration attributes
         self.index = index
         self.frequency = self.spectrum_band_init_H[spectrum_band] + (channel_spacing_H * int(index))
@@ -480,8 +492,9 @@ class Roadm(Node):
             self.equalization_safety_check(equalization_function, equalization_target_out_power)
         # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.switch_table = {}
-        # dict (port, signal_index) to output port in ROADM
-        self.signal_index_to_out_port = {}
+        # initialized for dynamic performance
+        self.port_to_optical_signal_in_roadm = {-1: []}
+        self.optical_signal_to_port_in_roadm = {-1: []}
 
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
@@ -527,6 +540,15 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
+    def include_optical_signal_in_roadm(self, optical_signal, in_port=None):
+        """
+        Include optical signal in optical_signals
+        :param optical_signal: OpticalSignal object
+        :param in_port: input port of node (optional)
+        """
+
+        self.port_to_optical_signal_in_roadm.setdefault(in_port, []).append(optical_signal)
+
     def install_switch_rule(self, rule_id, in_port, out_port, signal_indices):
         """
         Switching rule installation, accessible from a Control System
@@ -538,12 +560,6 @@ class Roadm(Node):
         """
         # arbitrary rule identifier
         self.switch_table[rule_id] = SwitchRule(in_port, out_port, signal_indices)
-        for signal_index in signal_indices:
-            self.signal_index_to_out_port[in_port, signal_index] = out_port
-
-        # AD: this may need to be commented for PTL scripts
-        if len(self.port_to_optical_signal_in[in_port]) > 0:
-            self.switch()
 
     def update_switch_rule(self, rule_id, new_port_out):
         """
@@ -553,18 +569,15 @@ class Roadm(Node):
         :return:
         """
         in_port, prev_port_out, signal_indices = self.switch_table[rule_id]
-        self.switch_table[rule_id] = SwitchRule(in_port, new_port_out, signal_indices)
+        self.switch_table[rule_id] = SwitchRule(in_port, new_port_out, signal_indices)  # replacement of rule
 
-        for signal_index in signal_indices:
-            self.signal_index_to_out_port[in_port, signal_index] = new_port_out
+        for optical_signal in signal_indices:
+            self.optical_signal_to_port_out[in_port, optical_signal] = new_port_out
+            self.port_to_optical_signal_out[prev_port_out].remove(optical_signal)
+            link = self.port_out_to_link[prev_port_out]
+            link.remove_optical_signal(optical_signal)
 
-        for optical_signal in self.optical_signals:
-            if optical_signal.index in signal_indices:
-                self.port_to_optical_signal_out[prev_port_out].remove(optical_signal)
-                link = self.port_out_to_link[prev_port_out]
-                link.remove_optical_signal(optical_signal)
-
-        self.switch()
+        self.switch(in_port)
 
     def delete_switch_rule(self, rule_id):
         """
@@ -573,46 +586,51 @@ class Roadm(Node):
         :return:
         """
         in_port, out_port, signal_indices = self.switch_table[rule_id]
-
-        # Delete rule indication of output port
-        for signal_index in signal_indices:
-            del self.signal_index_to_out_port[in_port, signal_index]
-
-        # Get the optical signal objects to be removed
-        optical_signals = [optical_signal for optical_signal in
-                           self.port_to_optical_signal_out[out_port]
-                           if optical_signal.index in signal_indices]
-
         del self.switch_table[rule_id]
 
-        # Delete signals from structures in the switch
-        for optical_signal in optical_signals:
-            self.remove_optical_signal(optical_signal)
+        for optical_signal in signal_indices:
+            del self.optical_signal_to_port_out[in_port, optical_signal]
+            self.port_to_optical_signal_out[in_port].remove(optical_signal)
+            link = self.port_out_to_link[in_port]
+            link.remove_optical_signal(optical_signal)
+
+        self.switch(in_port)
 
     def delete_switch_rules(self):
         """Delete all switching rules"""
         for ruleId in list(self.switch_table):
             self.delete_switch_rule(ruleId)
 
-    def switch(self):
-        print("*** %s.switch: %s" % (self, self.optical_signals))
+    def get_switch_rule(self, in_port, signals_in):
+        signal_indices = [int(x.index) for x in signals_in]
+        # in_port, out_port, signal_indices
+        for _tuple in self.switch_table.values():
+            if int(_tuple[0]) == int(in_port) and list(_tuple[2]) == list(signal_indices):
+                return _tuple[1]
+        return -1
 
-        # Keep track of which output ports/links have signals
-        out_ports_to_links = {}
+    def switch(self, in_port):
+        if self.port_to_optical_signal_in_roadm[in_port] != self.port_to_optical_signal_in[in_port]:
+            # check if
+            for optical_signal in self.port_to_optical_signal_in_roadm[in_port]:
+                self.include_optical_signal_in(optical_signal, in_port=in_port)
+        else:
+            # Avoid looping
+            return
 
-        for in_port in self.ports_in:
-            # retrieve the WSS wavelength-dependent attenuation
-            node_attenuation = self.get_node_attenuation(in_port)
-            # Iterate over input port's signals since they all might have changed
+        signals_in = self.port_to_optical_signal_in_roadm[in_port]
+        out_port = self.get_switch_rule(in_port, signals_in)
+
+        if out_port < 0:
+            # We can trigger an Exception, but the signals wouldn't be propagated anyway
+            print("*** %s.%s.switch unable to find rule for signals %s" % (
+                self.__class__.__name__, self.name, signals_in))
+        else:
             for optical_signal in self.port_to_optical_signal_in[in_port]:
                 # Find the output port as established when installing a rule
-                out_port = self.signal_index_to_out_port.get((in_port, optical_signal.index), None)
 
-                if out_port is None:
-                    # We can trigger an Exception, but the signals wouldn't be propagated anyway
-                    print("*** %s.%s.switch unable to find rule for signal %s" % (
-                        self.__class__.__name__, self.name, optical_signal.index))
-                    continue
+                # retrieve the WSS wavelength-dependent attenuation
+                node_attenuation = self.get_node_attenuation(in_port)
 
                 # retrieve the equalization attenuation function at the output ports
                 equalization_attenuation = self.equalization_attenuation
@@ -633,13 +651,14 @@ class Roadm(Node):
                                                 ase_noise=ase_noise_out, nli_noise=nli_noise_out,
                                                 out_port=out_port)
 
-                if out_port not in out_ports_to_links.keys():
-                    # keep track of the ports where signals will pass through
-                    out_ports_to_links[out_port] = self.port_out_to_link[out_port]
+            # at the end
+            self.port_to_optical_signal_in_roadm[in_port] = []
 
-        for out_port, link in out_ports_to_links.items():
-            for optical_signal in self.port_to_optical_signal_out[out_port]:
-                link.include_optical_signal_in(optical_signal)
+            # are there more than 1 output port?
+
+            link = self.port_out_to_link[out_port]
+            for optical_signal in signals_in:
+                link.include_optical_signal_in(optical_signal, in_port=in_port)
             # Propagate signals through link
             if self.equalization_compensation:
                 link.propagate(equalization=self.equalization_compensation)
@@ -685,6 +704,7 @@ class Roadm(Node):
                 self.include_optical_signal_out(optical_signal, power=power, ase_noise=ase_noise, nli_noise=nli_noise)
 
                 link.include_optical_signal_in(optical_signal)
+
         link.propagate(equalization=False, is_last_port=True)
 
 
@@ -719,8 +739,8 @@ class Equalizer(Node):
 description_files_dir = 'description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1_3.txt',
-                     'wdg2': 'wdg2_3.txt'}
+description_files = {'wdg1': 'linear.txt',
+                     'wdg2': 'linear.txt'}
 
 
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
@@ -853,16 +873,6 @@ class Amplifier(Node):
         """
         return self.wavelength_dependent_gain[signal_index - 1]
 
-    def active_wavelength_dependent_gain(self):
-        """
-        Retrieve in a list the WDG of the active channels
-        :return: list active channels in amplifier
-        """
-        list_wdg = []
-        for optical_signal in self.optical_signals:
-            list_wdg.append(self.get_wavelength_dependent_gain(optical_signal.index))
-        return list_wdg
-
     @staticmethod
     def get_noise_figure(noise_figure, noise_figure_function):
         """
@@ -895,13 +905,19 @@ class Amplifier(Node):
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
         output_power = optical_signal.loc_in_to_state[self]['power'] * system_gain_linear * \
                        wavelength_dependent_gain_linear
+
+        # the NLI noise als gets affected
+        nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
+        nli_noise_out = nli_noise_in * system_gain_linear * wavelength_dependent_gain
+
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
-        self.include_optical_signal_out(optical_signal, power=output_power)
-        if p_exc:
-            return output_power / wavelength_dependent_gain_linear
-        else:
-            return output_power
+        self.include_optical_signal_out(optical_signal, power=output_power, nli_noise=nli_noise_out, out_port=0)
+
+        #if p_exc:
+        #    return output_power / wavelength_dependent_gain_linear
+        #else:
+        return output_power
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal):
         """
@@ -919,46 +935,35 @@ class Amplifier(Node):
                                                       self.bandwidth * (gain_linear - 1) * 1000)
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
-        self.include_optical_signal_out(optical_signal, ase_noise=ase_noise_out)
+        self.include_optical_signal_out(optical_signal, ase_noise=ase_noise_out, out_port=0)
 
     def compute_power_excursions(self):
         """
+        NOT WORKING
         Balance system gain with respect with the mean
         gain of the signals in the amplifier: power excursions
         :return:
         """
-        # Convert power levels from linear to dBm
-        output_power_dBm = []
-        input_power_dBm = []
-        for optical_signal in self.optical_signals:
-            output_power_dBm.append(abs_to_db(optical_signal.loc_out_to_state[self]['power']))
-            input_power_dBm.append(abs_to_db(optical_signal.loc_in_to_state[self]['power']))
+        optical_signals_in = self.port_to_optical_signal_in[0]
+        optical_signals_out = self.port_to_optical_signal_out[0]
+
+        output_power_dBm = [abs_to_db(x.loc_in_to_state[self]['power'] * self.target_gain) for x in optical_signals_in]
+        input_power_dBm = [abs_to_db(x.loc_out_to_state[self]['power']) for x in optical_signals_out]
 
         # Mean difference between output and input power levels
         out_in_difference = np.mean(output_power_dBm) - np.mean(input_power_dBm)
         # Compute the balanced system gain
         power_excursions = out_in_difference - self.target_gain
-        system_gain_balance = self.system_gain - power_excursions
-        self.system_gain = system_gain_balance
+        system_gain_balance = self.system_gain + power_excursions
+        #self.system_gain = system_gain_balance
         # Flag check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
             self.power_excursions_flag_2 = True
         if not (self.power_excursions_flag_1 and self.power_excursions_flag_2):
             self.power_excursions_flag_1 = True
 
-    def nli_compensation(self):
-        """
-        As the signal power and ASE noise suffer the impact from the
-        amplification, the NLI noise also gets amplified.
-        """
-        for optical_signal in self.optical_signals:
-            wavelength_dependent_gain = db_to_abs(self.get_wavelength_dependent_gain(optical_signal.index))
-            nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
-            nli_noise_out = nli_noise_in * db_to_abs(self.system_gain) * wavelength_dependent_gain
-            self.include_optical_signal_out(optical_signal, nli_noise=nli_noise_out)
-
     def clean_optical_signals(self):
-        self.optical_signals = []
+        return
 
     def __repr__(self):
         """String representation"""
@@ -993,7 +998,11 @@ class Monitor(Node):
         """
         :return power: Returns Optical signals for the required objects
         """
-        return self.component.optical_signals
+        if self.mode == 'in':
+
+            return list(self.component.port_to_optical_signal_in.values())[0]
+        else:
+            return list(self.component.port_to_optical_signal_out.values())[0]
 
     def get_list_osnr(self):
         """
