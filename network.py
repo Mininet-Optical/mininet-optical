@@ -87,56 +87,48 @@ class Network(object):
         self.amplifiers.append(amplifier)
         return amplifier
 
-    def add_link(self, node1, node2, src_out_port=None, dst_in_port=None, boost_amp=None, spans=None):
+    def add_link(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None):
         """
         Add a uni-directional link
-        :param node1: source node in link
-        :param node2: destination node in link
-        :param src_out_port: node1 output port
-        :param dst_in_port: node2 input port
+        :param src_node: source node in link
+        :param dst_node: destination node in link
+        :param src_out_port: src_node output port
+        :param dst_in_port: dst_node input port
         :param boost_amp: optional amplifier object for boost_amplification
         :param spans:
         :return: created and added link
         """
-        link = Link(node1, node2,
-                    src_out_port=src_out_port,
-                    dst_in_port=dst_in_port,
+        link = Link(src_node, dst_node,
                     boost_amp=boost_amp,
                     spans=spans)
-
-        if src_out_port is None and dst_in_port is None:
-            node1.new_output_port(src_out_port)
-            node2.new_input_port(dst_in_port)
-        else:
-            node1.set_output_port(src_out_port, node2)
-            node2.set_input_port(dst_in_port, node1)
-        node1.port_out_to_link[src_out_port] = link
+        src_node.set_output_port(dst_node, link, output_port=src_out_port)
+        dst_node.set_input_port(src_node, link, input_port=dst_in_port)
         self.links.append(link)
-        self.topology[node1].append((node2, link))
+        self.topology[src_node].append((dst_node, link))
         return link
 
     def find_link_and_out_port_from_nodes(self, src_node, dst_node):
         out_port = None
         for link in self.links:
-            if link.node1 == src_node and link.node2 == dst_node:
-                out_port = link.output_port_node1
+            if link.src_node == src_node and link.dst_node == dst_node:
+                out_port = link.output_port_src_node
         return out_port
 
     def find_link_and_in_port_from_nodes(self, src_node, dst_node):
         out_port = None
         for link in self.links:
-            if link.node1 == src_node and link.node2 == dst_node:
-                out_port = link.input_port_node2
+            if link.src_node == src_node and link.dst_node == dst_node:
+                out_port = link.input_port_dst_node
         return out_port
 
     def find_link_from_nodes(self, src_node, dst_node):
         for link in self.links:
-            if link.node1 == src_node and link.node2 == dst_node:
+            if link.src_node == src_node and link.dst_node == dst_node:
                 return link
 
     @staticmethod
     def find_out_port_from_link(link):
-        return link.output_port_node1
+        return link.output_port_src_node
 
     def describe(self):
         pprint(vars(self))

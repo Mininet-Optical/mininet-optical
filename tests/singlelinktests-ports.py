@@ -54,7 +54,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     net = Network()
 
     # Network nodes
-    transceivers = [ ( 't1', 0*dBm, 'C' ), ]
+    transceivers = [ ( 't1', 0*dBm, 'C' ) ]
     terminals = tx1, tx2 = [
         net.add_lt( name, transceivers=transceivers, monitor_mode=mode )
         for name,mode in [('tx1','in'),('tx2','in')] ]
@@ -135,7 +135,7 @@ def twoRoadmPhyTest():
     print( '*** Starting test transmission...' )
     for tx in tx1, tx2:
         print(tx, "outports", tx.ports_out)
-        tx.configure_terminal(tx.transceivers[0], [1])
+        tx.configure_terminal(tx.transceivers[0], 1)
         print('*** TURNING ON TERMINAL', tx)
         tx.turn_on()
 
