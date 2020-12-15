@@ -147,8 +147,8 @@ class Node(object):
 
     def remove_optical_signal(self, optical_signal_tuple):
         optical_signal = optical_signal_tuple[0]
-        print("%s - %s removing signal: %s-%s" % (self.__class__.__name__,
-                                                  self.name, optical_signal, optical_signal.uid))
+        print("*** %s - %s removing signal: %s-%s" % (self.__class__.__name__,
+                                                      self.name, optical_signal, optical_signal.uid))
 
         if (optical_signal, optical_signal.uid) in self.optical_signal_to_node_in:
             src_node = self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)]
@@ -177,7 +177,7 @@ class Node(object):
 
 class LineTerminal(Node):
 
-    def __init__(self, name, transceivers=None, monitor_mode=None):
+    def __init__(self, name, transceivers=None, receiver_threshold=20, monitor_mode=None):
         Node.__init__(self, name)
         # list of transceivers in LineTerminal
         self.transceivers = []
@@ -190,6 +190,8 @@ class LineTerminal(Node):
 
         if transceivers:
             self.add_transceivers(transceivers)
+
+        self.rx_threshold_dB = receiver_threshold
 
     def reset(self):
         # clean output ports
@@ -238,6 +240,9 @@ class LineTerminal(Node):
         transceiver.__dict__.update(args)
         if 'modulation_format' in args:
             transceiver.compute_gross_bit_rate()
+
+    def update_rx_threshold(self, new_rx_threshold):
+        self.rx_threshold_dB = new_rx_threshold
 
     def delete_transceiver(self, transceiver_name):
         """
@@ -360,9 +365,10 @@ class LineTerminal(Node):
 
             signalInfoDict[optical_signal]['osnr'] = osnr
             signalInfoDict[optical_signal]['gosnr'] = gosnr
-            if gosnr < 20:
-                print("*** %s-%s - %s.receiver.%s: Failure!\ngOSNR: %f dB" %
-                      (optical_signal, optical_signal.uid, self.__class__.__name__, self.name, gosnr))
+            if gosnr < self.rx_threshold_dB:
+                print("*** %s-%s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
+                      (optical_signal, optical_signal.uid, self.__class__.__name__,
+                       self.name, gosnr, self.rx_threshold_dB))
                 signalInfoDict[optical_signal]['success'] = False
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
@@ -768,7 +774,7 @@ class Roadm(Node):
     def switch(self, src_node, att_flag=True):
         # check if we can switch
         if self.check_switch(src_node) < 0:
-            print("%s - An error was detected in the switching." % self)
+            print("*** %s - An error was detected in the switching." % self)
             return
 
         # get switch rules from signals
@@ -897,7 +903,8 @@ class Roadm(Node):
                 ase_noise = optical_signal.loc_out_to_state[self]['ase_noise'] * equalization_att
                 nli_noise = optical_signal.loc_out_to_state[self]['nli_noise'] * equalization_att
 
-                self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power, ase_noise=ase_noise, nli_noise=nli_noise)
+                self.include_optical_signal_out((optical_signal, optical_signal.uid),
+                                                power=power, ase_noise=ase_noise, nli_noise=nli_noise)
                 link.include_optical_signal_in((optical_signal, optical_signal.uid))
 
         link.propagate(equalization=False, is_last_port=True)
@@ -1028,7 +1035,8 @@ class Amplifier(Node):
                 power = optical_signal.loc_in_to_state[self]['power'] * equalization_att
                 ase_noise = optical_signal.loc_in_to_state[self]['ase_noise'] * equalization_att
                 nli_noise = optical_signal.loc_in_to_state[self]['nli_noise'] * equalization_att
-                self.include_optical_signal_in((optical_signal, optical_signal.uid), power=power, ase_noise=ase_noise, nli_noise=nli_noise)
+                self.include_optical_signal_in((optical_signal, optical_signal.uid), power=power,
+                                               ase_noise=ase_noise, nli_noise=nli_noise)
 
                 # self.include_optical_signal_in(optical_signal)
 
@@ -1128,7 +1136,8 @@ class Amplifier(Node):
                                                       self.bandwidth * (gain_linear - 1) * 1000)
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
-        self.include_optical_signal_out((optical_signal, optical_signal.uid), ase_noise=ase_noise_out, out_port=0, dst_node=dst_node)
+        self.include_optical_signal_out((optical_signal, optical_signal.uid),
+                                        ase_noise=ase_noise_out, out_port=0, dst_node=dst_node)
 
     def compute_power_excursions(self):
         """
@@ -1138,13 +1147,6 @@ class Amplifier(Node):
         :return:
         """
         optical_signals_in = self.port_to_optical_signal_in[0]
-        optical_signals_out = self.port_to_optical_signal_out[0]
-
-        print("%s - optical_signals_in --- %s" % (self, optical_signals_in))
-        print("%s - optical_signals_out --- %s" % (self, optical_signals_out))
-
-        optical_signals_in = self.port_to_optical_signal_in[0]
-        optical_signals_out = self.port_to_optical_signal_out[0]
 
         output_power_target_dBm = []
         output_power_real_dBm = []
@@ -1246,21 +1248,24 @@ class Monitor(Node):
             signals_list.append(self.get_gosnr(optical_signal))
         return signals_list
 
-    def get_power(self, optical_signal):
+    def get_power(self, optical_signal_tuple):
+        optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
             power = optical_signal.loc_out_to_state[self.component]['power']
         else:
             power = optical_signal.loc_in_to_state[self.component]['power']
         return power
 
-    def get_ase_noise(self, optical_signal):
+    def get_ase_noise(self, optical_signal_tuple):
+        optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
             ase_noise = optical_signal.loc_out_to_state[self.component]['ase_noise']
         else:
             ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
         return ase_noise
 
-    def get_nli_noise(self, optical_signal):
+    def get_nli_noise(self, optical_signal_tuple):
+        optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
             nli_noise = optical_signal.loc_out_to_state[self.component]['nli_noise']
         else:
@@ -1278,12 +1283,13 @@ class Monitor(Node):
             optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
         return optical_signals_dict
 
-    def get_osnr(self, optical_signal):
+    def get_osnr(self, optical_signal_tuple):
         """
         Compute OSNR levels of the signal
-        :param optical_signal: OpticalSignal object
+        :param optical_signal_tuple: OpticalSignal object
         :return: OSNR (linear)
         """
+        optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
             power = optical_signal.loc_out_to_state[self.component]['power']
             ase_noise = optical_signal.loc_out_to_state[self.component]['ase_noise']
@@ -1294,12 +1300,13 @@ class Monitor(Node):
         osnr = abs_to_db(osnr_linear)
         return osnr
 
-    def get_gosnr(self, optical_signal):
+    def get_gosnr(self, optical_signal_tuple):
         """
         Compute gOSNR levels of the signal
-        :param optical_signal: OpticalSignal object
+        :param optical_signal_tuple: OpticalSignal object
         :return: gOSNR (linear)
         """
+        optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
             output_power = optical_signal.loc_out_to_state[self.component]['power']
             ase_noise = optical_signal.loc_out_to_state[self.component]['ase_noise']
