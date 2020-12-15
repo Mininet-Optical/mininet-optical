@@ -160,8 +160,11 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
         1, in_port=ADD_DROP_0, out_port=LINE_PORT_1, signal_indices=[1], src_node=tx1 )
     r2.install_switch_rule(
         1, in_port=LINE_PORT_1, out_port=TX_0, signal_indices=[1], src_node=r1 )
-
-    # Rules for the opposite direction
+    #
+    # r3.install_switch_rule(
+    #     1, in_port=LINE_PORT_1, out_port=LINE_PORT_2, signal_indices=[1], src_node=tx1)
+    # r2.install_switch_rule(
+    #     1, in_port=LINE_PORT_2, out_port=ADD_DROP_0, signal_indices=[1], src_node=r3)
 
     print( '*** ROADM connections and flow table' )
     for node in r1, r2:
@@ -187,6 +190,7 @@ def twoRoadmPhyTest():
 
     print('*** TURNING ON TERMINAL', tx1)
     tx1.configure_terminal(tx1.transceivers[0], 1)
+    tx2.update_rx_threshold(40)
     tx1.turn_on()
 
     # ROADM port numbers (input and output)
@@ -202,7 +206,7 @@ def twoRoadmPhyTest():
     print("*** Deleting switch rule 1 from r2")
     r2.delete_switch_rule(1)
 
-    print("r1 is updating rule 1 towards LINE_PORT_2")
+    print("}}} r1 is updating rule 1 towards LINE_PORT_2")
     r1.update_switch_rule(1, LINE_PORT_2)
 
 

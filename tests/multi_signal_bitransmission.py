@@ -112,16 +112,26 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     link( r2, tx2, src_out_port=ADD_DROP_0, dst_in_port=TX_0, spans=[Span(1*m)] )
     link( r2, tx2, src_out_port=ADD_DROP_1, dst_in_port=TX_1, spans=[Span(1*m)] )
 
-    # Configure ROADMS to add/drop channel 1 to local terminal
+    # Configure ROADMS to add/drop channels 1 and 2 to local terminal
     r1.install_switch_rule(
         1, in_port=ADD_DROP_0, out_port=LINE_PORT, signal_indices=[1] )
     r1.install_switch_rule(
         2, in_port=ADD_DROP_1, out_port=LINE_PORT, signal_indices=[2])
-
     r2.install_switch_rule(
         1, in_port=LINE_PORT, out_port=TX_0, signal_indices=[1])
     r2.install_switch_rule(
         2, in_port=LINE_PORT, out_port=TX_1, signal_indices=[2])
+
+    r2.install_switch_rule(
+        3, in_port=ADD_DROP_0, out_port=LINE_PORT, signal_indices=[1])
+    r2.install_switch_rule(
+        4, in_port=ADD_DROP_1, out_port=LINE_PORT, signal_indices=[2])
+    r1.install_switch_rule(
+        3, in_port=LINE_PORT, out_port=TX_0, signal_indices=[1])
+    r1.install_switch_rule(
+        4, in_port=LINE_PORT, out_port=TX_1, signal_indices=[2])
+
+    # Rules for the opposite direction
 
     print( '*** ROADM connections and flow table' )
     for node in r1, r2:
@@ -144,32 +154,20 @@ def twoRoadmPhyTest():
     tx1, tx2 = nodes[ 'tx1' ], nodes[ 'tx2' ]
     r1, r2 = nodes[ 'r1' ], nodes[ 'r2' ]
     print( '*** Starting test transmission...' )
+
+    print('*** TURNING ON TERMINAL', tx1)
     tx1.configure_terminal(tx1.transceivers[0], 1)
     tx1.configure_terminal(tx1.transceivers[1], 2)
     tx1.turn_on()
-    # for tx in [tx1]:
-    #     print(tx, "outports", tx.ports_out)
-    #     tx.configure_terminal(tx.transceivers[0], [1])
-    #     print('*** TURNING ON TERMINAL', tx)
-    #     tx.turn_on()
 
-    print( '*** Initial OSNR and gOSNR:' )
-    monitors = [ node.monitor for node in [tx2] ]
-    for mon in monitors:
-        print( 'monitor:', mon )
-        print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+    print("*** r1.self.optical_signal_to_port_out before turning Tx2", r1.optical_signal_to_port_out)
+    print('*** TURNING ON TERMINAL', tx2)
+    tx2.configure_terminal(tx2.transceivers[0], 1)
+    tx2.configure_terminal(tx2.transceivers[1], 2)
+    tx2.turn_on()
 
-    # print( '*** Changing gain for amp1e' )
-    # # AD: this is not enabled to recompute anything,
-    # # it used to be for the network to execute.
-    # # Needs to be implemented.
-    # amp1 = nodes[ 'amp1e' ]
-    # amp1.mock_amp_gain_adjust( 1.0 )
-    #
-    # print( '*** Updated OSNR and gOSNR:' )
-    # for mon in monitors:
-    #     print( 'monitor:', mon )
-    #     print(' OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+    print("*** We're deleting rule 3 in r2")
+    r2.delete_switch_rule(3)
 
 
 if __name__ == '__main__':
