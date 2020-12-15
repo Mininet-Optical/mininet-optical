@@ -159,17 +159,17 @@ def twoRoadmPhyTest():
         print( 'monitor:', mon )
         print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
 
-    # print( '*** Changing gain for amp1e' )
-    # # AD: this is not enabled to recompute anything,
-    # # it used to be for the network to execute.
-    # # Needs to be implemented.
-    # amp1 = nodes[ 'amp1e' ]
-    # amp1.mock_amp_gain_adjust( 1.0 )
-    #
-    # print( '*** Updated OSNR and gOSNR:' )
-    # for mon in monitors:
-    #     print( 'monitor:', mon )
-    #     print(' OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+    print( '*** Changing gain for amp1e' )
+    # AD: this is not enabled to recompute anything,
+    # it used to be for the network to execute.
+    # Needs to be implemented.
+    amp1 = nodes[ 'amp1e' ]
+    amp1.mock_amp_gain_adjust( 1.0 )
+
+    print( '*** Updated OSNR and gOSNR:' )
+    for mon in monitors:
+        print( 'monitor:', mon )
+        print(' OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
 
 
 if __name__ == '__main__':

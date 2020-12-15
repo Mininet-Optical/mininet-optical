@@ -152,7 +152,8 @@ class Node(object):
 
         if (optical_signal, optical_signal.uid) in self.optical_signal_to_node_in:
             src_node = self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)]
-            self.node_to_optical_signal_in[src_node].remove((optical_signal, optical_signal.uid))
+            if (optical_signal, optical_signal.uid) in self.node_to_optical_signal_in[src_node]:
+                self.node_to_optical_signal_in[src_node].remove((optical_signal, optical_signal.uid))
 
         if (optical_signal, optical_signal.uid) in self.optical_signal_to_port_in:
             port_in = self.optical_signal_to_port_in[optical_signal, optical_signal.uid]

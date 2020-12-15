@@ -62,6 +62,10 @@ class Link(object):
             self.optical_signals.remove((optical_signal, optical_signal.uid))
             del self.optical_signal_to_port_in[optical_signal, optical_signal.uid]
 
+        for span, amplifier in self.spans:
+            if amplifier:
+                amplifier.remove_optical_signal(optical_signal_tuple)
+
         if self.dst_node is not None:
             self.dst_node.remove_optical_signal((optical_signal, optical_signal.uid))
 
