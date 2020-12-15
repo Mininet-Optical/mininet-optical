@@ -208,7 +208,6 @@ def twoRoadmPhyTest():
 
     print("*** r1 is updating rule 1 towards LINE_PORT_2")
     r1.update_switch_rule(1, LINE_PORT_2)
-    print()
 
 
 if __name__ == '__main__':

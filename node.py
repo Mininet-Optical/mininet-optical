@@ -744,7 +744,7 @@ class Roadm(Node):
         return port_to_signal_in
 
     def check_switch(self, src_node):
-        # knock knock, do ye hav' 'dis signals?
+        # check what signals are in the dynamic structures
         n = 0
         if src_node not in self.node_to_optical_signal_in:
             print("*** %s - src_node:%s not in self.node_to_optical_signal_in" % (self, src_node))

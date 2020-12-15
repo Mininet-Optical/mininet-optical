@@ -147,11 +147,6 @@ def twoRoadmPhyTest():
     tx1.configure_terminal(tx1.transceivers[0], 1)
     tx1.configure_terminal(tx1.transceivers[1], 2)
     tx1.turn_on()
-    # for tx in [tx1]:
-    #     print(tx, "outports", tx.ports_out)
-    #     tx.configure_terminal(tx.transceivers[0], [1])
-    #     print('*** TURNING ON TERMINAL', tx)
-    #     tx.turn_on()
 
     print( '*** Initial OSNR and gOSNR:' )
     monitors = [ node.monitor for node in [tx2] ]
