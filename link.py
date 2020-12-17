@@ -13,7 +13,7 @@ class Link(object):
     connectivity.
     """
 
-    def __init__(self, src_node, dst_node, src_out_port=None, dst_in_port=None,
+    def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
                  boost_amp=None, srs_effect=True, spans=None):
         """
         :param src_node: source Node object
@@ -31,6 +31,17 @@ class Link(object):
 
         self.optical_signals = []
         self.optical_signal_to_port_in = {}
+
+        # set connection ports for amps and the link
+        if boost_amp:
+            boost_amp.set_output_port(self.dst_node, self, output_port=0)
+            boost_amp.set_input_port(self.src_node, self, input_port=0)
+        for span, amplifier in spans:
+            if amplifier:
+                amplifier.set_output_port(self.dst_node, self, output_port=0)
+                amplifier.set_input_port(self.src_node, self, input_port=0)
+        self.src_node.set_output_port(self.dst_node, self, output_port=src_out_port)
+        self.dst_node.set_input_port(self.src_node, self, input_port=dst_in_port)
 
     def add_span(self, span, amplifier):
         """

@@ -99,17 +99,11 @@ class Network(object):
         :return: created and added link
         """
         link = Link(src_node, dst_node,
+                    src_out_port=src_out_port,
+                    dst_in_port=dst_in_port,
                     boost_amp=boost_amp,
                     spans=spans)
-        if boost_amp:
-            boost_amp.set_output_port(dst_node, link, output_port=0)
-            boost_amp.set_input_port(src_node, link, input_port=0)
-        for span, amplifier in spans:
-            if amplifier:
-                amplifier.set_output_port(dst_node, link, output_port=0)
-                amplifier.set_input_port(src_node, link, input_port=0)
-        src_node.set_output_port(dst_node, link, output_port=src_out_port)
-        dst_node.set_input_port(src_node, link, input_port=dst_in_port)
+
         self.links.append(link)
         self.topology[src_node].append((dst_node, link))
         return link
