@@ -1,70 +1,214 @@
-"""
-    This script will build the Ring topology and run a single
-    2-channel transmission with the default configuration of the simulator,
-    and will monitor their OSNR levels. The latter, will then be plotted.
-
-    Then, one of the signal will be re-routed through different ports, and
-    the reconfiguration on the other channels should be automatic through
-    the Traffic wrapper.
-
-    Date: November 29th, 2019
+#!/usr/bin/env python3
 
 """
+single_link_test.py: test monitoring on a single link
+
+Note this version uses and depends on explicit port assignment!
+"""
+
+from network import Network
+from link import Span as Fiber, SpanTuple as Segment
+from node import Transceiver
+
+# Units
+
+km = dB = dBm = 1.0
+m = .001
 
 
-from topo.ring_topology import RingTopology
-import numpy as np
+# Physical model API helpers
+
+def Span( km, amp=None ):
+    "Return a fiber segment of length km with a compensating amp"
+    return Segment( span=Fiber( length=km ), amplifier=amp )
 
 
-def db_to_abs(db_value):
+# Physical Network simulation, created out of base PHY model objects
+
+def twoRoadmPhyNetwork( lengths=[50*km] ):
+
+    """Two ROADMs connected bidirectionally over a single link consisting
+       of a boost amplifier and one or more fiber spans with compensating
+       amplifiers. Source terminal tx1 is connected to source ROADM r1,
+       and destination ROADM r2 is connected to destination terminal tx2,
+       as follows:
+
+       Eastbound:
+       tx1 -> r1 -> boost1e -> fiber span -> amp1e (...) -> r2 -> tx2
+
+       Westbound:
+       tx1 <- r1 <- (...) amp1w <- fiber span <- boost1w <- r2 <- tx2
+
+       We assign the port numbers explicitly and symmetrically:
+
+       tx1:0 -> 1:r1:0 -> 0:r2:1 -> 0:tx2
+       tx1:0 <- 1:r1:0 <- 0:r2:1 <- 0:tx2
+
+       Which is to say ROADM ports in:0 and out:0 are LINE ports
+       and ROADM ports in:1 and out:1 are ADD/DROP ports.
+
+       Getting the port assignment right and the rules right
+       is an essential, but tricky, part of getting any SDN
+       network to work properly.
     """
-    :param db_value: list or float
-    :return: Convert dB to absolute value
-    """
-    absolute_value = 10**(db_value/float(10))
-    return absolute_value
+    net = Network()
+
+    # Network nodes
+    transceivers = [ ( 't1', 0*dBm, 'C' ) ]
+    terminals = tx1, tx2, tx3 = [
+        net.add_lt( name, transceivers=transceivers, monitor_mode=mode )
+        for name,mode in [('tx1','in'),('tx2','in'),('tx3','in')] ]
+    roadms = r1, r2, r3 = [ net.add_roadm( 'r%d' % i ) for i in (1, 2, 3) ]
+
+    # ROADM port numbers (input and output)
+    LINE_PORT_1 = 1
+    LINE_PORT_2 = 2
+
+    # ROADM communicating to LT
+    ADD_DROP_0 = 0
+
+    # Line terminal port numbers (input and output)
+    TX_0 = 0
+
+    # Convenience alias
+    link = net.add_link
+
+    # R1 - R2
+    boost = net.add_amplifier( 'boost1_r1_r2', target_gain=17*dB, boost=True )
+    spans = []
+    for i, length in enumerate( lengths, start=1 ):
+        amp = net.add_amplifier(
+            'ampr1_r2%de' % i, target_gain=11*dB, monitor_mode='out')
+        span = Span( length, amp=amp )
+        spans.append( span )
+
+    link( r1, r2, src_out_port=LINE_PORT_1, dst_in_port=LINE_PORT_1, boost_amp=boost,
+          spans=spans )
+
+    # R2 - R1
+    boost = net.add_amplifier( 'boost1_r2_r1', target_gain=17*dB, boost=True )
+    spans = []
+    for i, length in enumerate( lengths, start=1 ):
+        amp = net.add_amplifier(
+            'ampr2_r1%dw' % i, target_gain=11*dB, monitor_mode='out')
+        span = Span( length, amp=amp )
+        spans.append( span )
+
+    link( r2, r1, src_out_port=LINE_PORT_1, dst_in_port=LINE_PORT_1, boost_amp=boost,
+          spans=spans )
+
+    # R1 - R3
+    boost = net.add_amplifier('boost1_r1_r3', target_gain=17 * dB, boost=True)
+    spans = []
+    for i, length in enumerate(lengths, start=1):
+        amp = net.add_amplifier(
+            'ampr1_r3%de' % i, target_gain=11 * dB, monitor_mode='out')
+        span = Span(length, amp=amp)
+        spans.append(span)
+
+    link(r1, r3, src_out_port=LINE_PORT_2, dst_in_port=LINE_PORT_1, boost_amp=boost,
+         spans=spans)
+
+    # R3 - R1
+    boost = net.add_amplifier('boost1_r3_r1', target_gain=17 * dB, boost=True)
+    spans = []
+    for i, length in enumerate(lengths, start=1):
+        amp = net.add_amplifier(
+            'ampr3_r1%de' % i, target_gain=11 * dB, monitor_mode='out')
+        span = Span(length, amp=amp)
+        spans.append(span)
+
+    link(r3, r1, src_out_port=LINE_PORT_1, dst_in_port=LINE_PORT_2, boost_amp=boost,
+         spans=spans)
+
+    # R2 - R3
+    boost = net.add_amplifier('boost1_r2_r3', target_gain=17 * dB, boost=True)
+    spans = []
+    for i, length in enumerate(lengths, start=1):
+        amp = net.add_amplifier(
+            'ampr2_r3%de' % i, target_gain=11 * dB, monitor_mode='out')
+        span = Span(length, amp=amp)
+        spans.append(span)
+
+    link(r2, r3, src_out_port=LINE_PORT_2, dst_in_port=LINE_PORT_2, boost_amp=boost,
+         spans=spans)
+
+    # R3 - R2
+    boost = net.add_amplifier('boost1_r3_r2', target_gain=17 * dB, boost=True)
+    spans = []
+    for i, length in enumerate(lengths, start=1):
+        amp = net.add_amplifier(
+            'ampr3_r2%de' % i, target_gain=11 * dB, monitor_mode='out')
+        span = Span(length, amp=amp)
+        spans.append(span)
+
+    link(r3, r2, src_out_port=LINE_PORT_2, dst_in_port=LINE_PORT_2, boost_amp=boost,
+         spans=spans)
+
+    # Local add/drop links between terminals/transceivers and ROADMs
+    link( tx1, r1, src_out_port=TX_0, dst_in_port=ADD_DROP_0, spans=[Span(1*m)] )
+    link( r1, tx1, src_out_port=ADD_DROP_0, dst_in_port=TX_0, spans=[Span(1*m)] )
+
+    link( tx2, r2, src_out_port=TX_0, dst_in_port=ADD_DROP_0, spans=[Span(1*m)] )
+    link( r2, tx2, src_out_port=ADD_DROP_0, dst_in_port=TX_0, spans=[Span(1*m)] )
+
+    link(tx3, r3, src_out_port=TX_0, dst_in_port=ADD_DROP_0, spans=[Span(1 * m)])
+    link(r3, tx3, src_out_port=ADD_DROP_0, dst_in_port=TX_0, spans=[Span(1 * m)])
+
+    # Configure ROADMS to add/drop channels 1 and 2 to local terminal
+    r1.install_switch_rule(
+        1, in_port=ADD_DROP_0, out_port=LINE_PORT_1, signal_indices=[1], src_node=tx1 )
+    r2.install_switch_rule(
+        1, in_port=LINE_PORT_1, out_port=TX_0, signal_indices=[1], src_node=r1 )
+    #
+    # r3.install_switch_rule(
+    #     1, in_port=LINE_PORT_1, out_port=LINE_PORT_2, signal_indices=[1], src_node=tx1)
+    # r2.install_switch_rule(
+    #     1, in_port=LINE_PORT_2, out_port=ADD_DROP_0, signal_indices=[1], src_node=r3)
+
+    print( '*** ROADM connections and flow table' )
+    for node in r1, r2:
+        print( node, 'inputs', node.port_to_node_in )
+        print( node, 'outputs', node.port_to_node_in )
+        print( node, 'flow table', node.port_to_optical_signal_out )
+
+    print( '*** Checking correct ROADM flow tables' )
+    print(r1, r1.switch_table)
+    print(r2, r2.switch_table)
+    return net
 
 
-def abs_to_db(absolute_value):
-    """
-    :param absolute_value: list or float
-    :return: Convert absolute value to dB
-    """
-    db_value = 10*np.log10(absolute_value)
-    return db_value
+# Physical model test
+
+def twoRoadmPhyTest():
+    "Create a single link and monitor its OSNR and gOSNR"
+    net = twoRoadmPhyNetwork( lengths=[50*km, 50*km, 50*km] )
+    nodes = net.name_to_node
+    tx1, tx2 = nodes[ 'tx1' ], nodes[ 'tx2' ]
+    r1, r2, r3 = nodes[ 'r1' ], nodes[ 'r2' ], nodes[ 'r3' ]
+    print( '*** Starting test transmission...' )
+
+    print('*** TURNING ON TERMINAL', tx1)
+    tx1.configure_terminal(tx1.transceivers[0], 1)
+    tx2.update_rx_threshold(40)
+    tx1.turn_on()
+
+    # ROADM port numbers (input and output)
+    LINE_PORT_1 = 1
+    LINE_PORT_2 = 2
+    ADD_DROP_0 = 0
+
+    r3.install_switch_rule(
+        1, in_port=LINE_PORT_1, out_port=LINE_PORT_2, signal_indices=[1], src_node=tx1)
+    r2.install_switch_rule(
+        2, in_port=LINE_PORT_2, out_port=ADD_DROP_0, signal_indices=[1], src_node=r3)
+
+    print("*** Deleting switch rule 1 from r2")
+    r2.delete_switch_rule(1)
+
+    print("*** r1 is updating rule 1 towards LINE_PORT_2")
+    r1.update_switch_rule(1, LINE_PORT_2)
 
 
-print("*** Building Ring network topology")
-net = RingTopology.build()
-
-lt_1 = net.name_to_node['lt_1']
-lt_2 = net.name_to_node['lt_2']
-lt_3 = net.name_to_node['lt_3']
-
-roadm_1 = net.name_to_node['roadm_1']
-roadm_2 = net.name_to_node['roadm_2']
-roadm_3 = net.name_to_node['roadm_3']
-
-# Install switch rules into the ROADM nodes
-wavelength_indexes = [1, 2]
-wavelength_indexes2 = [3, 4]
-wavelength_indexes3 = [5, 6]
-roadm_1.install_switch_rule(1, 0, 102, wavelength_indexes)
-roadm_1.install_switch_rule(2, 0, 101, wavelength_indexes2)
-roadm_1.install_switch_rule(3, 0, 101, wavelength_indexes3)
-roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes2)
-roadm_2.install_switch_rule(2, 1, 102, wavelength_indexes3)
-roadm_3.install_switch_rule(1, 1, 100, wavelength_indexes)
-roadm_3.install_switch_rule(2, 2, 100, wavelength_indexes2)
-roadm_3.install_switch_rule(3, 2, 100, wavelength_indexes3)
-
-rw = wavelength_indexes + wavelength_indexes2 + wavelength_indexes3
-# Set resources to use and initiate transmission
-resources = {'transceiver': lt_1.name_to_transceivers['t1'], 'required_wavelengths': rw}
-net.transmit(lt_1, roadm_1, resources=resources)
-
-print("*** Updating switch rule in roadm_1...")
-roadm_2.delete_switch_rule(1)
-roadm_3.delete_switch_rule(2)
-roadm_3.install_switch_rule(4, 1, 100, wavelength_indexes2)
-roadm_1.update_switch_rule(2, 102)
+if __name__ == '__main__':
+    twoRoadmPhyTest()
