@@ -1211,7 +1211,6 @@ class Monitor(Node):
         :return power: Returns Optical signals for the required objects
         """
         if self.mode == 'in':
-
             return list(self.component.port_to_optical_signal_in.values())[0]
         else:
             return list(self.component.port_to_optical_signal_out.values())[0]
@@ -1228,23 +1227,27 @@ class Monitor(Node):
             signals_list.append(self.get_osnr(optical_signal))
         return signals_list
 
+    def get_dict_osnr(self):
+        """
+        Get the OSNR values at this OPM as a dict
+        :return: OSNR values at this OPM as a dict
+        """
+        return { sigtuple[0]: self.get_osnr(sigtuple)
+                 for sigtuple in self.extract_optical_signal() }
+
     @staticmethod
-    def order_signals(optical_signals):
+    def order_signals(optical_signal_tuples):
         """
-        Sort OpticalSignal objects by index
-        :param optical_signals: list[OpticalSignal, ]
-        :return: sorted list[OpticalSignal, ]
+        Sort OpticalSignal tuples (!) by index
+        :param optical_signals: list[(OpticalSignal,), ]
+        :return: sorted list[(OpticalSignal,), ]
         """
-        signal_by_index = {signal.index: signal for signal in optical_signals}
-        indices = [signal.index for signal in optical_signals]
-        ordered_optical_signals_by_index = sorted(indices)
-        ordered_optical_signals = [signal_by_index[i] for i in ordered_optical_signals_by_index]
-        return ordered_optical_signals
+        return sorted(optical_signal_tuples, key=lambda s:s[0].index)
 
     def get_list_gosnr(self):
         """
-        Get the gOSNR values at this OPM as a list/dictionary
-        :return: gOSNR values at this OPM as a list/dictionary
+        Get the gOSNR values at this OPM as a list
+        :return: gOSNR values at this OPM as a list
         """
         optical_signals = self.extract_optical_signal()
         signals_list = []
@@ -1252,6 +1255,14 @@ class Monitor(Node):
         for optical_signal in ordered_signals:
             signals_list.append(self.get_gosnr(optical_signal))
         return signals_list
+
+    def get_dict_gosnr(self):
+        """
+        Get the gOSNR values at this OPM as a dict
+        :return: gOSNR values at this OPM as a dict
+        """
+        return { sigtuple[0]: self.get_gosnr(sigtuple)
+                 for sigtuple in self.extract_optical_signal() }
 
     def get_power(self, optical_signal_tuple):
         optical_signal = optical_signal_tuple[0]
@@ -1276,17 +1287,6 @@ class Monitor(Node):
         else:
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
         return nli_noise
-
-    def get_dict_gosnr(self):
-        """
-        Get the gOSNR values at this OPM as a list
-        :return: gOSNR values at this OPM as a list
-        """
-        optical_signals = self.extract_optical_signal()
-        optical_signals_dict = {}
-        for optical_signal in optical_signals:
-            optical_signals_dict[optical_signal] = self.get_gosnr(optical_signal)
-        return optical_signals_dict
 
     def get_osnr(self, optical_signal_tuple):
         """

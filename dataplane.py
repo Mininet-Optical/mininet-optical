@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 dataplane.py: Simple dataplane emulation for mininet-optical
@@ -26,6 +26,7 @@ OpticalLink: a bidirectional optical link consisting of fiber
 # Physical model
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
 from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
+                   Node as PhyNode,
                    Roadm as PhyROADM, Monitor as PhyMonitor,
                    SwitchRule as PhySwitchRule,
                    db_to_abs )
@@ -35,14 +36,11 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import OVSSwitch
 from mininet.link import Link, TCIntf
-from mininet.log import setLogLevel, info
+from mininet.log import setLogLevel, info, warn
 from mininet.cli import CLI
 from mininet.clean import sh, Cleanup, cleanup
-from mininet.examples.linuxrouter import LinuxRouter
 from mininet.util import BaseString
 
-from collections import namedtuple
-from functools import partial
 from itertools import chain
 from operator import attrgetter
 from sys import argv
@@ -171,16 +169,16 @@ class OpticalNet( Mininet ):
 Mininet = OpticalNet
 
 
-class Monitor( PhyMonitor ):
+class Monitor:
     "A hacked PhyMonitor that can stand in for a node"
 
     # XXX Hacked node compatibility, should probably fix
     waiting = False
     execed = True
     intfs = {}
-    def __init__( self, *args, **kwargs ):
-        super( Monitor, self ).__init__( *args, **kwargs )
-        self.model = self
+    def __init__( self, name, monitor):
+        self.name = name
+        self.model = monitor
     def intfList( self ):
         return []
     def pexec( self, *args, **kwargs ):
@@ -190,15 +188,22 @@ class Monitor( PhyMonitor ):
 
     def restMonitor( self ):
         "Return OSNR to REST agent"
+        monitor = self.model
+        # XXX Ugly: now monitoring uses signal tuples rather than signals
+        # Probably the tuple info should be put in the signal itself.
         osnr = { signal.index:
-                 dict(freq=signal.frequency, osnr=self.get_osnr( signal ),
-                      gosnr=self.get_gosnr( signal),
-                      power=self.get_power(signal),
-                      ase=self.get_ase_noise(signal),
-                      nli=self.get_nli_noise(signal))
-                 for signal in sorted( self.amplifier.output_power,
-                                      key=attrgetter( 'index' ) ) }
+                 dict(freq=signal.frequency, osnr=monitor.get_osnr( sigtuple ),
+                      gosnr=monitor.get_gosnr( sigtuple ),
+                      power=monitor.get_power( sigtuple ),
+                      ase=monitor.get_ase_noise( sigtuple ),
+                      nli=monitor.get_nli_noise( sigtuple ))
+                 for sigtuple in monitor.order_signals(
+                         monitor.extract_optical_signal() )
+                 for signal in [sigtuple[0]] }
         return dict( osnr=osnr )
+
+    def __str__( self ):
+        return str( self.model)
 
 
 def PhySpan( length, amp=None ):
@@ -209,6 +214,8 @@ def PhySpan( length, amp=None ):
 
 class SwitchBase( OVSSwitch ):
     "Base class for optical devices"
+
+    modelClass = PhyNode
 
     def __init__( self, name, dpid=None, listenPort=None, inNamespace=False,
                   isSwitch=True, batch=False, **phyParams ):
@@ -224,17 +231,8 @@ class SwitchBase( OVSSwitch ):
         cmd = ' '.join( str(arg) for arg in args )
         out, err, code = self.pexec( cmd, shell=True )
         if code != 0 and not cmd.startswith( 'ip link del' ):
-            raise Exception( '%s returned %d' % ( args, code ) )
+            raise Exception( '%s returned %d: %s' % ( args, code, out+err ) )
         return out
-
-    def dpctl( self, *args ):
-        "Call dpctl and check for error"
-        result = OVSSwitch.dpctl( self, *args )
-        exitCode = int( self.cmd( 'echo $?' ) )
-        if exitCode != 0:
-            raise RuntimeError( 'dpctl returned %d: %s' %
-                                ( exitCode, result ) )
-        return result
 
     dpidBase = 0x1000
 
@@ -243,7 +241,7 @@ class SwitchBase( OVSSwitch ):
         if dpid is None:
             SwitchBase.dpidBase += 1
             dpid = '%x' % SwitchBase.dpidBase
-        return super( OVSSwitch, self ).defaultDpid( dpid )
+        return super( SwitchBase, self ).defaultDpid( dpid )
 
     @staticmethod
     def restPortsDict( node ):
@@ -254,6 +252,10 @@ class SwitchBase( OVSSwitch ):
         "REST reset handler"
         self.reset()
         return 'OK'
+
+    def reset( self ):
+        "Reset function - override this!"
+        raise NotImplementedError( '%s needs to implement reset()' )
 
 
 class Terminal( SwitchBase ):
@@ -281,7 +283,7 @@ class Terminal( SwitchBase ):
 
     def start( self, _controllers ):
         "Override to start without controller"
-        super( SwitchBase, self ).start( controllers=[] )
+        super( Terminal, self ).start( controllers=[] )
         self.reset()
 
     def reset( self ):
@@ -303,6 +305,15 @@ class Terminal( SwitchBase ):
         if power is not None:
             transceiver.operation_power = db_to_abs(power)
 
+    def findTx( self, wdmPort ):
+        "Return transceiver for wdmPort number"
+        # This is inefficient but could be cached
+        for tx in self.model.transceivers:
+            if tx.id == wdmPort:
+                return tx
+        raise Exception( '%s could not find tx for port %d' %
+                         ( self, wdmPort ) )
+
     def txnum( self, wdmPort ):
         "Return tx number for wdmPort number"
         # This is inefficient but could be cached
@@ -316,13 +327,13 @@ class Terminal( SwitchBase ):
         raise Exception( '%s could not find tx for port %d' %
                          ( self, wdmPort ) )
 
-    def restTurnonHandler(self, out_ports):
-        self.turn_on(out_ports)
+
+    def restTurnonHandler( self ):
+        self.turn_on()
         return 'OK'
 
-    def turn_on(self, out_ports):
-        out_ports = [100 + int(x) for x in out_ports]
-        self.model.turn_on(out_ports)
+    def turn_on( self ):
+        self.model.turn_on()
 
     def restConnectHandler( self, query ):
         "REST connect handler"
@@ -340,14 +351,15 @@ class Terminal( SwitchBase ):
            ethPort: ethernet port number
            wdmPort: WDM port number"""
         # Update physical model
-        OUT = 100  # Offset for output port
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
+        # XXX should we do this here?
+        transceiver.id = wdmPort
         self.configTx( txNum=tx, channel=channel, power=power )
         channel = self.txChannel.get( tx )
         if channel is None:
             raise Exception( 'must set tx channel before connecting' )
-        self.model.configure_terminal( transceiver, wdmPort+OUT, [ channel ] )
+        self.model.configure_terminal( transceiver,  channel )
 
         # Remove old flows for transponder
         oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))
@@ -406,11 +418,6 @@ class Terminal( SwitchBase ):
                           'cookie=%d/-1' % self.blockCookie )
         self.dpctl( 'del-flows', blockInbound )
 
-    def dumpStatus( self ):
-        "Print out some status information"
-        print('***', self.name, 'transceiver status:' )
-        print(self.model.transceiver_to_optical_signals)
-
 
 class ROADM( SwitchBase ):
     """A simple ROADM emulation based on OVSSwitch
@@ -440,16 +447,15 @@ class ROADM( SwitchBase ):
         "Reset physical model"
         self.ruleIds = {}
         self.nextRuleId = 1
-        self.model.clean()
+        self.model.delete_switch_rules()
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
-        OUT = 100  # Offset for model output port
         rule = self.ruleTuple( inport, outport, channels )
         if rule in self.ruleIds:
             return
         self.model.install_switch_rule(
-            self.nextRuleId, inport, outport + OUT, channels )
+            self.nextRuleId, inport, outport, channels )
         self.ruleIds[ rule ] = self.nextRuleId
         self.nextRuleId += 1
 
@@ -462,18 +468,14 @@ class ROADM( SwitchBase ):
         else:
             raise Exception( 'could not find rule %s' % str( rule ) )
 
-    def dumpStatus( self ):
-        "Print out some stuff for debugging"
-        self.model.print_switch_rules()
-
     def restRulesHandler( self, query ):
         "Handle REST rules request"
         return { str(ruleId): rule
                  for rule, ruleId in self.ruleIds.items() }
 
     def restCleanmeHandler(self, query):
-        "Handle REST clean request"
-        self.cleanme()
+        "Handle REST clean request - same as reset for now"
+        self.reset()
         return 'OK'
 
     # Dataplane operations
@@ -504,7 +506,7 @@ class ROADM( SwitchBase ):
 
     def dpRemove( self, inport, outport, channels ):
         "Remove a switching rule from the dataplane"
-        dpInstall( self, inport, outport, channels, cmd='del-flows' )
+        self.dpInstall( inport, outport, channels, cmd='del-flows' )
 
     # Combined dataplane/phy emulation operations
 
@@ -527,20 +529,20 @@ class ROADM( SwitchBase ):
     # Here for symmetry, but not actually used by REST API
     def remove( self, inport, outport, channels ):
         "Remove rules from dataplane and physical model"
-        install( self, inport, outport, channels, action='remove' ):
+        self.install( inport, outport, channels, action='remove' )
 
-    def restConnectHandler( self, query ):
+    def restConnectHandler( self, query, action='install' ):
         "REST connect handler"
         port1 = int( query.port1 )
         port2 = int( query.port2 )
         channels = [int(channel) for channel in query.channels.split(',')]
-        action = query.get( 'action', 'install' )
+        action = query.get( 'action', action )
         self.connect( port1, port2, channels, action )
         return 'OK'
 
     def restDisconnectHandler( self, query ):
         "REST remove handler"
-        return restConnectHandler( query, action='remove' )
+        return self.restConnectHandler( query, action='remove' )
 
     def connect( self, port1, port2, channels, action='install' ):
         "Install bidirectional rule connecting port1 and port2"
@@ -631,8 +633,12 @@ class OpticalLink( Link ):
         # This is a somewhat serious issue that will be hard to fix
         port1 = kwargs.get( 'params1', {}).get( 'port', port1 )
         port2 = kwargs.get( 'params2', {}).get( 'port', port2 )
-        self.port1 = port1 if port1 is not None else node1.newPort()
-        self.port2 = port2 if port2 is not None else node1.newPort()
+        assert port1 > 0 and port2 > 0, (
+            "OpticalLink: please use non-zero port numbers" )
+        self.port1 = port1 or src.newPort()
+        self.port2 = port2 or dst.newPort()
+        assert self.port1 > 0 and self.port2 > 0, (
+            "OpticalLink: newPort() did not return positive port number" )
         kwargs.update( port1=self.port1, port2=self.port2 )
 
         # Initialize dataplane
@@ -645,10 +651,10 @@ class OpticalLink( Link ):
         boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
         if boost1:
             name, params = boost1
-            boost1 = PhyAmplifier( name, **params )
+            boost1 = PhyAmplifier( name, *params )
         if boost2:
             name, params = boost2
-            boost2 = PhyAmplifier( name, **params )
+            boost2 = PhyAmplifier( name, *params )
 
         # Create symmetric spans and phy links in both directions
         spans = self.parseSpans( spans )
@@ -660,34 +666,24 @@ class OpticalLink( Link ):
                             if name else None )
                    for length, name, params in spans ]
 
-        # XXX Output ports have to start at this number for some reason?
-        OUT = 100
         self.phyLink1 = PhyLink(
-            src.model, dst.model, output_port_node1=self.port1+OUT,
-            input_port_node2=self.port2, boost_amp=boost1, spans=spans1 )
+            src.model, dst.model, src_out_port=self.port1,
+            dst_in_port=self.port2, boost_amp=boost1, spans=spans1 )
         self.phyLink2 = PhyLink(
-            dst.model, src.model, output_port_node1=self.port2+OUT,
-            input_port_node2=self.port1, boost_amp=boost2, spans=spans2 )
+            dst.model, src.model, src_out_port=self.port2,
+            dst_in_port=self.port1, boost_amp=boost2, spans=spans2 )
 
         # Create monitors and store in self.monitors
-        monitors = monitors or {}
-        monitored = { ampName: monitorName
-                      for monitorName, ampName in monitors
-                      for prefix in ( prefix1, prefix2 ) }
-        self.monitors = []
-        if boost1 and boost1.name in monitored:
-            monitor = Monitor( boost1.name, link=self.phyLink1, amplifier=boost1 )
-            self.monitors.append( monitor )
-        for link, spans in ((self.phyLink1, spans1), (self.phyLink2, spans2)):
-            for span, amplifier in spans:
-                if amplifier and amplifier.name in monitored:
-                    name = monitored[ amplifier.name ]
-                    monitor = Monitor(
-                        name, link=link, span=span, amplifier=amplifier )
-                    self.monitors.append( monitor )
-        if boost2 and boost2.name in monitored:
-            monitor = Monitor( boost2.name, link=self.phyLink2, amplifier=boost2 )
-            self.monitors.append( monitor ) 
+        monitors = []
+        for link in self.phyLink1, self.phyLink2:
+            if link.boost_amp and hasattr( link.boost_amp, 'monitor' ):
+                monitors.append( link.boost_amp.monitor )
+            monitors.extend( amp.monitor for fiber, amp in link.spans
+                         if amp and hasattr( amp, 'monitor' ) )
+        self.monitors = [ Monitor( monitor.name, monitor )
+                          for monitor in monitors ]
+
+
 
     @staticmethod
     def parseSpans( spans=None ):
@@ -695,7 +691,7 @@ class OpticalLink( Link ):
         spans = spans or []
         result = []
         while spans:
-            length, ampName, params = spans.pop(0), None, None
+            length, ampName, params = spans.pop(0), None, {}
             # Maybe there's a better way of doing this polymorphic api
             if spans and isinstance( spans[ 0 ], BaseString ):
                 ampName = spans.pop( 0 )
@@ -768,18 +764,21 @@ def dumpNet( net ):
 
 
 def formatSignals( signalPowers ):
+    return str(signalPowers)
     return '\n'.join(
-        '%s %.2f dBm' % ( channel, signalPowers[ channel ] )
+        'channel %s power %s' % ( channel, signalPowers[ channel ] )
         for channel in sorted( signalPowers ) )
 
 
-def dumpLinkPower(link):
+def dumpLinkPower( link ):
     "Print out power for all spans in a Link"
+    print("*********************** LINK POWER")
     for span, amp in link.spans:
-        print(span, end='')
+        print( span, end='' )
         if amp:
-            print(amp, 'input', formatSignals(amp.input_power),
-                  'output', formatSignals(amp.output_power) )
+            print(amp,
+                  'input', formatSignals(amp.port_to_optical_signal_in),
+                  'output', formatSignals(amp.port_to_optical_signal_out) )
 
 
 ### Sanity test
@@ -803,22 +802,18 @@ class TwoTransceiverTopo( Topo ):
         self.addLink( t1, t2, cls=OpticalLink, port1=2, port2=2,
                       spans=spans )
 
-
-def twoTransceiverTest():
+def twoTransceiverTest( cli=False):
     "Test two transponders connected over a link"
     info( '*** Testing simple two transceiver network \n' )
     topo = TwoTransceiverTopo()
     net = Mininet( topo )
     h1, h2, t1, t2 = net.get( 'h1', 'h2', 't1', 't2' )
     net.start()
-    # Set up lightpaths
-    t1.connect( ethPort=1, tx=0, wdmPort=2, channel=1 )
-    t2.connect( ethPort=1, tx=0, wdmPort=2, channel=1 )
-    # Print power
-    link = net.links[-1]
-    dumpLinkPower( link.phyLink1 )
-    dumpLinkPower( link.phyLink2 )
-    # CLI(net)
+    t1.connect(ethPort=1, wdmPort=2, channel=1)
+    t2.connect(ethPort=1, wdmPort=2, channel=1)
+    t1.turn_on()
+    if cli:
+        CLI(net)
     net.pingAll()
     net.stop()
 
