@@ -548,9 +548,10 @@ class Roadm(Node):
         self.unpack_wss_dict(wss_dict)
         self.equalization_attenuation = db_to_abs(3)
         self.equalization_function = equalization_function
-        self.equalization_target_out_power = None
-        self.equalization_compensation = \
-            self.equalization_safety_check(equalization_function, equalization_target_out_power)
+        self.equalization_target_out_power = {}
+        self.equalization_compensation = True
+        #\
+        #    self.equalization_safety_check(equalization_function, equalization_target_out_power)
         # dict of rule id to dict with keys in_port, out_port and signal_indices
         self.switch_table_original = {}  # obsolete
         self.switch_table = {}
@@ -565,6 +566,9 @@ class Roadm(Node):
 
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+
+    def configure_voa(self, channel_id, output_port, operational_power_dB):
+        self.equalization_target_out_power[(channel_id, output_port)] = db_to_abs(operational_power_dB)
 
     def equalization_safety_check(self, equalization_function, equalization_target_out_power):
         """
@@ -668,6 +672,8 @@ class Roadm(Node):
                     self.port_to_optical_signal_out[prev_port_out].remove((optical_signal, optical_signal.uid))
                     self.switch_table[rule_id, in_port, signal_index] = new_port_out  # replacement of rule
 
+                    del self.equalization_target_out_power[optical_signal.index, prev_port_out]
+
                     link = self.port_to_link_out[prev_port_out]
                     link.remove_optical_signal((optical_signal, optical_signal.uid))
 
@@ -704,6 +710,8 @@ class Roadm(Node):
 
                     del self.optical_signal_to_port_out[optical_signal, optical_signal.uid]
                     del self.optical_signal_to_node_out[optical_signal, optical_signal.uid]
+
+                    del self.equalization_target_out_power[optical_signal.index, out_port]
 
                     # propagate clean-up across links and nodes
                     link = self.port_to_link_out[out_port]
@@ -887,18 +895,21 @@ class Roadm(Node):
             node_attenuation[optical_signal] = total_attenuation
         return node_attenuation
 
-    def equalization_reconf(self, link, output_power_dict):
+    def equalization_reconf(self, link, output_power_dict, node_out_port):
         """
         wavelength dependent attenuation
         """
         if self.equalization_function is 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
-            for k, out_power in output_power_dict.items():
+            for optical_signal, out_power in output_power_dict.items():
+                if (optical_signal.index, node_out_port) not in self.equalization_target_out_power:
+                    raise Exception("%s couldn't find equalization configuration for "
+                                    "channel-index %s" % (self, optical_signal.index))
                 # From the boost-amp, compute the difference between output power levels
                 # and the target output power. Set this as the compensation function.
-                delta = self.equalization_target_out_power / out_power
-                out_difference[k] = delta
+                delta = self.equalization_target_out_power[(optical_signal.index, node_out_port)] / out_power
+                out_difference[optical_signal] = delta
 
             for optical_signal, equalization_att in out_difference.items():
                 # WSS attenuation and fixed equalization attenuation was inflicted at switching time,

@@ -54,7 +54,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     net = Network()
 
     # Network nodes
-    transceivers = [ ( 't1', 0*dBm, 'C' ), ( 't2', 0*dBm, 'C' ) ]
+    transceivers = [ ( 't1', 0*dBm, 'C' ), ( 't2', 2*dBm, 'C' ) ]
     terminals = tx1, tx2 = [
         net.add_lt( name, transceivers=transceivers, monitor_mode=mode )
         for name,mode in [('tx1','in'),('tx2','in')] ]
@@ -118,14 +118,14 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     r1.configure_voa(1, LINE_PORT, 0)
     r1.install_switch_rule(
         2, in_port=ADD_DROP_1, out_port=LINE_PORT, signal_indices=[2])
-    r1.configure_voa(2, LINE_PORT, 0)
+    r1.configure_voa(2, LINE_PORT, 2)
 
     r2.install_switch_rule(
         1, in_port=LINE_PORT, out_port=TX_0, signal_indices=[1])
     r2.configure_voa(1, TX_0, 0)
     r2.install_switch_rule(
         2, in_port=LINE_PORT, out_port=TX_1, signal_indices=[2])
-    r2.configure_voa(2, TX_1, 0)
+    r2.configure_voa(2, TX_1, 2)
 
     print( '*** ROADM connections and flow table' )
     for node in r1, r2:
@@ -157,19 +157,6 @@ def twoRoadmPhyTest():
     for mon in monitors:
         print( 'monitor:', mon )
         print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
-
-    print( '*** Changing gain for amp1e' )
-    # AD: this is not enabled to recompute anything,
-    # it used to be for the network to execute.
-    # Needs to be implemented.
-    amp1 = nodes[ 'amp1e' ]
-    amp1.mock_amp_gain_adjust( 1.0 )
-
-    print( '*** Updated OSNR and gOSNR:' )
-    for mon in monitors:
-        print( 'monitor:', mon )
-        print(' OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
-
 
 if __name__ == '__main__':
     twoRoadmPhyTest()

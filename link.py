@@ -130,7 +130,7 @@ class Link(object):
                 # what port should match what signal
                 for optical_signal in self.optical_signals:
                     in_port = self.dst_node.link_to_port_in[self]
-                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal), in_port=in_port, src_node=self.src_node)
+                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self.src_node)
                 if is_last_port:
                     self.dst_node.receiver(self.src_node)
             else:
@@ -140,7 +140,7 @@ class Link(object):
                     # and the link only has an input port of reference for
                     # the dst_node
                     in_port = self.dst_node.link_to_port_in[self]
-                    self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal), in_port=in_port)
+                    self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal.uid), in_port=in_port)
                 if is_last_port:
                     self.dst_node.switch(self.src_node)
 
@@ -167,7 +167,8 @@ class Link(object):
 
             if equalization:
                 # procedure for VOA reconfiguration (equalization)
-                self.src_node.equalization_reconf(self, output_power_dict)
+                src_node_out_port = self.src_node.link_to_port_out[self]
+                self.src_node.equalization_reconf(self, output_power_dict, src_node_out_port)
                 # return False to avoid propagation of effects
                 return False
 
