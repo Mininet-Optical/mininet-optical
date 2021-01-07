@@ -290,6 +290,8 @@ def configurePacketSwitches( net ):
 def installPath( path, channels, net):
     "Program a lightpath into the network"
     print("*** Installing path", path, "channels", channels)
+    print("*** VOAs for all ROADMs set to operational power 0 dBm")
+    op = 0  # operational power 0 dBm
     # Install ROADM rules
     for i in range(1, len(path) - 1 ):
         node1, roadm, node2 = path[i-1], path[i], path[i+1]
@@ -302,14 +304,14 @@ def installPath( path, channels, net):
         if i == 1:
             ports1 = channelPorts( node1, net )
             for channel in channels:
-                ROADMProxy( roadm ).connect( ports1[channel], port2, [channel] )
+                ROADMProxy( roadm ).connect( ports1[channel], port2, [channel], op=op )
         elif i == len(path) - 2:
             ports2 = channelPorts( node2, net )
             for channel in channels:
-                ROADMProxy( roadm ).connect( port1, ports2[channel], [channel] )
+                ROADMProxy( roadm ).connect( port1, ports2[channel], [channel], op=op )
         # For roadm nodes, forward the channels en masse
         else:
-            ROADMProxy( roadm ).connect( port1, port2, channels )
+            ROADMProxy( roadm ).connect( port1, port2, channels, op=op )
 
 
 def channelPorts( node, net ):

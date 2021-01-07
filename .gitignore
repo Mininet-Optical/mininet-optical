@@ -2,3 +2,6 @@
 __pycache__/
 tests/__pycache__/
 topo/__pycache__/
+*.pyc
+\#*\#
+*~

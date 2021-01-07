@@ -117,11 +117,11 @@ class TerminalProxy( SwitchProxy ):
 class ROADMProxy( SwitchProxy ):
     "Local proxy for ROADM configuration via REST"
 
-    def connect( self, port1, port2, channels ):
+    def connect( self, port1, port2, channels, op=100 ):
         "Configure ROADM"
         channels = ','.join( str(channel) for channel in channels)
         params = dict(
-            node=self.name, port1=port1, port2=port2, channels=channels )
+            node=self.name, port1=port1, port2=port2, channels=channels, op=op )
         # print('connect', params)
         r = self.get( 'connect', params=params)
         # print( r )
