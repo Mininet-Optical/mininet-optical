@@ -304,6 +304,7 @@ class Terminal( SwitchBase ):
             self.txChannel[ txNum ] = channel
         if power is not None:
             transceiver.operation_power = db_to_abs(power)
+        return transceiver
 
     def findTx( self, wdmPort ):
         "Return transceiver for wdmPort number"
@@ -355,7 +356,7 @@ class Terminal( SwitchBase ):
         transceiver = self.model.transceivers[ tx ]
         # XXX should we do this here?
         transceiver.id = wdmPort
-        self.configTx( txNum=tx, channel=channel, power=power )
+        transceiver = self.configTx( txNum=tx, channel=channel, power=power )
         channel = self.txChannel.get( tx )
         if channel is None:
             raise Exception( 'must set tx channel before connecting' )
