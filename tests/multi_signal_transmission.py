@@ -115,6 +115,7 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     # Configure ROADMS to add/drop channel 1 to local terminal
     r1.install_switch_rule(
         1, in_port=ADD_DROP_0, out_port=LINE_PORT, signal_indices=[1] )
+    # params: channel_id, output_port, operational_power_dB
     r1.configure_voa(1, LINE_PORT, 0)
     r1.install_switch_rule(
         2, in_port=ADD_DROP_1, out_port=LINE_PORT, signal_indices=[2])

@@ -449,13 +449,16 @@ class ROADM( SwitchBase ):
         self.nextRuleId = 1
         self.model.delete_switch_rules()
 
-    def phyInstall( self, inport, outport, channels ):
+    def phyInstall( self, inport, outport, channels, op=100 ):
         "Install switching rules into the physical model"
         rule = self.ruleTuple( inport, outport, channels )
         if rule in self.ruleIds:
             return
         self.model.install_switch_rule(
             self.nextRuleId, inport, outport, channels )
+        if op < 100:
+            # params: channel_id, output_port, operational_power_dB
+            self.model.configure_voa(channels, outport, op)
         self.ruleIds[ rule ] = self.nextRuleId
         self.nextRuleId += 1
 
@@ -515,11 +518,11 @@ class ROADM( SwitchBase ):
         self.dpReset()
         self.phyReset()
 
-    def install( self, inport, outport, channels, action='install' ):
+    def install( self, inport, outport, channels, op=100, action='install' ):
         "Install rules into dataplane and physical model"
         if action == 'install':
             self.dpInstall( inport, outport, channels )
-            self.phyInstall( inport, outport, channels )
+            self.phyInstall( inport, outport, channels, op=op )
         elif action == 'remove':
             self.dpRemove( inport, outport, channels  )
             self.phyRemove( inport, outport, channels )
@@ -544,10 +547,10 @@ class ROADM( SwitchBase ):
         "REST remove handler"
         return self.restConnectHandler( query, action='remove' )
 
-    def connect( self, port1, port2, channels, action='install' ):
+    def connect( self, port1, port2, channels, op=100, action='install' ):
         "Install bidirectional rule connecting port1 and port2"
-        self.install( port1, port2, channels, action=action )
-        self.install( port2, port1, channels, action=action )
+        self.install( port1, port2, channels, op=op, action=action )
+        self.install( port2, port1, channels, op=op, action=action )
 
     def disconnect( self, port1, port2, channels, action='remove' ):
         "Remove bidirectional rule connecting port1 and port2"
