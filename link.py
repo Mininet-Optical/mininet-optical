@@ -69,9 +69,9 @@ class Link(object):
     def remove_optical_signal(self, optical_signal_tuple):
         optical_signal = optical_signal_tuple[0]
         print("%s - %s removing signal: %s-%s" % (self.__class__.__name__, self, optical_signal, optical_signal.uid))
-        if optical_signal_tuple in self.optical_signals:
-            self.optical_signals.remove((optical_signal, optical_signal.uid))
-            del self.optical_signal_to_port_in[optical_signal, optical_signal.uid]
+        if optical_signal in self.optical_signals:
+            self.optical_signals.remove(optical_signal)
+            del self.optical_signal_to_port_in[optical_signal]
 
         for span, amplifier in self.spans:
             if amplifier:

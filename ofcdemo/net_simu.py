@@ -190,29 +190,30 @@ def twoRoadmPhyTest():
 
     # start test
     # launch power 0dbm
-    t11.operation_power = db_to_abs(2)
-    t12.operation_power = db_to_abs(2)
-    t21.operation_power = db_to_abs(2)
-    t22.operation_power = db_to_abs(2)
-    r1.configure_voa(channel_id = ch1, output_port = LINE_PORT,operational_power_dB = 2)
-    r1.configure_voa(channel_id =ch2, output_port = LINE_PORT, operational_power_dB = 2)
-    r2.configure_voa(channel_id =ch1, output_port = ch1-1, operational_power_dB = 2)
-    r2.configure_voa(channel_id =ch2, output_port = ch2-1, operational_power_dB = 2)
+    t11.operation_power = db_to_abs(10)
+    t12.operation_power = db_to_abs(10)
+    t21.operation_power = db_to_abs(10)
+    t22.operation_power = db_to_abs(10)
+    r1.configure_voa(channel_id = ch1, output_port = LINE_PORT,operational_power_dB = 10)
+    r1.configure_voa(channel_id =ch2, output_port = LINE_PORT, operational_power_dB = 10)
+    r2.configure_voa(channel_id =ch1, output_port = ch1-1, operational_power_dB = 10)
+    r2.configure_voa(channel_id =ch2, output_port = ch2-1, operational_power_dB = 10)
     print( '*** Starting test transmission...' )
     tx1.configure_terminal(tx1.transceivers[0], 1)
     tx1.configure_terminal(tx1.transceivers[1], 2)
     tx1.turn_on()
 
-    print( '*** Initial OSNR and gOSNR:' )
-    monitors = [ node.monitor for node in [tx2] ]
-    for mon in monitors:
-        print( 'monitor:', mon )
-        optical_signals = mon.extract_optical_signal()
-        for sig in optical_signals:
-            power = mon.get_power(sig)
-            print( 'sig_power', sig[0], power )
-        print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+    # print( '*** Initial OSNR and gOSNR:' )
+    # monitors = [ node.monitor for node in [tx2] ]
+    # for mon in monitors:
+    #     print( 'monitor:', mon )
+    #     optical_signals = mon.extract_optical_signal()
+    #     for sig in optical_signals:
+    #         power = mon.get_power(sig)
+    #         print( 'sig_power', sig[0], power )
+    #     print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
 
+    tx1.turn_off([0, 1])
     # launch power -10dbm
     print('=======================================================')
     t11.operation_power = db_to_abs(-5)
