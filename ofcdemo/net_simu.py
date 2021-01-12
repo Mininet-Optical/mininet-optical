@@ -67,12 +67,6 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
     terminals = tx1, tx2 = [
         net.add_lt( name, transceivers=transceivers, monitor_mode=mode )
         for name,mode in [('tx1','in'),('tx2','in')] ]
-    """print('===tl===', terminals, '\n',
-            tx1.transceivers[0].name, tx1.transceivers[0].operation_power,tx1.transceivers[0].id, '\n',
-            tx1.transceivers[1].name, tx1.transceivers[1].operation_power,tx1.transceivers[1].id, '\n',
-            tx2.transceivers[0].name, tx2.transceivers[0].operation_power,tx2.transceivers[0].id, '\n',
-            tx2.transceivers[1].name, tx2.transceivers[1].operation_power,tx2.transceivers[1].id)
-    #"""
     roadms = r1, r2 = [ net.add_roadm( 'r%d' % i ) for i in (1, 2) ]
 
     # Convenience alias
