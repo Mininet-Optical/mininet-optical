@@ -133,7 +133,7 @@ class Node(object):
         if optical_signal_tuple not in self.port_to_optical_signal_out[out_port]:
             self.port_to_optical_signal_out[out_port].append(optical_signal_tuple)
         if optical_signal_tuple not in self.optical_signal_to_port_out:
-            if out_port is not None:
+            if out_port is not None or (out_port == 0):
                 self.optical_signal_to_port_out[optical_signal, optical_signal.uid] = out_port
 
         self.node_to_optical_signal_out.setdefault(dst_node, [])
@@ -154,6 +154,13 @@ class Node(object):
             src_node = self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)]
             if (optical_signal, optical_signal.uid) in self.node_to_optical_signal_in[src_node]:
                 self.node_to_optical_signal_in[src_node].remove((optical_signal, optical_signal.uid))
+            del self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)]
+
+        if (optical_signal, optical_signal.uid) in self.optical_signal_to_node_out:
+            dst_node = self.optical_signal_to_node_out[(optical_signal, optical_signal.uid)]
+            if (optical_signal, optical_signal.uid) in self.node_to_optical_signal_out[dst_node]:
+                self.node_to_optical_signal_out[dst_node].remove((optical_signal, optical_signal.uid))
+            del self.optical_signal_to_node_out[(optical_signal, optical_signal.uid)]
 
         if (optical_signal, optical_signal.uid) in self.optical_signal_to_port_in:
             port_in = self.optical_signal_to_port_in[optical_signal, optical_signal.uid]
@@ -273,13 +280,14 @@ class LineTerminal(Node):
                                        power=transceiver.operation_power, ase_noise=ase_noise, nli_noise=nli_noise)
 
         # include optical signal in LineTerminal list
-        self.include_optical_signal_in((optical_signal, optical_signal), in_port=in_port, src_node=self)
+        self.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self)
 
         # associate transceiver to optical_signal
         transceiver.assoc_optical_signal(optical_signal)
 
         # associate an output port to the signal
-        self.port_to_optical_signal_out[transceiver.id].append((optical_signal, optical_signal))
+        self.include_optical_signal_out((optical_signal, optical_signal.uid), out_port=transceiver.id)
+        # self.port_to_optical_signal_out[transceiver.id].append((optical_signal, optical_signal.uid))
 
     def turn_on(self):
         self.propagate()
@@ -324,7 +332,7 @@ class LineTerminal(Node):
                 optical_signals.append(optical_signal)
                 tr.remove_optical_signal()
         for optical_signal in optical_signals:
-            self.remove_optical_signal(optical_signal)
+            self.remove_optical_signal((optical_signal, optical_signal.uid))
         # call propagation with left-over signals (if any)
         self.propagate()
 
