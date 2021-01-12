@@ -17,8 +17,8 @@ from mininet.node import RemoteController
 
 if __name__ == '__main__':
 
-    setLogLevel( 'info' )
     cleanup()
+    setLogLevel( 'info' )
     net = Mininet( topo=LinearRoadmTopo(txCount=6), autoSetMacs=True,
                    controller=RemoteController )
     disableIPv6( net )

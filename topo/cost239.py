@@ -52,7 +52,13 @@ def build_link(net, r1, r2, total_len):
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
         in_l = '%s-%s-amp%d' % (r1, r2, step)  # label inline amp
-        in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22, monitor_mode='out')
+        if step%6==0:
+            in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22, monitor_mode='out',
+                                            equalization_function='flatten',
+                                            equalization_target_out_power=0)
+        else:
+            in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22, monitor_mode='out')
+
         # adding span and in-line amplifier to link
         link_r1_r2.add_span(span, in_line_amp)
 
@@ -80,6 +86,17 @@ class Cost239Topology:
         transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
         city_names = ['amsterdam', 'berlin', 'brussels', 'copenhagen', 'london',
                       'luxembourg', 'milan', 'paris', 'prague', 'vienna', 'zurich']
+        no_hops=10
+        print_dict = {}
+        linear_hops=[]
+        for i in range(1,no_hops):
+            linear_hops.append('hop%d'%i)
+            print_dict['hop%d'%i]=i+10
+
+        city_names.extend(linear_hops)
+        print(print_dict)
+
+
         line_terminals = [net.add_lt('lt_%s' % name, transceivers=transceivers) for name in city_names]
 
         # Create ROADMs
@@ -109,6 +126,22 @@ class Cost239Topology:
         pra = name_to_roadm['r_prague']
         vie = name_to_roadm['r_vienna']
         zur = name_to_roadm['r_zurich']
+
+        hop_roadms=[]
+        for i in range(1,no_hops):
+            hop_roadms.append(name_to_roadm['r_hop%d'%i])
+
+        print_dist=[]
+
+        for roadm_pair in zip(hop_roadms, hop_roadms[1:]):
+            src,target= roadm_pair
+            build_links(net, src, target, 50)
+
+        for roadm_pair in zip(linear_hops, linear_hops[1:]):
+            print_dist.append((roadm_pair[0],roadm_pair[1],50))
+
+        print(print_dist)
+
 
         # Main Amsterdam bi-links
         build_links(net, ams, ldn, 390)

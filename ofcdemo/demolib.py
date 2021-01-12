@@ -21,7 +21,7 @@ from mininet.node import RemoteController
 from mininet.util import natural
 
 from collections import namedtuple
-
+from itertools import chain
 
 # Routers start listening at 6654
 ListenPortBase = 6653
@@ -40,22 +40,13 @@ class OpticalCLI( CLI ):
             try:
                 node = self.mn.get( nodename )
                 if hasattr( node, 'model' ):
-                    self.print_signals(node.model)
+                    node.model.print_signals()
             except:
                 pass
             return
         for node in self.mn.switches:
             if hasattr( node, 'model' ):
-                self.print_signals(node.model)
-
-    @staticmethod
-    def print_signals(model):
-        "Print signals from a node's model"
-        print( model, "Inputs:" )
-        print( model.port_to_optical_signal_in )
-        print( model, "Outputs:" )
-        print( model.port_to_optical_signal_out )
-
+                node.model.print_signals()
 
     def opticalLinks( self ):
         "Return optical links"
@@ -82,13 +73,12 @@ class OpticalCLI( CLI ):
         "List osnr for monitors"
         for link in self.opticalLinks():
             for monitor in link.monitors:
-                monitor = monitor.model
                 print( str(monitor) + ':' )
-                osnr = monitor.get_dict_osnr()
-                gosnr = monitor.get_dict_gosnr()
-                for signal in sorted(osnr, key=lambda s:s.index):
-                    print( '%s OSNR: %.2f dB' % ( signal, osnr[signal] ), end='' )
-                    print( ' gOSNR: %.2f dB' % gosnr.get(signal, float('nan') ) )
+                for signal in monitor.amplifier.output_power:
+                    osnr = monitor.get_osnr( signal)
+                    gosnr = monitor.get_gosnr( signal)
+                    print( '%s OSNR: %.2f dB' % ( signal, osnr ), end='' )
+                    print( ' gOSNR: %.2f dB' % gosnr )
 
     def spans( self, minlength=100):
         "Span iterator"
@@ -139,11 +129,11 @@ class OpticalCLI( CLI ):
                 node.propagate()
 
     @staticmethod
-    def formatSignals( signals, node ):
+    def formatSignals( signalPowers ):
         "Nice format for signal powers"
         return list(
-            '%s %.2f dBm' % ( signal, signal.loc_out_to_state[ node ]['power'] )
-            for signal in sorted( signals, key=lambda s: s.index ) )
+            '%s %.2f dBm' % ( channel, signalPowers[ channel ] )
+            for channel in sorted( signalPowers, key=natural ) )
 
     def do_amppowers( self, _line ):
         "Print out power for all amps on links"
@@ -153,10 +143,10 @@ class OpticalCLI( CLI ):
                 amp = span.amplifier
                 if amp:
                     print('amp:', amp)
-                    inputs = amp.port_to_optical_signal_in
-                    outputs = amp.port_to_optical_signal_out
-                    print('input', self.formatSignals(inputs, amp ),
-                          'output', self.formatSignals(outputs, amp ) )
+                    print( 'input',
+                           self.formatSignals(amp.input_power),
+                           'output',
+                           self.formatSignals(amp.output_power) )
 
     def do_arp( self, _line ):
         "Send gratuitous arps from every host"
@@ -199,10 +189,9 @@ class OpticalTopo( Topo ):
 SpanSpec = namedtuple( 'SpanSpec', 'length amp' )
 AmpSpec = namedtuple( 'AmpSpec', 'name params ')
 
-def spanSpec( length, amp, **ampParams):
-    "Return span specifier [length, (ampName, params)]"
-    ampSpec = AmpSpec(amp, ampParams)
-    return SpanSpec( length, ampSpec )
+def spanSpec( length, amp, targetGain ):
+    "Return span specifier [length, (amp, params)]"
+    return SpanSpec( length, AmpSpec(amp, dict(target_gain=targetGain) ) )
 
 
 class LinearRoadmTopo( OpticalTopo ):
@@ -247,8 +236,7 @@ class LinearRoadmTopo( OpticalTopo ):
         """Return a list of span specifiers (length, (amp, params))
            the compensation amplifiers are named prefix-ampN"""
         entries = [ spanSpec( length=spanLength, amp='amp%d' % i,
-                              target_gain=spanLength/km * .22 * dB,
-                              monitor_mode='out' )
+                              targetGain=spanLength/km * .22 * dB )
                     for i in range(1, spanCount+1) ]
         return sum( [ list(entry) for entry in entries ], [] )
 
@@ -261,7 +249,14 @@ class LinearRoadmTopo( OpticalTopo ):
             src, dst = roadms[i], roadms[i+1]
             boost = ( 'boost', dict(target_gain=17.0*dB) )
             spans = self.spans( spanCount=2 )
-            self.wdmLink( src, dst, boost=boost, spans=spans )
+            # XXX Unfortunately we currently have to have a priori knowledge of
+            # this prefix
+            prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
+            firstAmpName, lastAmpName = spans[1].name, spans[-1].name
+            monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
+                         ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
+            self.wdmLink( src, dst, boost=boost, spans=spans,
+                          monitors=monitors )
 
 
 def configureLinearNet( net, packetOnly=False ):
@@ -366,7 +361,14 @@ class DemoTopo( LinearRoadmTopo ):
         "Construct a link of four 50km fiber spans"
         boost = ( 'boost', dict(target_gain=17.0*dB) )
         spans = self.spans( spanLength=50*km, spanCount=4 )
-        self.wdmLink( src, dst, boost=boost, spans=spans )
+        # XXX Unfortunately we currently have to have a priori knowledge of
+        # this prefix
+        prefix1, prefix2 = '%s-%s-' % ( src, dst ), '%s-%s-' % ( dst, src )
+        firstAmpName, lastAmpName = spans[1].name, spans[-1].name
+        monitors = [ ( prefix1 + lastAmpName + '-monitor', prefix1 + lastAmpName ),
+                     ( prefix2 + firstAmpName + '-monitor', prefix2 + firstAmpName) ]
+        self.wdmLink(
+            src, dst, boost=boost, spans=spans, monitors=monitors )
 
     def build( self, n=6, txCount=5 ):
         "Add POPs and connect them in a ring with some cross-connects"

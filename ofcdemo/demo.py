@@ -15,8 +15,8 @@ from mininet.node import RemoteController
 
 if __name__ == '__main__':
 
-    setLogLevel( 'info' )
     cleanup()
+    setLogLevel( 'info' )
     info( '*** Creating Demo Topology \n' )
     net = Mininet( topo=DemoTopo( txCount=15), autoSetMacs=True,
                    controller=RemoteController )

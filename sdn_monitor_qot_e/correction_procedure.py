@@ -2,6 +2,9 @@ from sdn_monitor_qot_e.estimation_module import *
 import json
 import os
 import numpy as np
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
+
 
 
 def keys_to_int(_dict):
@@ -201,6 +204,7 @@ def get_corrected_struct_ran(load, gosnr_corr_dict, signals_id=None, test_id=Non
         opm_index += 14
     return gosnr_corr_dict
 
+
 def get_corrected_struct_approx(load, signals_id=None):
     gosnr_corr_dict = dict.fromkeys(monitor_keys)
 
@@ -247,7 +251,31 @@ def get_corrected_struct_approx(load, signals_id=None):
 
 
 def get_spans_and_channels_from_link_key(link_key):
-    if link_key == 'r_london-r_copenhagen':
+    dist_dict = {('amsterdam', 'london'): 390, ('london', 'amsterdam'): 390, ('amsterdam', 'brussels'): 200,
+                 ('brussels', 'amsterdam'): 200, ('amsterdam', 'luxembourg'): 310, ('luxembourg', 'amsterdam'): 310,
+                 ('amsterdam', 'berlin'): 600, ('berlin', 'amsterdam'): 600, ('amsterdam', 'copenhagen'): 750,
+                 ('copenhagen', 'amsterdam'): 750, ('berlin', 'copenhagen'): 400, ('copenhagen', 'berlin'): 400,
+                 ('berlin', 'paris'): 900, ('paris', 'berlin'): 900, ('berlin', 'prague'): 320,
+                 ('prague', 'berlin'): 320,
+                 ('berlin', 'vienna'): 710, ('vienna', 'berlin'): 710, ('brussels', 'london'): 340,
+                 ('london', 'brussels'): 340,
+                 ('brussels', 'paris'): 270, ('paris', 'brussels'): 270, ('brussels', 'milan'): 850,
+                 ('milan', 'brussels'): 850,
+                 ('brussels', 'luxembourg'): 100, ('luxembourg', 'brussels'): 100, ('copenhagen', 'london'): 1000,
+                 ('london', 'copenhagen'): 1000, ('copenhagen', 'prague'): 760, ('prague', 'copenhagen'): 760,
+                 ('london', 'paris'): 410, ('paris', 'london'): 410, ('luxembourg', 'paris'): 370,
+                 ('paris', 'luxembourg'): 370,
+                 ('luxembourg', 'zurich'): 440, ('zurich', 'luxembourg'): 440, ('luxembourg', 'prague'): 900,
+                 ('prague', 'luxembourg'): 900, ('milan', 'paris'): 810, ('paris', 'milan'): 810,
+                 ('milan', 'zurich'): 100,
+                 ('zurich', 'milan'): 100, ('milan', 'vienna'): 720, ('vienna', 'milan'): 720, ('paris', 'zurich'): 590,
+                 ('zurich', 'paris'): 590, ('prague', 'zurich'): 100, ('zurich', 'prague'): 100,
+                 ('prague', 'vienna'): 350,
+                 ('vienna', 'prague'): 350, ('vienna', 'zurich'): 710, ('zurich', 'vienna'): 710,('hop1', 'hop2'): 50, ('hop2', 'hop1'): 50, ('hop2', 'hop3'): 50, ('hop3', 'hop2'): 50, ('hop3', 'hop4'): 50, ('hop4', 'hop3'): 50, ('hop4', 'hop5'): 50, ('hop5', 'hop4'): 50, ('hop5', 'hop6'): 50, ('hop6', 'hop5'): 50, ('hop6', 'hop7'): 50, ('hop7', 'hop6'): 50, ('hop7', 'hop8'): 50, ('hop8', 'hop7'): 50, ('hop8', 'hop9'): 50, ('hop9', 'hop8'): 50}
+
+
+
+    """if link_key == 'r_london-r_copenhagen':
         return [50.0] * 20, range(1, 16)
     elif link_key == 'r_copenhagen-r_berlin':
         return [50.0] * 8, range(1, 16)
@@ -255,6 +283,13 @@ def get_spans_and_channels_from_link_key(link_key):
         return [50.0] * 18, range(16, 31)
     elif link_key == 'r_prague-r_vienna':
         return [50.0] * 7, range(31, 46)
+    else:"""
+    step = 50
+    stripped_name = link_key
+    node_list = link_key.split('-')
+    node_list = [node_list[i].strip('r_') for i in range(0, len(node_list))]
+    no_monitors = round(dist_dict[(node_list[0], node_list[1])] / step)
+    return [50.0] * no_monitors, [1,2,3,4,5,6,7,8,73,74,75,85,86]
 
 
 def get_opm_struct(link_key, monitors):
@@ -305,15 +340,17 @@ def get_opm_struct(link_key, monitors):
 
     return osnr_opm_dict, gosnr_opm_dict, power_opm_dict, ase_opm_dict, nli_opm_dict
 
-
-def get_corrected_struct_simpledemo(link_key, monitors, monitors_by_density, main_struct=None):
+total_monitor_list = []
+def get_corrected_struct_simpledemo(link_key, monitors, monitors_by_density, main_struct=None,monitored_nli=False):
     osnr_opm_dict, gosnr_opm_dict, power_opm_dict, ase_opm_dict, nli_opm_dict = get_opm_struct(link_key, monitors)
+
 
     gosnr_corr_dict = dict.fromkeys(monitors, {})
 
     spans, channels = get_spans_and_channels_from_link_key(link_key)
     spans.insert(0, 0)  # to comply with monitors length
 
+    monitor_count = 0
     for i, (span, monitor) in enumerate(zip(spans, monitors)):
         if i == 0:
             # the first span does not matter because is booster
@@ -323,37 +360,179 @@ def get_corrected_struct_simpledemo(link_key, monitors, monitors_by_density, mai
             est_osnr, est_gosnr, power, ase, nli = \
                 estimation_module_simpledemo_correct(main_struct, span)
 
+        if len(monitors_by_density) == 4 and 'r_london-r_copenhagen-amp7' in str(monitor):
+            if False:
+                fig = plt.figure(55)
+                """plt.plot(list(nli.keys()), list(nli.values()), '--', markeredgewidth=3, markersize=9,
+                          markerfacecolor='None',
+                          color='r', marker='o',label="Corrected-ASE")
+                 #plt.ylabel("Corrected NLI Value")
+                plt.plot(list(nli.keys()), list(keys_to_int(nli_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                          markersize=9, markerfacecolor='None',
+                          color='b', marker='x',label="Monitored-ASE")"""
+                plt.plot(list(nli.keys()), list(nli.values()), '--', markeredgewidth=3, markersize=9,
+                         markerfacecolor='None',
+                         color='r', marker='o', label="Estimated-NLI")
+                # plt.ylabel("Corrected NLI Value")
+                plt.plot(list(nli.keys()), list(keys_to_int(nli_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                         markersize=9, markerfacecolor='None',
+                         color='b', marker='x', label="Monitored-NLI")
+
+                plt.ylabel("NLI Absolute Value")
+                plt.xlabel("Channels")
+                plt.title(str(monitor))
+                plt.grid(True)
+                plt.legend()
+
+
+                fig = plt.figure(56)
+
+                plt.plot(list(power.keys()), list(power.values()), '--', markeredgewidth=3, markersize=9,
+                         markerfacecolor='None',
+                         color='r', marker='o', label="Estimated-Power")
+                # plt.ylabel("Corrected NLI Value")
+                plt.plot(list(power.keys()), list(keys_to_int(power_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                         markersize=9, markerfacecolor='None',
+                         color='b', marker='x', label="Monitored-Power")
+
+                plt.ylabel("Power Absolute Value")
+                plt.xlabel("Channels")
+                plt.title(str(monitor))
+                plt.grid(True)
+                plt.legend()
+
+                fig = plt.figure(57)
+
+                plt.plot(list(ase.keys()), list(ase.values()), '--', markeredgewidth=3, markersize=9,
+                         markerfacecolor='None',
+                         color='r', marker='o', label="Estimated-ASE")
+                # plt.ylabel("Corrected NLI Value")
+                plt.plot(list(ase.keys()), list(keys_to_int(ase_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                         markersize=9, markerfacecolor='None',
+                         color='b', marker='x', label="Monitored-ASE")
+
+                plt.ylabel("ASE Absolute Value")
+                plt.xlabel("Channels")
+
+                plt.title(str(monitor))
+                plt.grid(True)
+                plt.legend()
+
+        print("Link : " + str(link_key) + " Monitor nodes : " + str(monitors_by_density) + " ," + "Monitor : " + str(
+            monitor))
+        total_monitor_list.append(str(monitor))
+
         if monitor in monitors_by_density:
+            print("Link : " + str(link_key) + " Monitor nodes : " + str(monitors_by_density)+" ,"+ "Monitor : "+str(monitor))
+
             opm_osnr = keys_to_int(osnr_opm_dict[monitor])
             # compute and apply to NLI noise the correction factor based
             # on the OSNR difference
             # this is used for the correction algorithm
-            nli = nli_correction_algorithm(opm_osnr, est_osnr, nli)
-            est_gosnr = correct_gosnr(power, ase, nli)
+            #print("monitor : "+str(monitor)+" density : "+str(len(monitors_by_density)))
 
-            # this is used for correcting everything
             power_dict = keys_to_int(power_opm_dict[monitor])
             ase_dict = keys_to_int(ase_opm_dict[monitor])
-            # nli = keys_to_int(nli_opm_dict[monitor])
-            # est_gosnr = correct_gosnr(power_dict, ase_dict, nli)
+            nli_dict=keys_to_int(nli_opm_dict[monitor])
+
+
+            nli = nli_correction_algorithm(power_dict,power, nli)
+            est_gosnr = correct_gosnr(power_dict, ase_dict, nli)
+
+
+
+            if len(monitors_by_density)==4 and 'r_london-r_copenhagen' in str(monitor):
+                if False:
+                   fig= plt.figure(monitor_count+10)
+                   """plt.plot(list(nli.keys()), list(nli.values()), '--', markeredgewidth=3, markersize=9,
+                             markerfacecolor='None',
+                             color='r', marker='o',label="Corrected-ASE")
+                    #plt.ylabel("Corrected NLI Value")
+                   plt.plot(list(nli.keys()), list(keys_to_int(nli_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                             markersize=9, markerfacecolor='None',
+                             color='b', marker='x',label="Monitored-ASE")"""
+                   plt.plot(list(nli.keys()), list(nli.values()), '--', markeredgewidth=3, markersize=9,
+                             markerfacecolor='None',
+                             color='r', marker='o',label="Corrected-NLI")
+                    #plt.ylabel("Corrected NLI Value")
+                   plt.plot(list(nli.keys()),  list(keys_to_int(nli_opm_dict[monitor]).values()), '--', markeredgewidth=3,
+                             markersize=9, markerfacecolor='None',
+                             color='b', marker='x',label="Monitored-NLI")
+                
+                   plt.ylabel("NLI Absolute Value")
+                   plt.xlabel("Channels")
+                   plt.title(str(monitor))
+                   plt.grid(True)
+                   plt.legend()
+                   monitor_count=monitor_count+1
+
+
+
+
+
+            # this is used for correcting everything
+            #print('actual NLI : '+str(keys_to_int(nli_opm_dict[monitor])))
+            if(monitored_nli):
+                nli = keys_to_int(nli_opm_dict[monitor])
+
+            #est_gosnr = correct_gosnr(power_dict, ase_dict, nli)
 
             gosnr_corr_dict[monitor] = keys_to_str(est_gosnr)
 
             main_struct = power_dict.keys(), power_dict, ase_dict, nli
+
         else:
             gosnr_corr_dict[monitor] = keys_to_str(est_gosnr)
             main_struct = power.keys(), power, ase, nli
 
+    print(total_monitor_list)
     return main_struct, gosnr_corr_dict
 
+def normalize(d, target=1):
+   raw = sum(d.values())
+
+   temp_list=[]
+   for key in sorted(d.keys()):
+
+       temp_list.append([abs_to_db(d[key])])
+
+   temp_list_arr=np.array(temp_list)
+
+   temp_list_arr.reshape(1, -1)
+
+
+   temp_list_arr = preprocessing.normalize(temp_list_arr)
+
+   for id, key in enumerate(sorted(d.keys())):
+       d[key] = db_to_abs(temp_list_arr[id])
+
+   #factor = target/raw
+   return d
 
 def nli_correction_algorithm(osnr_dB, osnr_qot_dB, nli):
     osnr_lin = {k: db_to_abs(x) for k, x in osnr_dB.items()}
     osnr_qot_lin = {k: db_to_abs(x) for k, x in osnr_qot_dB.items()}
+    o_err_cub_lin_dict={}
     for k in nli.keys():
-        o_err_lin = osnr_lin[k] / osnr_qot_lin[k]
-        o_err_cub_lin = o_err_lin ** 3
-        nli[k] *= o_err_cub_lin
+        o_err_lin =  osnr_lin[k]/osnr_qot_lin[k]
+        o_err_cub_lin_dict[k]=o_err_lin**3
+
+    #o_err_cub_lin_dict=normalize(o_err_cub_lin_dict)
+    #print(osnr_dB)
+    #print(osnr_qot_dB)
+
+    for k in nli.keys():
+        #o_err_lin=o_err_lin_dict[k]
+
+        #o_err_cub_lin = o_err_lin ** 3
+        o_err_cub_lin = o_err_cub_lin_dict[k]
+
+        #print(str(k) + ": " + str((o_err_lin))+' cube error : '+str((o_err_cub_lin)))
+        if (osnr_lin[k]>osnr_qot_lin[k]):
+            nli[k] = nli[k]*o_err_cub_lin
+        if (osnr_lin[k]<osnr_qot_lin[k]):
+            nli[k] *= o_err_cub_lin
+
     return nli
 
 

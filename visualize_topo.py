@@ -73,18 +73,21 @@ def extract_power(component,mode='in'):
 
         return signal_index, power_list
 
-def visualize_topology(net):
+def visualize_topology(net,amplifiers=True, transceivers=False, display_mode="breadthfirst"):
 
     """
     :param net: Network Object
+    :param amplifiers: Bool to enable display of amplifiers
+    :param Transceivers: Bool to enable display of Transceivers
+    :param Display Mode: Selection of display mode i.e., cose, circle, breathfirst ( https://dash.plotly.com/cytoscape)
     :return: Calls the Network Visualization function in a separate thread
     """
 
-    t = threading.Thread(target=visualize, args=(net,))  # Calls the visualization function as a separate thread from the calling script
+    t = threading.Thread(target=visualize, args=(net,amplifiers, transceivers, display_mode))  # Calls the visualization function as a separate thread from the calling script
     t.setDaemon(True)
     t.start()  # Start the thread
 
-def visualize(net):
+def visualize(net,amplifiers=False, transceivers=False, display_mode="breadthfirst"):
 
     """
     :param net: Network Object
@@ -97,41 +100,50 @@ def visualize(net):
     # Add ROADMS and LineTerminal to the elements data
 
     for components in net.topology.keys():
-
-        if isinstance(components,node.LineTerminal): # Check for lineterminal instance and apply 'lt' class to it
+        if isinstance(components, node.LineTerminal):  # Check for lineterminal instance and apply 'lt' class to it
             elements.append(
                 {'data': {'id': str(components), 'label': str(components)},
                  'classes': "lt"})
-            for transceivers in components.name_to_transceivers.keys():
-                elements.append(
-                    {'data': {'id': str(transceivers), 'label': str(transceivers)},
-                     'classes': "transceiver"})
-                elements.append({'data': {'source': str(components), 'target': str(transceivers)}})
+            if transceivers==True:
+                for transceivers in components.name_to_transceivers.keys():
+                    elements.append(
+                        {'data': {'id': str(transceivers), 'label': str(transceivers)},
+                         'classes': "transceiver"})
+                    elements.append({'data': {'source': str(components), 'target': str(transceivers)}})
 
-        if isinstance(components,node.Roadm): # Check for lineterminal instance and apply 'lt' class to it
+
+        if isinstance(components, node.Roadm):  # Check for lineterminal instance and apply 'lt' class to it
             elements.append(
                 {'data': {'id': str(components), 'label': str(components)},
-                 'classes': "roadm"})
+                'classes': "roadm"})
+
+
 
     # Check for Amplifiers in each of the links
 
-    for link in net.links:
+    if amplifiers==True:
+        for link in net.links:
 
-        if len(link.spans) == 1:
-          elements.append({'data': {'source': str(link.node1), 'target': str(link.node2)}})
+            if len(link.spans) == 1:
+                elements.append({'data': {'source': str(link.node1), 'target': str(link.node2)}})
 
-        else:
-            start = link.node1
+            else:
+                start = link.node1
 
-            for span, amplifier in link.spans:
-                if amplifier != None:
+                for span, amplifier in link.spans:
+                    if amplifier != None:
+                        elements.append(
+                            {'data': {'id': str(amplifier.name), 'label': str(amplifier.name)}, 'classes': 'amp'})
+                        elements.append({'data': {'source': str(start), 'target': str(amplifier.name)}})
+                        start = amplifier.name
 
-                    elements.append(
-                        {'data': {'id': str(amplifier.name), 'label': str(amplifier.name)},'classes':'amp'})
-                    elements.append({'data': {'source': str(start), 'target': str(amplifier.name)}})
-                    start = amplifier.name
+                elements.append({'data': {'source': str(start), 'target': str(link.node2)}})
 
-            elements.append({'data': {'source': str(start), 'target': str(link.node2)}})
+    else:
+        for link in net.links:
+                elements.append({'data': {'source': str(link.node1), 'target': str(link.node2)}})
+
+
 
 
     app = dash.Dash() # Calling the Dash-App
@@ -179,7 +191,7 @@ def visualize(net):
     app.layout = html.Div([
         html.Div(cyto.Cytoscape(
             id='mininet-optical',
-            layout={'name': 'cose'},
+            layout={'name': display_mode},
             style={'width': '100%', 'height': '800px', "font-size": "1px", "content": "data(label)",
                    "text-valign": "center",
                    "text-halign": "center", 'radius': '10%'},

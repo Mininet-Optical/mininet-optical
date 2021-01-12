@@ -65,10 +65,10 @@ def nodes():
 def monitors():
     "Return list of monitors"
     monitors = { monitor.name:
-                 dict(link=(link.phyLink1.src_node.name,
-                            link.phyLink1.dst_node.name),
-                      amp=monitor.model.component.name,
-                      target_gain=monitor.model.component.target_gain)
+                 dict(link=(monitor.link.node1.name,
+                            monitor.link.node2.name),
+                      amp=monitor.amplifier.name,
+                      target_gain=monitor.amplifier.target_gain)
                  for link in opticalLinks()
                  for monitor in link.monitors }
     return dict( monitors=monitors )
@@ -78,7 +78,7 @@ def monitors():
 def monitor():
     "Return information for monitor"
     query = request.query
-    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
+    monitor = lookUpNode( query.monitor )
     if hasattr( monitor, 'restMonitor' ):
         result = monitor.restMonitor()
     else:
@@ -127,7 +127,7 @@ def terminalLinks():
 
 
 @get( '/links/routers' )
-def routerLinks():
+def terminalLinks():
     "Return links to/from packet switches/routers"
     links = [ linkspec( link ) for link in net().links
               if ((isinstance( link.intf1.node, Switch) and
@@ -148,7 +148,7 @@ def lookUpNode( node ):
 def nodeHandler( handlerName ):
     "Handle a node query"
     query = request.query
-    node = lookUpNode( query.node )  # pylint: disable=no-member
+    node = lookUpNode( query.node )
     if hasattr( node, handlerName ):
         result = getattr( node, handlerName )( query )
     else:
@@ -172,7 +172,7 @@ def connect():
 def ports():
     "Return a node's ports"
     query = request.query
-    node = lookUpNode( query.node )  # pylint: disable=no-member
+    node = lookUpNode( query.node )
     # Ugly, but functional on any node
     return SwitchBase.restPortsDict( node )
 
@@ -194,7 +194,7 @@ def config():
 def rules():
     "Return rules for node"
     query = request.query
-    node = lookUpNode( query.node )  # pylint: disable=no-member
+    node = lookUpNode( query.node )
     if hasattr( node, 'restRulesHandler' ):
         return node.restRulesHandler( query )
     else:
@@ -205,7 +205,7 @@ def rules():
 def cleanme():
     "Return cleanme for node"
     query = request.query
-    node = lookUpNode( query.node )  # pylint: disable=no-member
+    node = lookUpNode( query.node )
     if hasattr( node, 'restCleanmeHandler' ):
         return node.restCleanmeHandler( query )
     else:
@@ -215,9 +215,10 @@ def cleanme():
 @get( '/turn_on' )
 def turn_on():
     query = request.query
-    node = lookUpNode(query.node)  # pylint: disable=no-member
+    node = lookUpNode(query.node)
+    out_ports = request.GET.getlist('out_ports')
     if hasattr( node, 'restTurnonHandler' ):
-        return node.restTurnonHandler()
+        return node.restTurnonHandler( out_ports )
     else:
         abort( 404, "No turn_on handler for %s" % node )
 

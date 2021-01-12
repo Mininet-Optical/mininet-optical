@@ -32,9 +32,13 @@ import json
 
 # Functions for test install_traffic_and_launch
 # and reusable code - START
-def install_traffic_and_launch():
+def install_traffic_and_launch(channels_list = [range(1,16), range(16, 31), range(75, 91)]):
     # declare three groups of channels to be launched
-    channels_list = [range(1, 16), range(16, 31), range(75, 91)]
+    #channelsa_list = [
+      #  59, 25, 71, 79, 10, 34, 57, 15, 40, 23, 39, 66, 46, 17, 53, 67, 61, 55, 26, 76, 24, 11, 28, 60, 47, 62, 50, 86,
+       # 19, 6, 73, 69, 3, 89, 14, 27, 84, 35, 68, 16, 72, 80, 51, 7, 21, 85, 41, 45, 38, 5, 77, 8, 42, 81, 52, 64, 43,
+        #2, 87, 88, 65, 36, 30, 78, 70, 18, 37, 29, 63, 74, 56, 4, 20, 83, 1, 12, 9, 58, 44, 49, 54]
+    #channels_list = [channelsa_list[:15], range(16, 31), range(75, 91)]
     configure_terminals_1(channels_list)
     configure_roadms_1(channels_list)
     transmit_1()
@@ -310,10 +314,17 @@ def rerouting(channels):
 # Functions for test estimate_and_monitor
 # and reusable code - START
 def estimate_and_monitor():
-    channels_list = [range(1, 31), range(16, 31), range(75, 91)]
+    channelsa_list = [
+        59, 25, 71, 79, 10, 34, 57, 15, 40, 23, 39, 66, 46, 17, 53, 67, 61, 55, 26, 76, 24, 11, 28, 60, 47, 62, 50, 86,
+        19, 6, 73, 69, 3, 89, 14, 27, 84, 35, 68, 16, 72, 80, 51, 7, 21, 85, 41, 45, 38, 5, 77, 8, 42, 81, 52, 64, 43,
+        2, 87, 88, 65, 36, 30, 78, 70, 18, 37, 29, 63, 74, 56, 4, 20, 83, 1, 12, 9, 58, 44, 49, 54]
+
+    channels_list = [[1,2,3,4,5,6,7,8,73,74,75,85,86], channelsa_list[16:30], range(75, 91)] # should match with error_analysis script L270
+    #channels_list = [range(1, 16), range(16, 31), range(31, 46)]
+    #channels_list = [range(16,31), channelsa_list[16:30], range(75, 91)]
     estimation(channels_list)
-    install_traffic_and_launch()
-    monitor()
+    install_traffic_and_launch(channels_list=channels_list)
+    monitor(to_write_files=True)
 
 
 def estimation(channels_list):
@@ -446,7 +457,7 @@ if __name__ == '__main__':
         seeds2 = data.split(',')
         seeds2 = seeds2[:-1]
     # Create the Cost239 network object
-    net = Cost239Topology.build()
+    net = Cost239Topology.build(op=0)
     # this controls the assignation of ripple functions
     # to the EDFAs in the network
     for amp, ripple in zip(net.amplifiers, seeds2):
@@ -454,7 +465,7 @@ if __name__ == '__main__':
 
     # These lines may be uncommented ONE-AT-A-TIME
     # # Test 1
-    install_traffic_and_launch()
+    #install_traffic_and_launch()
     # # Test 2
     # remove_single_signal(1)
     # # Test 3
@@ -462,4 +473,4 @@ if __name__ == '__main__':
     # # Test 4
     # reroute()
     # # Test 5
-    # estimate_and_monitor()
+    estimate_and_monitor()

@@ -90,7 +90,7 @@ def estimation_module_approx(main_struct, m):
     return estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n
 
 
-def estimation_module_simpledemo(main_struct, spans, link_dir, last=True, to_write_files=False):
+def estimation_module_simpledemo(main_struct, spans, link_dir, last=True, to_write_files=True,monitor_dist_dict={}):
     keys, s_p, s_a, s_n = main_struct
     estimation_osnr_log = []
     estimation_gosnr_log = []
@@ -118,7 +118,7 @@ def estimation_module_simpledemo(main_struct, spans, link_dir, last=True, to_wri
         estimation_nli_log.append(s_n)
     if to_write_files:
         write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, estimation_power_log,
-                               estimation_ase_log, estimation_nli_log, link_dir)
+                               estimation_ase_log, estimation_nli_log, link_dir,monitor_dist_dict=monitor_dist_dict)
 
     if last:
         return estimation_osnr_log, estimation_gosnr_log
@@ -212,6 +212,7 @@ def process_amp(keys, s_p, s_a, s_n, boost=False):
 
 
 def process_span(keys, s_p, s_a, s_n):
+    # shouldn't this be 50 ?
     attenuation = db_to_abs(80 * 0.22)
 
     s_n = nonlinear_noise(s_n, s_p, keys)
@@ -231,7 +232,7 @@ def process_span_dyn(keys, s_p, s_a, s_n, _len):
 
     s_n = nonlinear_noise(s_n, s_p, keys)
 
-    # s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
+    s_p, s_a, s_n = zirngibl_srs(keys, s_p, s_a, s_n)
 
     for ch in keys:
         s_p[ch] /= attenuation
@@ -426,7 +427,7 @@ def write_files(estimation_osnr_log, estimation_gosnr_log, test_id, load_id):
         # process_file(json_file_name, monitor_key)
 
 
-def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n, link_dir):
+def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, s_n, link_dir,monitor_dist_dict={}):
     monitors = None
     if link_dir == 'r_london-r_copenhagen/':
         # build the monitors list
@@ -442,6 +443,16 @@ def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, 
     elif link_dir == 'r_prague-r_vienna/':
         monitors = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
         monitors.insert(0, 'r_prague-r_vienna-boost')
+    else:
+        step = 50
+        stripped_name = link_dir.strip('/')
+
+        node_list = stripped_name.split('-')
+        no_monitors = round(monitor_dist_dict[(node_list[0], node_list[1])] / step)
+        link_dir='r_'+node_list[0]+'-'+'r_'+node_list[1]+'/'
+        monitors = ['r_'+node_list[0]+'-'+'r_'+node_list[1] + '-amp' + str(i) for i in
+                    range(1, no_monitors + 1)]
+        monitors.insert(0, 'r_'+node_list[0]+'-'+'r_'+node_list[1] + '-boost')
 
     _osnr_id = 'osnr'
     _gosnr_id = 'gosnr'
@@ -458,6 +469,7 @@ def write_files_simpledemo(estimation_osnr_log, estimation_gosnr_log, s_p, s_a, 
         json_struct['tests'].append({_nli_id: s_n[index]})
 
         dir_ = 'cost239-monitor/estimation-module-new/' + link_dir + monitor_key
+
 
         if not os.path.exists(dir_):
             os.makedirs(dir_)

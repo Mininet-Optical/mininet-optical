@@ -34,124 +34,180 @@ def abs_to_db(absolute_value):
 # Define initial and end power levels for the transmission
 p_start = -4
 p_end = 2
-p_step = 2
-power_levels = list(np.arange(p_start, p_end, p_step))
-# Structures to monitor the OSNR, gOSNR and OSNR-ASE (analytical model)
+power_levels = list(np.arange(p_start, p_end, 2))
 plotting_osnr = []
 plotting_gosnr = []
-plotting_analytical = []
-# Define number of wavelengths to transmit
-num_wavelengths = 81
-wavelength_indexes = list(range(1, num_wavelengths + 1))
-# Define channel index to monitor (channel under test - cut)
-# cut = int(np.floor(len(wavelength_indexes) / 2))
+plotting_gosnr_qot = []
+plotting_osnr_nli = []
+plotting_theo = []
+rx_gosnr = []
+rx_gosnr_qot = []
+rx_osnr_nli = []
+rx_osnr = []
+num_channels = 81
+wavelength_indexes = list(range(1, num_channels + 1))
+index = int(np.floor(len(wavelength_indexes) / 2))
 cut = 39
 print("*** Monitoring channel with index: ", cut)
 
 for p in power_levels:
     print("*** Building Linear network topology for operational power: %s" % p)
-    net = LinearTopology.build(op=p, non=5)
+    net = LinearTopology.build(op=p, non=2)
 
     # Retrieve line terminals (transceivers) from network
     lt_1 = net.name_to_node['lt_1']
     lt_2 = net.name_to_node['lt_2']
-    lt_3 = net.name_to_node['lt_3']
+    #lt_3 = net.name_to_node['lt_3']
+    lt_list1=[lt_1,lt_2]
 
     # Retrieve ROADMs from network
-    roadm_1 = net.name_to_node['roadm_1']
-    roadm_2 = net.name_to_node['roadm_2']
-    roadm_3 = net.name_to_node['roadm_3']
-    roadm_4 = net.name_to_node['roadm_4']
-    roadm_5 = net.name_to_node['roadm_5']
+    roadm_1 = net.name_to_node['r1']
+    roadm_2 = net.name_to_node['r2']
+    #roadm_3 = net.name_to_node['r3']
+    #roadm_4 = net.name_to_node['r4']
+    #roadm_5 = net.name_to_node['r5']
 
     # Install switch rules into the ROADM nodes
-    roadm_1.install_switch_rule(1, 0, 101, wavelength_indexes)
-    roadm_2.install_switch_rule(1, 1, 102, wavelength_indexes)
-    roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
-    roadm_4.install_switch_rule(1, 1, 102, wavelength_indexes)
-    roadm_5.install_switch_rule(1, 1, 100, wavelength_indexes)
+    in_port_lt = wavelength_indexes[0] - 1
+    out_port = net.find_link_and_out_port_from_nodes(roadm_1, roadm_2)
+    for i, channel in enumerate(wavelength_indexes, start=1):
+        roadm_1.install_switch_rule(i, in_port_lt, out_port, [channel])
+        in_port_lt += 1
+
+    in_port = net.find_link_and_in_port_from_nodes(roadm_1, roadm_2)
+    out_port = net.find_link_and_out_port_from_nodes(roadm_2, lt_2)
+    roadm_2.install_switch_rule(1, in_port, out_port, wavelength_indexes)
+    #roadm_3.install_switch_rule(1, 1, 102, wavelength_indexes)
+    #roadm_4.install_switch_rule(1, 1, 102, wavelength_indexes)
+    #roadm_5.install_switch_rule(1, 1, 100, wavelength_indexes)
 
     # Set resources to use and initiate transmission
-    tr_labels = ['t%s' % str(x) for x in wavelength_indexes]
-    for tr, wavelength in zip(tr_labels, wavelength_indexes):
-        resources = {'transceiver': lt_1.name_to_transceivers[tr],
-                     'required_wavelengths': [wavelength]}
-        outport = 100
-        lt_1.transmit(lt_1.name_to_transceivers[tr], outport, [wavelength])
+    print(wavelength_indexes)
+    for lt in lt_list1:
+        transceivers = lt.transceivers
+        print(transceivers)
+        for i, channel in enumerate(wavelength_indexes, start=wavelength_indexes[0]):
+            # channels are enumerated starting from 1
+            # transceivers and their ports are enumerated starting from 0
+            t = transceivers[i - 1]
 
-    print("*** Monitoring interfaces")
-    # Retrieve number of amplifiers (or monitoring nodes)
-    num_amplifiers = int((len(net.amplifiers) / 2) + 1)
-    osnrs = {i: [] for i in range(1, num_amplifiers)}
-    gosnrs = {i: [] for i in range(1, num_amplifiers)}
+            print(channel)
+            # associate transceiver to channel in LineTerminal
+            lt.configure_terminal(t, [channel])
+    #tr_labels = ['t%s' % str(x) for x in wavelength_indexes]
+    #for tr, wavelength in zip(tr_labels, wavelength_indexes):
+     #   resources = {'transceiver': lt_1.name_to_transceivers[tr],
+      #               'required_wavelengths': [wavelength]}
+       # outport = 100
+        #lt_1.configure_terminal(lt_1.transceivers[tr], [wavelength])
+        #lt_1.transmit(lt_1.name_to_transceivers[tr], outport, [wavelength])
+
+    lt_1.turn_on()
+
+    print("*** Monitoring interfaces...")
+    osnrs = {i: [] for i in range(1, 17)}
+    gosnrs = {i: [] for i in range(1, 17)}
+    gosnrs_qot = {i: [] for i in range(1, 17)}
+    osnrs_nli = {i: [] for i in range(1, 17)}
 
     # Retrieve from each monitoring points the
     # OSNR and gOSNR of all the channels
     opm_name_base = 'opm_'
     for key, _ in osnrs.items():
         opm_name = opm_name_base + str(key)
-        opm = net.name_to_node[opm_name]
+        opm = net.amplifiers[key-1].monitor
         osnrs[key] = opm.get_list_osnr()
         gosnrs[key] = opm.get_list_gosnr()
+        gosnrs_qot[key] = opm.get_list_gosnr_qot()
+        osnrs_nli[key] = opm.get_list_osnr_nli()
 
     # Retrieve only the channels of interest
     osnr_cut = []
     for span, _list in osnrs.items():
-        osnr_cut.append(_list[cut])
+        osnr_cut.append(_list[index])
+        # osnr_cut.append(np.mean(_list))
     plotting_osnr.append(osnr_cut)
+    rx_osnr.append(osnr_cut[-1])
 
     gosnr_cut = []
     for span, _list in gosnrs.items():
-        gosnr_cut.append(_list[cut])
+        # gosnr_cut.append(np.mean(_list))
+        gosnr_cut.append(_list[index])
     plotting_gosnr.append(gosnr_cut)
+    rx_gosnr.append(gosnr_cut[-1])
 
-    an_osnr = []
+    gosnr_cut_qot = []
+    for span, _list in gosnrs_qot.items():
+        # gosnr_cut.append(np.mean(_list))
+        gosnr_cut_qot.append(_list[index])
+        # print(_list[index])
+    plotting_gosnr_qot.append(gosnr_cut_qot)
+    rx_gosnr_qot.append(gosnr_cut_qot[-1])
+
+    osnr_nli_cut = []
+    for span, _list in osnrs_nli.items():
+        # osnr_nli_cut.append(np.mean(_list))
+        osnr_nli_cut.append(_list[index])
+    plotting_osnr_nli.append(osnr_nli_cut)
+    rx_osnr_nli.append(osnr_nli_cut[-1])
+
+    an_osnr = []  # [osnr_c46[0]]
+    c = 0
+    i = 0
     for s in range(16):
+        # if i is 3 or i is 7 or i is 11:
+        #     t_osnr = c
+        # else:
         t_osnr = p + 58 - 0.22 * 80 - 5.5 - 10 * np.log10(s + 1)
+        c = t_osnr
+        i += 1
         an_osnr.append(t_osnr)
-    plotting_analytical.append(an_osnr)
+    plotting_theo.append(an_osnr)
+
+    mae = mean_absolute_error(plotting_theo, plotting_osnr)
+    print(mae)
 
     print("*** Destroying objects")
     del net
     del osnrs
     del gosnrs
 
-colors = ['r', 'g', 'b', 'y', 'k']
+colors = ['r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver', 'r', 'g', 'k', 'grey', 'silver']
+markers = ['o', 's', 'D']
 op = list(np.arange(p_start, p_end, 2)[::-1])
 label_flag = True
-for a in plotting_analytical:
-    if label_flag:
-        plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
-        label_flag = False
-    else:
-        plt.plot(a, color='r', markerfacecolor='None')
-for o, g, a in zip(plotting_osnr, plotting_gosnr, plotting_analytical):
+# for a in plotting_theo:
+#     if label_flag:
+#         plt.plot(a, color='r', markerfacecolor='None', label='Analytical model')
+#         label_flag = False
+#     else:
+#         plt.plot(a, color='r', markerfacecolor='None')
+for o, g, a in zip(plotting_gosnr_qot, plotting_gosnr, plotting_theo):
     pp = op.pop()
-    label = 'Tx launch power: ' + str(pp) + 'dBm'
+    l = 'Tx launch power: ' + str(pp) + 'dBm'
     c = colors.pop()
-    plt.plot(o, markeredgewidth=3, markersize=9, color=c, label=label)
+    # m = markers.pop()
+    # plt.plot(o, markeredgewidth=2, marker=m, markersize=9, color=c, label=l)
+    plt.plot(o, markeredgewidth=3, markersize=9, color='b', label=l)
+    # plt.plot(g, '--', markeredgewidth=2, marker=m, markersize=9, markerfacecolor='None', color=c)
     plt.plot(g, '--', markeredgewidth=3, markersize=9, markerfacecolor='None', color=c)
+    print("=%=%=%=%=%=%=%=%=%")
+    print(l)
+    print(o)
     print(g)
-# Retrieved data from emulator
-gosnr_0 = [35.33233577118823, 31.37664820503778, 29.337195864255065, 27.95468662911725,
-       27.260088963719397, 26.35274045416481, 25.60277551116353, 24.9633017937713,
-       24.602184439802617, 24.085431568092144, 23.62504242642067, 23.20871259522844,
-       22.9653910885472, 22.603394605978284, 22.27117344994892, 21.962490381114318]
-gosnr_m2 = [33.409092181516876, 29.952722654611506, 28.049563136381686, 26.728610845562347,
-            25.907648074249426, 25.057124363613173, 24.345159828032177, 23.732559106857867,
-            23.301613338567453, 22.814181577214228, 22.375518798652575, 21.976406329063703,
-            21.68427417512917, 21.342462391048294, 21.025412451391507, 20.729400827053006]
-gosnr_m4 = [31.458229639468573, 28.122927062557398, 26.25730945682382, 24.955259283403542,
-            24.093989132517393, 23.258946820864956, 22.558244501581825, 21.954423438959946,
-            21.50157438359468, 21.022141225609445, 20.590050051132263, 20.19667014116184,
-            19.889396750962813, 19.55303384554338, 19.240617414522458, 18.948863283716474]
-plt.plot(gosnr_0, 'g')
-plt.plot(gosnr_m2, 'g')
-plt.plot(gosnr_m4, 'g')
+    # print(a)
+    # print(gosnr_c46_dict[pp])
+    print("=%=%=%=%=%=%=%=%=%")
 
+tmp = [35.331265860541656, 31.36109840285944, 29.317580388810853, 27.928967051375928, 27.236375388120866,
+       26.336606255050977, 25.591590342253767, 24.954696118627858, 24.592251721543693, 24.079322282087897,
+       23.621068331631434, 23.20580546934686, 22.96059587844652, 22.601520375511264, 22.270551848863903,
+       21.962441576446313]
+plt.plot(tmp, 'y')
 
 plt.ylabel("OSNR, gOSNR(dashed) (dB)")
 plt.xlabel("Amplifiers")
+# plt.yticks(np.arange(18, 40, 2))
 ticks = []
 s = 0
 for i in range(17):
@@ -163,5 +219,30 @@ for i in range(17):
 plt.xticks(np.arange(16))
 plt.legend(loc=1)
 plt.grid(True)
+# for i in range(2):
+#     if i is 0:
+#         axs[i].set_ylabel("OSNR(dB)")
+#         plt.setp(axs[i].get_xticklabels(), visible=False)
+#         axs[i].tick_params(axis='x', which='both', length=0)
+#     else:
+#         axs[i].set_ylabel("gOSNR (dB)")
+#         axs[i].set_xlabel("Spans and hops")
+#     ticks = []
+#     s = 0
+#     for j in range(17):
+#         ticks.append(s)
+#         if j == 5 or j == 11:
+#             continue
+#         else:
+#             s += 8
+#     axs[i].set_xticks(np.arange(16))
+#     axs[i].set_yticks(np.arange(12, 50, 6))
+#     axs[i].legend(loc=1, prop={'size': 14})
+#     axs[i].grid(True)
 # plt.savefig('../../gosnr_vs_power.eps', format='eps')
+# print("=%=%=%=%=%=%=%")
+# print(rx_osnr)
+# print(rx_gosnr)
+# print(rx_gosnr_qot)
+# print(rx_osnr_nli)
 plt.show()
