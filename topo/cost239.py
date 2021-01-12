@@ -1,9 +1,22 @@
 import network
-from link import Span
+from link import Span as Fiber, SpanTuple as Segment
 import numpy as np
 
 
-def build_spans(total_len):
+# Units
+
+km = dB = dBm = 1.0
+m = .001
+
+
+# Physical model API helpers
+
+def Span(km, amp=None):
+    """Return a fiber segment of length km with a compensating amp"""
+    return Segment(span=Fiber(length=km), amplifier=amp)
+
+
+def build_spans(net, r1, r2, total_len):
     """
     Helper function for building spans of
     fixed length of 50km and handling those
@@ -27,17 +40,29 @@ def build_spans(total_len):
         # otherwise, add to the last span
         last_span += res_len
 
+    c = 0
     for i in range(span_no - 1):
         # append all spans except last one
-        spans.append(Span('SMF', 50.0))
+        amp = net.add_amplifier(
+            '%s-%s-amp%d' % (r1, r2, i), target_gain=50.0 * 0.22 * dB, monitor_mode='out')
+        span = Span(50.0, amp=amp)
+        spans.append(span)
+        c = i + 1
     # append last span (length might have changed)
-    spans.append(Span('SMF', last_span))
+    amp = net.add_amplifier(
+        '%s-%s-amp%d' % (r1, r2, c), target_gain=last_span * 0.22 * dB, monitor_mode='out')
+    span = Span(last_span, amp=amp)
+    spans.append(span)
+    c += 1
 
     if extra_span:
         # add an extra span (if needed)
-        spans.append(Span('SMF', extra_span))
+        amp = net.add_amplifier(
+            '%s-%s-amp%d' % (r1, r2, c), target_gain=extra_span * 0.22 * dB, monitor_mode='out')
+        span = Span(extra_span, amp=amp)
+        spans.append(span)
 
-    return spans
+    return net, spans
 
 
 def build_link(net, r1, r2, total_len):
@@ -45,16 +70,12 @@ def build_link(net, r1, r2, total_len):
     boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
     boost_amp = net.add_amplifier(boost_l, 'EDFA', target_gain=17.0, boost=True, monitor_mode='out')
 
-    # link object
-    link_r1_r2 = net.add_link(r1, r2, boost_amp=boost_amp)
-    spans = build_spans(total_len)
-
+    net, spans = build_spans(net, r1, r2, total_len)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
-        in_l = '%s-%s-amp%d' % (r1, r2, step)  # label inline amp
-        in_line_amp = net.add_amplifier(in_l, 'EDFA', target_gain=span.length / 1e3 * 0.22, monitor_mode='out')
-        # adding span and in-line amplifier to link
-        link_r1_r2.add_span(span, in_line_amp)
+
+    # link object
+    net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
 
 
 def build_links(net, r1, r2, total_len):
@@ -91,11 +112,10 @@ class Cost239Topology:
 
         # Create bi-directional links between LTs and ROADMs
         for lt, roadm in zip(line_terminals, roadms):
-            for _ in lt.transceivers:
-                link = net.add_link(lt, roadm)
-                link.add_span(Span('SMF', 0.001), amplifier=None)
-                bi_link = net.add_link(roadm, lt)
-                bi_link.add_span(Span('SMF', 0.001), amplifier=None)
+            for transceiver in lt.transceivers:
+                tx_port = transceiver.id
+                net.add_link(lt, roadm, src_out_port=tx_port, dst_in_port=tx_port, spans=[Span(1*m)])
+                net.add_link(roadm, lt, src_out_port=tx_port, dst_in_port=tx_port, spans=[Span(1*m)])
 
         # build links per roadm
         ams = name_to_roadm['r_amsterdam']

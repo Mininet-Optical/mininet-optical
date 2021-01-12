@@ -54,7 +54,7 @@ def configure_terminals_1(channels_list):
             # transceivers and their ports are enumerated starting from 0
             t = transceivers[i - 1]
             # associate transceiver to channel in LineTerminal
-            lt.configure_terminal(t, [channel])
+            lt.configure_terminal(t, channel)
 
 
 def configure_roadms_1(channels_list):
@@ -80,16 +80,21 @@ def configure_roadms_1(channels_list):
     out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
     for i, channel in enumerate(channels1, start=1):
         ldn.install_switch_rule(i, in_port_lt, out_port, [channel])
+        ldn.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # cph -> ber
     # this input port is the one of cph when coming from ldn
     in_port = net.find_link_and_in_port_from_nodes(ldn, cph)
     out_port = net.find_link_and_out_port_from_nodes(cph, ber)
     cph.install_switch_rule(1, in_port, out_port, channels1)
+    for chx in channels1:
+        cph.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
     # cph -> ber and ber -> ber_lt
     in_port = net.find_link_and_in_port_from_nodes(cph, ber)
     out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
     ber.install_switch_rule(1, in_port, out_port, channels1)
+    for chx in channels1:
+        ber.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
     # second setup: configure channel 16-30 from
     # paris to berlin following:
@@ -100,11 +105,14 @@ def configure_roadms_1(channels_list):
     out_port = net.find_link_and_out_port_from_nodes(par, ber)
     for i, channel in enumerate(channels2, start=1):
         par.install_switch_rule(i, in_port_lt, out_port, [channel])
+        par.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # par -> ber and ber -> bet_lt
     in_port = net.find_link_and_in_port_from_nodes(par, ber)
     out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
     ber.install_switch_rule(2, in_port, out_port, channels2)
+    for chx in channels2:
+        ber.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
     # third setup: configure channels 31-45 from
     # prague to vienna following:
@@ -115,11 +123,14 @@ def configure_roadms_1(channels_list):
     out_port = net.find_link_and_out_port_from_nodes(pra, vie)
     for i, channel in enumerate(channels3, start=1):
         pra.install_switch_rule(i, in_port_lt, out_port, [channel])
+        pra.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # pra -> vie and vie -> vie_lt
     in_port = net.find_link_and_in_port_from_nodes(pra, vie)
     out_port = net.find_link_and_out_port_from_nodes(vie, vie_lt)
     vie.install_switch_rule(1, in_port, out_port, channels3)
+    for chx in channels3:
+        vie.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
 
 def transmit_1():
@@ -159,7 +170,7 @@ def configure_terminals_2(channels):
         # transceivers and their ports are enumerated starting from 0
         t = transceivers[i - 1]
         # associate transceiver to channel in LineTerminal
-        lt_ldn.configure_terminal(t, [channel])
+        lt_ldn.configure_terminal(t, channel)
 
 
 def configure_roadms_2(channels):
@@ -178,16 +189,21 @@ def configure_roadms_2(channels):
     out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
     for i, channel in enumerate(channels, start=1):
         ldn.install_switch_rule(i, in_port_lt, out_port, [channel])
+        ldn.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # cph -> ber
     # this input port is the one of cph when coming from ldn
     in_port = net.find_link_and_in_port_from_nodes(ldn, cph)
     out_port = net.find_link_and_out_port_from_nodes(cph, ber)
     cph.install_switch_rule(1, in_port, out_port, channels)
+    for chx in channels:
+        cph.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
     # cph -> ber and ber -> ber_lt
     in_port = net.find_link_and_in_port_from_nodes(cph, ber)
     out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
     ber.install_switch_rule(1, in_port, out_port, channels)
+    for chx in channels:
+        ber.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
 
 def transmit_2():
@@ -220,7 +236,7 @@ def configure_terminals_3(channels_list):
         for i, ch in enumerate(channels, start=channels[0]):
             t = transceivers[i - 1]
             # transceiver and channels
-            lt.configure_terminal(t, [ch])
+            lt.configure_terminal(t, ch)
 
 
 def configure_roadms_3(channels_list):
@@ -240,16 +256,21 @@ def configure_roadms_3(channels_list):
     out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
     for i, channel in enumerate(channels1, start=1):
         ldn.install_switch_rule(i, in_port_lt, out_port, [channel])
+        ldn.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # cph -> ber
     # this input port is the one of cph when coming from ldn
     in_port = net.find_link_and_in_port_from_nodes(ldn, cph)
     out_port = net.find_link_and_out_port_from_nodes(cph, ber)
     cph.install_switch_rule(1, in_port, out_port, channels1)
+    for chx in channels1:
+        cph.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
     # cph -> ber and ber -> ber_lt
     in_port = net.find_link_and_in_port_from_nodes(cph, ber)
     out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
     ber.install_switch_rule(1, in_port, out_port, channels1)
+    for chx in channels1:
+        ber.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
     channels2 = channels_list[1]
     in_port_lt = channels2[0] - 1
@@ -257,15 +278,20 @@ def configure_roadms_3(channels_list):
     out_port = net.find_link_and_out_port_from_nodes(ldn, cph)
     for i, channel in enumerate(channels2, start=16):
         ldn.install_switch_rule(i, in_port_lt, out_port, [channel])
+        ldn.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=0)
         in_port_lt += 1
     # par -> ber and ber -> bet_lt
     in_port = net.find_link_and_in_port_from_nodes(ldn, cph)
     out_port = net.find_link_and_out_port_from_nodes(cph, ber)
     cph.install_switch_rule(2, in_port, out_port, channels2)
+    for chx in channels2:
+        cph.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
     # cph -> ber and ber -> ber_lt
     in_port = net.find_link_and_in_port_from_nodes(cph, ber)
     out_port = net.find_link_and_out_port_from_nodes(ber, ber_lt)
     ber.install_switch_rule(2, in_port, out_port, channels2)
+    for chx in channels2:
+        ber.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
 
 def remove(channels):
@@ -289,6 +315,7 @@ def reroute():
 
 
 def rerouting(channels):
+    # This is currently not working
     cph = net.name_to_node['r_copenhagen']
     ams = net.name_to_node['r_amsterdam']
 
@@ -300,6 +327,8 @@ def rerouting(channels):
     in_port = net.find_link_and_in_port_from_nodes(cph, ams)
     out_port = net.find_link_and_out_port_from_nodes(ams, ams_lt)
     ams.install_switch_rule(1, in_port, out_port, channels)
+    for chx in channels:
+        ams.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=0)
 
     out_port = net.find_link_and_out_port_from_nodes(cph, ams)
     cph.update_switch_rule(2, out_port)
@@ -310,6 +339,7 @@ def rerouting(channels):
 # Functions for test estimate_and_monitor
 # and reusable code - START
 def estimate_and_monitor():
+    # This needs to update the monitoring
     channels_list = [range(1, 31), range(16, 31), range(75, 91)]
     estimation(channels_list)
     install_traffic_and_launch()
@@ -462,4 +492,4 @@ if __name__ == '__main__':
     # # Test 4
     # reroute()
     # # Test 5
-    # estimate_and_monitor()
+    estimate_and_monitor()
