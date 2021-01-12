@@ -155,19 +155,18 @@ def twoRoadmPhyTest():
     path = route[0]
     rule_id_dict = {'r1':1, 'r2':1}
 
-    for i in range(1, len(path) - 1 ):
-        node1, roadm, node2 = path[i-1], path[i], path[i+1]
-        if i == 1:
-            for ch in chs:
+    for ch in chs:
+        for i in range(1, len(path) - 1 ):
+            node1, roadm, node2 = path[i-1], path[i], path[i+1]
+            if i == 1:
                 nodes[roadm].install_switch_rule(rule_id = rule_id_dict[roadm], in_port=ch-1, out_port=LINE_PORT, signal_indices=[ch] )
                 rule_id_dict[roadm] += 1
-        elif i == len(path) - 2:
-            for ch in chs:
+            elif i == len(path) - 2:
                 nodes[roadm].install_switch_rule(rule_id = rule_id_dict[roadm], in_port=LINE_PORT, out_port=ch-1, signal_indices=[ch] )
                 rule_id_dict[roadm] += 1
-        else:
-            nodes[roadm].install_switch_rule(rule_id = rule_id_dict[roadm], in_port=LINE_PORT, out_port=LINE_PORT2, signal_indices=[ch] )
-            rule_id_dict[roadm] += 1
+            else:
+                nodes[roadm].install_switch_rule(rule_id = rule_id_dict[roadm], in_port=LINE_PORT, out_port=LINE_PORT2, signal_indices=[ch] )
+                rule_id_dict[roadm] += 1
 
     """r1.install_switch_rule(
         rule_id = 1, in_port=ch1-1, out_port=LINE_PORT, signal_indices=[ch1] )
