@@ -112,15 +112,15 @@ class Network(object):
         out_port = None
         for link in self.links:
             if link.src_node == src_node and link.dst_node == dst_node:
-                out_port = link.output_port_src_node
+                out_port = src_node.node_to_port_out[dst_node][0]
         return out_port
 
     def find_link_and_in_port_from_nodes(self, src_node, dst_node):
-        out_port = None
+        in_port = None
         for link in self.links:
             if link.src_node == src_node and link.dst_node == dst_node:
-                out_port = link.input_port_dst_node
-        return out_port
+                in_port = dst_node.node_to_port_in[src_node][0]
+        return in_port
 
     def find_link_from_nodes(self, src_node, dst_node):
         for link in self.links:
