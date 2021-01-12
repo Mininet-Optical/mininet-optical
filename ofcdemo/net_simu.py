@@ -154,6 +154,15 @@ def twoRoadmPhyNetwork( lengths=[50*km] ):
 # Physical model test
 
 def twoRoadmPhyTest():
+    # ROADM port numbers (input and output)
+    LINE_PORT = 2
+
+    ADD_DROP_0 = 0
+    ADD_DROP_1 = 1
+
+    # Line terminal port numbers (input and output)
+    TX_0 = 0
+    TX_1 = 1
     "Create a single link and monitor its OSNR and gOSNR"
     net = twoRoadmPhyNetwork( lengths=[50*km, 50*km, 50*km] )
     nodes = net.name_to_node
@@ -168,6 +177,10 @@ def twoRoadmPhyTest():
     t12.operation_power = db_to_abs(2)
     t21.operation_power = db_to_abs(2)
     t22.operation_power = db_to_abs(2)
+    r1.configure_voa(channel_id = 1, output_port = LINE_PORT,operational_power_dB = 2)
+    r1.configure_voa(channel_id =2, output_port = LINE_PORT, operational_power_dB = 2)
+    r2.configure_voa(channel_id =1, output_port = TX_0, operational_power_dB = 2)
+    r2.configure_voa(channel_id =2, output_port = TX_1, operational_power_dB = 2)
     print( '*** Starting test transmission...' )
     tx1.configure_terminal(tx1.transceivers[0], 1)
     tx1.configure_terminal(tx1.transceivers[1], 2)
@@ -189,6 +202,10 @@ def twoRoadmPhyTest():
     t12.operation_power = db_to_abs(-5)
     t21.operation_power = db_to_abs(-5)
     t22.operation_power = db_to_abs(-5)
+    r1.configure_voa(channel_id = 1, output_port = LINE_PORT,operational_power_dB = -5)
+    r1.configure_voa(channel_id =2, output_port = LINE_PORT, operational_power_dB = -5)
+    r2.configure_voa(channel_id =1, output_port = TX_0, operational_power_dB = -5)
+    r2.configure_voa(channel_id =2, output_port = TX_1, operational_power_dB = -5)
     print( '*** Starting test transmission...' )
     tx1.configure_terminal(tx1.transceivers[0], 1)
     tx1.configure_terminal(tx1.transceivers[1], 2)
