@@ -185,7 +185,7 @@ class Node(object):
 
 class LineTerminal(Node):
 
-    def __init__(self, name, transceivers=None, receiver_threshold=20, monitor_mode=None):
+    def __init__(self, name, transceivers=None, receiver_threshold=20, monitor_mode='out'):
         Node.__init__(self, name)
         # list of transceivers in LineTerminal
         self.transceivers = []
@@ -200,6 +200,12 @@ class LineTerminal(Node):
             self.add_transceivers(transceivers)
 
         self.rx_threshold_dB = receiver_threshold
+
+    def monitor_query(self):
+        if self.monitor:
+            # start monitor
+            self.monitor.start()
+            return self.monitor
 
     def reset(self):
         # clean output ports
@@ -576,6 +582,12 @@ class Roadm(Node):
 
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+
+    def monitor_query(self):
+        if self.monitor:
+            # start monitor
+            self.monitor.start()
+            return self.monitor
 
     def configure_voa(self, channel_id, output_port, operational_power_dB):
         self.equalization_target_out_power[(channel_id, output_port)] = db_to_abs(operational_power_dB)
@@ -1020,6 +1032,12 @@ class Amplifier(Node):
 
         self.boost = boost
 
+    def monitor_query(self):
+        if self.monitor:
+            # start monitor
+            self.monitor.start()
+            return self.monitor
+
     def equalization_safety_check(self, equalization_function, equalization_target_out_power):
         """
         Safety check for the declaration of equalization reconfiguration parameters
@@ -1223,9 +1241,13 @@ class Monitor(Node):
         self.node_id = id(self)
         self.component = component
         self.mode = mode
+        self.optical_signals = None
 
     def modify_mode(self, mode='out'):
         self.mode = mode
+
+    def start(self):
+        self.optical_signals = self.extract_optical_signal()
 
     def extract_optical_signal(self):
         """
@@ -1235,13 +1257,15 @@ class Monitor(Node):
             in_signals = []
             for _list in list(self.component.port_to_optical_signal_in.values()):
                 if len(_list) > 0:
-                    in_signals.append(_list[0])
+                    for optical_signal in _list:
+                        in_signals.append(optical_signal)
             return in_signals
         else:
             out_signals = []
             for _list in list(self.component.port_to_optical_signal_out.values()):
                 if len(_list) > 0:
-                    out_signals.append(_list[0])
+                    for optical_signal in _list:
+                        out_signals.append(optical_signal)
             return out_signals
 
     def get_list_osnr(self):
