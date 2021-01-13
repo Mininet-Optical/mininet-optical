@@ -391,6 +391,8 @@ class LineTerminal(Node):
                       (optical_signal, optical_signal.uid, self.__class__.__name__, self.name, gosnr))
 
                 signalInfoDict[optical_signal]['success'] = True
+                print("receiver: updating signal_info_dict_transceiver in port: %s: %s" %
+                      (in_port, signalInfoDict))
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
 
@@ -1232,9 +1234,17 @@ class Monitor(Node):
         :return power: Returns Optical signals for the required objects
         """
         if self.mode == 'in':
-            return list(self.component.port_to_optical_signal_in.values())[0]
+            in_signals = []
+            for _list in list(self.component.port_to_optical_signal_in.values()):
+                if len(_list) > 0:
+                    in_signals.append(_list[0])
+            return in_signals
         else:
-            return list(self.component.port_to_optical_signal_out.values())[0]
+            out_signals = []
+            for _list in list(self.component.port_to_optical_signal_out.values()):
+                if len(_list) > 0:
+                    out_signals.append(_list[0])
+            return out_signals
 
     def get_list_osnr(self):
         """
@@ -1245,7 +1255,7 @@ class Monitor(Node):
         signals_list = []
         ordered_signals = self.order_signals(optical_signals)
         for optical_signal in ordered_signals:
-            signals_list.append(self.get_osnr(optical_signal))
+            signals_list.append((optical_signal[0], self.get_osnr(optical_signal)))
         return signals_list
 
     def get_dict_osnr(self):
