@@ -978,7 +978,7 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = '../description-files/'
+description_files_dir = 'description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'linear.txt',
