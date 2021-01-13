@@ -385,24 +385,24 @@ def monitor(to_write_files=False):
     the first one (boost-monitor) or last one (pre-amp-monitor) in the link
     """
     # build the monitors list
-    mon_ldn_cph = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 21)]
+    mon_ldn_cph = ['r_london-r_copenhagen-amp%s' % str(i) for i in range(1, 20)]
     # insert booster monitor at the beginning
     mon_ldn_cph.insert(0, 'r_london-r_copenhagen-boost')
     # query the OPMs and write log files
     for monitor_name in mon_ldn_cph:
         monitor_query(monitor_name, to_write_files=to_write_files)
 
-    mon_cph_ber = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 9)]
+    mon_cph_ber = ['r_copenhagen-r_berlin-amp%s' % str(i) for i in range(1, 8)]
     mon_cph_ber.insert(0, 'r_copenhagen-r_berlin-boost')
     for monitor_name in mon_cph_ber:
         monitor_query(monitor_name, to_write_files=to_write_files)
 
-    mon_par_ber = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 19)]
+    mon_par_ber = ['r_paris-r_berlin-amp%s' % str(i) for i in range(1, 18)]
     mon_par_ber.insert(0, 'r_paris-r_berlin-boost')
     for monitor_name in mon_par_ber:
         monitor_query(monitor_name, to_write_files=to_write_files)
 
-    mon_pra_vie = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 8)]
+    mon_pra_vie = ['r_prague-r_vienna-amp%s' % str(i) for i in range(1, 7)]
     mon_pra_vie.insert(0, 'r_prague-r_vienna-boost')
     for monitor_name in mon_pra_vie:
         monitor_query(monitor_name, to_write_files=to_write_files)
@@ -411,15 +411,17 @@ def monitor(to_write_files=False):
 def monitor_query(component_name, to_write_files=False):
     x = component_name.split('-', 2)
     link_label = x[0] + '-' + x[1]
-    monitor = net.name_to_node[component_name].monitor
+    component = net.name_to_node[component_name]
+    monitor = net.name_to_node[component_name].monitor_query()
 
-    osnrdata = {int(signal.index):
-                    dict(freq=signal.frequency, osnr=monitor.get_osnr(signal),
+    # need to get signals from component to be able to iterate through them
+    osnrdata = {int(signal[0].index):
+                    dict(freq=signal[0].frequency, osnr=monitor.get_osnr(signal),
                          gosnr=monitor.get_gosnr(signal),
                          power=monitor.get_power(signal),
                          ase=monitor.get_ase_noise(signal),
                          nli=monitor.get_nli_noise(signal))
-                for signal in net.name_to_node[component_name].optical_signals}
+                for signal in monitor.optical_signals}
 
     osnrs, gosnrs = {}, {}
     powers, ases, nlis = {}, {}, {}
@@ -446,6 +448,7 @@ def write_files(osnr, gosnr, powers, ases, nlis,
     """
     Write a file with osnr and gosnr information from a given OPM node
     """
+    return
     _osnr_id = 'osnr'
     _gosnr_id = 'gosnr'
     _power_id = 'power'
