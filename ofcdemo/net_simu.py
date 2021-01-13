@@ -203,15 +203,15 @@ def twoRoadmPhyTest():
     tx1.configure_terminal(tx1.transceivers[1], 2)
     tx1.turn_on()
 
-    # print( '*** Initial OSNR and gOSNR:' )
-    # monitors = [ node.monitor for node in [tx2] ]
-    # for mon in monitors:
-    #     print( 'monitor:', mon )
-    #     optical_signals = mon.extract_optical_signal()
-    #     for sig in optical_signals:
-    #         power = mon.get_power(sig)
-    #         print( 'sig_power', sig[0], power )
-    #     print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+    print( '*** Initial OSNR and gOSNR:' )
+    monitors = [ node.monitor for node in [tx2] ]
+    for mon in monitors:
+        print( 'monitor:', mon )
+        optical_signals = mon.extract_optical_signal()
+        for sig in optical_signals:
+            power = mon.get_power(sig)
+            print( 'sig_power', sig[0], power )
+        print( 'OSNR', mon.get_dict_osnr(), 'gOSNR', mon.get_dict_gosnr() )
 
     tx1.turn_off([0, 1])
     # launch power -10dbm
@@ -235,9 +235,10 @@ def twoRoadmPhyTest():
         print( 'monitor:', mon )
         optical_signals = mon.extract_optical_signal()
         for sig in optical_signals:
-            power = mon.get_power(sig)
-            print( 'sig_power', sig[0], power )
-        print( 'OSNR', mon.get_list_osnr(), 'gOSNR', mon.get_list_gosnr() )
+            if len(sig) >0:
+                power = mon.get_power(sig)
+                print( 'sig_power', sig, power )
+        print( 'OSNR', mon.get_dict_osnr(), 'gOSNR', mon.get_dict_gosnr() )
     #'''
 
 if __name__ == '__main__':
