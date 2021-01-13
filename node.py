@@ -1282,7 +1282,7 @@ class Monitor(Node):
         signals_list = []
         ordered_signals = self.order_signals(optical_signals)
         for optical_signal in ordered_signals:
-            signals_list.append(self.get_gosnr(optical_signal))
+            signals_list.append((optical_signal[0], self.get_gosnr(optical_signal)))
         return signals_list
 
     def get_dict_gosnr(self):
