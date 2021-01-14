@@ -1337,7 +1337,7 @@ class Monitor(Node):
         """
         return { sigtuple[0]: self.get_gosnr(sigtuple)
                  for sigtuple in self.extract_optical_signal() }
-
+    
     def get_power(self, optical_signal_tuple):
         optical_signal = optical_signal_tuple[0]
         if self.mode == 'out':
@@ -1345,6 +1345,14 @@ class Monitor(Node):
         else:
             power = optical_signal.loc_in_to_state[self.component]['power']
         return power
+        
+    def get_dict_power(self):
+        """
+        Get the power values at this OPM as a dict
+        :return: power values at this OPM as a dict
+        """
+        return { sigtuple[0]: self.get_power(sigtuple)
+                 for sigtuple in self.extract_optical_signal() }
 
     def get_ase_noise(self, optical_signal_tuple):
         optical_signal = optical_signal_tuple[0]
