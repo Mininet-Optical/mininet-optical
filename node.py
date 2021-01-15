@@ -861,7 +861,7 @@ class Roadm(Node):
                     else:
                         out_port = self.switch_table[switch_rule]
 
-                        if out_port is not None:
+                        if out_port is not None:  # roadms cannot switch on port 0 with this clause
                             dst_node = self.port_to_node_out[out_port]
                             if dst_node is not src_node:
                                 if dst_node not in dst_nodes:
@@ -894,7 +894,7 @@ class Roadm(Node):
                     pop_output_ports = output_ports.copy()
                     for out_port in output_ports:
                         link = self.port_to_link_out[out_port]
-                        pop_output_ports.pop()
+                        pop_output_ports.remove(out_port)
                         # if it's the last of our ports going towards that dst_node
                         # then is_last_port is True
                         if len(pop_output_ports) < 1:
@@ -936,12 +936,29 @@ class Roadm(Node):
                 out_difference[optical_signal] = delta
 
             for optical_signal, equalization_att in out_difference.items():
+                in_port = self.optical_signal_to_port_in[optical_signal, optical_signal.uid]
+
+                # attenuate signal power
+                power_in = optical_signal.loc_in_to_state[self]['power']
+                ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
+                nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
+
+                # retrieve the WSS wavelength-dependent attenuation
+                node_attenuation = self.get_node_attenuation(in_port)
+
+                # retrieve the equalization attenuation function at the output ports
+                equalization_attenuation = self.equalization_attenuation
+
+                power_out = power_in / node_attenuation[optical_signal] / equalization_attenuation
+                ase_noise_out = ase_noise_in / node_attenuation[optical_signal] / equalization_attenuation
+                nli_noise_out = nli_noise_in / node_attenuation[optical_signal] / equalization_attenuation
+
                 # WSS attenuation and fixed equalization attenuation was inflicted at switching time,
                 # hence, only inflict now the additional equalization attenuation to compensate
                 # for the excursions generated at the boost-amp.
-                power = optical_signal.loc_out_to_state[self]['power'] * equalization_att
-                ase_noise = optical_signal.loc_out_to_state[self]['ase_noise'] * equalization_att
-                nli_noise = optical_signal.loc_out_to_state[self]['nli_noise'] * equalization_att
+                power = power_out * equalization_att
+                ase_noise = ase_noise_out * equalization_att
+                nli_noise = nli_noise_out * equalization_att
 
                 self.include_optical_signal_out((optical_signal, optical_signal.uid),
                                                 power=power, ase_noise=ase_noise, nli_noise=nli_noise)
@@ -978,7 +995,7 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = 'description-files/'
+description_files_dir = '../description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'linear.txt',
