@@ -102,16 +102,18 @@ class Node(object):
         """
         optical_signal = optical_signal_tuple[0]
 
-        self.port_to_optical_signal_in.setdefault(in_port, [])
-        if optical_signal_tuple not in self.port_to_optical_signal_in[in_port]:
-            # we don't need to append the signals to the structures repeatedly
-            self.port_to_optical_signal_in[in_port].append((optical_signal, optical_signal.uid))
-            self.optical_signal_to_port_in[optical_signal, optical_signal.uid] = in_port
+        if in_port is not None or in_port == 0:
+            self.port_to_optical_signal_in.setdefault(in_port, [])
+            if optical_signal_tuple not in self.port_to_optical_signal_in[in_port]:
+                # we don't need to append the signals to the structures repeatedly
+                self.port_to_optical_signal_in[in_port].append((optical_signal, optical_signal.uid))
+                self.optical_signal_to_port_in[optical_signal, optical_signal.uid] = in_port
 
-        self.node_to_optical_signal_in.setdefault(src_node, [])
-        if optical_signal_tuple not in self.node_to_optical_signal_in[src_node]:
-            self.node_to_optical_signal_in[src_node].append((optical_signal, optical_signal.uid))
-            self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)] = src_node
+        if src_node is not None:
+            self.node_to_optical_signal_in.setdefault(src_node, [])
+            if optical_signal_tuple not in self.node_to_optical_signal_in[src_node]:
+                self.node_to_optical_signal_in[src_node].append((optical_signal, optical_signal.uid))
+                self.optical_signal_to_node_in[(optical_signal, optical_signal.uid)] = src_node
 
         # but we need to associate a component with the state of the signal
         optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
@@ -129,19 +131,21 @@ class Node(object):
         """
         optical_signal = optical_signal_tuple[0]
 
-        self.port_to_optical_signal_out.setdefault(out_port, [])
-        if optical_signal_tuple not in self.port_to_optical_signal_out[out_port]:
-            self.port_to_optical_signal_out[out_port].append(optical_signal_tuple)
-        if optical_signal_tuple not in self.optical_signal_to_port_out:
-            if out_port is not None or (out_port == 0):
-                self.optical_signal_to_port_out[optical_signal, optical_signal.uid] = out_port
+        if out_port is not None or out_port == 0:
+            self.port_to_optical_signal_out.setdefault(out_port, [])
+            if optical_signal_tuple not in self.port_to_optical_signal_out[out_port]:
+                self.port_to_optical_signal_out[out_port].append(optical_signal_tuple)
+            if optical_signal_tuple not in self.optical_signal_to_port_out:
+                if out_port is not None or (out_port == 0):
+                    self.optical_signal_to_port_out[optical_signal, optical_signal.uid] = out_port
 
-        self.node_to_optical_signal_out.setdefault(dst_node, [])
-        if optical_signal_tuple not in self.node_to_optical_signal_out[dst_node]:
-            self.node_to_optical_signal_out[dst_node].append(optical_signal_tuple)
+        if dst_node is not None:
+            self.node_to_optical_signal_out.setdefault(dst_node, [])
+            if optical_signal_tuple not in self.node_to_optical_signal_out[dst_node]:
+                self.node_to_optical_signal_out[dst_node].append(optical_signal_tuple)
 
-        if optical_signal_tuple not in self.optical_signal_to_node_out:
-            self.optical_signal_to_node_out[optical_signal, optical_signal.uid] = dst_node
+            if optical_signal_tuple not in self.optical_signal_to_node_out:
+                self.optical_signal_to_node_out[optical_signal, optical_signal.uid] = dst_node
 
         optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
@@ -395,8 +399,6 @@ class LineTerminal(Node):
                       (optical_signal, optical_signal.uid, self.__class__.__name__, self.name, gosnr))
 
                 signalInfoDict[optical_signal]['success'] = True
-                print("receiver: updating signal_info_dict_transceiver in port: %s: %s" %
-                      (in_port, signalInfoDict))
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
 
@@ -921,6 +923,7 @@ class Roadm(Node):
         """
         wavelength dependent attenuation
         """
+
         if self.equalization_function is 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
