@@ -141,6 +141,7 @@ class Link(object):
                     # the dst_node
                     in_port = self.dst_node.link_to_port_in[self]
                     self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal.uid), in_port=in_port)
+
                 if is_last_port:
                     self.dst_node.switch(self.src_node)
 
@@ -153,7 +154,6 @@ class Link(object):
         output_power_dict = {}
         # If there is an amplifier compensating for the node
         # attenuation, compute the physical effects
-
         if self.boost_amp:  # Implementing boost as part of ROADM? Probably yes.
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
@@ -164,10 +164,12 @@ class Link(object):
                     output_power_dict[optical_signal] = \
                         self.boost_amp.output_amplified_power(optical_signal, dst_node=self.dst_node)
                 self.boost_amp.compute_power_excursions()
+            self.boost_amp.power_excursions_flags_off()
 
             if equalization:
                 # procedure for VOA reconfiguration (equalization)
                 src_node_out_port = self.src_node.link_to_port_out[self]
+
                 self.src_node.equalization_reconf(self, output_power_dict, src_node_out_port)
                 # return False to avoid propagation of effects
                 return False
@@ -199,9 +201,9 @@ class Link(object):
             # Compute linear effects from the fibre
             span_attenuation = span.attenuation()
             for optical_signal in self.optical_signals:
-                power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / span_attenuation
-                ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / span_attenuation
-                nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / span_attenuation
+                power_out = optical_signal.loc_in_to_state[(self, span)]['power'] / span_attenuation
+                ase_noise_out = optical_signal.loc_in_to_state[(self, span)]['ase_noise'] / span_attenuation
+                nli_noise_out = optical_signal.loc_in_to_state[(self, span)]['nli_noise'] / span_attenuation
 
                 self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
                                                 ase_noise=ase_noise_out, nli_noise=nli_noise_out,
