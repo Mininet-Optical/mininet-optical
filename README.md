@@ -1,6 +1,6 @@
 ### Mininet-Optical Prototype and Demo
 
-![Tests](https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/run-tests/badge.svg)
+![tests](https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg)
 
 This is a prototype implementation of an emulator for packet optical software-defined networks.
 
