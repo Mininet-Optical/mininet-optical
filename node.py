@@ -926,7 +926,7 @@ class Roadm(Node):
         wavelength dependent attenuation
         """
 
-        if self.equalization_function is 'flatten':
+        if self.equalization_function == 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
             for optical_signal, out_power in output_power_dict.items():
@@ -987,7 +987,7 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = '../description-files/'
+description_files_dir = 'description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
 description_files = {'wdg1': 'wdg1.txt',
@@ -1077,7 +1077,7 @@ class Amplifier(Node):
         wavelength dependent attenuation
         """
 
-        if self.equalization_function is 'flatten':
+        if self.equalization_function == 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
             for k, out_power in output_power_dict.items():
