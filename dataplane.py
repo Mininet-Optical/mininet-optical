@@ -272,6 +272,8 @@ class Terminal( SwitchBase ):
     txChannel = {}
     txPorts = {}
 
+    txPower = {}
+
     # failed channels whose packets should not be received in
     # the dataplane
     failedChannels = None
@@ -299,12 +301,10 @@ class Terminal( SwitchBase ):
         """Configure transceiver txNum
            channels: [channel index...]
            power: power in dBm"""
-        transceiver = self.model.transceivers[ txNum ]
         if channel is not None:
             self.txChannel[ txNum ] = channel
         if power is not None:
-            transceiver.operation_power = db_to_abs(power)
-        return transceiver
+            self.txPower[ txNum ] = db_to_abs(power)
 
     def findTx( self, wdmPort ):
         "Return transceiver for wdmPort number"
@@ -353,11 +353,14 @@ class Terminal( SwitchBase ):
            wdmPort: WDM port number"""
         # Update physical model
         tx = self.txnum( wdmPort )
-        transceiver = self.model.transceivers[ tx ]
-        # XXX should we do this here?
+        self.configTx( txNum=wdmPort, channel=channel, power=power )
+
+        # AD: there should be a better way of doing this
+        transceiver = self.model.transceivers[tx]
         transceiver.id = wdmPort
-        transceiver = self.configTx( txNum=tx, channel=channel, power=power )
-        channel = self.txChannel.get( tx )
+        if power is not None or power == 0:
+            transceiver.operation_power = txPower[wdmPort]
+        channel = self.txChannel.get( wdmPort )
         if channel is None:
             raise Exception( 'must set tx channel before connecting' )
         self.model.configure_terminal( transceiver,  channel )
@@ -457,9 +460,10 @@ class ROADM( SwitchBase ):
             return
         self.model.install_switch_rule(
             self.nextRuleId, inport, outport, channels )
-        if op < 100:
+        if int(op) < 100:
             # params: channel_id, output_port, operational_power_dB
-            self.model.configure_voa(channels, outport, op)
+            for channel in channels:
+                self.model.configure_voa(channel, outport, int(op))
         self.ruleIds[ rule ] = self.nextRuleId
         self.nextRuleId += 1
 
@@ -535,13 +539,14 @@ class ROADM( SwitchBase ):
         "Remove rules from dataplane and physical model"
         self.install( inport, outport, channels, action='remove' )
 
-    def restConnectHandler( self, query, action='install' ):
+    def restConnectHandler( self, query, op=0, action='install' ):
         "REST connect handler"
         port1 = int( query.port1 )
         port2 = int( query.port2 )
         channels = [int(channel) for channel in query.channels.split(',')]
+        op = query.get( 'op', op )
         action = query.get( 'action', action )
-        self.connect( port1, port2, channels, action )
+        self.connect( port1, port2, channels, op, action )
         return 'OK'
 
     def restDisconnectHandler( self, query ):
