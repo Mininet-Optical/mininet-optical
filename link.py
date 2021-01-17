@@ -175,7 +175,7 @@ class Link(object):
                 return False
 
             for optical_signal in self.optical_signals:
-                self.boost_amp.output_amplified_power(optical_signal)
+                self.boost_amp.nli_compensation(optical_signal, dst_node=self.dst_node)
                 # Compute ASE noise generation
                 self.boost_amp.stage_amplified_spontaneous_emission_noise(optical_signal)
 
@@ -201,9 +201,9 @@ class Link(object):
             # Compute linear effects from the fibre
             span_attenuation = span.attenuation()
             for optical_signal in self.optical_signals:
-                power_out = optical_signal.loc_in_to_state[(self, span)]['power'] / span_attenuation
-                ase_noise_out = optical_signal.loc_in_to_state[(self, span)]['ase_noise'] / span_attenuation
-                nli_noise_out = optical_signal.loc_in_to_state[(self, span)]['nli_noise'] / span_attenuation
+                power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / span_attenuation
+                ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / span_attenuation
+                nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / span_attenuation
 
                 self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
                                                 ase_noise=ase_noise_out, nli_noise=nli_noise_out,
@@ -225,7 +225,7 @@ class Link(object):
 
                 # Compute for the power
                 for optical_signal in self.optical_signals:
-                    amplifier.output_amplified_power(optical_signal, dst_node=self.dst_node)
+                    amplifier.nli_compensation(optical_signal, dst_node=self.dst_node)
                     # Compute ASE noise generation
                     amplifier.stage_amplified_spontaneous_emission_noise(optical_signal, dst_node=self.dst_node)
 
@@ -290,8 +290,9 @@ class Link(object):
         nonlinear_noise_new = self.gn_model(span)
 
         for optical_signal in self.optical_signals:
-            nli_noise_in = optical_signal.loc_out_to_state[(self, span)]['nli_noise']
-            nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
+            # nli_noise_in = optical_signal.loc_out_to_state[(self, span)]['nli_noise']
+            # nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
+            nli_noise_out = nonlinear_noise_new[optical_signal]
             self.include_optical_signal_out((optical_signal, optical_signal.uid), nli_noise=nli_noise_out, tup_key=(self, span))
 
     def gn_model(self, span):

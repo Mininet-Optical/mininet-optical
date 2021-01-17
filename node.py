@@ -937,22 +937,10 @@ class Roadm(Node):
                 out_difference[optical_signal] = delta
 
             for optical_signal, equalization_att in out_difference.items():
-                in_port = self.optical_signal_to_port_in[optical_signal, optical_signal.uid]
-
                 # attenuate signal power
-                power_in = optical_signal.loc_in_to_state[self]['power']
-                ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
-                nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
-
-                # retrieve the WSS wavelength-dependent attenuation
-                node_attenuation = self.get_node_attenuation(in_port)
-
-                # retrieve the equalization attenuation function at the output ports
-                equalization_attenuation = self.equalization_attenuation
-
-                power_out = power_in / node_attenuation[optical_signal] / equalization_attenuation
-                ase_noise_out = ase_noise_in / node_attenuation[optical_signal] / equalization_attenuation
-                nli_noise_out = nli_noise_in / node_attenuation[optical_signal] / equalization_attenuation
+                power_out = optical_signal.loc_out_to_state[self]['power']
+                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise']
+                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise']
 
                 # WSS attenuation and fixed equalization attenuation was inflicted at switching time,
                 # hence, only inflict now the additional equalization attenuation to compensate
@@ -963,7 +951,8 @@ class Roadm(Node):
 
                 self.include_optical_signal_out((optical_signal, optical_signal.uid),
                                                 power=power, ase_noise=ase_noise, nli_noise=nli_noise)
-                link.include_optical_signal_in((optical_signal, optical_signal.uid))
+                link.include_optical_signal_in((optical_signal, optical_signal.uid),
+                                                power=power, ase_noise=ase_noise, nli_noise=nli_noise)
 
         link.propagate(equalization=False, is_last_port=True)
 
@@ -999,8 +988,8 @@ class Equalizer(Node):
 description_files_dir = '../description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'linear.txt',
-                     'wdg2': 'linear.txt'}
+description_files = {'wdg1': 'wdg1.txt',
+                     'wdg2': 'wdg1.txt'}
 
 
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
@@ -1173,16 +1162,25 @@ class Amplifier(Node):
         output_power = input_power * system_gain_linear * \
                        wavelength_dependent_gain_linear
 
+        # associate amp to optical signal at output interface
+        # and update the optical signal state (power)
+        self.include_optical_signal_out((optical_signal, optical_signal.uid), power=output_power,
+                                        out_port=0, dst_node=dst_node)
+
+        return output_power
+
+    def nli_compensation(self, optical_signal, dst_node=None):
+        wavelength_dependent_gain = self.get_wavelength_dependent_gain(optical_signal.index)
+        # Conversion from dB to linear
+        system_gain_linear = db_to_abs(self.system_gain)
+        wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
+
         # the NLI noise als gets affected
         nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
         nli_noise_out = nli_noise_in * system_gain_linear * wavelength_dependent_gain
 
-        # associate amp to optical signal at output interface
-        # and update the optical signal state (power)
-        self.include_optical_signal_out((optical_signal, optical_signal.uid), power=output_power,
+        self.include_optical_signal_out((optical_signal, optical_signal.uid),
                                         nli_noise=nli_noise_out, out_port=0, dst_node=dst_node)
-
-        return output_power
 
     def stage_amplified_spontaneous_emission_noise(self, optical_signal, dst_node=None):
         """
@@ -1225,7 +1223,7 @@ class Amplifier(Node):
         # compute power excursions using the means
         power_excursions = np.mean(output_power_real_dBm) - np.mean(output_power_target_dBm)
         # update EDFA system gain
-        self.system_gain += power_excursions
+        # self.system_gain -= power_excursions
 
         # Flag-check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
