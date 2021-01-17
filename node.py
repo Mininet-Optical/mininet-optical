@@ -1223,9 +1223,9 @@ class Amplifier(Node):
             output_power_real_dBm.append(abs_to_db(optical_signal.loc_out_to_state[self]['power']))
 
         # compute power excursions using the means
-        power_excursions = np.mean(output_power_real_dBm) - np.mean(output_power_target_dBm)
+        power_excursions = np.mean(output_power_target_dBm) - np.mean(output_power_real_dBm)
         # update EDFA system gain
-        # self.system_gain -= power_excursions
+        self.system_gain += power_excursions
 
         # Flag-check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
