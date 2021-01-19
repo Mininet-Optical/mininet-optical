@@ -660,10 +660,10 @@ class OpticalLink( Link ):
         boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
         if boost1:
             name, params = boost1
-            boost1 = PhyAmplifier( name, *params )
+            boost1 = PhyAmplifier( name, **params )
         if boost2:
             name, params = boost2
-            boost2 = PhyAmplifier( name, *params )
+            boost2 = PhyAmplifier( name, **params )
 
         # Create symmetric spans and phy links in both directions
         spans = self.parseSpans( spans )
