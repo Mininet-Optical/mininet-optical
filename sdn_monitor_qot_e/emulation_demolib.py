@@ -49,7 +49,9 @@ class Cost239Topo(OpticalTopo):
         """Return a local IP address or subnet for the given POP"""
         return template % (pop, intfnum) + subnet
 
-    def build_pop(self, city_count, txCount=2):
+    def build_pop(self, city_count, city_name, txCount=2):
+        city_names = ['berlin', 'copenhagen', 'london', 'paris', 'prague', 'vienna']
+
         """Build a POP; returns: ROADM"""
         # Network elements
         hostname, hostip, subnet = 'h%d' % city_count, self.ip(city_count, 1), self.ip(city_count, 0)
@@ -57,17 +59,27 @@ class Cost239Topo(OpticalTopo):
                             defaultRoute='dev ' + hostname + '-eth0')
         router = self.addSwitch('s%d' % city_count, subnet=subnet,
                                 listenPort=(ListenPortBase + city_count))
-        transceivers = [
-            ('t%d' % t, 0 * dBm, 'C') for t in range(1, txCount + 1)]
+        if city_name in city_names:
+            transceivers = [
+                ('t%d' % t, 0 * dBm, 'C') for t in range(1, txCount + 1)]
+        else:
+            transceivers = [('t2', 0 * dBm, 'C')]
         terminal = self.addSwitch(
             't%d' % city_count, cls=Terminal, transceivers=transceivers)
         roadm = self.addSwitch('r%d' % city_count, cls=ROADM)
         # Local links
-        for port in range(1, txCount + 1):
-            self.ethLink(router, terminal, port1=port, port2=port)
-        self.ethLink(router, host, port1=txCount + 1)
-        for port in range(1, txCount + 1):
-            self.wdmLink(terminal, roadm, port1=txCount + port, port2=port)
+        if city_name in city_names:
+            for port in range(1, txCount + 1):
+                self.ethLink(router, terminal, port1=port, port2=port)
+            self.ethLink(router, host, port1=txCount + 1)
+            for port in range(1, txCount + 1):
+                self.wdmLink(terminal, roadm, port1=txCount + port, port2=port)
+        else:
+            for port in range(1, 2):
+                self.ethLink(router, terminal, port1=port, port2=port)
+            self.ethLink(router, host, port1=1 + 1)
+            for port in range(1, 2):
+                self.wdmLink(terminal, roadm, port1=1 + port, port2=port)
 
         # Return ROADM so we can link it to other POPs as needed
         return roadm
@@ -122,7 +134,7 @@ class Cost239Topo(OpticalTopo):
         return sum([list(span) for span in spans], [])
 
     def build_pop_link(self, r1, r2, total_len):
-        boost = ('boost', dict(target_gain=17.0))
+        boost = ('boost', dict(target_gain=17.0, boost=True, monitor_mode='out'))
         spans = self.build_spans(total_len)
         self.wdmLink(r1, r2, boost=boost, spans=spans)
 
@@ -130,8 +142,8 @@ class Cost239Topo(OpticalTopo):
         city_names = ['amsterdam', 'berlin', 'brussels', 'copenhagen', 'london',
                       'luxembourg', 'milan', 'paris', 'prague', 'vienna', 'zurich']
         "Add POPs and connect them in a line"
-        roadms = [self.build_pop(city_count, txCount) for
-                  city_count, _ in enumerate(city_names, start=1)]
+        roadms = [self.build_pop(city_count, city_name, txCount) for
+                  city_count, city_name in enumerate(city_names, start=1)]
 
         city_name_to_roadm = {}
         for city_name, roadm in zip(city_names, roadms):
@@ -189,12 +201,14 @@ if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel('info')
-    cost239 = Mininet(topo=Cost239Topo(txCount=2), autoSetMacs=True,
+    net = Mininet(topo=Cost239Topo(txCount=2), autoSetMacs=True,
                       controller=RemoteController)
-    disableIPv6(cost239)
-    restServer = RestServer(cost239)
-    cost239.start()
+    disableIPv6(net)
+    restServer = RestServer(net)
+    net.start()
+    print("The restServer at emulation_demolib with the network will start now!")
     restServer.start()
-    CLI(cost239)
+    print("The restServer at emulation_demolib with the network started (as I said)!")
+    CLI(net)
     restServer.stop()
-    cost239.stop()
+    net.stop()
