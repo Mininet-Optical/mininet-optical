@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 90
+NUM_WAV = 30
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE = 5
+NUM_NODE =5
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
@@ -399,6 +399,7 @@ def RoadmPhyTest():
     #     print((left,right))
     #     channels.append(range(left,right))
     paths = {}
+    #random.seed(1000)
     for chs in channels:
         #chs = [i for i in range(1,50)]
         src = random.choice(name_terminals)
@@ -406,8 +407,9 @@ def RoadmPhyTest():
         while dst == src:
             dst = random.choice(name_terminals)
         path = routes[src][dst]
-        installPath(path, chs, Graph, nodes)
         print('===path===', path)
+        installPath(path, chs, Graph, nodes)
+
         for ch in chs:
             paths[ch] = path
             configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
