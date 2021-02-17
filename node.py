@@ -2,6 +2,8 @@ from units import *
 from pprint import pprint
 import random
 from collections import namedtuple
+from scipy.special import erfc
+from math import sqrt
 
 
 class Node(object):
@@ -1255,6 +1257,25 @@ class Monitor(Node):
         for optical_signal in ordered_signals:
             signals_list.append(self.get_gosnr(optical_signal))
         return signals_list
+
+    def get_ber(self, ber_method = None):
+        """
+        Get's the bit error rate based on gOSNR
+        :return: BitErrorRate at this OPM
+        Calculates Bit Error Rate based on equations from F. Forghieri
+        doi: 10.1109/JLT.1012.2.2189198
+        """
+        gosnr = self.get_list_gosnr()
+        ber = ber_method
+        if ber_method == 'bpsk':
+            ber = 0.5 * erfc(sqrt(gosnr[0]))
+        if ber_method == 'qpsk':
+            ber = 0.5 * erfc(sqrt(gosnr[0]/2))
+        if ber_method == '8psk':
+            ber = (2/3) * erfc(sqrt( (3/14) * gosnr[0] ))
+        if ber_method == '16psk':
+            ber = (3/8) * erfc(sqrt(gosnr[0]) / 10)
+        return ber
 
     def get_dict_gosnr(self):
         """
