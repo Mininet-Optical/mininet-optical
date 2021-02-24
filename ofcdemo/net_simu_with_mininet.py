@@ -21,7 +21,8 @@ m = .001
 # Parameters
 
 NUM_WAV = 90
-LINK_CAP = 100
+LINK_CAP = 200
+DOWN_LINK_CAP = 100
 CPRI_CAP = 25
 # ROADM port numbers (input and output)
 LINE_PORT1, LINE_PORT2, LINE_PORT3, LINE_PORT4, LINE_PORT5, LINE_PORT6 = NUM_WAV, NUM_WAV+1, NUM_WAV+2, NUM_WAV+3, NUM_WAV+4, NUM_WAV+5
@@ -33,28 +34,34 @@ TRAFFIC_INFO = defaultdict( defaultdict ) # id : {'src':src, 'dst':dst, 'lightpa
 LIGHTPATH_INFO = defaultdict( defaultdict ) # id : {'path':path, 'channel_id': channel_id, 'traf_set': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
 SRC_DST_TO_LIGHTPATH = defaultdict( set ) # (src, dst) : {set[lightpath_id]}
 PATH_CH_TO_LIGHTPATH = defaultdict(defaultdict) # (src, hop, dst) : {'channel_id': lightpath_id}
-TRAFFIC_ID = 1
-LIGHTPATH_ID = 1
-NUM_NODE = 4
+TRAFFIC_ID = 0
+LIGHTPATH_ID = 0
+NUM_NODE = 6
 NAME_ROADM = []
 UP_TRAF_TIME_LIST = []
 UP_TRAF_ID_SET = set()
 UP_LIGHTPATH_TIME_LIST = []
 UP_LIGHTPATH_ID_SET = set()
 ALL_CHANNELS = [ i for i in range(1,NUM_WAV+1)]
-RU_ROADMS = ['r2', 'r3']
-DU_ROADMS = ['r1', 'r4']
+RU_ROADMS = []
+DU_ROADMS = ['r1', 'r%d' %NUM_NODE]
+ROADM_TRAF = defaultdict(set)
 
 # Mininet-Optical
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
 ROADM_TO_TERMINAL = {}
+TERMINAL_TO_ROADM = {}
 for i in range(NUM_NODE):
     name_roadms.append('r%d'%(i+1))
     name_terminals.append('t%d'%(i+1))
     Roadm_Rule_ID_dict['r%d' % (i + 1)] = 1
     ROADM_TO_TERMINAL['r%d' % (i + 1)] = 't%d' % (i + 1)
+    TERMINAL_TO_ROADM['t%d' % (i + 1)] = 'r%d' % (i + 1)
+    node = 'r%d' %(i+1)
+    if node not in DU_ROADMS:
+        RU_ROADMS.append(node)
 
 
 for i in range(NUM_NODE):
@@ -80,7 +87,7 @@ def RoadmPhyNetwork():
     ################################
 
     net = Network()
-    lengths = [50 * km]
+    lengths = [15 * km]
 
     # Network nodes
     transceivers = [('tx%d' % i, 0 * dBm, 'C') for i in range(1, NUM_WAV + 1)]
@@ -386,6 +393,7 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf')):
     powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
     LIGHTPATH_INFO[LIGHTPATH_ID]['path'] = path
     LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id'] = channel
+    LIGHTPATH_INFO[LIGHTPATH_ID]['link_cap'] = LINK_CAP
     LIGHTPATH_INFO[LIGHTPATH_ID]['traf_set'] = set()
     LIGHTPATH_INFO[LIGHTPATH_ID]['up_time'] = up_time
     LIGHTPATH_INFO[LIGHTPATH_ID]['down_time'] = down_time
@@ -411,7 +419,7 @@ def check_lightpath_for_traf(src, dst):
     lighpaths = SRC_DST_TO_LIGHTPATH[src,dst]
     avai_lightpaths = set()
     for lighpath_id in lighpaths:
-        if len(LIGHTPATH_INFO[lighpath_id]['traf_set']) < LINK_CAP/CPRI_CAP:
+        if len(LIGHTPATH_INFO[lighpath_id]['traf_set']) < LIGHTPATH_INFO[lighpath_id]['link_cap']/CPRI_CAP:
             avai_lightpaths.add(lighpath_id)
     return avai_lightpaths
 
@@ -465,15 +473,15 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), latency = 0
     if latency == 0 :
         if lightpath_id:
             TRAFFIC_ID += 1
-            traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+            traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
             LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
-            return True
+            return traf_id
     elif latency == 1:
         if lightpath_id:
             TRAFFIC_ID += 1
-            traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+            traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
             LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
-            return True
+            return traf_id
         else:
             if RWA:
                 all_path_info = pathSelection(paths= routes[src][dst], cur_time = cur_time, waiting_time_threshold=5.0, short_duration=True)
@@ -498,17 +506,17 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), latency = 0
                         GOSNR = LIGHTPATH_INFO[lightpath_id]['GOSNR']
                         if GOSNR > 25:
                             TRAFFIC_ID += 1
-                            traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+                            traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
                             LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
-                            return True
+                            return traf_id
                         else:
                             uninstall_Lightpath(lightpath_id)
     elif latency == 2:
         if lightpath_id:
             TRAFFIC_ID += 1
-            traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+            traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
             LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
-            return True
+            return traf_id
         else:
             if RWA:
                 all_path_info = pathSelection(paths=routes[src][dst], cur_time=cur_time, waiting_time_threshold=5.0,
@@ -530,9 +538,9 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), latency = 0
                         chs.remove(ch)
                         lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time)
                         TRAFFIC_ID += 1
-                        traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+                        traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
                         LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
-                        return True
+                        return traf_id
     return False
 
 
@@ -565,7 +573,7 @@ def traf_to_lightpath_Release(traf_id):
 ################# END ###################
 
 
-def trafficPattern(time, day= True):
+def trafficPattern(pattern, time):
     """
     24 hour normalized traffic
     resident area: 40% resident, 20% entertainment, 18% office, 22% transport
@@ -642,8 +650,8 @@ def trafficPattern(time, day= True):
                         0.28, 0.34, 0.50, 0.55,
                         0.70, 0.78, 0.81, 0.82,
                         0.81, 0.81, 0.82, 0.84,
-                        0.85, 0.87, 0.91, 0.96,
-                        0.97, 0.96, 0.70
+                        0.85, 0.87, 0.91, 0.98,
+                        1.0, 0.97, 0.70
                         ]
 
     entertainment = [0.23,
@@ -662,14 +670,323 @@ def trafficPattern(time, day= True):
                              0.98, 0.975, 0.97, 0.96,
                              0.95, 0.92, 0.86
                              ]
+    traffic_week = [1]*24
+    traffic_weeked = [1]*24
+    hour = time % 24
+    if pattern == 'office':
+        traffic_week = office
+        traffic_weeked = office_weekend
+    if pattern == 'resident':
+        traffic_week = resident
+        traffic_weeked = resident_weekend
+    return traffic_week[hour], traffic_weeked[hour]
 
-    tem_t = time
-    day = int(tem_t/3600/24)
-    tem_t = tem_t - day*3600*24
-    h = int(tem_t/3600)
-    #print(h)
+def TrafficTest():
+    # ROADM port numbers (input and output)
+    random.seed(1000)
+    "Create a single link and monitor its OSNR and gOSNR"
+    net = RoadmPhyNetwork()
+    AllLinks = getLinks()
+    global  GRAPH, NODES
+    GRAPH = netGraph(AllLinks['links'])
+    NODES = net.name_to_node
+    routes = {node: FindRoute(node, GRAPH, name_terminals)
+               for node in name_terminals}
+    # routes = {node: FindRoute(node, GRAPH, NAME_ROADM)
+    #           for node in NAME_ROADM}
+    print('===links', AllLinks['links'])
+    print('===graph', GRAPH)
+    print('==link_info', NETLINK_INFO)
+    print('==route')
+    for key in routes.keys():
+        print(key, routes[key])
 
-    return comprehensive[int(h)]
+    ## add traffic and delete traffic
+    Total_Rej = 0
+    N = 24*14 # 1000000 for one day
+    file = open('record.txt', 'w')
+    # CPRI Request
+    factor = 1
+    Total_traf = 35000 # Gbps
+    traffic_ratio  = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
+    BBU_ratio = (1.0, 1.0)
+    MAX_traf = {}
+    for i in range(2,NUM_NODE):
+        MAX_traf['r%d' %(i)] = 1.0*Total_traf*traffic_ratio[i-2]/sum(traffic_ratio)
+    print('---max_traf',MAX_traf)
+    #MAX_traf = {'r2': traffic_ratio[0]/(traffic_ratio[0]+traffic_ratio[1])*Total_traf, 'r3': traffic_ratio[1]/(traffic_ratio[0]+traffic_ratio[1])*Total_traf} # resident r2, office r3
+    #BBU_traf = {'t1':0, 't4':0}
+    BBU_traf = {}
+    BBU_limit = {}
+    BBU_limit['t%d' % NUM_NODE] = 250
+    for node in DU_ROADMS:
+        BBU_traf[ROADM_TO_TERMINAL[node]] = 0
+    #RRH_traf = {'t2': 0, 't3': 0}
+    RRH_traf = {}
+    for node in RU_ROADMS:
+        RRH_traf[ROADM_TO_TERMINAL[node]] = 0
+
+    ROADM_TYPE = {'r2':'office', 'r3':'resident', 'r4':'resident', 'r5':'office'}
+
+
+    """file.write(
+        'time\t r2_office_traf\t r3_resident_traf\t number_of_lightpath\t avg_wav_per_link\t'
+        ' r1_BBU_traf\t r4_BBU_traf\t r2_rej\t r3_rej\t 100G\t 200G\t underutilized\t Total_cap\n')
+    #"""
+
+    file.write(
+        'time\t r2_traf\t r3_traf\t r4_traf\t r5_traf\t '
+        'number_of_lightpath\t avg_wav_per_link\t r1_BBU_traf\t r6_BBU_traf\t'
+        ' r2_rej\t r3_rej\t r4_rej\t r5_rej\t'
+        ' 50G\t 100G\t 200G\t underutilized\t Total_cap\n')
+    #"""
+
+    for i in range(N):
+        Rej = {}
+        for key in TERMINAL_TO_ROADM.keys():
+            Rej[key] = 0
+        print(i)
+        #factor = trafficPattern(time)
+        factors = {}
+        # if i< 24*5:
+        #     factor2 = trafficPattern(pattern='resident', time=i)[0]* random.uniform(0.8, 1.1)
+        #     factor3 = trafficPattern(pattern='office', time=i)[0] * random.uniform(0.8, 1.1)
+        #
+        # else:
+        #     factor2 = trafficPattern(pattern='resident', time=i)[1] * random.uniform(0.8, 1.1)
+        #     factor3 = trafficPattern(pattern='office', time=i)[1] * random.uniform(0.8, 1.1)
+        #random.shuffle(RU_ROADMS)
+        for src in RU_ROADMS:
+            if i%(24*7) < 24 * 5:
+                f = trafficPattern(pattern=ROADM_TYPE[src], time=i)[0] * random.uniform(0.8, 1.1)
+            else:
+                f = trafficPattern(pattern=ROADM_TYPE[src], time=i)[1] * random.uniform(0.8, 1.1)
+            factors[src] = f
+            factor = f
+            src_t = ROADM_TO_TERMINAL[src]
+            count = 0
+            #L = int(factor*MAX_traf[src]/CPRI_CAP - len(ROADM_TRAF[src]))
+            #for i in range(L):
+            while factor*MAX_traf[src]/CPRI_CAP > len(ROADM_TRAF[src]):
+                ADD_TRAF = False
+
+                print(factor*MAX_traf[src]/CPRI_CAP, len(ROADM_TRAF[src]), Rej)
+                dst = random.choice(DU_ROADMS)
+                # if 1.0 * BBU_traf['t1'] * BBU_ratio[1] > 1.0 * BBU_ratio[0] * BBU_traf['t%d' %NUM_NODE]:
+                #     dst = 'r%d' % NUM_NODE
+                # else:
+                #     dst = 'r1'
+                RRH_traf[src_t] += 1
+                dst_t = ROADM_TO_TERMINAL[dst]
+                path_first = routes[src_t]['t1'][0]
+                path_last = routes[src_t]['t%d' % NUM_NODE][0]
+                dst_back = None
+                print('two_paths', path_first, path_last)
+                if len(path_last)<len(path_first) and BBU_traf['t%d' % NUM_NODE] < BBU_limit['t%d' % NUM_NODE]:
+                    print('BBU R4 resource',BBU_traf['t%d' % NUM_NODE], BBU_limit['t%d' % NUM_NODE])
+                    dst = 'r%d' % NUM_NODE
+                    dst_t = 't%d' % NUM_NODE
+                    dst_back = 'r1'
+                    dst_t_back = 't1'
+                else:
+                    dst = 'r1'
+                    dst_t = 't1'
+                    dst_back = 'r%d' % NUM_NODE
+                    dst_t_back = 't%d' % NUM_NODE
+
+
+                traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'), latency=2, RWA=False)
+                print('request', src, dst)
+                if traf_id:
+                    ADD_TRAF = True
+                    ROADM_TRAF[src].add(traf_id)
+                    BBU_traf[dst_t] += 1
+                    reassign_traf = []
+                    fail_lightpaths = []
+                    for lightpath_id, info in LIGHTPATH_INFO.items():
+                        powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'], channel=info['channel_id'], nodes=NODES)
+                        LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnrs[-1]
+                        LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnrs[-1]
+                        if 18< gosnrs[-1] < 24:
+                            LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
+                            traf_set =  LIGHTPATH_INFO[lightpath_id]['traf_set']
+                            while len(traf_set) > DOWN_LINK_CAP/CPRI_CAP:
+                                 traf_id = random.choice(list(traf_set))
+                                 s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
+                                 ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
+                                 traf_to_lightpath_Release(traf_id=traf_id)
+                                 reassign_traf.append((s_t, d_t))
+                        elif gosnrs[-1] < 16:
+                            LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
+                            traf_set =  LIGHTPATH_INFO[lightpath_id]['traf_set']
+                            while len(traf_set) > DOWN_LINK_CAP/CPRI_CAP:
+                                 traf_id = random.choice(list(traf_set))
+                                 s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
+                                 ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
+                                 traf_to_lightpath_Release(traf_id=traf_id)
+                                 reassign_traf.append((s_t, d_t))
+                        else:
+                            LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
+
+
+                    for s_t, d_t in reassign_traf:
+                        traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'), latency=2,
+                                     RWA=False)
+                        if traf_id:
+                            ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].add(traf_id)
+                        else:
+                            Rej[s_t] += 1
+                            Total_Rej += 1
+                            BBU_traf[d_t] -= 1
+
+                elif dst_back:
+                    dst = dst_back
+                    dst_t = dst_t_back
+                    print('try_backup_path', src, dst)
+                    traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'), latency=2,
+                                           RWA=False)
+                    if traf_id:
+                        ADD_TRAF = True
+                        ROADM_TRAF[src].add(traf_id)
+                        BBU_traf[dst_t] += 1
+                        reassign_traf = []
+                        fail_lightpaths = []
+                        for lightpath_id, info in LIGHTPATH_INFO.items():
+                            powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'],
+                                                                                       channel=info['channel_id'],
+                                                                                       nodes=NODES)
+                            LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnrs[-1]
+                            LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnrs[-1]
+                            if 18 < gosnrs[-1] < 24:
+                                LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
+                                traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
+                                while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
+                                    traf_id = random.choice(list(traf_set))
+                                    s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
+                                    ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
+                                    traf_to_lightpath_Release(traf_id=traf_id)
+                                    reassign_traf.append((s_t, d_t))
+                            elif gosnrs[-1] < 16:
+                                LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
+                                traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
+                                while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
+                                    traf_id = random.choice(list(traf_set))
+                                    s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
+                                    ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
+                                    traf_to_lightpath_Release(traf_id=traf_id)
+                                    reassign_traf.append((s_t, d_t))
+                            else:
+                                LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
+
+                        for s_t, d_t in reassign_traf:
+                            traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'), latency=2,
+                                                   RWA=False)
+                            if traf_id:
+                                ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].add(traf_id)
+                            else:
+                                Rej[s_t] += 1
+                                Total_Rej += 1
+                                BBU_traf[d_t] -= 1
+
+                if not ADD_TRAF:
+                    Rej[src_t] += 1
+                    Total_Rej += 1
+                    count += 1
+                    if count == 10:
+                        fails = factor*MAX_traf[src]/CPRI_CAP - len(ROADM_TRAF[src])
+                        RRH_traf[src_t] += fails
+                        Rej[src_t] += fails
+                        Total_Rej += fails
+                        break
+            # L = int(len(ROADM_TRAF[src]) -factor * MAX_traf[src] / CPRI_CAP)
+            # for i in range(L):
+            while factor * MAX_traf[src] / CPRI_CAP < len(ROADM_TRAF[src]):
+                traf_id = random.choice(list(ROADM_TRAF[src]))
+                dst = TRAFFIC_INFO[traf_id]['dst']
+                BBU_traf[dst] -= 1
+                lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
+                traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
+                traf_to_lightpath_Release(traf_id=traf_id)
+                ROADM_TRAF[src].remove(traf_id)
+                if not traf_set:
+                    uninstall_Lightpath(lightpath_id=lightpath_id)
+
+
+
+        """while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
+            lightpath_id = UP_LIGHTPATH_TIME_LIST.pop(0)[1]
+            uninstall_Lightpath(lightpath_id=lightpath_id)
+        #"""
+        OneG = 0
+        TwoG = 0
+        FiftyG = 0
+        UnderUse = 0
+        for lightpath_id, info in LIGHTPATH_INFO.items():
+            if LIGHTPATH_INFO[lightpath_id]['link_cap']/CPRI_CAP/2 > len(LIGHTPATH_INFO[lightpath_id]['traf_set']):
+                UnderUse += 1
+            link_cap = LIGHTPATH_INFO[lightpath_id]['link_cap']
+            if link_cap == 100:
+                OneG += 1
+            elif link_cap ==200:
+                TwoG += 1
+            elif link_cap ==50:
+                FiftyG += 1
+        total_wav = 0
+        for key in NETLINK_INFO.keys():
+            total_wav += len(NETLINK_INFO[key].items())
+        avg_wav = (1.0 * total_wav ) / (NUM_NODE-1)
+
+        """file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(i, factors['r2'] * MAX_traf['r2'], factors['r3'] * MAX_traf['r3'],
+                                                                                 len(LIGHTPATH_INFO.keys()), avg_wav,BBU_traf['t1'], BBU_traf['t%d' % NUM_NODE],
+                                                                                 1.0*Rej['t2']/(factors['r2']*MAX_traf['r2']/CPRI_CAP), 1.0*Rej['t3']/(factors['r3']*MAX_traf['r3']/CPRI_CAP),
+                                                                                 OneG, TwoG, UnderUse, OneG*100+TwoG*200))
+        #"""
+
+        file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(i, factors['r2'] * MAX_traf['r2'],
+                                                                                 factors['r3'] * MAX_traf['r3'],
+                                                                                 factors['r4'] * MAX_traf['r4'],
+                                                                                 factors['r5'] * MAX_traf['r5'],
+                                                                                 len(LIGHTPATH_INFO.keys()), avg_wav,
+                                                                                 BBU_traf['t1'],
+                                                                                 BBU_traf['t%d' % NUM_NODE],
+                                                                                 1.0 * Rej['t2'] / (factors['r2']*MAX_traf['r2']/CPRI_CAP),
+                                                                                 1.0 * Rej['t3'] / (factors['r3']*MAX_traf['r3']/CPRI_CAP),
+                                                                                 1.0 * Rej['t4'] / (factors['r4']*MAX_traf['r4']/CPRI_CAP),
+                                                                                 1.0 * Rej['t5'] / (factors['r5']*MAX_traf['r5']/CPRI_CAP),
+                                                                                 FiftyG, OneG,TwoG, UnderUse,
+                                                                                 OneG * 100 + TwoG * 200 +FiftyG*50))
+        #"""
+    print('==traf')
+    for item in TRAFFIC_INFO.items():
+        print(item)
+    print('==Lightpath')
+    fail_paths= []
+    for item in LIGHTPATH_INFO.items():
+        print(item)
+        path = item[1]['path']
+        ch = item[1]['channel_id']
+        gosnr = item[1]['GOSNR']
+        powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=path, channel=ch, nodes=NODES)
+        print('gosnr', gosnr, gosnrs[-1])
+        if gosnrs[-1]< 24:
+            fail_paths.append((gosnrs[-1],osnrs[-1], powers[-1], item))
+    for gosnr, osnr, power, item in fail_paths:
+        print('fail',gosnr, osnr, abs_to_db(power), item)
+    #print('==rej', Rej, 1.0*Rej/N)
+    print('r2-r1, chs', len(NETLINK_INFO['r2', 'r1'].items()))
+    print('r2-r3, chs', len(NETLINK_INFO['r2', 'r3'].items()))
+    print('r3-r4, chs', len(NETLINK_INFO['r3', 'r4'].items()))
+    print(ROADM_TRAF)
+    print('BBU_Processing_traf', BBU_traf)
+    print('rej', Rej)
+    print('RRH_TRAF', RRH_traf)
+    print('rej_ratio', 1.0*Rej['t2']/RRH_traf['t2'], 1.0*Rej['t3']/RRH_traf['t3'])
+    print('total_rej_rate', 1.0* Total_Rej/sum(RRH_traf.values()) )
+
+    # for lightpath_id, info in LIGHTPATH_INFO.items():
+    #     powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'], channel=info['channel_id'],
+    #                                                                nodes=NODES)
+    #     print('id: {}, path: {}, power: {}'.format( lightpath_id, info['path'], powers ) )
 
 
 # Physical model test
@@ -702,8 +1019,8 @@ def RoadmPhyTest():
     N = 2000 # 1000000 for one day
     file = open('record.txt', 'w')
     # CPRI Request
-    arrival_rate = 5  # request/minute
-    holding_time = 5  # minute
+    arrival_rate = 50  # request/minute
+    holding_time = 30  # minute
     factor = 1
     for i in range(N):
         print(i)
@@ -714,7 +1031,7 @@ def RoadmPhyTest():
         #duration = random.uniform(30, 600)
         d_time = s_time + duration
         time = s_time + setup_time
-        src = random.choice(RU_ROADMS+DU_ROADMS)
+        src = random.choice(RU_ROADMS)
         dst = random.choice(DU_ROADMS)
         #src = random.choice(NAME_ROADM)
         #dst = random.choice(NAME_ROADM)
@@ -732,9 +1049,13 @@ def RoadmPhyTest():
         dst = ROADM_TO_TERMINAL[dst]
         if not install_Traf(src, dst, routes, cur_time= s_time, down_time=d_time, latency=2, RWA= False):
             Rej += 1
+        else:
+            ROADM_TRAF[src].add(TRAFFIC_ID)
         while UP_TRAF_TIME_LIST and UP_TRAF_TIME_LIST[0][0]< time:
             traf_id = UP_TRAF_TIME_LIST.pop(0)[1]
             traf_to_lightpath_Release(traf_id=traf_id)
+            print('~~', traf_id)
+            ROADM_TRAF[src].remove(traf_id)
         while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
             lightpath_id = UP_LIGHTPATH_TIME_LIST.pop(0)[1]
             uninstall_Lightpath(lightpath_id=lightpath_id)
@@ -747,17 +1068,19 @@ def RoadmPhyTest():
     fail_paths= []
     for item in LIGHTPATH_INFO.items():
         print(item)
-        if item[-1]['GOSNR']< 26.5:
+        if item[-1]['GOSNR']< 24:
             fail_paths.append(item)
-        # path = item[1]['path']
-        # channel = item[1]['channel_id']
-        # powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
-        # print('channel', channel, 'path', path, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
     print('==time', time)
     for item in fail_paths:
         print('fail',item)
     print('==rej', Rej, 1.0*Rej/N)
+    print('r2-r1, chs', len(NETLINK_INFO['r2', 'r1'].items()))
+    print('r2-r3, chs', len(NETLINK_INFO['r2', 'r3'].items()))
+    print('r3-r4, chs', len(NETLINK_INFO['r3', 'r4'].items()))
+    print(ROADM_TRAF)
 
 
 if __name__ == '__main__':
-    RoadmPhyTest()
+    #RoadmPhyTest()
+    TrafficTest()
+
