@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 90
+NUM_WAV = 5
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE = 10
+NUM_NODE =4
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
@@ -154,6 +154,7 @@ def RoadmPhyNetwork(lengths=[50 * km]):
                  boost_amp=boost,
                  spans=spans)
             NETLINKS.append(('r%d' % 1, LINE_PORT1, 'r%d' % (k+1), LINE_PORT2))
+        #"""
 
     for k in range(1,NUM_NODE+1):
         # Local add/drop links between terminals/transceivers and ROADMs
@@ -381,39 +382,81 @@ def RoadmPhyTest():
 
     # Configure ROADMS switch rule
     lauch_p = {}
-    for i in range(1,NUM_WAV):
-        lauch_p[i]= 0#random.randint(1,2)
+    for i in range(1,NUM_WAV+2):
+        lauch_p[i]= random.randint(-3,3)
+        lauch_p[i] = 0
 
-    chs = [i for i in range(1,10)]
-    path1 = routes['t1']['t3']
+    channels = []
+    for j in range(1,NUM_WAV):
+        channels.append([m for m in range(j,j+1)])
+    # left, right = 0, 1
+    # for k in range(20):
+    #     if right >= NUM_WAV:
+    #         channels.append(range(left,NUM_WAV))
+    #         break
+    #     left = right
+    #     right = random.randint(left+1, NUM_WAV)
+    #     print((left,right))
+    #     channels.append(range(left,right))
+    paths = {}
+    start, end = 1, 3
+    routes['t1']['t3'] = ('t1', 'r1', 'r4', 'r3', 't3')
+    #random.seed(1000)
+    for chs in channels:
+        #chs = [i for i in range(1,50)]
+        src = 't%s' %start#random.choice(name_terminals)
+        dst = 't%s' %end #random.choice(name_terminals)
+        start += 1
+        end += 1
+        if start == 5:
+            start = 1
+        if end == 5:
+            end = 1
+        while dst == src:
+            dst = random.choice(name_terminals)
+        path = routes[src][dst]
+        print('===path, wav===', path, chs)
+        installPath(path, chs, Graph, nodes)
+
+        for ch in chs:
+            paths[ch] = path
+            configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
+            voaPowerLeveling(path=path, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
+            configTerminalChannel(terminal=nodes[path[0]], channel=ch)
+
+    """chs = [i for i in range(1,10)]
+    src, dst = 't1', 't3'
+    path1 = routes[src][dst]
     installPath(path1, chs, Graph, nodes)
     print('===Traffics===', Traffics.items())
     print('===path===', path1)
     for ch in chs:
-        configTerminalChannelPower(terminal=nodes['t1'], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path= path1, channel=ch, power=-2, graph=Graph, nodes=nodes)
+        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
+        voaPowerLeveling(path= path1, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
         configTerminalChannel(terminal =nodes[path1[0]], channel = ch)
     #"""
 
-    chs = [i for i in range(10, 20)]
-    path2 = routes['t2']['t4']
+    """chs = [i for i in range(10, 20)]
+    src, dst = 't1', 't3'
+    path2 = routes[src][dst]
     installPath(path2, chs, Graph, nodes)
     print('===Traffics===', Traffics.items())
     print('===path===', path2)
     for ch in chs:
-        configTerminalChannelPower(terminal=nodes['t2'], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path=path2, channel=ch, power=-2, graph=Graph, nodes=nodes)
+        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
+        voaPowerLeveling(path=path2, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
         configTerminalChannel(terminal=nodes[path2[0]], channel=ch)
     #"""
 
-    chs = [i for i in range(20, 30)]
-    path3 = routes['t7']['t9']
+    """chs = [i for i in range(20, 30)]
+    src, dst = 't1', 't3'
+    path3 = routes[src][dst]
     installPath(path3, chs, Graph, nodes)
     print('===Traffics===', Traffics.items())
     print('===path===', path3)
     for ch in chs:
-        configTerminalChannelPower(terminal=nodes['t7'], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path=path3, channel=ch, power=-2, graph=Graph, nodes=nodes)
+        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
+        voaPowerLeveling(path=path3, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
         configTerminalChannel(terminal=nodes[path3[0]], channel=ch)
     #"""
 
@@ -423,25 +466,29 @@ def RoadmPhyTest():
     uninstallPath(lightpath_id=9, nodes=nodes)
     #"""
 
-    print( '*** Initial OSNR and gOSNR:' )
-    monitors = [ monitorAll(nodes[node]) for node in ['r1','r2','r3','r4',]]
+    """print( '*** Initial OSNR and gOSNR:' )
+    monitors = [ monitorAll(nodes[node]) for node in NAME_ROADM]
     for mon in monitors:
         print( 'monitor:', mon )
         print( 'OSNR', mon[1], '\n', 'gOSNR', mon[2], '\n', 'power', mon[0])
     #"""
 
-
-    for ch in range(1, 10):
-        powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=path1, channel=ch, nodes=nodes)
-        print('channel', ch, 'path', path1, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
+    low_v = []
+    for ch in range(1, NUM_WAV):
+        powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=paths[ch], channel=ch, nodes=nodes)
+        if gosnrs[-1]<25:
+            low_v.append((ch,paths[ch],osnrs,gosnrs))
+        print('channel', ch, 'path', paths[ch], 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
+    for i in range(len(low_v)):
+        print(low_v[i])
     #"""
 
-    for ch in range(10, 20):
+    """for ch in range(10, 20):
         powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=path2, channel=ch, nodes=nodes)
         print('channel', ch, 'path', path2, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
-    #""""
+    #"""
 
-    for ch in range(20, 30):
+    """for ch in range(20, 30):
         powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=path3, channel=ch, nodes=nodes)
         print('channel', ch, 'path', path3, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli,  'gosnr', gosnrs)
     #"""
