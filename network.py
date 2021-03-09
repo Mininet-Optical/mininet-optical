@@ -78,7 +78,7 @@ class Network(object):
         :return: added Amplifier
         """
         if name in self.name_to_node:
-            raise ValueError("Network.add_amplifier: Amplifier with this name already exist!!")
+            raise ValueError("Network.add_amplifier: Amplifier with this name already exist!! %s" % str(name))
         configs = {'name': name,
                    'amplifier_type': amplifier_type}
         configs.update(params)
