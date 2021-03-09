@@ -159,6 +159,7 @@ class Link(object):
                 # associate boost_amp to optical signal at input interface
                 self.boost_amp.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=0, src_node=self.src_node)
             # Enabling amplifier system gain balancing check
+            # print(self.boost_amp)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal in self.optical_signals:
                     output_power_dict[optical_signal] = \
@@ -189,17 +190,28 @@ class Link(object):
                 # that will enable the subsequent computations
                 self.include_optical_signal_out((optical_signal, optical_signal.uid), tup_key=(self, span))
 
+
+            # conn_loss_in = db_to_abs(span.conn_loss_in + span.att_in)
+            # for optical_signal in self.optical_signals:
+            #     power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / conn_loss_in
+            #     ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / conn_loss_in
+            #     nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / conn_loss_in
+            #
+            #     self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
+            #                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out,
+            #                                     tup_key=(self, span))
+
             if amplifier:
                 # Compute the nonlinear noise with the GN model
                 self.output_nonlinear_noise(span)
 
             # Compute SRS effects from the fibre
-            if self.srs_effect:
-                if len(self.optical_signals) > 1 and prev_amp:
-                    self.zirngibl_srs(span)
+            # if self.srs_effect:
+            #     if len(self.optical_signals) > 1 and prev_amp:
+            #         self.zirngibl_srs(span)
 
             # Compute linear effects from the fibre
-            span_attenuation = span.attenuation()
+            span_attenuation = db_to_abs(span.length * span.fibre_attenuation)
             for optical_signal in self.optical_signals:
                 power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / span_attenuation
                 ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / span_attenuation
@@ -232,8 +244,7 @@ class Link(object):
                     power_out = optical_signal.loc_out_to_state[amplifier]['power']
                     ase_noise_out = optical_signal.loc_out_to_state[amplifier]['ase_noise']
                     nli_noise_out = optical_signal.loc_out_to_state[amplifier]['nli_noise']
-
-                    self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
+                    self.include_optical_signal_in((optical_signal, optical_signal.uid), power=power_out,
                                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out)
 
             prev_amp = amplifier
@@ -290,9 +301,9 @@ class Link(object):
         nonlinear_noise_new = self.gn_model(span)
 
         for optical_signal in self.optical_signals:
-            # nli_noise_in = optical_signal.loc_out_to_state[(self, span)]['nli_noise']
-            # nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
-            nli_noise_out = nonlinear_noise_new[optical_signal]
+            nli_noise_in = optical_signal.loc_in_to_state[(self, span)]['nli_noise']
+            nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
+            # nli_noise_out = nonlinear_noise_new[optical_signal]
             self.include_optical_signal_out((optical_signal, optical_signal.uid), nli_noise=nli_noise_out, tup_key=(self, span))
 
     def gn_model(self, span):
@@ -320,20 +331,22 @@ class Link(object):
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
             bw_cut = symbol_rate_cut
-            pwr_cut = round(optical_signal.loc_out_to_state[(self, span)]['power'], 2) * 1e-3
+            # pwr_cut = round(optical_signal.loc_out_to_state[(self, span)]['power'], 2) * 1e-3
+            pwr_cut = optical_signal.loc_out_to_state[(self, span)]['power'] * 1e-3
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             g_nli = 0
             for ch in self.optical_signals:
                 symbol_rate_ch = ch.symbol_rate
                 bw_ch = symbol_rate_ch
-                pwr_ch = round(ch.loc_out_to_state[(self, span)]['power'], 2) * 1e-3
+                pwr_ch = ch.loc_out_to_state[(self, span)]['power'] * 1e-3
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
                 psi = self.psi_factor(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
                 g_nli += g_ch ** 2 * g_cut * psi
 
             g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 \
                      / (2 * np.pi * abs(beta2) * asymptotic_length)
+
             signal_under_test = index_to_signal[channel_under_test]
             nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
         return nonlinear_noise_struct
@@ -350,7 +363,7 @@ class Link(object):
         bw_ch = symbol_rate_ch
 
         if carrier.index == interfering_carrier.index:  # SCI, SPM
-            psi = np.arcsinh(0.5 * pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
+            psi = np.arcsinh(0.5 * np.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
         else:  # XCI, XPM
             delta_f = carrier.frequency - interfering_carrier.frequency
             psi = np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
@@ -388,6 +401,12 @@ class Span(object):
 
         self.input_power = {}  # dict signal to input power
         self.output_power = {}  # dict signal to output power
+
+        # Parameters to add:
+        self.att_in = 0
+        self.conn_loss_in = 0
+        self.conn_loss_out = 0
+        self.padding = 0
 
     def describe(self):
         pprint(vars(self))

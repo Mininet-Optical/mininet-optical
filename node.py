@@ -274,7 +274,7 @@ class LineTerminal(Node):
         self.transceivers.remove(transceiver)
         del self.name_to_transceivers[transceiver_name]
 
-    def configure_terminal(self, transceiver, channel, in_port=-1):
+    def configure_terminal(self, transceiver, channel, in_port=-1, lp_descriptor={}):
         """
         Program the channels that will be launched at transceivers
         :param transceiver: transceiver to use for transmission
@@ -287,7 +287,8 @@ class LineTerminal(Node):
         optical_signal = OpticalSignal(channel, transceiver.spectrum_band,
                                        transceiver.channel_spacing_H, transceiver.channel_spacing_nm,
                                        transceiver.symbol_rate, transceiver.bits_per_symbol,
-                                       power=transceiver.operation_power, ase_noise=ase_noise, nli_noise=nli_noise)
+                                       power=transceiver.operation_power, ase_noise=ase_noise, nli_noise=nli_noise,
+                                       lp_descriptor=lp_descriptor)
 
         # include optical signal in LineTerminal list
         self.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self)
@@ -348,7 +349,7 @@ class LineTerminal(Node):
 
     @staticmethod
     def init_noise_structs(operation_power):
-        noise = operation_power / db_to_abs(50)
+        noise = operation_power / db_to_abs(90)
         return noise, noise
 
     @staticmethod
@@ -360,7 +361,7 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, src_node):
-        print("*** %s.receiver from %s:" % (self, src_node))
+        # print("*** %s.receiver from %s:" % (self, src_node))
 
         signalInfoDict = {}
         for optical_signal_tuple in self.node_to_optical_signal_in[src_node]:
@@ -386,17 +387,17 @@ class LineTerminal(Node):
             signalInfoDict[optical_signal]['gosnr'] = gosnr
 
             if gosnr < self.rx_threshold_dB:
-                print("*** %s-%s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
-                      (optical_signal, optical_signal.uid, self.__class__.__name__,
-                       self.name, gosnr, self.rx_threshold_dB))
+                # print("*** %s-%s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
+                #      (optical_signal, optical_signal.uid, self.__class__.__name__,
+                #       self.name, gosnr, self.rx_threshold_dB))
 
                 signalInfoDict[optical_signal]['success'] = False
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
                 self.receiver_callback(in_port, signalInfoDict)
             else:
 
-                print("*** %s-%s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
-                      (optical_signal, optical_signal.uid, self.__class__.__name__, self.name, gosnr))
+                # print("*** %s-%s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
+                #      (optical_signal, optical_signal.uid, self.__class__.__name__, self.name, gosnr))
 
                 signalInfoDict[optical_signal]['success'] = True
                 self.signal_info_dict_transceiver[in_port] = signalInfoDict
@@ -410,7 +411,7 @@ class Transceiver(object):
     def __init__(self, transceiver_id, name, operation_power=0, spectrum_band='C', optical_carrier=1550.0,
                  channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
                  bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=25e9):
+                 bits_per_symbol=4.0, symbol_rate=32e9):
         """
         :param name: human readable ID
         :param transceiver_id: int, ID
@@ -428,7 +429,8 @@ class Transceiver(object):
         self.name = name
         self.id = transceiver_id
         # operation power input in dBm to convert to linear
-        self.operation_power = db_to_abs(operation_power)
+        # self.operation_power = db_to_abs(operation_power)
+        self.operation_power = db_to_abs(operation_power) * 1e-3  # in Watts
         self.spectrum_band = spectrum_band
         self.optical_carrier = optical_carrier
         self.channel_spacing_nm = channel_spacing_nm
@@ -462,7 +464,8 @@ class OpticalSignal(object):
 
     def __init__(self, index, spectrum_band, channel_spacing_H,
                  channel_spacing_nm, symbol_rate, bits_per_symbol,
-                 power=None, ase_noise=None, nli_noise=None, data=None):
+                 power=None, ase_noise=None, nli_noise=None, data=None,
+                 lp_descriptor={}):
         self.uid = id(self)
         # configuration attributes
         self.index = index
@@ -472,6 +475,8 @@ class OpticalSignal(object):
         self.data = data
         self.symbol_rate = symbol_rate
         self.bits_per_symbol = bits_per_symbol
+
+        self.visited_elements = []
 
         # state attributes
         self.power_start = power
@@ -483,6 +488,10 @@ class OpticalSignal(object):
         # loc_in/out: (power:p, ase:a, nli:n)
         self.loc_in_to_state = {}  # looping back to the same component?
         self.loc_out_to_state = {}  # detect and don't allow!
+
+        # LP descriptor contains:
+        # src_node, dst_node, src_visit
+        self.lp_descriptor = lp_descriptor
 
     def describe(self):
         pprint(vars(self))
@@ -511,6 +520,9 @@ class OpticalSignal(object):
         self.nli_noise = nli_noise
         self.loc_in_to_state[loc] = {'power': power, 'ase_noise': ase_noise, 'nli_noise': nli_noise}
 
+        if loc not in self.visited_elements:
+            self.visited_elements.append(loc)
+
     def assoc_loc_out(self, loc, power=None, ase_noise=None, nli_noise=None):
         """
         Associate a location to signal performance values
@@ -526,10 +538,14 @@ class OpticalSignal(object):
             ase_noise = self.ase_noise
         if not nli_noise:
             nli_noise = self.nli_noise
+        # print("updating nli noise", nli_noise)
         self.power = power
         self.ase_noise = ase_noise
         self.nli_noise = nli_noise
         self.loc_out_to_state[loc] = {'power': power, 'ase_noise': ase_noise, 'nli_noise': nli_noise}
+
+        if loc not in self.visited_elements:
+            self.visited_elements.append(loc)
 
     def reset(self):
         self.power = self.power_start
@@ -585,6 +601,11 @@ class Roadm(Node):
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
 
+        # GNPy additions
+        self.target_output_power_dB = -17
+        self.effective_output_power_dB = 0
+        self.reference_power = 0
+
     def monitor_query(self):
         if self.monitor:
             # start monitor
@@ -592,7 +613,7 @@ class Roadm(Node):
             return self.monitor
 
     def configure_voa(self, channel_id, output_port, operational_power_dB):
-        self.equalization_target_out_power[(channel_id, output_port)] = db_to_abs(operational_power_dB)
+        self.equalization_target_out_power[(channel_id, output_port)] = db_to_abs(operational_power_dB) * 1e-3
 
     def equalization_safety_check(self, equalization_function, equalization_target_out_power):
         """
@@ -824,7 +845,24 @@ class Roadm(Node):
                 self, self.optical_signal_to_node_in.keys()))
         else:
             dst_nodes = []
-            for optical_signal_tuple in self.node_to_optical_signal_in[src_node]:
+
+            self.effective_output_power_dB = min(self.reference_power, self.target_output_power_dB)
+            self.effective_loss = self.reference_power - self.target_output_power_dB
+            carriers_power = []
+            for optical_signal_tuple in self.optical_signal_to_port_in:
+                optical_signal = optical_signal_tuple[0]
+                power_in = optical_signal.loc_in_to_state[self]['power']
+                ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
+                nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
+
+                total_power = power_in + ase_noise_in + nli_noise_in
+                carriers_power.append(total_power)
+            print(carriers_power)
+            carriers_att = list(map(lambda x: abs_to_db(x * 1e3) - self.target_output_power_dB, carriers_power))
+            exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
+            carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
+
+            for optical_signal_tuple, carrier_att in zip(self.node_to_optical_signal_in[src_node], carriers_att):
 
                 if optical_signal_tuple in self.optical_signal_to_port_in:
                     optical_signal = optical_signal_tuple[0]
@@ -844,13 +882,12 @@ class Roadm(Node):
                     if att_flag:
                         # retrieve the WSS wavelength-dependent attenuation
                         node_attenuation = self.get_node_attenuation(in_port)
-
                         # retrieve the equalization attenuation function at the output ports
                         equalization_attenuation = self.equalization_attenuation
 
-                        power_out = power_in / node_attenuation[optical_signal] / equalization_attenuation
-                        ase_noise_out = ase_noise_in / node_attenuation[optical_signal] / equalization_attenuation
-                        nli_noise_out = nli_noise_in / node_attenuation[optical_signal] / equalization_attenuation
+                        power_out = power_in / carrier_att  # / node_attenuation[optical_signal] / equalization_attenuation
+                        ase_noise_out = ase_noise_in / carrier_att  # / node_attenuation[optical_signal] / equalization_attenuation
+                        nli_noise_out = nli_noise_in / carrier_att  # / node_attenuation[optical_signal] / equalization_attenuation
 
                     # find the port where signals should be switch towards
                     switch_rule = self.get_switch_rule(in_port, optical_signal.index)
@@ -985,11 +1022,11 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = 'description-files/'
+description_files_dir = '../description-files/'
 # description_files_dir = '../../Research/optical-network-emulator/description-files/'
 # description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'wdg1.txt',
-                     'wdg2': 'wdg1.txt'}
+description_files = {'wdg1': 'linear.txt',
+                     'wdg2': 'linear.txt'}
 
 
 # 'wdg1_yj': 'wdg1_yeo_johnson.txt',
@@ -998,9 +1035,9 @@ description_files = {'wdg1': 'wdg1.txt',
 
 class Amplifier(Node):
 
-    def __init__(self, name, amplifier_type='EDFA', target_gain=18.0,
+    def __init__(self, name, amplifier_type='EDFA', target_gain=17.6,
                  noise_figure=(5.5, 91), noise_figure_function=None,
-                 bandwidth=12.5e9, wavelength_dependent_gain_id=None,
+                 bandwidth=32.0e9, wavelength_dependent_gain_id=None,
                  boost=False, monitor_mode=None, equalization_function=None,
                  equalization_target_out_power=0):
         """
@@ -1040,6 +1077,30 @@ class Amplifier(Node):
             self.equalization_flag_2 = False
 
         self.boost = boost
+
+
+        # GNPy params
+        self.interpol_dgt = None  # interpolated dynamic gain tilt
+        self.interpol_gain_ripple = None  # gain ripple
+        self.interpol_nf_ripple = None  # nf_ripple
+        self.channel_freq = None  # SI channel frequencies
+        # nf, gprofile, pin and pout attributes are set by interpol_params
+        self.nf = None  # dB edfa nf at operational.gain_target
+        self.gprofile = None
+        self.pin_db = None
+        self.nch = None
+        self.pout_db = None
+        self.target_pch_out_db = None
+        self.effective_pch_out_db = None
+        self.passive = False
+        self.att_in = None
+        self.carriers_in = None
+        self.carriers_out = None
+        # self.effective_gain = self.operational.gain_target
+        # self.delta_p = self.operational.delta_p  # delta P with Pref (power swwep) in power mode
+        # self.tilt_target = self.operational.tilt_target
+        # self.out_voa = self.operational.out_voa
+
 
     def monitor_query(self):
         if self.monitor:
@@ -1147,6 +1208,9 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
+    def propagate(self):
+        return
+
     def output_amplified_power(self, optical_signal, dst_node=None):
         """
         Compute the output power levels of each signal after amplification
@@ -1161,6 +1225,12 @@ class Amplifier(Node):
         input_power = optical_signal.loc_in_to_state[self]['power']
         output_power = input_power * system_gain_linear * \
                        wavelength_dependent_gain_linear
+
+        # print("Amplifier:", self, "|",
+        #       "frequency (THz):", optical_signal.frequency / 1e12, '|',
+        #       "input power (W):", input_power, '|',
+        #       "gain (dB):", self.system_gain, '|',
+        #       "output power (W):", output_power)
 
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
@@ -1177,8 +1247,9 @@ class Amplifier(Node):
 
         # the NLI noise als gets affected
         nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
-        nli_noise_out = nli_noise_in * system_gain_linear * wavelength_dependent_gain
+        nli_noise_out = nli_noise_in * system_gain_linear # * wavelength_dependent_gain_linear
 
+        #print("attempt to update at amplifier with nli noise", nli_noise_out)
         self.include_optical_signal_out((optical_signal, optical_signal.uid),
                                         nli_noise=nli_noise_out, out_port=0, dst_node=dst_node)
 
@@ -1193,9 +1264,9 @@ class Amplifier(Node):
         system_gain = self.system_gain
 
         ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
-        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
+        gain_linear = db_to_abs(system_gain)  # * db_to_abs(wavelength_dependent_gain)
         ase_noise_out = ase_noise_in * gain_linear + (noise_figure_linear * h * optical_signal.frequency *
-                                                      self.bandwidth * (gain_linear - 1) * 1000)
+                                                      self.bandwidth * (gain_linear - 1))  # * 1000)
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
         self.include_optical_signal_out((optical_signal, optical_signal.uid),
@@ -1208,22 +1279,22 @@ class Amplifier(Node):
         gain of the signals in the amplifier: power excursions
         :return:
         """
-        optical_signals_in = self.port_to_optical_signal_in[0]
-
-        output_power_target_dBm = []
-        output_power_real_dBm = []
-        for optical_signal_tuple in optical_signals_in:
-            # compute output_power * target gain for all signals
-            optical_signal = optical_signal_tuple[0]
-            output_power_dBm = abs_to_db(optical_signal.loc_in_to_state[self]['power'] * db_to_abs(self.target_gain))
-            output_power_target_dBm.append(output_power_dBm)
-
-            output_power_real_dBm.append(abs_to_db(optical_signal.loc_out_to_state[self]['power']))
-
-        # compute power excursions using the means
-        power_excursions = np.mean(output_power_target_dBm) - np.mean(output_power_real_dBm)
+        # optical_signals_in = self.port_to_optical_signal_in[0]
+        #
+        # output_power_target_dBm = []
+        # output_power_real_dBm = []
+        # for optical_signal_tuple in optical_signals_in:
+        #     # compute output_power * target gain for all signals
+        #     optical_signal = optical_signal_tuple[0]
+        #     output_power_dBm = abs_to_db(optical_signal.loc_in_to_state[self]['power'] * db_to_abs(self.target_gain))
+        #     output_power_target_dBm.append(output_power_dBm)
+        #
+        #     output_power_real_dBm.append(abs_to_db(optical_signal.loc_out_to_state[self]['power']))
+        #
+        # # compute power excursions using the means
+        # power_excursions = np.mean(output_power_target_dBm) - np.mean(output_power_real_dBm)
         # update EDFA system gain
-        self.system_gain += power_excursions
+        # self.system_gain += power_excursions
 
         # Flag-check for enabling the repeated computation of balancing
         if self.power_excursions_flag_1 and (not self.power_excursions_flag_2):
@@ -1399,7 +1470,8 @@ class Monitor(Node):
             output_power = optical_signal.loc_in_to_state[self.component]['power']
             ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
-        gosnr_linear = output_power / (ase_noise + nli_noise * (12.5e9 / 32.0e9))
+
+        gosnr_linear = output_power / (ase_noise + nli_noise) * (32e9/12.5e9)
         gosnr = abs_to_db(gosnr_linear)
         return gosnr
 
