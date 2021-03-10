@@ -140,7 +140,9 @@ class Link(object):
                     # and the link only has an input port of reference for
                     # the dst_node
                     in_port = self.dst_node.link_to_port_in[self]
-                    self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal.uid), in_port=in_port)
+                    # self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal.uid), in_port=in_port)
+                    print("$$$$$$$$ ", self, "passing signal", optical_signal, "to", self.dst_node)
+                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self.src_node)
 
                 if is_last_port:
                     self.dst_node.switch(self.src_node)

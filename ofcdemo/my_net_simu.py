@@ -306,10 +306,10 @@ def configTerminalChannelPower(terminal, channel, power):
     terminal.name_to_transceivers['tx%d'% channel].operation_power = db_to_abs(power)
 
 
-def configTerminalChannel(terminal, channel):
+def configTerminalChannel(terminal, channel, lp_descriptor):
     "Turn on a Terminal with a given channel"
 
-    terminal.configure_terminal(transceiver=terminal.transceivers[channel-1], channel=channel)
+    terminal.configure_terminal(transceiver=terminal.transceivers[channel-1], channel=channel, lp_descriptor=lp_descriptor)
     terminal.turn_on()
 
 
@@ -406,6 +406,8 @@ def RoadmPhyTest():
         #chs = [i for i in range(1,50)]
         src = 't%s' %start#random.choice(name_terminals)
         dst = 't%s' %end #random.choice(name_terminals)
+        src_roadm = 'r%s' % start  # random.choice(name_terminals)
+        dst_roadm = 'r%s' % end  # random.choice(name_terminals)
         start += 1
         end += 1
         if start == 5:
@@ -418,11 +420,12 @@ def RoadmPhyTest():
         print('===path, wav===', path, chs)
         installPath(path, chs, Graph, nodes)
 
+        lp_descriptor = {'src_roadm': net.name_to_node[src_roadm], 'dst_roadm': net.name_to_node[dst_roadm]}
         for ch in chs:
             paths[ch] = path
             configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
             voaPowerLeveling(path=path, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
-            configTerminalChannel(terminal=nodes[path[0]], channel=ch)
+            configTerminalChannel(terminal=nodes[path[0]], channel=ch, lp_descriptor=lp_descriptor)
 
     """chs = [i for i in range(1,10)]
     src, dst = 't1', 't3'

@@ -491,7 +491,8 @@ class OpticalSignal(object):
 
         # LP descriptor contains:
         # src_node, dst_node, src_visit
-        self.lp_descriptor = lp_descriptor
+        self.lp_descriptor = {'src_visit': 0, 'dst_visit': 0}
+        self.lp_descriptor.update(lp_descriptor)
 
     def describe(self):
         pprint(vars(self))
@@ -829,10 +830,41 @@ class Roadm(Node):
             self.port_to_optical_signal_in_roadm[in_port] = []
         return 1
 
+    def can_propagate(self):
+        print("optical_signal_to_port_in", self.optical_signal_to_port_in)
+        for optical_signal_tuple in self.optical_signal_to_port_in:
+            optical_signal = optical_signal_tuple[0]
+
+            # Check the propagation of the signals across ROADMs
+            if optical_signal.lp_descriptor['src_roadm'] is self:
+                optical_signal.lp_descriptor['src_visit'] += 1
+            elif optical_signal.lp_descriptor['dst_roadm'] is self:
+                optical_signal.lp_descriptor['dst_visit'] += 1
+
+        src_visits = 0
+        signal_no = 0
+        for optical_signal_tuple in self.optical_signal_to_port_in:
+            optical_signal = optical_signal_tuple[0]
+            print(optical_signal, optical_signal.lp_descriptor)
+            src_visits += optical_signal.lp_descriptor['src_visit']
+            signal_no += 1
+        total_visits = src_visits / signal_no
+        print(self, "src_visits", src_visits, "total visits", total_visits)
+        print("#####")
+        if total_visits >= 3:
+            return False
+        else:
+            return True
+
     def switch(self, src_node, att_flag=True):
         # check if we can switch
-        if self.check_switch(src_node) < 0:
-            print("*** %s - An error was detected in the switching." % self)
+        # if self.check_switch(src_node) < 0:
+        #     print("*** %s - An error was detected in the switching." % self)
+        #     return
+        if self.can_propagate():
+            pass
+        else:
+            print("Loop detected!")
             return
 
         # get switch rules from signals
@@ -857,7 +889,7 @@ class Roadm(Node):
 
                 total_power = power_in + ase_noise_in + nli_noise_in
                 carriers_power.append(total_power)
-            print(carriers_power)
+            # print(carriers_power)
             carriers_att = list(map(lambda x: abs_to_db(x * 1e3) - self.target_output_power_dB, carriers_power))
             exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
             carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
