@@ -126,8 +126,9 @@ for i, p in enumerate(power_levels):
         # channels are enumerated starting from 1
         # transceivers and their ports are enumerated starting from 0
         t = transceivers[i - 1]
+        lp_descriptor = {'src_roadm': roadm_1, 'dst_roadm': roadm_5}
         # associate transceiver to channel in LineTerminal
-        lt_1.configure_terminal(t, channel)
+        lt_1.configure_terminal(t, channel)#, lp_descriptor=lp_descriptor)
 
     # Install switch rules into the ROADM nodes
     # input port of roadm when coming from terminal
