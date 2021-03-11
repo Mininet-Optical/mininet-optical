@@ -14,7 +14,7 @@ class Link(object):
     """
 
     def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
-                 boost_amp=None, srs_effect=True, spans=None):
+                 boost_amp=None, srs_effect=False, spans=None):
         """
         :param src_node: source Node object
         :param dst_node: destination Node object
@@ -30,7 +30,6 @@ class Link(object):
         self.spans = spans or []
 
         self.optical_signals = []
-        self.optical_signal_to_port_in = {}
 
         # set connection ports for amps and the link
         if boost_amp:
@@ -71,7 +70,6 @@ class Link(object):
         print("%s - %s removing signal: %s-%s" % (self.__class__.__name__, self, optical_signal, optical_signal.uid))
         if optical_signal in self.optical_signals:
             self.optical_signals.remove(optical_signal)
-            del self.optical_signal_to_port_in[optical_signal]
 
         for span, amplifier in self.spans:
             if amplifier:
@@ -83,7 +81,7 @@ class Link(object):
     def include_optical_signal_in(self, optical_signal_tuple, in_port=None, power=None,
                                   ase_noise=None, nli_noise=None, tup_key=None):
         """
-        Include optical signal in optical_signals_in
+        Include optical signal in optical_signals
         :param optical_signal_tuple: OpticalSignal object
         :param in_port: output port from Node
         :param power: power level of OpticalSignal
@@ -94,7 +92,6 @@ class Link(object):
         optical_signal = optical_signal_tuple[0]
         if optical_signal not in self.optical_signals:
             self.optical_signals.append(optical_signal)
-            self.optical_signal_to_port_in[optical_signal] = in_port
 
         if tup_key:
             optical_signal.assoc_loc_in(tup_key, power, ase_noise, nli_noise)
@@ -130,7 +127,8 @@ class Link(object):
                 # what port should match what signal
                 for optical_signal in self.optical_signals:
                     in_port = self.dst_node.link_to_port_in[self]
-                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self.src_node)
+                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid),
+                                                            in_port=in_port, src_node=self.src_node)
                 if is_last_port:
                     self.dst_node.receiver(self.src_node)
             else:
@@ -140,9 +138,8 @@ class Link(object):
                     # and the link only has an input port of reference for
                     # the dst_node
                     in_port = self.dst_node.link_to_port_in[self]
-                    # self.dst_node.include_optical_signal_in_roadm((optical_signal, optical_signal.uid), in_port=in_port)
-                    print("$$$$$$$$ ", self, "passing signal", optical_signal, "to", self.dst_node)
-                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=in_port, src_node=self.src_node)
+                    self.dst_node.include_optical_signal_in((optical_signal, optical_signal.uid),
+                                                            in_port=in_port, src_node=self.src_node)
 
                 if is_last_port:
                     self.dst_node.switch(self.src_node)
@@ -159,7 +156,8 @@ class Link(object):
         if self.boost_amp:  # Implementing boost as part of ROADM? Probably yes.
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
-                self.boost_amp.include_optical_signal_in((optical_signal, optical_signal.uid), in_port=0, src_node=self.src_node)
+                self.boost_amp.include_optical_signal_in((optical_signal, optical_signal.uid),
+                                                         in_port=0, src_node=self.src_node)
             # Enabling amplifier system gain balancing check
             # print(self.boost_amp)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
@@ -172,7 +170,6 @@ class Link(object):
             if equalization:
                 # procedure for VOA reconfiguration (equalization)
                 src_node_out_port = self.src_node.link_to_port_out[self]
-
                 self.src_node.equalization_reconf(self, output_power_dict, src_node_out_port)
                 # return False to avoid propagation of effects
                 return False
@@ -193,24 +190,24 @@ class Link(object):
                 self.include_optical_signal_out((optical_signal, optical_signal.uid), tup_key=(self, span))
 
 
-            # conn_loss_in = db_to_abs(span.conn_loss_in + span.att_in)
-            # for optical_signal in self.optical_signals:
-            #     power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / conn_loss_in
-            #     ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / conn_loss_in
-            #     nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / conn_loss_in
-            #
-            #     self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
-            #                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-            #                                     tup_key=(self, span))
+            conn_loss_in = db_to_abs(span.conn_loss_in + span.att_in)
+            for optical_signal in self.optical_signals:
+                power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / conn_loss_in
+                ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / conn_loss_in
+                nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / conn_loss_in
+
+                self.include_optical_signal_out((optical_signal, optical_signal.uid), power=power_out,
+                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out,
+                                                tup_key=(self, span))
 
             if amplifier:
                 # Compute the nonlinear noise with the GN model
                 self.output_nonlinear_noise(span)
 
             # Compute SRS effects from the fibre
-            # if self.srs_effect:
-            #     if len(self.optical_signals) > 1 and prev_amp:
-            #         self.zirngibl_srs(span)
+            if self.srs_effect:
+                if len(self.optical_signals) > 1 and prev_amp:
+                    self.zirngibl_srs(span)
 
             # Compute linear effects from the fibre
             span_attenuation = db_to_abs(span.length * span.fibre_attenuation)

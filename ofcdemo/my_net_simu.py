@@ -20,7 +20,7 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 5
+NUM_WAV = 6
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
