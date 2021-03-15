@@ -615,6 +615,7 @@ class Roadm(Node):
 
     def equalization_safety_check(self, equalization_function, equalization_target_out_power):
         """
+        TO BE UPDATED
         Safety check for the declaration of equalization reconfiguration parameters
         :param equalization_function: string (i.e., 'flatten')
         :param equalization_target_out_power: float
@@ -957,6 +958,7 @@ class Roadm(Node):
 
     def equalization_reconf(self, link, output_power_dict, node_out_port):
         """
+        TO BE UPDATED
         wavelength dependent attenuation
         """
 
@@ -995,6 +997,7 @@ class Roadm(Node):
 
 class Equalizer(Node):
     """
+    TO BE UPDATED
     Dynamic gain equalizer (DGE)
     """
 
@@ -1133,7 +1136,7 @@ class Amplifier(Node):
 
     def equalization_reconf(self, link, output_power_dict):
         """
-        AD: TO BE UPDATED
+        TO BE UPDATED
         wavelength dependent attenuation
         """
 
@@ -1268,7 +1271,7 @@ class Amplifier(Node):
 
     def compute_power_excursions(self):
         """
-        NOT WORKING
+        TO BE UPDATED
         Balance system gain with respect with the mean
         gain of the signals in the amplifier: power excursions
         :return:

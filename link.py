@@ -159,7 +159,6 @@ class Link(object):
                 self.boost_amp.include_optical_signal_in((optical_signal, optical_signal.uid),
                                                          in_port=0, src_node=self.src_node)
             # Enabling amplifier system gain balancing check
-            # print(self.boost_amp)
             while not (self.boost_amp.power_excursions_flag_1 and self.boost_amp.power_excursions_flag_2):
                 for optical_signal in self.optical_signals:
                     output_power_dict[optical_signal] = \
@@ -302,7 +301,6 @@ class Link(object):
         for optical_signal in self.optical_signals:
             nli_noise_in = optical_signal.loc_in_to_state[(self, span)]['nli_noise']
             nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
-            # nli_noise_out = nonlinear_noise_new[optical_signal]
             self.include_optical_signal_out((optical_signal, optical_signal.uid), nli_noise=nli_noise_out, tup_key=(self, span))
 
     def gn_model(self, span):
