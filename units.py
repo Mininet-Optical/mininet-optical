@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import scipy.constants as sc
+import os
 c = 299792458.0  # Speed of light
 nm = 1.0e-9  # nanometers
 cm = 1.0e-2  # centimeters
@@ -12,6 +13,11 @@ W = 1.0  # watts
 ps = 1.0E-12  # picoseconds
 pi = math.pi  # pi
 h = sc.h  # Planck constant
+
+
+description_files_dir = '../description-files/'
+description_files = {'wdg1': 'linear.txt',
+                     'wdg2': 'linear.txt'}
 
 
 def db_to_abs(db_value):
