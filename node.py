@@ -1026,17 +1026,6 @@ class Equalizer(Node):
             return [float(line) for line in f]
 
 
-description_files_dir = '../description-files/'
-# description_files_dir = '../../Research/optical-network-emulator/description-files/'
-# description_files = {'linear': 'linear.txt'}
-description_files = {'wdg1': 'linear.txt',
-                     'wdg2': 'linear.txt'}
-
-
-# 'wdg1_yj': 'wdg1_yeo_johnson.txt',
-# 'wdg2_yj': 'wdg2_yeo_johnson.txt'}
-
-
 class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=17.6,
