@@ -1,6 +1,6 @@
 ### Mininet-Optical Prototype and Demo
 
-![tests](https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg)
+[![tests][1]](https://github.com/UA-Agile-Cloud/optical-network-emulator/actions)
 
 This is a prototype implementation of an emulator for packet optical software-defined networks.
 
@@ -17,3 +17,5 @@ This enables end-to-end emulation of a software-defined network that includes op
 elements such as ROADMs, optical transceivers, fiber spans, and EDFAs, packet SDN elements
 such as OpenFlow switches and Ethernet links, and SDN controllers to manage both packet
 and optical network elements.
+
+[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
