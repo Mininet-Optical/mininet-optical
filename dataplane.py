@@ -66,16 +66,26 @@ class OpticalNet( Mininet ):
                            self.monitors ):
             yield node.name
 
-    def addLinkComponents( self, link ):
-        for monitor in link.monitors:
+    def addMonitor( self, monitor ):
             self.nameToNode[ monitor.name ] = monitor
             self.monitors.append( monitor )
+
+    def addLinkComponents( self, link ):
+        for monitor in link.monitors:
+            self.addMonitor( monitor )
 
     def addLink( self, *args, **kwargs ):
         link = super( OpticalNet, self ).addLink( *args, **kwargs )
         if isinstance( link, OpticalLink ):
             self.addLinkComponents( link )
         return link
+
+    def addSwitch( self, *args, **kwargs ):
+        switch = super( OpticalNet, self ).addSwitch( *args, **kwargs )
+        monitor = getattr( switch, 'modelMonitor', None )
+        if monitor:
+           self.addMonitor( monitor )
+        return switch
 
     # Demo/debugging: support for setgain command
 
@@ -227,6 +237,10 @@ class SwitchBase( OVSSwitch ):
             isSwitch=isSwitch, batch=False )
 
         self.model = self.modelClass( name, **phyParams )
+
+        monitor = getattr( self.model, 'monitor', None )
+        if monitor:
+            self.modelMonitor = Monitor( monitor.name, monitor )
 
     def cmd( self, *args, **kwargs ):
         # simplified version that calls pexec
