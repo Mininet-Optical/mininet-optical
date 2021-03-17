@@ -688,7 +688,7 @@ class OpticalLink( Link ):
     @staticmethod
     def parseSpans( spans=None ):
         "Parse list of spans and amplifiers into (length, amp) tuples"
-        spans = spans or []
+        spans = list(spans) or []
         result = []
         while spans:
             length, ampName, params = spans.pop(0), None, {}
