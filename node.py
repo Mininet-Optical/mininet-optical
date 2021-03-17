@@ -1346,4 +1346,5 @@ class Monitor(Node):
         return gosnr
 
     def __repr__(self):
-        return "<name: %s, component: %s,>" % (self.name, self.component)
+        return "<name: %s, component: %s, mode: %s>" % (
+            self.name, self.component, self.mode)
