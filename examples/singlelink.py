@@ -16,6 +16,8 @@ curl 'localhost:8080/turn_on?node=t1'
 curl 'localhost:8080/turn_on?node=t2'
 """
 
+from sys import argv
+
 from dataplane import (Terminal, OpticalLink, OpticalNet as Mininet,
                        km, dB, dBm)
 from rest import RestServer
@@ -26,7 +28,7 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel
 from mininet.clean import cleanup
 
-class SingleLinkTopo( Topo ):
+class SingleLinkTopo(Topo):
     """Single link topology:
     h1 - s1 - t1 -
     (boost->,amp<-) --25km-- (->amp,<-boost)
@@ -59,8 +61,9 @@ class SingleLinkTopo( Topo ):
 
 if __name__ == '__main__':
 
+    cleanup()  # Just in case!
+
     setLogLevel('info')
-    cleanup()
 
     topo = SingleLinkTopo()
     net = Mininet(topo=topo, switch=OVSBridge)
