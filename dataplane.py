@@ -25,7 +25,8 @@ OpticalLink: a bidirectional optical link consisting of fiber
 
 # Physical model
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
-from node import ( LineTerminal as PhyTerminal, Amplifier as PhyAmplifier,
+from node import ( LineTerminal as PhyTerminal,
+                   Amplifier as PhyAmplifier,
                    Node as PhyNode,
                    Roadm as PhyROADM, Monitor as PhyMonitor,
                    SwitchRule as PhySwitchRule,
@@ -71,7 +72,6 @@ class OpticalNet( Mininet ):
             self.monitors.append( monitor )
 
     def addLink( self, *args, **kwargs ):
-        "Extends Mininet.addLink() to add Link's amps and monitors to net"
         link = super( OpticalNet, self ).addLink( *args, **kwargs )
         if isinstance( link, OpticalLink ):
             self.addLinkComponents( link )
@@ -217,11 +217,13 @@ class SwitchBase( OVSSwitch ):
 
     modelClass = PhyNode
 
-    def __init__( self, name, dpid=None, listenPort=None, inNamespace=False,
-                  isSwitch=True, batch=False, **phyParams ):
+    def __init__( self, name, dpid=None, listenPort=None,
+                  inNamespace=False, isSwitch=True, batch=False,
+                  **phyParams ):
         # No batch initialization for now since we add a flow in start()
         super( SwitchBase, self ).__init__(
-            name, dpid=dpid, listenPort=listenPort, inNamespace=inNamespace,
+            name, dpid=dpid, listenPort=listenPort,
+            inNamespace=inNamespace,
             isSwitch=isSwitch, batch=False )
 
         self.model = self.modelClass( name, **phyParams )
@@ -231,7 +233,8 @@ class SwitchBase( OVSSwitch ):
         cmd = ' '.join( str(arg) for arg in args )
         out, err, code = self.pexec( cmd, shell=True )
         if code != 0 and not cmd.startswith( 'ip link del' ):
-            raise Exception( '%s returned %d: %s' % ( args, code, out+err ) )
+            raise Exception(
+                '%s returned %d: %s' % ( args, code, out+err ) )
         return out
 
     dpidBase = 0x1000
@@ -341,8 +344,6 @@ class Terminal( SwitchBase ):
         wdmPort = int( query.wdmPort )
         channel = int( query.channel ) if query.get( 'channel' ) else None
         power = float( query.power ) if query.get ( 'power' ) else None
-        # print("*** setting", self, "eth", ethPort, "wdm", wdmPort, "channel",
-        #     channel, "power", power)
         self.connect( ethPort, wdmPort, channel, power=power )
         return 'OK'
 
@@ -441,7 +442,8 @@ class ROADM( SwitchBase ):
     @staticmethod
     def ruleTuple( inport, outport, channels ):
         "Return hashable tuple for rule"
-        return PhySwitchRule( inport, outport, tuple( sorted( channels ) ) )
+        return PhySwitchRule(
+            inport, outport, tuple( sorted( channels ) ) )
 
     def phyReset( self ):
         "Reset physical model"
@@ -535,7 +537,8 @@ class ROADM( SwitchBase ):
         "REST connect handler"
         port1 = int( query.port1 )
         port2 = int( query.port2 )
-        channels = [int(channel) for channel in query.channels.split(',')]
+        channels = [int(channel)
+                    for channel in query.channels.split(',')]
         action = query.get( 'action', action )
         self.connect( port1, port2, channels, action )
         return 'OK'
@@ -638,7 +641,8 @@ class OpticalLink( Link ):
         self.port1 = port1 or src.newPort()
         self.port2 = port2 or dst.newPort()
         assert self.port1 > 0 and self.port2 > 0, (
-            "OpticalLink: newPort() did not return positive port number" )
+            "OpticalLink: newPort() did not return positive port number"
+        )
         kwargs.update( port1=self.port1, port2=self.port2 )
 
         # Initialize dataplane
@@ -646,7 +650,8 @@ class OpticalLink( Link ):
         super( OpticalLink, self).__init__( src, dst, **kwargs )
 
         # Boost amplifiers if any
-        prefix1, prefix2 = ('%s-%s-' % (src, dst)), ('%s-%s-' % (dst, src)),
+        prefix1 = '%s-%s-' % (src, dst)
+        prefix2 = '%s-%s-' % (dst, src)
         boost1 = boost1 or (boost and ( prefix1 + boost[0], boost[1] ) )
         boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
         if boost1:
@@ -658,11 +663,13 @@ class OpticalLink( Link ):
 
         # Create symmetric spans and phy links in both directions
         spans = self.parseSpans( spans )
-        spans1 = [ PhySpan( length, PhyAmplifier( prefix1 + name, **params )
+        spans1 = [ PhySpan( length,
+                            PhyAmplifier( prefix1 + name, **params )
                             if name else None )
                    for length, name, params in spans ]
 
-        spans2 = [ PhySpan( length, PhyAmplifier( prefix2 + name, **params )
+        spans2 = [ PhySpan( length,
+                            PhyAmplifier( prefix2 + name, **params )
                             if name else None )
                    for length, name, params in spans ]
 
@@ -716,7 +723,8 @@ class AmplifierPair(object):
     phyAmp2 = None
 
     def __init__( self, name, *args, **kwargs ):
-        params1, params2  = kwargs.pop( 'params1' ), kwargs.pop( 'params2' )
+        params1 = kwargs.pop( 'params1' )
+        param2s = kwargs.pop( 'params2' )
         params1 = params1 or kwargs.copy()
         params2 = params2 or kwargs.copy()
         self.phyAmp1 = PhyAmplifier( name + '.1', *args, **params1)
@@ -778,7 +786,8 @@ def dumpLinkPower( link ):
         if amp:
             print(amp,
                   'input', formatSignals(amp.port_to_optical_signal_in),
-                  'output', formatSignals(amp.port_to_optical_signal_out) )
+                  'output',
+                  formatSignals(amp.port_to_optical_signal_out) )
 
 
 ### Sanity test
@@ -791,7 +800,8 @@ class TwoTransceiverTopo( Topo ):
         # Nodes
         h1, h2 = [ self.addHost( h ) for h in ( 'h1', 'h2' ) ]
         t1, t2 = [ self.addSwitch( o, cls=Terminal,
-                                   transceivers=[ ( 't1', -2*dBm, 'C' ) ] )
+                                   transceivers=[
+                                       ( 't1', -2*dBm, 'C' ) ] )
                    for o in ('t1', 't2') ]
 
         # Packet links: port 1 = ethernet port
