@@ -1,6 +1,6 @@
 ### Mininet-Optical Prototype and Demo
 
-![tests](https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg)
+[![tests][1]](https://github.com/UA-Agile-Cloud/optical-network-emulator/actions)
 
 This is a prototype implementation of an emulator for packet optical software-defined networks.
 
@@ -38,3 +38,6 @@ requirements.txt: Python requirements file (for pip3 install -r)
 rest.py: REST agent for external SDN control
 units.py: units of measurement
 visualize_topo.py: visualization support
+
+[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
+
