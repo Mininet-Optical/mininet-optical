@@ -6,7 +6,7 @@ singleroadm.py:
 Simple optical network with three terminals connected to a
 single ROADM in a "Y" topology. H1 can talk to either H2
 or H3, depending on how the ROADM is configured.
-2
+
 """
 
 from dataplane import (Terminal, ROADM, OpticalLink, OpticalNet as Mininet,
@@ -21,11 +21,11 @@ from mininet.clean import cleanup
 
 class SingleROADMTopo(Topo):
     """
-    h1 - s1 - t1 - r1 - t2 - s2 - h2
-                   |
-                   t3 - s3 - h3
+    h1 - s1 - t1 -- r1 -- t2 - s2 - h2
+                    |
+                    t3 - s3 - h3
 
-    Note that t1-r1 and r2-t2 are 50km spans:
+    Note that t1--r1 and r2--t2 are 50km spans:
     (boost->,amp2<-) --25km-- amp1 --25km-- (amp2->,boost<-)
     """
     def build(self):
@@ -35,8 +35,9 @@ class SingleROADMTopo(Topo):
         switches = [self.addSwitch(s)
                     for s in ('s1', 's2', 's3')]
         t1, t2, t3 = terminals = [
-            self.addSwitch(t, cls=Terminal, transceivers=[('tx1',0*dBm,'C')],
-                           monitor_mode='in', receiver_threshold=15.0*dB) # FIXME
+            self.addSwitch(
+                t, cls=Terminal, transceivers=[('tx1',0*dBm,'C')],
+                monitor_mode='in', receiver_threshold=15.0*dB) # FIXME
             for t in ('t1', 't2', 't3')]
         r1 = self.addSwitch('r1', cls=ROADM)
         # Ethernet links

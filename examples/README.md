@@ -1,5 +1,8 @@
 Mininet-Optical Examples
 ------------------------
 
-single-link.py: single link topology
-single-roadm.py: three terminals connectd to a single ROADM
+simplelink.py: simplified single link topology
+
+singlelink.py: single link topology
+
+singleroadm.py: three terminals connected to a single ROADM
