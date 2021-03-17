@@ -34,10 +34,12 @@ link.py: optical link simulation
 network.py: network container for simulation mode
 node.py: optical network element simulation
 README.md: this file
-requirements.txt: Python requirements file (for pip3 install -r)
 rest.py: REST agent for external SDN control
 units.py: units of measurement
 visualize_topo.py: visualization support
 
-[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
+#### Other files
+makefile: has "make depend" and "make clean" targets
+requirements.txt: Python requirements file (for pip3 install -r)
 
+[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
