@@ -26,6 +26,7 @@ onos_rest_api: ONOS CLI tool and REST proxy
 opticalemulator: southbound REST driver for ONOS
 sdn_monitor_qot_e: files for our QoT estimation paper(s)
 tests: tests for Mininet-Optical
+topo: sample topologies for simulation mode
 
 #### Python modules
 
