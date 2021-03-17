@@ -57,8 +57,8 @@ class SingleROADMTopo(Topo):
 
 if __name__ == '__main__':
 
-    setLogLevel('info')
     cleanup()
+    setLogLevel('info')
 
     topo = SingleROADMTopo()
     net = Mininet(topo=topo, switch=OVSBridge)
