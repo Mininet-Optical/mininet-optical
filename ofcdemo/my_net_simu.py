@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 6
+NUM_WAV = 50
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE =4
+NUM_NODE =6
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
@@ -399,12 +399,12 @@ def RoadmPhyTest():
     #     print((left,right))
     #     channels.append(range(left,right))
     paths = {}
-    start, end = 1, 3
-    routes['t1']['t3'] = ('t1', 'r1', 'r4', 'r3', 't3')
+    #start, end = 1, 3
+    #routes['t1']['t3'] = ('t1', 'r1', 'r4', 'r3', 't3')
     #random.seed(1000)
     for chs in channels:
         #chs = [i for i in range(1,50)]
-        src = 't%s' %start#random.choice(name_terminals)
+        """src = 't%s' %start#random.choice(name_terminals)
         dst = 't%s' %end #random.choice(name_terminals)
         src_roadm = 'r%s' % start  # random.choice(name_terminals)
         dst_roadm = 'r%s' % end  # random.choice(name_terminals)
@@ -414,6 +414,13 @@ def RoadmPhyTest():
             start = 1
         if end == 5:
             end = 1
+        #"""
+        src = random.choice(name_terminals)
+        dst = random.choice(name_terminals)
+        src_roadm = random.choice(name_terminals)
+        dst_roadm = random.choice(name_terminals)
+
+
         while dst == src:
             dst = random.choice(name_terminals)
         path = routes[src][dst]
