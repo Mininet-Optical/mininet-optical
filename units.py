@@ -1,7 +1,8 @@
 import math
 import numpy as np
 import scipy.constants as sc
-import os
+from os.path import dirname, join
+
 c = 299792458.0  # Speed of light
 nm = 1.0e-9  # nanometers
 cm = 1.0e-2  # centimeters
@@ -15,7 +16,9 @@ pi = math.pi  # pi
 h = sc.h  # Planck constant
 
 
-description_files_dir = '../description-files/'
+# FIXME: This doesn't belong here!
+module_dir = dirname(__file__)
+description_files_dir = join(module_dir, 'description-files/')
 description_files = {'wdg1': 'linear.txt',
                      'wdg2': 'linear.txt'}
 
