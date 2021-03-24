@@ -20,26 +20,27 @@ and optical network elements.
 
 #### Directories
 
-description-files: wavelength-dependent gain functions for EDFAs
-ofcdemo: files related to our OFC demo(s)
-onos_rest_api: ONOS CLI tool and REST proxy
-opticalemulator: southbound REST driver for ONOS
-sdn_monitor_qot_e: files for our QoT estimation paper(s)
-tests: tests for Mininet-Optical
-topo: sample topologies for simulation mode
+- description-files: wavelength-dependent gain functions for EDFAs
+- ofcdemo: files related to our OFC demo(s)
+- onos_rest_api: ONOS CLI tool and REST proxy
+- opticalemulator: southbound REST driver for ONOS
+- sdn_monitor_qot_e: files for our QoT estimation paper(s)
+- tests: tests for Mininet-Optical
+- topo: sample topologies for simulation mode
 
 #### Python modules
 
-link.py: optical link simulation
-network.py: network container for simulation mode
-node.py: optical network element simulation
-README.md: this file
-rest.py: REST agent for external SDN control
-units.py: units of measurement
-visualize_topo.py: visualization support
+- link.py: optical link simulation
+- network.py: network container for simulation mode
+- node.py: optical network element simulation
+- README.md: this file
+- rest.py: REST agent for external SDN control
+- units.py: units of measurement
+- visualize_topo.py: visualization support
 
 #### Other files
-makefile: has "make depend" and "make clean" targets
-requirements.txt: Python requirements file (for pip3 install -r)
+
+- makefile: has "make depend" and "make clean" targets
+- requirements.txt: Python requirements file (for pip3 install -r)
 
 [1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
