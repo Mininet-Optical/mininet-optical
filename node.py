@@ -963,7 +963,6 @@ class Roadm(Node):
         TO BE UPDATED
         wavelength dependent attenuation
         """
-
         if self.equalization_function == 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
@@ -1483,4 +1482,5 @@ class Monitor(Node):
         return gosnr
 
     def __repr__(self):
-        return "<name: %s, component: %s,>" % (self.name, self.component)
+        return "<name: %s, component: %s, mode: %s>" % (
+            self.name, self.component, self.mode)

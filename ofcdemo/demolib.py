@@ -70,8 +70,13 @@ class OpticalCLI( CLI ):
                 link.phyLink1.print_signals()
                 link.phyLink2.print_signals()
 
+
     def do_monitors( self, _line ):
-        "List monitors on optical links"
+        "List monitors on optical links and nodes"
+        for node in self.mn.values():
+            monitor = getattr( node, 'modelMonitor', None )
+            if monitor:
+                print( '%s:' % node, monitor )
         for link in self.opticalLinks():
             if link.monitors:
                 print( '%s:' % link )
@@ -80,15 +85,14 @@ class OpticalCLI( CLI ):
 
     def do_osnr( self, _line ):
         "List osnr for monitors"
-        for link in self.opticalLinks():
-            for monitor in link.monitors:
-                monitor = monitor.model
-                print( str(monitor) + ':' )
-                osnr = monitor.get_dict_osnr()
-                gosnr = monitor.get_dict_gosnr()
-                for signal in sorted(osnr, key=lambda s:s.index):
-                    print( '%s OSNR: %.2f dB' % ( signal, osnr[signal] ), end='' )
-                    print( ' gOSNR: %.2f dB' % gosnr.get(signal, float('nan') ) )
+        for monitor in self.mn.monitors:
+            monitor = monitor.model
+            print( str(monitor) + ':' )
+            osnr = monitor.get_dict_osnr()
+            gosnr = monitor.get_dict_gosnr()
+            for signal in sorted(osnr, key=lambda s:s.index):
+                print( '%s OSNR: %.2f dB' % ( signal, osnr[signal] ), end='' )
+                print( ' gOSNR: %.2f dB' % gosnr.get(signal, float('nan') ) )
 
     def spans( self, minlength=100):
         "Span iterator"
