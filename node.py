@@ -893,7 +893,7 @@ class Roadm(Node):
         """
         wavelength dependent attenuation
         """
-        if self.equalization_function is 'flatten':
+        if self.equalization_function == 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
             for k, out_power in output_power_dict.items():
@@ -1029,7 +1029,7 @@ class Amplifier(Node):
         wavelength dependent attenuation
         """
 
-        if self.equalization_function is 'flatten':
+        if self.equalization_function == 'flatten':
             # compute equalization compensation and re-propagate only if there is a function
             out_difference = {}
             for k, out_power in output_power_dict.items():
@@ -1346,4 +1346,5 @@ class Monitor(Node):
         return gosnr
 
     def __repr__(self):
-        return "<name: %s, component: %s,>" % (self.name, self.component)
+        return "<name: %s, component: %s, mode: %s>" % (
+            self.name, self.component, self.mode)
