@@ -40,7 +40,7 @@ and optical network elements.
 
 #### Other files
 
-- makefile: has "make depend" and "make clean" targets
-- requirements.txt: Python requirements file (for pip3 install -r)
+- makefile: has `make depend` and `make clean` targets
+- requirements.txt: Python requirements file (for `pip3 install -r`)
 
 [1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
