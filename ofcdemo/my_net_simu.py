@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 33
+NUM_WAV = 4
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE =6
+NUM_NODE =7
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
