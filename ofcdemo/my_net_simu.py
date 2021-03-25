@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 10
+NUM_WAV = 4
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE =6
+NUM_NODE =7
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
@@ -452,54 +452,6 @@ def RoadmPhyTest():
             voaPowerLeveling(path=path, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
             configTerminalChannel(terminal=nodes[path[0]], channel=ch, lp_descriptor=lp_descriptor)
 
-    """chs = [i for i in range(1,10)]
-    src, dst = 't1', 't3'
-    path1 = routes[src][dst]
-    installPath(path1, chs, Graph, nodes)
-    print('===Traffics===', Traffics.items())
-    print('===path===', path1)
-    for ch in chs:
-        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path= path1, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
-        configTerminalChannel(terminal =nodes[path1[0]], channel = ch)
-    #"""
-
-    """chs = [i for i in range(10, 20)]
-    src, dst = 't1', 't3'
-    path2 = routes[src][dst]
-    installPath(path2, chs, Graph, nodes)
-    print('===Traffics===', Traffics.items())
-    print('===path===', path2)
-    for ch in chs:
-        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path=path2, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
-        configTerminalChannel(terminal=nodes[path2[0]], channel=ch)
-    #"""
-
-    """chs = [i for i in range(20, 30)]
-    src, dst = 't1', 't3'
-    path3 = routes[src][dst]
-    installPath(path3, chs, Graph, nodes)
-    print('===Traffics===', Traffics.items())
-    print('===path===', path3)
-    for ch in chs:
-        configTerminalChannelPower(terminal=nodes[src], channel=ch, power=lauch_p[ch])
-        voaPowerLeveling(path=path3, channel=ch, power=lauch_p[ch], graph=Graph, nodes=nodes)
-        configTerminalChannel(terminal=nodes[path3[0]], channel=ch)
-    #"""
-
-    """# test teardown paths
-    uninstallPath(lightpath_id=1, nodes=nodes)
-    uninstallPath(lightpath_id=5, nodes=nodes)
-    uninstallPath(lightpath_id=9, nodes=nodes)
-    #"""
-
-    """print( '*** Initial OSNR and gOSNR:' )
-    monitors = [ monitorAll(nodes[node]) for node in NAME_ROADM]
-    for mon in monitors:
-        print( 'monitor:', mon )
-        print( 'OSNR', mon[1], '\n', 'gOSNR', mon[2], '\n', 'power', mon[0])
-    #"""
 
     low_v = []
     for ch in range(1, NUM_WAV):
@@ -511,18 +463,6 @@ def RoadmPhyTest():
         print(low_v[i])
     #"""
 
-    """for ch in range(10, 20):
-        powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=path2, channel=ch, nodes=nodes)
-        print('channel', ch, 'path', path2, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
-    #"""
-
-    """for ch in range(20, 30):
-        powers,osnrs,gosnrs,ase,nli = monitorLightpath(path=path3, channel=ch, nodes=nodes)
-        print('channel', ch, 'path', path3, 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli,  'gosnr', gosnrs)
-    #"""
-
-
-    #t1.turn_off([0])
 
 
 if __name__ == '__main__':
