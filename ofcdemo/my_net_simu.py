@@ -20,7 +20,7 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 50
+NUM_WAV = 10
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
@@ -193,21 +193,37 @@ def netGraph( links ):
     return dict( neighbors )
 
 
-def FindRoute( src, graph, destinations ):
+# def FindRoute( src, graph, destinations ):
+#     """Route from src to destinations
+#        neighbors: adjacency list
+#        returns: routes dict"""
+#     routes, seen, paths = {}, set( (src,) ), [ (src,) ]
+#     while paths:
+#         path = paths.pop( 0 )
+#         lastNode = path[ -1 ]
+#         for neighbor in graph[ lastNode ]:
+#             if neighbor not in seen:
+#                 newPath = ( path + (neighbor, ) )
+#                 paths.append( newPath )
+#                 if neighbor in destinations:
+#                     routes[ neighbor ] = newPath
+#                 seen.add( neighbor)
+#     return routes
+
+def FindRoute( src, graph, destinations, k=10):
     """Route from src to destinations
        neighbors: adjacency list
        returns: routes dict"""
-    routes, seen, paths = {}, set( (src,) ), [ (src,) ]
+    routes, seen, paths = defaultdict(list), set( (src,) ), [ (src,) ]
     while paths:
         path = paths.pop( 0 )
         lastNode = path[ -1 ]
         for neighbor in graph[ lastNode ]:
-            if neighbor not in seen:
+            if neighbor not in path:
                 newPath = ( path + (neighbor, ) )
                 paths.append( newPath )
-                if neighbor in destinations:
-                    routes[ neighbor ] = newPath
-                seen.add( neighbor)
+                if neighbor in destinations and len(routes[ neighbor ]) < k:
+                    routes[ neighbor ].append(newPath)
     return routes
 
 
@@ -399,31 +415,33 @@ def RoadmPhyTest():
     #     print((left,right))
     #     channels.append(range(left,right))
     paths = {}
-    #start, end = 1, 3
+    start, end = 1, NUM_NODE
     #routes['t1']['t3'] = ('t1', 'r1', 'r4', 'r3', 't3')
-    #random.seed(1000)
+    random.seed(1000)
     for chs in channels:
-        #chs = [i for i in range(1,50)]
-        """src = 't%s' %start#random.choice(name_terminals)
-        dst = 't%s' %end #random.choice(name_terminals)
+        end = start - 1
+        if start == NUM_NODE+1:
+            start = 1
+        if start == 1:
+            end = NUM_NODE
+
+        src = 't%s' %start#random.choice(name_terminals)
+        dst = 't%s' % end #random.choice(name_terminals)
         src_roadm = 'r%s' % start  # random.choice(name_terminals)
         dst_roadm = 'r%s' % end  # random.choice(name_terminals)
         start += 1
-        end += 1
-        if start == 5:
-            start = 1
-        if end == 5:
-            end = 1
-        #"""
-        src = random.choice(name_terminals)
-        dst = random.choice(name_terminals)
-        src_roadm = random.choice(name_terminals)
-        dst_roadm = random.choice(name_terminals)
+
+        #
+        # src = random.choice(name_terminals)
+        # dst = random.choice(name_terminals)
+        # src_roadm = random.choice(name_terminals)
+        # dst_roadm = random.choice(name_terminals)
 
 
         while dst == src:
             dst = random.choice(name_terminals)
-        path = routes[src][dst]
+        print(src,dst)
+        path = routes[src][dst][0] if len(routes[src][dst][0])>len(routes[src][dst][1]) else routes[src][dst][1]
         print('===path, wav===', path, chs)
         installPath(path, chs, Graph, nodes)
 
