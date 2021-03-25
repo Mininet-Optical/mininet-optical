@@ -381,6 +381,16 @@ def monitorLightpath(path, channel, nodes):
 # Physical model test
 
 def RoadmPhyTest():
+    """
+    Infinite loop test
+    Ring topo
+        1 - 2 - 3 - 4 ... - NUM_NODE
+        |                       |
+        |_______________________|
+    longest path to the next node
+        for example:
+            PATH FROM 1 to 2 IS: 1 -> NUM_NODE -> ... -> 3 -> 2
+    """
     # ROADM port numbers (input and output)
     LINE_PORT1 = NUM_WAV
     LINE_PORT2 = NUM_WAV+1
@@ -459,8 +469,8 @@ def RoadmPhyTest():
         if gosnrs[-1]<25:
             low_v.append((ch,paths[ch],osnrs,gosnrs))
         print('channel', ch, 'path', paths[ch], 'power', powers, 'osnr', osnrs, 'ase', ase, 'nli', nli, 'gosnr', gosnrs)
-    for i in range(len(low_v)):
-        print(low_v[i])
+    # for i in range(len(low_v)):
+    #     print(low_v[i])
     #"""
 
 
