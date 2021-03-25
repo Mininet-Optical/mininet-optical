@@ -390,6 +390,7 @@ def RoadmPhyTest():
     longest path to the next node
         for example:
             PATH FROM 1 to 2 IS: 1 -> NUM_NODE -> ... -> 3 -> 2
+    Current test: ok with 6 node, error with 7 nodes
     """
     # ROADM port numbers (input and output)
     LINE_PORT1 = NUM_WAV
