@@ -20,14 +20,14 @@ m = .001
 
 # Parameters
 
-NUM_WAV = 4
+NUM_WAV = 33
 # ROADM port numbers (input and output)
 LINE_PORT1 = NUM_WAV
 LINE_PORT2 = NUM_WAV+1
 NETLINKS = []
 Traffics = defaultdict( defaultdict ) # id : {'path':path, 'signals':ch1, 'rule_path':[2,2]}
 LIGHTPATH_ID = 1
-NUM_NODE =7
+NUM_NODE =6
 name_roadms = []
 name_terminals = []
 Roadm_Rule_ID_dict = {}
@@ -390,7 +390,7 @@ def RoadmPhyTest():
     longest path to the next node
         for example:
             PATH FROM 1 to 2 IS: 1 -> NUM_NODE -> ... -> 3 -> 2
-    Current test: ok with 6 node, error with 7 nodes
+    Current test: ok with 6 node 33 wav, error with 7 nodes 4 wav
     """
     # ROADM port numbers (input and output)
     LINE_PORT1 = NUM_WAV
