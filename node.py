@@ -659,10 +659,9 @@ class Roadm(Node):
                 tmp_dict[wss_id] = (wd_tuple[0], wd_func)
         self.wss_dict = tmp_dict
 
-    def install_switch_rule(self, rule_id, in_port, out_port, signal_indices, src_node=None):
+    def install_switch_rule(self, in_port, out_port, signal_indices, src_node=None):
         """
         Switching rule installation, accessible from a Control System
-        :param rule_id: ID of rule (similar to VLAN id)
         :param in_port: input port for incoming signals
         :param out_port: switching/output port for incoming signals
         :param signal_indices: signal indices involved in switching procedure
