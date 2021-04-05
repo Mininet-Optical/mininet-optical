@@ -93,41 +93,6 @@ class RingTopo(OpticalTopo):
                    for i in range(1, spanCount + 1)]
         return sum([list(entry) for entry in entries], [])
 
-    @staticmethod
-    def build_spans(net, r1, r2):
-        """
-        Helper function for building spans of
-        fixed length of 50km and handling those
-        that require different lengths
-        """
-        # store all spans (sequentially) in a list
-        spans = []
-        # get number of spans (int)
-        span_no = 1
-        span_length = 80
-
-        for i in range(1, span_no + 1):
-            # append all spans except last one
-            amp = net.add_amplifier(
-                '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
-            span = Span(span_length, amp=amp)
-            spans.append(span)
-
-        return net, spans
-
-    @staticmethod
-    def build_link(net, r1, r2, gain=17.00022):
-        # boost amplifier object
-        boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
-        boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA', target_gain=float(gain), boost=True,
-                                      monitor_mode='out')
-
-        net, spans = build_spans(net, r1, r2)
-        for step, span in enumerate(spans, start=1):
-            net.spans.append(span)
-
-        # link object
-        net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
 
     def build(self, n=5, txCount=2):
         "Add POPs and connect them in a line"
@@ -135,27 +100,24 @@ class RingTopo(OpticalTopo):
 
         for i, roadm in enumerate(roadms):
             if i == len(roadms) - 1:
-                self.build_link(net, roadm, roadms[0])
+                src, dst = roadm, roadms[0]
             else:
-                self.build_link(net, roadm, roadms[i + 1])
+                src, dst = roadm, roadms[i + 1]
 
-        # # Inter-POP links
-        # for i in range(0, n - 1):
-        #     src, dst = roadms[i], roadms[i + 1]
-        #     boost = ('boost', dict(target_gain=17.0 * dB, boost=True))
-        #     spans = self.spans(spanLength=80 * km, spanCount=6)
-        #     # XXX Unfortunately we currently have to have a priori knowledge of
-        #     # this prefix
-        #     prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
-        #     monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost')]
-        #     for j in np.arange(1, len(spans), 2):
-        #         amp_name = spans[j].name
-        #         monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
-        #         amp_name2 = spans[j].name
-        #         monitors.append((prefix2 + amp_name2 + '-monitor', prefix2 + amp_name2))
-        #     monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
-        #     self.wdmLink(src, dst, boost=boost, spans=spans,
-        #                  monitors=monitors)
+            boost = ('boost', dict(target_gain=17.0 * dB, boost=True))
+            spans = self.spans(spanLength=80 * km, spanCount=3)
+            # XXX Unfortunately we currently have to have a priori knowledge of
+            # this prefix
+            prefix1, prefix2 = '%s-%s-' % (src, dst), '%s-%s-' % (dst, src)
+            monitors = [(prefix1 + 'boost' + '-monitor', prefix1 + 'boost')]
+            for j in np.arange(1, len(spans), 2):
+                amp_name = spans[j].name
+                monitors.append((prefix1 + amp_name + '-monitor', prefix1 + amp_name))
+                amp_name2 = spans[j].name
+                monitors.append((prefix2 + amp_name2 + '-monitor', prefix2 + amp_name2))
+            monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
+            self.wdmLink(src, dst, boost=boost, spans=spans,
+                         monitors=monitors)
 
 
 if __name__ == '__main__':
