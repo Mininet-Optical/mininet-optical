@@ -352,18 +352,17 @@ class Terminal( SwitchBase ):
            ethPort: ethernet port number
            wdmPort: WDM port number"""
         # Update physical model
-        tx = self.txnum( wdmPort )
         self.configTx( txNum=wdmPort, channel=channel, power=power )
 
-        # AD: there should be a better way of doing this
-        transceiver = self.model.transceivers[tx]
-        transceiver.id = wdmPort
+        transceiver = self.model.id_to_transceivers[wdmPort]
         if power is not None or power == 0:
             transceiver.operation_power = txPower[wdmPort]
-        channel = self.txChannel.get( wdmPort )
-        if channel is None:
-            raise Exception( 'must set tx channel before connecting' )
-        self.model.configure_terminal( transceiver,  channel )
+        # isn't this redundant?
+        # channel = self.txChannel.get( wdmPort )
+        # if channel is None:
+        #     raise Exception( 'must set tx channel before connecting' )
+
+        self.model.assoc_tx_to_channel( transceiver,  channel, in_port=ethPort, out_port=wdmPort )
 
         # Remove old flows for transponder
         oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))

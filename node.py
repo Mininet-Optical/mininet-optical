@@ -205,6 +205,8 @@ class LineTerminal(Node):
         self.transceivers = []
         # dict of name of transceiver to transceiver objects
         self.name_to_transceivers = {}
+        # dict of id (or WDM port) to transceiver
+        self.id_to_transceivers = {}
         self.tx_transceivers = {}
         self.rx_transceivers = {}
         self.add_transceivers(transceivers)
@@ -261,8 +263,9 @@ class LineTerminal(Node):
         """
         if self.existing_transceiver(transceiver):
             raise ValueError("Node.LineTerminal.add_transceiver: Transceiver with this name already exist!")
-        # enable to retrieve Transceiver object by name
+        # enable to retrieve Transceiver object by name and ID
         self.name_to_transceivers[transceiver.name] = transceiver
+        self.id_to_transceivers[transceiver.id] = transceiver
         # add transceiver to LineTerminal list
         self.transceivers.append(transceiver)
         if transceiver.type == 'tx':
