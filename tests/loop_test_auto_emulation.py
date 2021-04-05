@@ -10,14 +10,10 @@ def run(net):
     roadms = net.roadms = sorted(node for node, cls in net.allNodes.items()
                         if cls == 'ROADM')
 
-    print(net.roadms)
-
     # When setting wdmPort we refer to the transceiver
     TerminalProxy('t1').connect(ethPort=1, wdmPort=11, channel=1)
 
-
     ch = [1]
-
     ROADMProxy('r1').connect(port1=1, port2=11, channels=ch)
 
     ROADMProxy('r2').connect(port1=11, port2=12, channels=ch)

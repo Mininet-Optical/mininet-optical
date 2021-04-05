@@ -467,11 +467,11 @@ class ROADM( SwitchBase ):
 
     def phyInstall( self, inport, outport, channels, op=100 ):
         "Install switching rules into the physical model"
+        print("*** phyInstall", self, inport, outport, channels)
         rule = self.ruleTuple( inport, outport, channels )
         if rule in self.ruleIds:
             return
-        self.model.install_switch_rule(
-            self.nextRuleId, inport, outport, channels )
+        self.model.install_switch_rule( inport, outport, channels )
         if int(op) < 100:
             # params: channel_id, output_port, operational_power_dB
             for channel in channels:
