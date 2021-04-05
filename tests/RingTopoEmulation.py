@@ -1,6 +1,7 @@
 from dataplane import (Terminal, ROADM, OpticalLink,
                        dBm, dB, km,
                        disableIPv6, Mininet)
+from node import Transceiver
 from rest import RestServer
 
 from mininet.topo import Topo
