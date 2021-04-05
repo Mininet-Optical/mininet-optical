@@ -96,6 +96,8 @@ class RingTopo(OpticalTopo):
         "Add POPs and connect them in a line"
         roadms = [self.buildPop(p, txCount) for p in range(1, n + 1)]
 
+        print(roadms)
+
         # # Inter-POP links
         # for i in range(0, n - 1):
         #     src, dst = roadms[i], roadms[i + 1]
