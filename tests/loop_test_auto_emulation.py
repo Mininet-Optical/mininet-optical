@@ -1,12 +1,10 @@
 from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy,
                                     OFSwitchProxy, TerminalProxy,
                                     fetchNodes)
-import network
-from link import Span as Fiber, SpanTuple as Segment
-from node import Transceiver
 
 
 def run(net):
+    net.allNodes = fetchNodes(net)
     net.roadms = sorted(node for node, cls in net.allNodes.items()
                         if cls == 'ROADM')
 
