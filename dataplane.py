@@ -355,16 +355,14 @@ class Terminal( SwitchBase ):
         self.configTx( txNum=wdmPort, channel=channel, power=power )
 
         transceiver = self.model.id_to_transceivers[wdmPort]
+        # AD: Do we want to set the power here?
         if power is not None or power == 0:
             transceiver.operation_power = txPower[wdmPort]
-        # isn't this redundant?
-        # channel = self.txChannel.get( wdmPort )
-        # if channel is None:
-        #     raise Exception( 'must set tx channel before connecting' )
 
         self.model.assoc_tx_to_channel( transceiver,  channel, in_port=ethPort, out_port=wdmPort )
 
         # Remove old flows for transponder
+        # AD: Do we want to do this here? Probably should be handled separately
         oldEthPort, oldWdmPort = self.txPorts.get( wdmPort, (None, None))
         for port in ethPort, wdmPort, oldEthPort, oldWdmPort:
             if port is not None:
@@ -373,7 +371,6 @@ class Terminal( SwitchBase ):
         self.txPorts[ wdmPort ] = ( ethPort, wdmPort )
 
         # Tag outbound packets and untag inbound packets
-
         outbound = ( 'priority=100,' +
                      'in_port=%d,' % ethPort +
                      'actions=mod_vlan_vid=%d,' % channel +
