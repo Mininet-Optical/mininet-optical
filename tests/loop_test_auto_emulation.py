@@ -18,12 +18,12 @@ def run(net):
 
     ch = [1]
 
-    ROADMProxy('r1').connect(port1=1, port2=12, channels=ch)
+    ROADMProxy('r1').connect(port1=1, port2=11, channels=ch)
 
     ROADMProxy('r2').connect(port1=11, port2=12, channels=ch)
 
     ROADMProxy('r3').connect(port1=11, port2=1, channels=ch)
-
+    print("*** t1 turning on!")
     TerminalProxy('t1').turn_on()
 
     # channels = [1]
