@@ -5,13 +5,15 @@ from ofcdemo.fakecontroller import (RESTProxy, ROADMProxy,
 
 def run(net):
     net.allNodes = fetchNodes(net)
-    net.roadms = sorted(node for node, cls in net.allNodes.items()
+    line_terminals = net.terminals = sorted(node for node, cls in net.allNodes.items()
+                           if cls == 'Terminal')
+    roadms = net.roadms = sorted(node for node, cls in net.allNodes.items()
                         if cls == 'ROADM')
 
     print(net.roadms)
 
-    # ch_no = 1
-    # channels = range(1, ch_no + 1)
+    TerminalProxy('t1').connect(ethPort=1, wdmPort=11, channel=1)
+
     # channels = [1]
     # for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
     #     if i == 0:
@@ -42,8 +44,6 @@ def run(net):
     # ch = channels[0]
     # ch += 1
     # channels[0] = ch
-    # channels = range(ch_no + 1, ch_no + ch_no + 1)
-    # ch_no += ch_no
 
 
 def install_paths(nodes, channels, line_terminals):
