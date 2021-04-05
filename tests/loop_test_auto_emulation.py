@@ -12,7 +12,19 @@ def run(net):
 
     print(net.roadms)
 
+    # When setting wdmPort we refer to the transceiver
     TerminalProxy('t1').connect(ethPort=1, wdmPort=11, channel=1)
+
+
+    ch = [1]
+
+    ROADMProxy('r1').connect(port1=1, port2=12, channels=ch)
+
+    ROADMProxy('r2').connect(port1=11, port2=12, channels=ch)
+
+    ROADMProxy('r3').connect(port1=11, port2=1, channels=ch)
+
+    TerminalProxy('t1').turn_on()
 
     # channels = [1]
     # for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
