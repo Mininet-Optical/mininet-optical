@@ -365,12 +365,12 @@ class Terminal( SwitchBase ):
         self.model.assoc_tx_to_channel( transceiver,  channel, in_port=ethPort, out_port=wdmPort )
 
         # Remove old flows for transponder
-        oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))
+        oldEthPort, oldWdmPort = self.txPorts.get( wdmPort, (None, None))
         for port in ethPort, wdmPort, oldEthPort, oldWdmPort:
             if port is not None:
                 self.dpctl( 'del-flows', 'in_port=%d' % port )
                 self.dpctl( 'del-flows', 'out_port=%d' % port )
-        self.txPorts[ tx ] = ( ethPort, wdmPort )
+        self.txPorts[ wdmPort ] = ( ethPort, wdmPort )
 
         # Tag outbound packets and untag inbound packets
 
