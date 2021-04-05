@@ -93,11 +93,51 @@ class RingTopo(OpticalTopo):
                    for i in range(1, spanCount + 1)]
         return sum([list(entry) for entry in entries], [])
 
+    @staticmethod
+    def build_spans(net, r1, r2):
+        """
+        Helper function for building spans of
+        fixed length of 50km and handling those
+        that require different lengths
+        """
+        # store all spans (sequentially) in a list
+        spans = []
+        # get number of spans (int)
+        span_no = 1
+        span_length = 80
+
+        for i in range(1, span_no + 1):
+            # append all spans except last one
+            amp = net.add_amplifier(
+                '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
+            span = Span(span_length, amp=amp)
+            spans.append(span)
+
+        return net, spans
+
+    @staticmethod
+    def build_link(net, r1, r2, gain=17.00022):
+        # boost amplifier object
+        boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
+        boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA', target_gain=float(gain), boost=True,
+                                      monitor_mode='out')
+
+        net, spans = build_spans(net, r1, r2)
+        for step, span in enumerate(spans, start=1):
+            net.spans.append(span)
+
+        # link object
+        net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
+
     def build(self, n=5, txCount=2):
         "Add POPs and connect them in a line"
         roadms = [self.buildPop(p, txCount) for p in range(1, n + 1)]
 
-        print(roadms)
+        for i, roadm in enumerate(roadms):
+            if i == len(roadms) - 1:
+                build_link(net, roadm, roadms[0])
+            else:
+                build_link(net, roadm, roadms[i + 1])
 
         # # Inter-POP links
         # for i in range(0, n - 1):
@@ -123,7 +163,6 @@ if __name__ == '__main__':
     cleanup()
     setLogLevel('info')
     topo1 = RingTopo(n=3, txCount=10)
-    # topo2 = LinearRoadmTopo(n=15, txCount=9)
     net = Mininet(topo=topo1, autoSetMacs=True,
                   controller=RemoteController)
     disableIPv6(net)
