@@ -129,7 +129,6 @@ if __name__ == '__main__':
     disableIPv6(net)
     restServer = RestServer(net)
     net.start()
-    configureLinearNet(net)
     restServer.start()
     CLI(net)
     restServer.stop()
