@@ -371,6 +371,7 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, optical_signal, in_port):
+        print("Yes, it's being received", optical_signal, in_port)
         signalInfoDict = {}
         signalInfoDict[optical_signal] = {'osnr': None, 'gosnr': None,
                                           'ber': None, 'success': False}
