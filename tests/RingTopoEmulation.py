@@ -71,6 +71,7 @@ class RingTopo(OpticalTopo):
         # Local links
         for tx in tx_transceivers[:txCount]:
             self.ethLink(terminal, router, port1=tx.id, port2=tx.id)
+        # Wouldn't we want to be able to declare TX and RX links?
         # for rx in rx_transceivers[:txCount]:
         #     self.ethLink(router, terminal, port1=rx.id, port2=rx.id)
 
