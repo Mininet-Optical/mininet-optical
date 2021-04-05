@@ -135,9 +135,9 @@ class RingTopo(OpticalTopo):
 
         for i, roadm in enumerate(roadms):
             if i == len(roadms) - 1:
-                build_link(net, roadm, roadms[0])
+                self.build_link(net, roadm, roadms[0])
             else:
-                build_link(net, roadm, roadms[i + 1])
+                self.build_link(net, roadm, roadms[i + 1])
 
         # # Inter-POP links
         # for i in range(0, n - 1):
