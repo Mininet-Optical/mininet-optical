@@ -115,3 +115,21 @@ class RingTopo(OpticalTopo):
         #     monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
         #     self.wdmLink(src, dst, boost=boost, spans=spans,
         #                  monitors=monitors)
+
+
+if __name__ == '__main__':
+    # Test our demo topology
+    cleanup()
+    setLogLevel('info')
+    topo1 = RingTopo(n=3, txCount=10)
+    # topo2 = LinearRoadmTopo(n=15, txCount=9)
+    net = Mininet(topo=topo1, autoSetMacs=True,
+                  controller=RemoteController)
+    disableIPv6(net)
+    restServer = RestServer(net)
+    net.start()
+    configureLinearNet(net)
+    restServer.start()
+    CLI(net)
+    restServer.stop()
+    net.stop()
