@@ -71,15 +71,15 @@ class RingTopo(OpticalTopo):
         # Local links
         for tx in tx_transceivers[:txCount]:
             self.ethLink(terminal, router, port1=tx.id, port2=tx.id)
-        for rx in rx_transceivers[:txCount]:
-            self.ethLink(router, terminal, port1=rx.id, port2=rx.id)
+        # for rx in rx_transceivers[:txCount]:
+        #     self.ethLink(router, terminal, port1=rx.id, port2=rx.id)
 
         self.ethLink(router, host, port1=txCount * 2 + 1)
 
         for tx in tx_transceivers[txCount:]:
             self.wdmLink(terminal, roadm, port1=tx.id, port2=tx.id - txCount)
-        for rx in rx_transceivers[txCount:]:
-            self.wdmLink(roadm, terminal, port1=rx.id - txCount, port2=rx.id)
+        # for rx in rx_transceivers[txCount:]:
+        #     self.wdmLink(roadm, terminal, port1=rx.id - txCount, port2=rx.id)
 
         # Return ROADM so we can link it to other POPs as needed
         return roadm
