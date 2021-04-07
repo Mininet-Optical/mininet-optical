@@ -14,7 +14,7 @@ from dataplane import (Terminal, ROADM, OpticalLink, OpticalNet as Mininet,
 from rest import RestServer
 from ofcdemo.demolib import OpticalCLI as CLI
 
-from mininet.node import OVSBridge
+from mininet.node import OVSBridge, Host
 from mininet.topo import Topo
 from mininet.log import setLogLevel
 from mininet.clean import cleanup
@@ -56,6 +56,29 @@ class SingleROADMTopo(Topo):
         self.addLink(r1, t3, cls=OpticalLink, port1=3, port2=2,
                      spans=[1.0*m])
 
+
+# Optional: plot node graph
+
+def plotNet(net, outfile="singleroadm.png"):
+    "Plot node graph"
+    color = {ROADM: 'red', Terminal: 'green', OVSBridge: 'blue',
+             Host: 'black'}
+    try:
+        import pygraphviz as pgv
+    except:
+        return
+    g = pgv.AGraph(strict=False, directed=False)
+    for node in net.switches:
+        g.add_node(node.name, color=color[type(node)])
+    for node in net.hosts:
+        g.add_node(node.name, color=color[type(node)], shape='box')
+    for link in net.links:
+        g.add_edge(link.intf1.node.name, link.intf2.node.name)
+    print("*** Plotting network topology to", outfile)
+    g.layout()
+    g.draw(outfile)
+
+
 if __name__ == '__main__':
 
     cleanup()
@@ -67,6 +90,7 @@ if __name__ == '__main__':
 
     net.start()
     restServer.start()
+    plotNet(net)
     CLI(net)
     restServer.stop()
     net.stop()
