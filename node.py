@@ -209,8 +209,6 @@ class LineTerminal(Node):
         self.name_to_transceivers = {}
         # dict of id (or WDM port) to transceiver
         self.id_to_transceivers = {}
-        self.tx_transceivers = {}
-        self.rx_transceivers = {}
         self.add_transceivers(transceivers)
 
         self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
@@ -270,10 +268,6 @@ class LineTerminal(Node):
         self.id_to_transceivers[transceiver.id] = transceiver
         # add transceiver to LineTerminal list
         self.transceivers.append(transceiver)
-        if transceiver.type == 'tx':
-            self.tx_transceivers[transceiver.id] = transceiver
-        else:
-            self.rx_transceivers[transceiver.id] = transceiver
 
     def update_transceiver(self, transceiver, args):
         """
@@ -332,7 +326,8 @@ class LineTerminal(Node):
         Propagate must indicate a direction!
         """
         c = 0
-        for out_port, transceiver in self.tx_transceivers.items():
+        for out_port, transceiver in self.id_to_transceivers.items():
+            # AD: This will need to change if enabling QSFP28 Transceivers
             if transceiver.optical_signal is not None:
                 c += 1
                 transceiver.optical_signal.reset()
@@ -373,23 +368,16 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, optical_signal, in_port):
-        print("Yes, it's being received", optical_signal, in_port)
         signalInfoDict = {}
         signalInfoDict[optical_signal] = {'osnr': None, 'gosnr': None,
                                           'ber': None, 'success': False}
 
         if not (optical_signal.index in self.channel_to_rx):
+            # Need to extend this to catch all possible problems at RX
             self.receiver_callback(in_port, signalInfoDict)
-            "@%s, optical signal: %s not configured for Rx in LineTerminal"
             raise ValueError("@%s, optical signal: %s not configured for Rx in LineTerminal.\n"
                              "Try calling %s.assoc_rx_to_channel() before launching transmission." %
                              (self, optical_signal, self))
-        rx_transceiver = self.rx_transceivers[in_port]
-        if rx_transceiver.id != in_port:
-            self.receiver_callback(in_port, signalInfoDict)
-            raise ValueError("@%s, optical signal: %s not configured for Rx in Transceiver.\n"
-                             "Try calling %s.assoc_rx_to_channel() before launching transmission." %
-                             (self, optical_signal, rx_transceiver, self))
 
         # Get signal info
         power = optical_signal.loc_in_to_state[self]['power']
@@ -403,7 +391,7 @@ class LineTerminal(Node):
         signalInfoDict[optical_signal]['osnr'] = osnr
         signalInfoDict[optical_signal]['gosnr'] = gosnr
 
-        if gosnr < rx_transceiver.rx_threshold_dB:
+        if gosnr < 20:  # rx_transceiver.rx_threshold_dB:
             print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
                   (optical_signal, self.__class__.__name__,
                    self.name, gosnr, self.rx_threshold_dB))
@@ -426,7 +414,7 @@ class Transceiver(object):
     def __init__(self, id, name, operation_power=0, spectrum_band='C',
                  channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
                  bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
-                 bits_per_symbol=4.0, symbol_rate=32e9, rx_threshold_dB=20.0, type='tx'):
+                 bits_per_symbol=4.0, symbol_rate=32e9, rx_threshold_dB=20.0):
         """
         :param name: human readable ID
         :param operation_power: operation power in dB
@@ -441,13 +429,7 @@ class Transceiver(object):
         """
         # configuration attributes
         self.name = name
-        if type == 'tx':
-            self.id = id
-        else:
-            self.id = id
-            self.rx_threshold_dB = rx_threshold_dB
-        # operation power input in dBm to convert to linear
-        # self.operation_power = db_to_abs(operation_power)
+        self.id = id
         self.operation_power = db_to_abs(operation_power) * 1e-3  # in Watts
         self.spectrum_band = spectrum_band
         self.channel_spacing_nm = channel_spacing_nm
@@ -456,7 +438,7 @@ class Transceiver(object):
         self.modulation_format = modulation_format
         self.bits_per_symbol = bits_per_symbol
         self.symbol_rate = symbol_rate
-        self.type = type
+        self.rx_threshold_dB = rx_threshold_dB
         self.gross_bit_rate = symbol_rate * np.log2(bits_per_symbol)
 
         # state attributes
