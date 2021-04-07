@@ -357,8 +357,11 @@ class Terminal( SwitchBase ):
         "REST connect handler"
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
-        channel = int( query.channel ) if query.get( 'channel' ) else None
-        power = float( query.power ) if query.get ( 'power' ) else None
+        channel, power = None, None
+        if hasattr( query, 'channel' ):
+            channel = int( query.channel )
+        if hasattr( query, 'power' ):
+            power = float( query.power or 0)
         self.connect( ethPort, wdmPort, channel, power=power )
         return 'OK'
 
