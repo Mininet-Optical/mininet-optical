@@ -32,6 +32,7 @@ curl "$t3/turn_on?node=t3"
 echo "* Monitoring signals at endpoints"
 for tname in t1 t2 t3; do
     url=${!tname}
+    echo "* $tname"
     curl "$url/monitor?monitor=$tname-monitor"
 done
 
