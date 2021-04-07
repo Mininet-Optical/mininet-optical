@@ -1,3 +1,17 @@
+"""
+    This script will:
+    - Model a ring topology (up to 10 nodes due to port availability).
+    - Model port numbering of Lumentum ROADM-20 Whiteboxes
+
+    The transmission setup consist in launching one signal from each Terminal
+    that terminates at the farthest, adjecent Terminal.
+    For example, in a 3 node topology (Terminals 1, 2 and 3):
+    Terminal-1 will transmit channel-1 terminating at Terminal-3
+    Terminal-2 will transmit channel-2 terminating at Terminal-1
+    Terminal-3 will transmit channel-3 terminating at Terminal-2
+
+"""
+
 import network
 from link import Span as Fiber, SpanTuple as Segment
 from node import Transceiver
@@ -5,6 +19,11 @@ from node import Transceiver
 
 km = dB = dBm = 1.0
 m = .001
+
+# These are the parameters that can be modified
+operational_power = 0  # power in dBm
+non = 10  # number of nodes (up to 10!)
+# End of the parameters that can be changed
 
 
 def Span(km, amp=None):
@@ -55,62 +74,72 @@ def install_paths(nodes, channels, line_terminals):
         if i == 0:
             src_node = line_terminals[i]
             for c in channels:
-                node.install_switch_rule(1, c, out_port, [c], src_node=src_node)
+                in_port = 4100 + c
+                node.install_switch_rule(in_port, out_port, [c], src_node=src_node)
         else:
             in_port = net.find_link_and_in_port_from_nodes(nodes[i - 1], node)
-            node.install_switch_rule(1, in_port, out_port, channels, src_node=nodes[i - 1])
-        tmp = 0
+            node.install_switch_rule(in_port, out_port, channels, src_node=nodes[i - 1])
 
-
+# Create a Network object
 net = network.Network()
-# Create line terminals
-operational_power = 0  # power in dBm
-non = 5  # number of nodes
-tr_no = range(1, 91)
-tx_labels = ['tx%s' % str(x) for x in tr_no]
-rx_labels = ['rx%s' % str(x) for x in tr_no]
+# Create Line Terminals
+# Enabling only 10 Transceivers, leaving (theoretically)
+# 14 ports to use when modeling Cassini Transponders
+tr_no = range(1, 11)
+tr_labels = ['tr%s' % str(x) for x in tr_no]
 line_terminals = []
 for i in range(non):
-    tx_transceivers = [Transceiver(id, tr, operation_power=operational_power, type='tx')
-                       for id, tr in enumerate(tx_labels, start=1)]
-    rx_transceivers = [Transceiver(id, tr, operation_power=operational_power, type='rx')
-                       for id, tr in enumerate(rx_labels, start=1)]
-    transceivers = tx_transceivers + rx_transceivers
+    # plugging a Transceiver at the first 10 ports of the Terminal
+    transceivers = [Transceiver(id, tr, operation_power=operational_power)
+                       for id, tr in enumerate(tr_labels, start=1)]
     lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
     line_terminals.append(lt)
 
 roadms = [net.add_roadm('r%s' % (i + 1)) for i in range(non)]
 
+# Modelling Lumentum ROADM-20 port numbering
+roadm20_in_ports = [i + 1 for i in range(4100, 4120)]
+roadm20_out_ports = [i + 1 for i in range(5200, 5220)]
 # Create bi-directional links between LTs and ROADMs
+# Need to decide which ports are connected to the ROADM
+# Port-1 from Terminals are connected to Port-4101 from ROADMs.
 for lt, roadm in zip(line_terminals, roadms):
-    for tx in tx_transceivers:
-        net.add_link(lt, roadm, src_out_port=tx.id, dst_in_port=tx.id, spans=[Span(1 * m)])
-    for rx in rx_transceivers:
-        net.add_link(roadm, lt, src_out_port=rx.id, dst_in_port=rx.id, spans=[Span(1 * m)])
+    for i, tr in enumerate(transceivers):
+        roadm20_in_port = roadm20_in_ports[i]
+        net.add_link(lt, roadm, src_out_port=tr.id, dst_in_port=roadm20_in_port, spans=[Span(1 * m)])
 
+        roadm20_out_port = roadm20_out_ports[i]
+        net.add_link(roadm, lt, src_out_port=roadm20_out_port, dst_in_port=tr.id, spans=[Span(1 * m)])
 
 # Build links between ROADMs
+# Port numbering will be sequential based on the
+# last configured port. Based on the configuration above:
+#   - next input port numbering is: 4111
+#   - next output port numbering is: 5211
 for i, roadm in enumerate(roadms):
     if i == len(roadms) - 1:
         build_link(net, roadm, roadms[0])
     else:
         build_link(net, roadm, roadms[i + 1])
 
+# Modelling transmission of one channel from each Terminal
 ch_no = 1
 channels = range(1, ch_no + 1)
 channels = [1]
 for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
+    # Get the receiver terminal
     if i == 0:
         lt_rx = line_terminals[-1]
     else:
         lt_rx = line_terminals[i - 1]
 
-    # configure line terminal
     for c in channels:
-        tx_transceiver = lt_tx.tx_transceivers[c]
-        lt_tx.assoc_tx_to_channel(tx_transceiver, c, c)
+        # configure transmitter terminal
+        tx_transceiver = lt_tx.id_to_transceivers[c]
+        lt_tx.assoc_tx_to_channel(tx_transceiver, c, out_port=c)
 
-        rx_transceiver = lt_rx.rx_transceivers[c]
+        # configure receiver terminal
+        rx_transceiver = lt_rx.id_to_transceivers[c]
         lt_rx.assoc_rx_to_channel(rx_transceiver, c)
 
     # build paths from r_i to r_n
@@ -125,8 +154,6 @@ for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
     print("*** Turning on:", lt_tx)
     lt_tx.turn_on()
 
-    ch = channels[0]
-    ch += 1
+    # Increment channel index
+    ch = channels[0] + 1
     channels[0] = ch
-    # channels = range(ch_no + 1, ch_no + ch_no + 1)
-    # ch_no += ch_no
