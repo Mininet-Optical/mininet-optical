@@ -9,14 +9,14 @@ or H3, depending on how the ROADM is configured.
 
 """
 
-from dataplane import (Terminal, ROADM, OpticalLink, OpticalNet as Mininet,
-                       km, m, dB, dBm)
+from dataplane import (Terminal, ROADM, OpticalLink,
+                       OpticalNet as Mininet, km, m, dB, dBm)
 from rest import RestServer
 from ofcdemo.demolib import OpticalCLI as CLI
 
 from mininet.node import OVSBridge, Host
 from mininet.topo import Topo
-from mininet.log import setLogLevel
+from mininet.log import setLogLevel, warning
 from mininet.clean import cleanup
 
 class SingleROADMTopo(Topo):
@@ -37,7 +37,7 @@ class SingleROADMTopo(Topo):
         t1, t2, t3 = terminals = [
             self.addSwitch(
                 t, cls=Terminal, transceivers=[('tx1',0*dBm,'C')],
-                monitor_mode='in', receiver_threshold=15.0*dB) # FIXME
+                monitor_mode='in')
             for t in ('t1', 't2', 't3')]
         r1 = self.addSwitch('r1', cls=ROADM)
         # Ethernet links
@@ -45,7 +45,7 @@ class SingleROADMTopo(Topo):
             self.addLink(h, s)
             self.addLink(s, t, port2=1)
         # WDM links
-        boost = ('boost', {'target_gain':17.0*dB})
+        boost = ('boost', {'target_gain': 3.0*dB})
         amp1 = ('amp1', {'target_gain': 25*.22*dB})
         amp2 = ('amp2', {'target_gain': 25*.22*dB})
         spans = [25*km, amp1, 25*km, amp2]
@@ -57,23 +57,33 @@ class SingleROADMTopo(Topo):
                      spans=[1.0*m])
 
 
-# Optional: plot node graph
-
+# Debugging: Plot network graph
 def plotNet(net, outfile="singleroadm.png"):
-    "Plot node graph"
-    color = {ROADM: 'red', Terminal: 'green', OVSBridge: 'blue',
-             Host: 'black'}
+    "Plot network graph to outfile"
     try:
         import pygraphviz as pgv
     except:
+        warning('*** Please install python3-pygraphviz for plotting\n')
         return
-    g = pgv.AGraph(strict=False, directed=False)
+    color = {ROADM: 'red', Terminal: 'blue', OVSBridge: 'orange',
+             Host: 'black'}
+    colors = {node: color.get(type(node), 'black')
+              for node in net.values()}
+    nfont = {'fontname': 'helvetica bold', 'penwidth': 3}
+    g = pgv.AGraph(strict=False, directed=False, layout='circo')
     for node in net.switches:
-        g.add_node(node.name, color=color[type(node)])
+        g.add_node(node.name, color=colors[node], **nfont)
     for node in net.hosts:
-        g.add_node(node.name, color=color[type(node)], shape='box')
+        g.add_node(node.name, color=colors[node], **nfont, shape='box')
     for link in net.links:
-        g.add_edge(link.intf1.node.name, link.intf2.node.name)
+        intf1, intf2 = link.intf1, link.intf2
+        node1, node2 = intf1.node, intf2.node
+        port1, port2 = node1.ports[intf1], node2.ports[intf2]
+        g.add_edge(node1.name, node2.name,
+                   headlabel=f' {node2}:{port2} ',
+                   taillabel=f' {node1}:{port1} ',
+                   labelfontsize=10, labelfontname='helvetica bold',
+                   penwidth=2)
     print("*** Plotting network topology to", outfile)
     g.layout()
     g.draw(outfile)
@@ -85,7 +95,7 @@ if __name__ == '__main__':
     setLogLevel('info')
 
     topo = SingleROADMTopo()
-    net = Mininet(topo=topo, switch=OVSBridge)
+    net = Mininet(topo=topo, switch=OVSBridge, controller=None)
     restServer = RestServer(net)
 
     net.start()
