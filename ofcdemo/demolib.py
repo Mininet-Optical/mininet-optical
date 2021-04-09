@@ -18,7 +18,7 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.cli import CLI
-from mininet.node import RemoteController
+from mininet.node import RemoteController, OVSSwitch
 from mininet.util import natural
 
 from collections import namedtuple
