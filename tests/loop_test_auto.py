@@ -148,7 +148,7 @@ for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
         path += roadms[:i]
     path.append(lt_rx)
 
-    # install switch rules into the ROADMs
+    # install switch rules into the ROADMs based on the paths
     install_paths(path, channels, line_terminals)
 
     print("*** Turning on:", lt_tx)
