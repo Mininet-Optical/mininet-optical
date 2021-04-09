@@ -191,6 +191,8 @@ class Monitor:
         self.model = monitor
     def intfList( self ):
         return []
+    def intfNames( self ):
+        return []
     def pexec( self, *args, **kwargs ):
         pass
 
