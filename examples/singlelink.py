@@ -68,7 +68,7 @@ if __name__ == '__main__':
     setLogLevel('info')
 
     topo = SingleLinkTopo()
-    net = Mininet(topo=topo, switch=OVSBridge)
+    net = Mininet(topo=topo, switch=OVSBridge, controller=None)
     restServer = RestServer(net)
 
     net.start()
