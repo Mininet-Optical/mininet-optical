@@ -5,7 +5,7 @@ from collections import namedtuple
 from scipy.special import erfc
 from math import sqrt
 
-# RENAME TO COMPONENT
+
 class Node(object):
     input_port_base = 0
     output_port_base = 0
@@ -146,8 +146,8 @@ class Node(object):
         optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
     def remove_optical_signal(self, optical_signal):
-        print("*** %s - %s removing signal: OpticalSignal:%s - UID:%s" % (self.__class__.__name__,
-                                                      self.name, optical_signal, optical_signal.uid))
+        print("*** %s - %s removing signal: OpticalSignal:%s" % (self.__class__.__name__,
+                                                      self.name, optical_signal))
 
         if optical_signal in self.optical_signal_to_node_in:
             src_node = self.optical_signal_to_node_in[optical_signal]
@@ -281,6 +281,7 @@ class LineTerminal(Node):
             transceiver.compute_gross_bit_rate()
 
     def update_rx_threshold(self, new_rx_threshold):
+        # AD: Probably obsolete, threshold is a feature of Transceivers
         self.rx_threshold_dB = new_rx_threshold
 
     def assoc_tx_to_channel(self, transceiver, channel, in_port=-1, out_port=-1):
@@ -368,6 +369,11 @@ class LineTerminal(Node):
         return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
 
     def receiver(self, optical_signal, in_port):
+        """
+        Will verify that the signal can be received, then compute
+        the OSNR and gOSNR levels of the signal, and will do a
+        callback to dataplane (if run in emulation mode).
+        """
         signalInfoDict = {}
         signalInfoDict[optical_signal] = {'osnr': None, 'gosnr': None,
                                           'ber': None, 'success': False}

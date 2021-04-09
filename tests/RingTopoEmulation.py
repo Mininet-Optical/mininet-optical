@@ -56,31 +56,39 @@ class RingTopo(OpticalTopo):
                             defaultRoute='dev ' + hostname + '-eth0')
         router = self.addSwitch('s%d' % p, subnet=subnet,
                                 listenPort=(ListenPortBase + p))
-
-        tx_labels = ['tx%s' % str(x + 1) for x in range(txCount * 2)]
-        rx_labels = ['rx%s' % str(x + 1) for x in range(txCount * 2)]
-        tx_transceivers = [Transceiver(id, tr, operation_power=p, type='tx')
-                           for id, tr in enumerate(tx_labels, start=1)]
-        rx_transceivers = [Transceiver(id, tr, operation_power=p, type='rx')
-                           for id, tr in enumerate(rx_labels, start=1)]
-        transceivers = tx_transceivers + rx_transceivers
-        terminal = self.addSwitch(
-            't%d' % p, cls=Terminal, transceivers=transceivers)
-
         roadm = self.addSwitch('r%d' % p, cls=ROADM)
-        # Local links
-        for tx in tx_transceivers[:txCount]:
-            self.ethLink(terminal, router, port1=tx.id, port2=tx.id)
-        # Wouldn't we want to be able to declare TX and RX links?
-        # for rx in rx_transceivers[:txCount]:
-        #     self.ethLink(router, terminal, port1=rx.id, port2=rx.id)
 
-        self.ethLink(router, host, port1=txCount * 2 + 1)
+        # create the labels for the transceivers
+        tr_labels = ['tr%s' % str(x + 1) for x in range(txCount)]
+        # create as many transceivers as labels
+        transceivers = [Transceiver(id, tr, operation_power=-2) for id, tr in enumerate(tr_labels, start=1)]
+        # create a terminal with the transceivers
+        terminal = self.addSwitch('t%d' % p, cls=Terminal, transceivers=transceivers)
 
-        for tx in tx_transceivers[txCount:]:
-            self.wdmLink(terminal, roadm, port1=tx.id, port2=tx.id - txCount)
-        # for rx in rx_transceivers[txCount:]:
-        #     self.wdmLink(roadm, terminal, port1=rx.id - txCount, port2=rx.id)
+        # Terminal <--> Router Link
+        # This is NOT a Transceiver connection, the port
+        # numbering refers to a physical port identifier,
+        # but the link will be an ethLink, thus no need
+        # for transceivers.
+        eth_ports = [101, 102]
+        for eth_port in eth_ports:
+            self.ethLink(terminal, router, port1=eth_port, port2=eth_port)
+
+        # Router <--> Host Link
+        # AD: Which port should this be? 0?
+        self.ethLink(router, host, port1=0)
+
+        # Modelling Lumentum ROADM-20 port numbering
+        roadm20_in_ports = [i + 1 for i in range(4100, 4120)]
+        roadm20_out_ports = [i + 1 for i in range(5200, 5220)]
+        # Terminals <--> ROADMs
+        for i, tr in enumerate(transceivers):
+            roadm20_in_port = roadm20_in_ports[i]
+            self.wdmLink(terminal, roadm, port1=tr.id, port2=roadm20_in_port)
+
+            # AD: We want to be able to do this! Enabling uni-directional links.
+            # roadm20_out_port = roadm20_out_ports[i]
+            # self.wdmLink(roadm, terminal, port1=roadm20_out_port, port2=tr.id)
 
         # Return ROADM so we can link it to other POPs as needed
         return roadm
@@ -104,6 +112,7 @@ class RingTopo(OpticalTopo):
                 src, dst = roadm, roadms[0]
             else:
                 src, dst = roadm, roadms[i + 1]
+            print("*** RingTopo: creating link for ROADMs", src, dst)
 
             boost = ('boost', dict(target_gain=17.0 * dB, boost=True))
             spans = self.spans(spanLength=80 * km, spanCount=3)
@@ -119,13 +128,14 @@ class RingTopo(OpticalTopo):
             monitors.append((prefix2 + 'boost' + '-monitor', prefix2 + 'boost'))
             self.wdmLink(src, dst, boost=boost, spans=spans,
                          monitors=monitors)
+            print("*** RingTopo: OK")
 
 
 if __name__ == '__main__':
     # Test our demo topology
     cleanup()
     setLogLevel('info')
-    topo1 = RingTopo(n=3, txCount=10)
+    topo1 = RingTopo(n=3, txCount=2)
     net = Mininet(topo=topo1, autoSetMacs=True,
                   controller=RemoteController)
     disableIPv6(net)

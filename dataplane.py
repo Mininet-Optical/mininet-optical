@@ -477,6 +477,7 @@ class ROADM( SwitchBase ):
         if rule in self.ruleIds:
             return
         self.model.install_switch_rule( inport, outport, channels )
+        # AD: This should definitely be handled differently
         if int(op) < 100:
             # params: channel_id, output_port, operational_power_dB
             for channel in channels:
@@ -573,6 +574,7 @@ class ROADM( SwitchBase ):
     def connect( self, port1, port2, channels, op=100, action='install' ):
         "Install bidirectional rule connecting port1 and port2"
         self.install( port1, port2, channels, op=op, action=action )
+        # AD: Do we want to do this?
         self.install( port2, port1, channels, op=op, action=action )
 
     def disconnect( self, port1, port2, channels, action='remove' ):
