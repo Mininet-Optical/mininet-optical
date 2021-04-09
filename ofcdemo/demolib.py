@@ -9,6 +9,7 @@ Our demo topology is a cross-connected mesh of 6 POPs.
 """
 
 from dataplane import ( Terminal, ROADM, OpticalLink,
+                        SwitchBase as OpticalSwitchBase,
                         dBm, dB, km,
                         cleanOptLinks, disableIPv6, Mininet )
 from rest import RestServer
@@ -17,7 +18,7 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.cli import CLI
-from mininet.node import RemoteController
+from mininet.node import RemoteController, OVSSwitch
 from mininet.util import natural
 
 from collections import namedtuple
@@ -124,11 +125,15 @@ class OpticalCLI( CLI ):
             print( 'Could not import networkx and/or matplotlib.pyplot' )
             return
         g = nx.Graph()
-        g.add_nodes_from( switch for switch in net.switches if isinstance(switch, ROADM) )
+        g.add_nodes_from( net.switches  )
+        color = {ROADM: 'red', Terminal: 'blue'}
+        colors = [color.get(type(node), 'orange') for node in g]
         g.add_edges_from([(link.intf1.node, link.intf2.node) for link in net.links
-                          if (isinstance(link.intf1.node, ROADM) and
-                              isinstance(link.intf2.node, ROADM))])
-        nx.draw_spring( g, with_labels=True, font_weight='bold' )
+                          if link.intf1.node in g
+                          and link.intf2.node in g])
+        self.mn.g = g
+        nx.draw_spring( g, node_color=colors, with_labels=True, font_weight='bold',
+                        font_color='white', edgecolors='black', node_size=600 )
         if line:
             fname = 'plot.png'
             print( 'Saving to', fname, '...' )
@@ -142,13 +147,6 @@ class OpticalCLI( CLI ):
             if isinstance( node, Terminal ):
                 node.propagate()
 
-    @staticmethod
-    def formatSignals( signals, node ):
-        "Nice format for signal powers"
-        return list(
-            '%s %.2f dBm' % ( signal, signal.loc_out_to_state[ node ]['power'] )
-            for signal in sorted( signals, key=lambda s: s.index ) )
-
     def do_amppowers( self, _line ):
         "Print out power for all amps on links"
         for link, spans in self.spans():
@@ -157,10 +155,16 @@ class OpticalCLI( CLI ):
                 amp = span.amplifier
                 if amp:
                     print('amp:', amp)
-                    inputs = amp.port_to_optical_signal_in
-                    outputs = amp.port_to_optical_signal_out
-                    print('input', self.formatSignals(inputs, amp ),
-                          'output', self.formatSignals(outputs, amp ) )
+                    inputs = amp.port_to_optical_signal_in[0]
+                    outputs = amp.port_to_optical_signal_out[0]
+                    inputs = list(
+                        '%s %.2f dBm' % ( signal[0], signal[0].loc_in_to_state[ amp ][ 'power'] )
+                        for signal in sorted( outputs, key=lambda s: s[0].index ) )
+                    outputs = list(
+                        '%s %.2f dBm' % ( signal[0], signal[0].loc_out_to_state[ amp ]['power'])
+                        for signal in sorted( outputs, key=lambda s: s[0].index ) )
+                    print('input', inputs)
+                    print('output', outputs)
 
     def do_arp( self, _line ):
         "Send gratuitous arps from every host"
