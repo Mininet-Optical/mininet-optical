@@ -717,7 +717,7 @@ class Roadm(Node):
     def delete_switch_rules(self):
         """Delete all switching rules"""
         for ruleId in list(self.switch_table):
-            self.delete_switch_rule(ruleId)
+            self.delete_switch_rule(ruleId[0])
 
     def can_switch(self, in_port):
         # Track which out ports are going to carry which signals
