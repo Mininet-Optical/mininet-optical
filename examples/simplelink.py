@@ -29,7 +29,7 @@ from mininet.clean import cleanup
 
 class SimpleLinkTopo(Topo):
     """Simple link topology:
-       h1 - t1 - (boost->) --25km-- (<-boost) - t1 - h2"""
+       h1 - t1 - (boost->) --25km-- (<-boost) - t2 - h2"""
 
     def build(self):
         "Build single link topology"
