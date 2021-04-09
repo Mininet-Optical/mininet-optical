@@ -1,0 +1,23 @@
+name: tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Mininet-Optical Tests
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Check out source code
+        uses: actions/checkout@v2
+
+      - name: Install Python dependencies
+        uses: py-actions/py-dependency-install@v2
+
+      - name: Run Tests
+        run: cd tests && ./RunTests.sh
