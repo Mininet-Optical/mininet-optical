@@ -20,15 +20,11 @@ p_start = 0
 p_end = 2
 p_step = 2
 power_levels = list(np.arange(p_start, p_end, p_step))
-# Structures to monitor the OSNR, gOSNR and OSNR-ASE (analytical model)
-plotting_osnr = []
-plotting_gosnr = []
-plotting_analytical = []
 # Define number of wavelengths to transmit
 num_wavelengths = 3
-wavelength_indexes = list(range(1, num_wavelengths + 1))
+channel_indexes = list(range(1, num_wavelengths + 1))
 # Define channel index to monitor (channel under test - cut)
-cut = int(np.floor(len(wavelength_indexes) / 2))
+cut = int(np.floor(len(channel_indexes) / 2))
 
 print("*** Monitoring channel with index: ", cut)
 
@@ -39,62 +35,44 @@ for i, p in enumerate(power_levels):
     # Retrieve line terminals (transceivers) from network
     lt_1 = net.name_to_node['lt_1']
     lt_5 = net.name_to_node['lt_5']
-
-    # Retrieve ROADMs from network
-    roadm_1 = net.name_to_node['r1']
-    roadm_2 = net.name_to_node['r2']
-    roadm_3 = net.name_to_node['r3']
-    roadm_4 = net.name_to_node['r4']
-    roadm_5 = net.name_to_node['r5']
-
     # Configure terminals
-    transceivers = lt_1.transceivers
-    for i, channel in enumerate(wavelength_indexes, start=wavelength_indexes[0]):
-        # channels are enumerated starting from 1
-        # transceivers and their ports are enumerated starting from 0
-        t = transceivers[i - 1]
-        lp_descriptor = {'src_roadm': roadm_1, 'dst_roadm': roadm_5}
-        # associate transceiver to channel in LineTerminal
-        lt_1.configure_terminal(t, channel)
+    for c in channel_indexes:
+        # configure transmitter terminal
+        tx_transceiver = lt_1.id_to_transceivers[c]
+        lt_1.assoc_tx_to_channel(tx_transceiver, c, out_port=c)
 
-    # Now, we will install switch rules into the ROADM nodes
-
-    # We retrieve the first input port of ROADM connected to the terminal
-    in_port_lt = wavelength_indexes[0] - 1
+        # configure receiver terminal
+        rx_transceiver = lt_5.id_to_transceivers[c]
+        lt_5.assoc_rx_to_channel(rx_transceiver, c)
 
     # This allows to iterate through the ROADMs
-    roadms = [roadm_1, roadm_2, roadm_3, roadm_4, roadm_5]
+    roadms = net.roadms
     # Installing rules to the ROADMs (algorithms can vary)
-    for i in range(len(roadms)):
+    for i, roadm in enumerate(roadms):
         if i == 0:
-            r1 = roadms[i]
-            r2 = roadms[i + 1]
+            current_roadm = roadm
+            next_roadm = roadms[i + 1]
             # We find the output port of r1 towards r2
-            out_port = net.find_link_and_out_port_from_nodes(r1, r2)
+            out_port = net.find_link_and_out_port_from_nodes(current_roadm, next_roadm)
             # We need to install channels sequentially when signals go
             # from a terminal (transceiver) to a ROADM
-            for i, channel in enumerate(wavelength_indexes, start=1):
+            for channel in channel_indexes:
+                in_port = 4100 + channel
                 # install switch rule gets as input: rule_id, in_port, out_port, channel.
-                r1.install_switch_rule(i, in_port_lt, out_port, [channel])
-                # We can configure the variable optical attenuators comprising the ROADM.
-                r1.configure_voa(channel_id=channel, output_port=out_port, operational_power_dB=p)
-                in_port_lt += 1
-
+                current_roadm.install_switch_rule(in_port, out_port, [channel])
         else:
-            r1 = roadms[i - 1]
-            r2 = roadms[i]
-            in_port = net.find_link_and_in_port_from_nodes(r1, r2)
+            prev_roadm = roadms[i - 1]
+            current_roadm = roadm
+            in_port = net.find_link_and_in_port_from_nodes(prev_roadm, current_roadm)
 
-            if i < 4:
-                r3 = roadms[i + 1]
-                out_port = net.find_link_and_out_port_from_nodes(r2, r3)
-            elif i == 4:
-                out_port = net.find_link_and_out_port_from_nodes(r2, lt_5)
+            if i < len(roadms) - 1:
+                next_roadm = roadms[i + 1]
+                out_port = net.find_link_and_out_port_from_nodes(current_roadm, next_roadm)
+            elif i == len(roadms) - 1:
+                out_port = net.find_link_and_out_port_from_nodes(current_roadm, lt_5)
             # It is possible to get a single rule for multiple channels
             # for the connections between ROADMs.
-            r2.install_switch_rule(1, in_port, out_port, wavelength_indexes)
-            for chx in wavelength_indexes:
-                r2.configure_voa(channel_id=chx, output_port=out_port, operational_power_dB=p)
+            current_roadm.install_switch_rule(in_port, out_port, channel_indexes)
 
     # Now we turn on the "comb source" connected to the main terminal
     lt_1.turn_on()
@@ -104,9 +82,10 @@ for i, p in enumerate(power_levels):
     gosnrs = []
     # Iterate through monitoring nodes at each EDFA
     for amp in net.amplifiers:
+        print(amp.monitor.get_list_osnr())
         osnrs.append((amp.monitor, amp.monitor.get_list_osnr()[cut][1]))
         gosnrs.append((amp.monitor, amp.monitor.get_list_gosnr()[cut][1]))
 
-print("The gOSNR of channel %s at each location:" %cut)
-for element in gosnrs:
-    print("Channel: %s | Location: %s | gOSNR: %f dB" % (cut, element[0].name, element[1]))
+# print("The gOSNR of channel %s at each location:" %cut)
+# for element in gosnrs:
+#     print("Channel: %s | Location: %s | gOSNR: %f dB" % (cut, element[0].name, element[1]))

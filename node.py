@@ -328,7 +328,7 @@ class LineTerminal(Node):
         """
         c = 0
         for out_port, transceiver in self.id_to_transceivers.items():
-            # AD: This will need to change if enabling QSFP28 Transceivers
+            # AD: Will this need to change if enabling QSFP28 Transceivers?
             if transceiver.optical_signal is not None:
                 c += 1
                 transceiver.optical_signal.reset()
@@ -357,6 +357,7 @@ class LineTerminal(Node):
 
     @staticmethod
     def init_noise_structs(operation_power):
+        # AD before: noise = operation_power / db_to_abs(90)
         noise = operation_power / db_to_abs(90)
         return noise, noise
 
@@ -365,8 +366,8 @@ class LineTerminal(Node):
         return abs_to_db(power / ase_noise)
 
     @staticmethod
-    def gosnr(power, ase_noise, nli_noise):
-        return abs_to_db(power / (ase_noise + nli_noise* (12.5e9 / 32.0e9)))
+    def gosnr(power, ase_noise, nli_noise, baud_rate):
+        return abs_to_db(power / (ase_noise + nli_noise * (12.5e9 / baud_rate)))
 
     def receiver(self, optical_signal, in_port):
         """
@@ -392,7 +393,10 @@ class LineTerminal(Node):
 
         # Compute OSNR and gOSNR
         osnr = self.osnr(power, ase_noise)
-        gosnr = self.gosnr(power, ase_noise, nli_noise)
+        gosnr = self.gosnr(power, ase_noise, nli_noise, optical_signal.symbol_rate)
+
+        print("osnr", osnr)
+        print("gosnr", gosnr)
 
         signalInfoDict[optical_signal]['osnr'] = osnr
         signalInfoDict[optical_signal]['gosnr'] = gosnr
@@ -560,7 +564,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, wss_dict=None, equalization_function='flatten',
+    def __init__(self, name, equalization_function='flatten',
                  equalization_target_out_power=0, monitor_mode=None):
 
         """
@@ -572,9 +576,6 @@ class Roadm(Node):
         """
         Node.__init__(self, name)
         # configuration attributes
-        self.wss_dict = None
-        # dict of WSS_id (int): (tuple); (attenuation - float; wd-attenuation - list)
-        self.unpack_wss_dict(wss_dict)
         self.equalization_attenuation = db_to_abs(3)
         self.equalization_function = equalization_function
         self.equalization_target_out_power = {}
@@ -783,7 +784,6 @@ class Roadm(Node):
                     self.port_check_range_out[out_port] = 0
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
-
     def can_switch_from_lt(self, src_node):
         """
         What I want to do is to be sure that when calling switch() for signals coming from
@@ -807,7 +807,6 @@ class Roadm(Node):
                     port_out_to_port_in_signals.setdefault(out_port, {})
                     port_out_to_port_in_signals[out_port].update(_dict)
         return port_to_optical_signal_out, port_out_to_port_in_signals
-
 
     def switch(self, in_port, src_node):
         if isinstance(src_node, LineTerminal):
@@ -834,7 +833,6 @@ class Roadm(Node):
 
             total_power = power_in + ase_noise_in + nli_noise_in
             carriers_power.append(total_power)
-
         carriers_att = list(map(lambda x: abs_to_db(x * 1e3) - self.target_output_power_dB, carriers_power))
         exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
         carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
@@ -845,7 +843,6 @@ class Roadm(Node):
         self.effective_output_power_dB = min(self.reference_power, self.target_output_power_dB)
         self.effective_loss = self.reference_power - self.target_output_power_dB
         carriers_att = self.compute_carrier_attenuation(in_port)
-
         link = self.port_to_link_out[out_port]
         for i, optical_signal in enumerate(optical_signals):
             # attenuate signal power
@@ -853,14 +850,12 @@ class Roadm(Node):
             ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
             nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
 
-            # retrieve the WSS wavelength-dependent attenuation (AD: probably obsolete).
-            node_attenuation = self.get_node_attenuation(in_port)
             # retrieve the equalization attenuation function at the output ports (AD: to be updated).
             equalization_attenuation = self.equalization_attenuation
 
-            power_out = power_in / carriers_att[i]  # node_attenuation[optical_signal] / equalization_attenuation
-            ase_noise_out = ase_noise_in / carriers_att[i]  # node_attenuation[optical_signal] / equalization_attenuation
-            nli_noise_out = nli_noise_in / carriers_att[i]  # node_attenuation[optical_signal] / equalization_attenuation
+            power_out = power_in / carriers_att[i]  #  / equalization_attenuation
+            ase_noise_out = ase_noise_in / carriers_att[i]  #  / equalization_attenuation
+            nli_noise_out = nli_noise_in / carriers_att[i]  #  / equalization_attenuation
 
             # update the structures for that direction
             # all these signals are going towards the same out port
@@ -873,22 +868,6 @@ class Roadm(Node):
     def route(self, out_port):
         link = self.port_to_link_out[out_port]
         link.propagate(equalization=self.equalization_compensation, is_last_port=True)
-
-    def get_node_attenuation(self, in_port):
-        """
-        When switching, it computes the total node attenuation only
-        for the signals passing through
-        """
-        node_attenuation = {}
-        for optical_signal in self.port_to_optical_signal_in[in_port]:
-            wss_attenuation = 0.0
-            wss_wd_attenuation = 0.0
-            for wss_id, attenuation_tuple in self.wss_dict.items():
-                wss_attenuation += attenuation_tuple[0]
-                wss_wd_attenuation += attenuation_tuple[1][optical_signal.index - 1]
-            total_attenuation = db_to_abs(wss_attenuation + wss_wd_attenuation)
-            node_attenuation[optical_signal] = total_attenuation
-        return node_attenuation
 
     def equalization_reconf(self, link, output_power_dict, node_out_port):
         """
@@ -1185,7 +1164,7 @@ class Amplifier(Node):
         ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
         gain_linear = db_to_abs(system_gain)  # * db_to_abs(wavelength_dependent_gain)
         ase_noise_out = ase_noise_in * gain_linear + (noise_figure_linear * h * optical_signal.frequency *
-                                                      self.bandwidth * (gain_linear - 1))  # * 1000)
+                                                      self.bandwidth * (gain_linear - 1))
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
         self.include_optical_signal_out(optical_signal,

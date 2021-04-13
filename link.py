@@ -1,6 +1,7 @@
 from collections import namedtuple
 from units import *
 from pprint import pprint
+from numpy import errstate
 
 
 SpanTuple = namedtuple('Span', 'span amplifier')
@@ -239,6 +240,7 @@ class Link(object):
                     power_out = optical_signal.loc_out_to_state[amplifier]['power']
                     ase_noise_out = optical_signal.loc_out_to_state[amplifier]['ase_noise']
                     nli_noise_out = optical_signal.loc_out_to_state[amplifier]['nli_noise']
+
                     self.include_optical_signal_in(optical_signal, power=power_out,
                                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out)
 
@@ -276,28 +278,27 @@ class Link(object):
         # Calculate delta P for each channel
         for optical_signal in self.optical_signals:
             frequency = optical_signal.frequency
-            r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
-                    beta * total_power * effective_length * (frequency - frequency_min))  # term 1
-            r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
+            with errstate(divide='ignore'):
+                r1 = beta * total_power * effective_length * (frequency_max - frequency_min) * math.e ** (
+                        beta * total_power * effective_length * (frequency - frequency_min))  # term 1
+                r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
-            delta_p = float(r1 / r2)  # Does the arithmetic in mW
-            power_out = optical_signal.loc_out_to_state[(self, span)]['power'] * delta_p
-            ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] * delta_p
-            nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] * delta_p
-            self.include_optical_signal_out(optical_signal, power=power_out,
-                                            ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                            tup_key=(self, span))
+                delta_p = float(r1 / r2)  # Does the arithmetic in mW
+                power_out = optical_signal.loc_out_to_state[(self, span)]['power'] * delta_p
+                ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] * delta_p
+                nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] * delta_p
+                self.include_optical_signal_out(optical_signal, power=power_out,
+                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out,
+                                                tup_key=(self, span))
 
     def output_nonlinear_noise(self, span):
         """
         :param span: Span() object
-        :return: dict{signal_index: accumulated NLI noise levels}
         """
-        nonlinear_noise_new = self.gn_model(span)
-
+        nonlinear_noise = self.gn_model(span)
         for optical_signal in self.optical_signals:
             nli_noise_in = optical_signal.loc_in_to_state[(self, span)]['nli_noise']
-            nli_noise_out = nli_noise_in + nonlinear_noise_new[optical_signal]
+            nli_noise_out = nli_noise_in + nonlinear_noise[optical_signal]
             self.include_optical_signal_out(optical_signal, nli_noise=nli_noise_out, tup_key=(self, span))
 
     def gn_model(self, span):
@@ -325,24 +326,23 @@ class Link(object):
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
             bw_cut = symbol_rate_cut
-            # pwr_cut = round(optical_signal.loc_out_to_state[(self, span)]['power'], 2) * 1e-3
-            pwr_cut = optical_signal.loc_out_to_state[(self, span)]['power'] * 1e-3
+            pwr_cut = optical_signal.loc_out_to_state[(self, span)]['power']
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             g_nli = 0
             for ch in self.optical_signals:
                 symbol_rate_ch = ch.symbol_rate
                 bw_ch = symbol_rate_ch
-                pwr_ch = ch.loc_out_to_state[(self, span)]['power'] * 1e-3
+                pwr_ch = ch.loc_out_to_state[(self, span)]['power']
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
                 psi = self.psi_factor(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
                 g_nli += g_ch ** 2 * g_cut * psi
 
-            g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 \
-                     / (2 * np.pi * abs(beta2) * asymptotic_length)
+            with errstate(divide='ignore'):
+                g_nli *= (16.0 / 27.0) * (gamma * effective_length) ** 2 / (2 * np.pi * abs(beta2) * asymptotic_length)
 
             signal_under_test = index_to_signal[channel_under_test]
-            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut * 1e3
+            nonlinear_noise_struct[signal_under_test] = g_nli * bw_cut
         return nonlinear_noise_struct
 
     @staticmethod

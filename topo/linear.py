@@ -1,6 +1,7 @@
 import network
 from link import Span as Fiber, SpanTuple as Segment
 import numpy as np
+from node import Transceiver
 
 
 km = dB = dBm = 1.0
@@ -26,7 +27,7 @@ def build_spans(net, r1, r2):
     span_no = 3
     span_length = 80
 
-    for i in np.arange(1, span_no + 1):
+    for i in range(1, span_no + 1):
         # append all spans except last one
         amp = net.add_amplifier(
             '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
@@ -61,25 +62,33 @@ class LinearTopology:
         # Create an optical-network object
         net = network.Network()
 
-        # Create line terminals
-        operational_power = op  # power in dBm
-        ran = np.arange(1, 91)
-        tr_labels = ['t%s' % str(x) for x in ran]
-        transceivers = [(tr, operational_power, 'C') for tr in tr_labels]
-        line_terminals = [net.add_lt('lt_%s' % (i + 1), transceivers=transceivers) for i in range(non)]
+        operational_power = 0
+        tr_no = range(1, 11)
+        tr_labels = ['tr%s' % str(x) for x in tr_no]
+        line_terminals = []
+        for i in range(non):
+            # plugging a Transceiver at the first 10 ports of the Terminal
+            transceivers = [Transceiver(id, tr, operation_power=operational_power)
+                            for id, tr in enumerate(tr_labels, start=1)]
+            lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
+            line_terminals.append(lt)
 
-        # Create ROADMs
-        wss_dict = {1: (7.0, None), 2: (7.0, None)}
-        roadms = [net.add_roadm('r%s' % (i + 1), wss_dict=wss_dict,
-                                equalization_function='flatten', equalization_target_out_power=op) for i in range(non)]
+        roadms = [net.add_roadm('r%s' % (i + 1)) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
+        # Modelling Lumentum ROADM-20 port numbering
+        roadm20_in_ports = [i + 1 for i in range(4100, 4120)]
+        roadm20_out_ports = [i + 1 for i in range(5200, 5220)]
         # Create bi-directional links between LTs and ROADMs
+        # Need to decide which ports are connected to the ROADM
+        # Port-1 from Terminals are connected to Port-4101 from ROADMs.
         for lt, roadm in zip(line_terminals, roadms):
-            for transceiver in lt.transceivers:
-                tx_port = transceiver.id
-                net.add_link(lt, roadm, src_out_port=tx_port, dst_in_port=tx_port, spans=[Span(1 * m)])
-                net.add_link(roadm, lt, src_out_port=tx_port, dst_in_port=tx_port, spans=[Span(1 * m)])
+            for i, tr in enumerate(transceivers):
+                roadm20_in_port = roadm20_in_ports[i]
+                net.add_link(lt, roadm, src_out_port=tr.id, dst_in_port=roadm20_in_port, spans=[Span(0 * m)])
+
+                roadm20_out_port = roadm20_out_ports[i]
+                net.add_link(roadm, lt, src_out_port=roadm20_out_port, dst_in_port=tr.id, spans=[Span(0 * m)])
 
         tmp = 0
         for i in range(non-1):
@@ -87,7 +96,7 @@ class LinearTopology:
             r1 = name_to_roadm['r' + str(i + 1)]  # init node
             r2 = name_to_roadm['r' + str(i + 2)]  # next node
             if tmp == 0:
-                build_link(net, r1, r2, gain=17.00022)
+                build_link(net, r1, r2, gain=17.0)
                 tmp += 1
             else:
                 build_link(net, r1, r2, gain=17.0)
