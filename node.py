@@ -148,7 +148,6 @@ class Node(object):
     def remove_optical_signal(self, optical_signal):
         print("*** %s - %s removing signal: OpticalSignal:%s" % (self.__class__.__name__,
                                                       self.name, optical_signal))
-
         if optical_signal in self.optical_signal_to_node_in:
             src_node = self.optical_signal_to_node_in[optical_signal]
             if optical_signal in self.node_to_optical_signal_in[src_node]:
@@ -394,9 +393,6 @@ class LineTerminal(Node):
         # Compute OSNR and gOSNR
         osnr = self.osnr(power, ase_noise)
         gosnr = self.gosnr(power, ase_noise, nli_noise, optical_signal.symbol_rate)
-
-        print("osnr", osnr)
-        print("gosnr", gosnr)
 
         signalInfoDict[optical_signal]['osnr'] = osnr
         signalInfoDict[optical_signal]['gosnr'] = gosnr
@@ -833,6 +829,7 @@ class Roadm(Node):
 
             total_power = power_in + ase_noise_in + nli_noise_in
             carriers_power.append(total_power)
+
         carriers_att = list(map(lambda x: abs_to_db(x * 1e3) - self.target_output_power_dB, carriers_power))
         exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
         carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
@@ -843,6 +840,7 @@ class Roadm(Node):
         self.effective_output_power_dB = min(self.reference_power, self.target_output_power_dB)
         self.effective_loss = self.reference_power - self.target_output_power_dB
         carriers_att = self.compute_carrier_attenuation(in_port)
+
         link = self.port_to_link_out[out_port]
         for i, optical_signal in enumerate(optical_signals):
             # attenuate signal power

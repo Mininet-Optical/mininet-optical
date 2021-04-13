@@ -50,6 +50,52 @@ def build_link(net, r1, r2, gain=17.00022):
     net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
 
 
+km = dB = dBm = 1.0
+m = .001
+
+counter = 0
+
+
+def Span(km, amp=None):
+    """Return a fiber segment of length km with a compensating amp"""
+    return Segment(span=Fiber(length=km), amplifier=amp)
+
+
+def build_spans(net, r1, r2):
+    """
+    Helper function for building spans of
+    fixed length of 50km and handling those
+    that require different lengths
+    """
+    # store all spans (sequentially) in a list
+    spans = []
+    # get number of spans (int)
+    span_no = 3
+    span_length = 80
+
+    for i in np.arange(1, span_no + 1):
+        # append all spans except last one
+        amp = net.add_amplifier(
+            '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
+        span = Span(span_length, amp=amp)
+        spans.append(span)
+
+    return net, spans
+
+
+def build_link(net, r1, r2, gain=17.00022):
+    # boost amplifier object
+    boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
+    boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA', target_gain=float(gain), boost=True, monitor_mode='out')
+
+    net, spans = build_spans(net, r1, r2)
+    for step, span in enumerate(spans, start=1):
+        net.spans.append(span)
+
+    # link object
+    net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
+
+
 class LinearTopology:
 
     @staticmethod
