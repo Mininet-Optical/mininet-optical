@@ -636,15 +636,18 @@ class OpticalLink( Link ):
 
     def __init__( self, src, dst, port1=None, port2=None,
                   boost=None, boost1=None, boost2=None, spans=None,
-                  monitors=None, **kwargs ):
+                  **kwargs ):
         """node1, node2: nodes to connect
            port1, port2: node ports
-           boost1, boost2: boost amp (name, {params}) if any
-           spans: list of (length in km, (ampName, params) | None )
-           monitors1: list of (monName, ampName) to monitor
+           boost1, boost2: boost amp (name, {params}|[args]) if any
+           spans: list of (length in km, (ampName, {params}|[args]) | None )
            NOTE - a prefix of 'src-dst-' will be added to node
-           names, and the ampNames in monitors must match the
-           full (and directional) amplifier name  (r1-r2-amp3)"""
+           names, resulting in names like r1-r2-boost, r1-r2-amp1, etc.
+           Note also that as described above, amplifier parameters
+           may be either a dict or a list, to allow things like
+           spans = [25*km, ('amp1', 5*dB), 25*km,  ... ] as well as
+           boost = ('boost', {'target_gain': 17*dB, ...})
+           """
 
         # Default span: 1m of fiber, no amplifier
         spans = spans or [1*m]
@@ -669,26 +672,35 @@ class OpticalLink( Link ):
         super( OpticalLink, self).__init__( src, dst, **kwargs )
 
         # Boost amplifiers if any
+        # Note amp params can be a dict or a positional list, to allow
+        # ('boost1', 3*dB) or ('boost1', {'target_gain': 3*dB})
         prefix1 = '%s-%s-' % (src, dst)
         prefix2 = '%s-%s-' % (dst, src)
         boost1 = boost1 or (boost and ( prefix1 + boost[0], boost[1] ) )
         boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
         if boost1:
             name, params = boost1
-            boost1 = PhyAmplifier( name, *params )
+            boost1 = ( PhyAmplifier( name, **params )
+                       if isinstance( params, dict )
+                       else PhyAmplifier( name, *params ) )
         if boost2:
             name, params = boost2
-            boost2 = PhyAmplifier( name, *params )
-
+            boost2 = ( PhyAmplifier( name, **params )
+                       if isinstance( params, dict )
+                       else PhyAmplifier( name, *params ) )
         # Create symmetric spans and phy links in both directions
+        # Note span params can also be a dict or positional list
         spans = self.parseSpans( spans )
         spans1 = [ PhySpan( length,
-                            PhyAmplifier( prefix1 + name, **params )
+                            ( PhyAmplifier( prefix1 + name, **params )
+                              if isinstance( params, dict )
+                              else PhyAmplifier( prefix1 + name, *params ) )
                             if name else None )
                    for length, name, params in spans ]
-
         spans2 = [ PhySpan( length,
-                            PhyAmplifier( prefix2 + name, **params )
+                            ( PhyAmplifier( prefix1 + name, **params )
+                              if isinstance( params, dict )
+                              else PhyAmplifier( prefix1 + name, *params ) )
                             if name else None )
                    for length, name, params in spans ]
 
