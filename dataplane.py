@@ -25,7 +25,7 @@ OpticalLink: a bidirectional optical link consisting of fiber
 
 # Physical model
 from link import Link as PhyLink, Span as FiberSpan, SpanTuple
-from node import ( LineTerminal as PhyTerminal,
+from node import ( LineTerminal as PhyTerminal, Transceiver,
                    Amplifier as PhyAmplifier,
                    Node as PhyNode,
                    Roadm as PhyROADM, Monitor as PhyMonitor,
@@ -201,17 +201,15 @@ class Monitor:
     def restMonitor( self ):
         "Return OSNR to REST agent"
         monitor = self.model
-        # XXX Ugly: now monitoring uses signal tuples rather than signals
-        # Probably the tuple info should be put in the signal itself.
+        signals = monitor.get_optical_signals()
+        signals = sorted(signals, key=lambda s:s.index)
         osnr = { signal.index:
-                 dict(freq=signal.frequency, osnr=monitor.get_osnr( sigtuple ),
-                      gosnr=monitor.get_gosnr( sigtuple ),
-                      power=monitor.get_power( sigtuple ),
-                      ase=monitor.get_ase_noise( sigtuple ),
-                      nli=monitor.get_nli_noise( sigtuple ))
-                 for sigtuple in monitor.order_signals(
-                         monitor.extract_optical_signal() )
-                 for signal in [sigtuple[0]] }
+                 dict(freq=signal.frequency, osnr=monitor.get_osnr( signal ),
+                      gosnr=monitor.get_gosnr( signal ),
+                      power=monitor.get_power( signal ),
+                      ase=monitor.get_ase_noise( signal ),
+                      nli=monitor.get_nli_noise( signal ))
+                 for signal in signals }
         return dict( osnr=osnr )
 
     def __str__( self ):
@@ -287,17 +285,28 @@ class Terminal( SwitchBase ):
     model = None
     modelClass = PhyTerminal
 
-    # transceiver -> channel
-    txChannel = {}
-    txPorts = {}
-
-    # failed channels whose packets should not be received in
-    # the dataplane
-    failedChannels = None
     blockCookie = 0xbadfeed
 
-    def __init__( self, *args, **kwargs ):
-        super().__init__( *args, **kwargs )
+    @staticmethod
+    def makeTransceiver( txid, args ):
+        "Helper constructor for node.Transceiver"
+        if isinstance( args, dict ):
+            return Transceiver( txid, **args )
+        # Remove obsolete 'C' band parameter if any
+        if len( args ) > 2 and args[ 2 ] == 'C':
+            args = args[ :2 ] + args[ 3: ]
+        return Transceiver( txid, *args )
+
+    def __init__( self, *args, transceivers=None, **kwargs ):
+        # Note that Topo() objects store parameters that are
+        # passed to the appropriate constructor functions
+        if not transceivers:
+            raise ValueError( "Terminal: missing transceivers parameter list" )
+        # We start with a negative transceiver ID to avoid conflicts with
+        # real ports
+        transceivers = [ self.makeTransceiver( -i, args ) for
+                         i, args in enumerate( transceivers,  ) ]
+        super().__init__( *args, transceivers=transceivers, **kwargs )
         self.model.receiver_callback = self.receiverCallback
 
     def start( self, _controllers ):
@@ -310,7 +319,7 @@ class Terminal( SwitchBase ):
         self.dpctl( 'del-flows' )
         # Drop IPv6 router solicitations
         self.dpctl( 'add-flow', 'ipv6,actions=drop')
-        self.txChannels = {}
+        self.txChannel = {}
         self.failedChannels = set()
         self.model.reset()
 
@@ -346,7 +355,6 @@ class Terminal( SwitchBase ):
         raise Exception( '%s could not find tx for port %d' %
                          ( self, wdmPort ) )
 
-
     def restTurnonHandler( self ):
         self.turn_on()
         return 'OK'
@@ -358,52 +366,58 @@ class Terminal( SwitchBase ):
         "REST connect handler"
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
-        channel, power = None, None
-        if hasattr( query, 'channel' ):
+        channel, power, wdmInPort = None, None, -1
+        if query.wdmInPort:
+            wdmInPort = int( query.wdmInPort )
+        if query.channel:
             channel = int( query.channel )
-        if hasattr( query, 'power' ):
-            power = float( query.power or 0)
-        self.connect( ethPort, wdmPort, channel, power=power )
+        if query.power:
+            power = float( query.power )
+        self.connect( ethPort, wdmPort,
+                      channel=channel, power=power,
+                      wdmInPort=wdmInPort)
         return 'OK'
 
-    def connect(self, ethPort, wdmPort, channel=None, power=None ):
+    def connect(self, ethPort, wdmPort, channel=None, power=None,
+                wdmInPort=-1):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
         # Update physical model
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
-        # XXX should we do this here?
-        transceiver.id = wdmPort
+        # Update transceiver ID to match output port
         self.configTx( txNum=tx, channel=channel, power=power )
-        channel = self.txChannel.get( tx )
-        if channel is None:
-            raise Exception( 'must set tx channel before connecting' )
-        self.model.configure_terminal( transceiver,  channel )
+        if wdmInPort < 0:
+            wdmInPort = wdmPort
+        wdmInputIntf = self.intfs[ wdmInPort ]
+        wdmIntf = self.intfs[ wdmPort ]
+        self.model.assoc_tx_to_channel(
+            transceiver, channel, out_port=wdmPort )
+        self.model.assoc_rx_to_channel( transceiver, channel, wdmPort )
 
-        # Remove old flows for transponder
-        oldEthPort, oldWdmPort = self.txPorts.get( tx, (None, None))
-        for port in ethPort, wdmPort, oldEthPort, oldWdmPort:
-            if port is not None:
-                self.dpctl( 'del-flows', 'in_port=%d' % port )
-                self.dpctl( 'del-flows', 'out_port=%d' % port )
-        self.txPorts[ tx ] = ( ethPort, wdmPort )
+        # Remove old flows to/from wdmPort
+        self.dpctl( 'del-flows', 'in_port=%d' % wdmPort )
+        self.dpctl( 'del-flows', 'out_port=%d' % wdmPort )
 
-        # Tag outbound packets and untag inbound packets
+        # Tag outbound packets and/or untag inbound packets
 
         outbound = ( 'priority=100,' +
                      'in_port=%d,' % ethPort +
                      'actions=mod_vlan_vid=%d,' % channel +
                      'output:%d' % wdmPort )
 
+
         inbound = ( 'priority=100,' +
-                    'in_port=%d,' % wdmPort +
+                    'in_port=%d,' % wdmInPort +
                     'dl_vlan=%d,' % channel +
                     'actions=strip_vlan,'
                     'output:%d' % ethPort )
 
-        self.dpctl( 'add-flow', outbound )
-        self.dpctl( 'add-flow', inbound )
+        if not isinstance( wdmIntf, OpticalIn ):
+            self.dpctl( 'add-flow', outbound )
+        if not isinstance( wdmInputIntf, OpticalOut ):
+            self.dpctl( 'add-flow', inbound )
 
     def receiverCallback( self, inport, signalInfoDict ):
         "Callback from PHY when signal is received"
@@ -415,9 +429,9 @@ class Terminal( SwitchBase ):
 
     def block( self, inport, channel ):
         "Block channel at inport"
-        if channel in self.failedChannels:
+        if ( channel, inport ) in self.failedChannels:
             return
-        self.failedChannels.add( channel )
+        self.failedChannels.add( ( channel, inport ) )
         print("***", self, "blocking port", inport, "channel", channel)
         blockInbound = ( 'priority=200,' +
                          'in_port=%d,' % inport +
@@ -428,10 +442,10 @@ class Terminal( SwitchBase ):
 
     def unblock( self, inport, channel ):
         "Unblock signal at inport"
-        if channel not in self.failedChannels:
+        if ( channel, inport ) not in self.failedChannels:
             return
         print("***", self, "unblocking port", inport, "channel", channel)
-        self.failedChannels.remove( channel )
+        self.failedChannels.remove( ( channel, inport ) )
         # No priority or actions in delete
         blockInbound  = ( 'in_port=%d,' % inport +
                           'dl_vlan=%d,' % channel +
@@ -472,13 +486,7 @@ class ROADM( SwitchBase ):
 
     def phyInstall( self, inport, outport, channels ):
         "Install switching rules into the physical model"
-        rule = self.ruleTuple( inport, outport, channels )
-        if rule in self.ruleIds:
-            return
-        self.model.install_switch_rule(
-            self.nextRuleId, inport, outport, channels )
-        self.ruleIds[ rule ] = self.nextRuleId
-        self.nextRuleId += 1
+        self.model.install_switch_rule( inport, outport, channels )
 
     def phyRemove( self, inport, outport, channels ):
         rule = ( inport, outport, tuple( sorted( channels ) ) )
@@ -566,13 +574,27 @@ class ROADM( SwitchBase ):
         "REST remove handler"
         return self.restConnectHandler( query, action='remove' )
 
+    def isBidirectionalPair( self, port1, port2 ):
+        "Is (port1, port2) a bidirectional pair?"
+        # print(f"CHECKING {port1} {port2} {self.intfs}")
+        intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
+        if isinstance( intf1, OpticalIn ) or isinstance( intf2, OpticalOut ):
+            return False
+        if isinstance( intf1, OpticalIntf ) and isinstance( intf2, OpticalIntf ):
+            return True
+        print( isinstance( intf1, OpticalIntf ), isinstance( intf2, OpticalIntf ))
+        print(self.intfs)
+        raise Exception( "Expected OpticalIntfs for %s, %s" % ( intf1, intf2 ) )
+
     def connect( self, port1, port2, channels, action='install' ):
-        "Install bidirectional rule connecting port1 and port2"
+        "Install rule connecting port1 and port2"
+        bidirectional = self.isBidirectionalPair( port1, port2 )
         self.install( port1, port2, channels, action=action )
-        self.install( port2, port1, channels, action=action )
+        if bidirectional:
+            self.install( port2, port1, channels, action=action )
 
     def disconnect( self, port1, port2, channels, action='remove' ):
-        "Remove bidirectional rule connecting port1 and port2"
+        "Remove rule connecting port1 and port2"
         self.connect( port1, port2, channels, action='remove' )
 
 
@@ -617,14 +639,28 @@ class SimpleROADM( ROADM ):
 
 
 class OpticalIntf( TCIntf ):
-    "For now, an OpticalIntf is just a TCIntf"
+    "A bidirectional Optical Interface"
+    pass
+
+
+class OpticalIn( OpticalIntf ):
+    "A unidirectional optical input interface"
+    pass
+
+
+class OpticalOut( OpticalIntf ):
+    "A unidirectional  optical output interface"
     pass
 
 
 class OpticalLink( Link ):
-    """"An emulation of a (bidirectional) optical link.
+    """"An emulation of an optical link, bidirectional by default but
+        optionally unidirectional.
 
         The dataplane emulation is naturally bidirectional (veth pairs.)
+
+        By default, the Optical link is also a bidirectional fiber pair
+        in both directions.
 
         For the physical model(s), we create two unidirectional links,
         which are the reverse of each other in terms
@@ -636,7 +672,7 @@ class OpticalLink( Link ):
 
     def __init__( self, src, dst, port1=None, port2=None,
                   boost=None, boost1=None, boost2=None, spans=None,
-                  **kwargs ):
+                  bidirectional=True, **kwargs ):
         """node1, node2: nodes to connect
            port1, port2: node ports
            boost1, boost2: boost amp (name, {params}|[args]) if any
@@ -658,62 +694,72 @@ class OpticalLink( Link ):
         # This is a somewhat serious issue that will be hard to fix
         port1 = kwargs.get( 'params1', {}).get( 'port', port1 )
         port2 = kwargs.get( 'params2', {}).get( 'port', port2 )
-        assert port1 > 0 and port2 > 0, (
-            "OpticalLink: please use non-zero port numbers" )
-        self.port1 = port1 or src.newPort()
-        self.port2 = port2 or dst.newPort()
-        assert self.port1 > 0 and self.port2 > 0, (
-            "OpticalLink: newPort() did not return positive port number"
+        self.port1 = port1 if port1 is not None else src.newPort()
+        self.port2 = port2 if port2 is not None else dst.newPort()
+        assert self.port1 >= 0 and self.port2 >= 0, (
+            "OpticalLink: newPort() returned negative port number"
         )
         kwargs.update( port1=self.port1, port2=self.port2 )
 
         # Initialize dataplane
-        kwargs.update( cls1=OpticalIntf, cls2=OpticalIntf )
+        if bidirectional:
+            kwargs.update( cls1=OpticalIntf, cls2=OpticalIntf )
+        else:
+            kwargs.update( cls1=OpticalOut, cls2=OpticalIn )
         super( OpticalLink, self).__init__( src, dst, **kwargs )
+
+        assert isinstance(self.intf1, OpticalIntf)
+        assert isinstance(self.intf2, OpticalIntf)
+
+        def amp( prefix, name, *params ):
+            "Helper function to create PhyAmplifiers"
+            if not name:
+                return None
+            else:
+                name = prefix + name
+            if len( params ) == 1 and isinstance( params[ 0 ], dict ):
+                params = params[ 0 ]
+                return PhyAmplifier( name, **params )
+            amplifier_type = 'EDFA'
+            if len( params ) > 0 and isinstance( params[ 0 ], str ):
+                amplifier_type = params.pop( 0 )
+            # print(f"PhyAmplifier({name}, {amplifier_type}, {params} )")
+            return PhyAmplifier(name, amplifier_type, *params )
 
         # Boost amplifiers if any
         # Note amp params can be a dict or a positional list, to allow
         # ('boost1', 3*dB) or ('boost1', {'target_gain': 3*dB})
         prefix1 = '%s-%s-' % (src, dst)
         prefix2 = '%s-%s-' % (dst, src)
-        boost1 = boost1 or (boost and ( prefix1 + boost[0], boost[1] ) )
-        boost2 = boost2 or (boost and ( prefix2 + boost[0], boost[1] ) )
-        if boost1:
-            name, params = boost1
-            boost1 = ( PhyAmplifier( name, **params )
-                       if isinstance( params, dict )
-                       else PhyAmplifier( name, *params ) )
-        if boost2:
-            name, params = boost2
-            boost2 = ( PhyAmplifier( name, **params )
-                       if isinstance( params, dict )
-                       else PhyAmplifier( name, *params ) )
+        boost1 = boost1 or (boost and ( boost[0], *boost[1:] ) )
+        boost2 = boost2 or (boost and ( boost[0], *boost[1:] ) )
+        boost1 = boost1 and amp( prefix1, *boost1 )
+        boost2 = boost2 and amp( prefix2, *boost2 )
+
         # Create symmetric spans and phy links in both directions
         # Note span params can also be a dict or positional list
+        # This parameter handling is a bit baroque but will
+        # hopefully make things easier to use!
         spans = self.parseSpans( spans )
-        spans1 = [ PhySpan( length,
-                            ( PhyAmplifier( prefix1 + name, **params )
-                              if isinstance( params, dict )
-                              else PhyAmplifier( prefix1 + name, *params ) )
-                            if name else None )
+        spans1 = [ PhySpan( length, amp( prefix1, name, params ) )
                    for length, name, params in spans ]
-        spans2 = [ PhySpan( length,
-                            ( PhyAmplifier( prefix1 + name, **params )
-                              if isinstance( params, dict )
-                              else PhyAmplifier( prefix1 + name, *params ) )
-                            if name else None )
-                   for length, name, params in spans ]
+        if bidirectional:
+            spans2 = [ PhySpan( length, amp( prefix2, name, params ) )
+                       for length, name, params in spans ]
 
         self.phyLink1 = PhyLink(
             src.model, dst.model, src_out_port=self.port1,
             dst_in_port=self.port2, boost_amp=boost1, spans=spans1 )
-        self.phyLink2 = PhyLink(
-            dst.model, src.model, src_out_port=self.port2,
-            dst_in_port=self.port1, boost_amp=boost2, spans=spans2 )
+        if bidirectional:
+            self.phyLink2 = PhyLink(
+                dst.model, src.model, src_out_port=self.port2,
+                dst_in_port=self.port1, boost_amp=boost2, spans=spans2 )
 
         # Create monitors and store in self.monitors
-        monitors = []
-        for link in self.phyLink1, self.phyLink2:
+        monitors, phyLinks = [], [ self.phyLink1 ]
+        if bidirectional:
+            phyLinks.append( self.phyLink2 )
+        for link in phyLinks:
             if link.boost_amp and hasattr( link.boost_amp, 'monitor' ):
                 monitors.append( link.boost_amp.monitor )
             monitors.extend( amp.monitor for fiber, amp in link.spans
@@ -742,6 +788,14 @@ class OpticalLink( Link ):
     def intfName( self, node, n ):
         "Construct a canonical interface name node-wdmN for interface N"
         return node.name + '-wdm' + repr( n )
+
+
+def UnidirectionalOpticalLink( *args, **kwargs ):
+    "Unidirectional OpticalLink constructor"
+    kwargs.update( bidirectional=False )
+    return OpticalLink( *args, **kwargs )
+
+UniLink = UnidirectionalOpticalLink
 
 
 # XXX Possibly obsolete but may be useful at some point.
