@@ -63,7 +63,6 @@ class SingleLinkTopo(Topo):
                      boost=boost, spans=spans)
 
 if __name__ == '__main__':
-
     cleanup()  # Just in case!
     setLogLevel('info')
 
