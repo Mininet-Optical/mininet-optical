@@ -55,7 +55,7 @@ class SingleLinkTopo(Topo):
         self.addLink(h2, s2)
         self.addLink(s2, t2, port2=1)
         # WDM link
-        boost = ('boost', {'target_gain':17*dB})
+        boost = ('boost', {'target_gain':3.0*dB})
         amp1 = ('amp1', {'target_gain': 25*.22*dB})
         amp2 = ('amp2', {'target_gain': 25*.22*dB})
         spans = [25*km, amp1, 25*km, amp2]
