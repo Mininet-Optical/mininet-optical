@@ -122,7 +122,7 @@ class Link(object):
         """
         if self.propagate_simulation(equalization):
             # use is instance instead of checking the class
-            if self.dst_node.__class__.__name__ is 'LineTerminal':
+            if self.dst_node.__class__.__name__ == 'LineTerminal':
                 # we need to pass the signals individually and indicate
                 # what port should match what signal
                 for optical_signal in self.optical_signals:
