@@ -51,7 +51,7 @@ echo "* Turning on terminals/transceivers"
 
 curl "$t0/turn_on?node=t0"
 curl "$t1/turn_on?node=t1"
-curl "$t2/turn_on?node=t2"
+#curl "$t2/turn_on?node=t2"
 
 echo "* Monitoring signals at endpoints"
 for tname in t0 t1 t2 t3 t4 t5; do

@@ -29,16 +29,17 @@ class sixNodeRingTopology(Topo):
         "Build sixNodeRing ROADM topology"
         # Packet network elements
 
+        numNodes = 6
         num = 6
         hosts = []
         switches = []
         terminals = []
         roadms = []
-        for count in range(0,num):
-            if(count < num/2):
+        for count in range(0,numNodes):
+            if(count < numNodes/2):
                 h = 'RU' + str(count)
             else:
-                h = 'BBU' + str(count - int(num/2))
+                h = 'BBU' + str(count - int(numNodes/2))
             hosts.append(self.addHost(h))
             s = 's' + str(count)
             switches.append(self.addSwitch(s))
@@ -57,7 +58,7 @@ class sixNodeRingTopology(Topo):
 
         # Ethernet links
         for h, s, t in zip(hosts, switches, terminals):
-            self.addLink(h, s, port1 = 10, port2 = 10)
+            self.addLink(h, s, port1 = 100, port2 = 100)
             for portCount in range(0,num):
                 self.addLink(s, t, port1 = portCount + 1, port2= portCount + 1)
 
