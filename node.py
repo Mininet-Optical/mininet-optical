@@ -308,7 +308,8 @@ class LineTerminal(Node):
         # signals are originated at the Line Terminals,
         # thus in_port=-1 (it helps to update input intf of Terminal)
         # src_node=self always, needed for querying
-        self.include_optical_signal_in(optical_signal, in_port=-1, src_node=self)
+        # XXX Commented this out because it seems to add an extra unused signal/port
+        # self.include_optical_signal_in(optical_signal, in_port=-1, src_node=self)
 
         dst_node = self.port_to_node_out[out_port]
         # the goal of this function

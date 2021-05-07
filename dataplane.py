@@ -302,9 +302,7 @@ class Terminal( SwitchBase ):
         # passed to the appropriate constructor functions
         if not transceivers:
             raise ValueError( "Terminal: missing transceivers parameter list" )
-        # We start with a negative transceiver ID to avoid conflicts with
-        # real ports
-        transceivers = [ self.makeTransceiver( -i, args ) for
+        transceivers = [ self.makeTransceiver( i, args ) for
                          i, args in enumerate( transceivers,  ) ]
         super().__init__( *args, transceivers=transceivers, **kwargs )
         self.model.receiver_callback = self.receiverCallback
@@ -333,22 +331,16 @@ class Terminal( SwitchBase ):
         if power is not None:
             transceiver.operation_power = db_to_abs(power)
 
-    def findTx( self, wdmPort ):
-        "Return transceiver for wdmPort number"
-        # This is inefficient but could be cached
-        for tx in self.model.transceivers:
-            if tx.id == wdmPort:
-                return tx
-        raise Exception( '%s could not find tx for port %d' %
-                         ( self, wdmPort ) )
-
     def txnum( self, wdmPort ):
-        "Return tx number for wdmPort number"
+        "Return a tx number for wdmPort number"
         # This is inefficient but could be cached
         txnum = 0
+        isoutput = self.intfs[wdmPort].isOutput()
+        # Return our index in array of WDM ports of our type
+        # So output 1 gets tx1, input 4 gets tx4, etc..
         for port in sorted( self.ports.values() ):
             intf = self.intfs[ port ]
-            if isinstance(intf, OpticalIntf ):
+            if hasattr( intf, 'isOutput') and intf.isOutput() == isoutput:
                 if port == wdmPort:
                     return txnum
                 txnum += 1
@@ -366,7 +358,7 @@ class Terminal( SwitchBase ):
         "REST connect handler"
         ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
-        channel, power, wdmInPort = None, None, -1
+        channel, power, wdmInPort = None, None, None
         if query.wdmInPort:
             wdmInPort = int( query.wdmInPort )
         if query.channel:
@@ -378,27 +370,31 @@ class Terminal( SwitchBase ):
                       wdmInPort=wdmInPort)
         return 'OK'
 
-    def connect(self, ethPort, wdmPort, channel=None, power=None,
-                wdmInPort=-1):
+    def connect( self, ethPort, wdmPort, channel=None, power=None,
+                wdmInPort=None ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
         # Update physical model
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
-        # Update transceiver ID to match output port
         self.configTx( txNum=tx, channel=channel, power=power )
-        if wdmInPort < 0:
+        if wdmInPort is None:
             wdmInPort = wdmPort
         wdmInputIntf = self.intfs[ wdmInPort ]
         wdmIntf = self.intfs[ wdmPort ]
-        self.model.assoc_tx_to_channel(
-            transceiver, channel, out_port=wdmPort )
-        self.model.assoc_rx_to_channel( transceiver, channel, wdmPort )
+        if wdmIntf.isOutput():
+            # print(self, 'uplink', 'tx', transceiver.id, 'ch', channel, 'port', wdmPort )
+            self.model.assoc_tx_to_channel(
+                transceiver, channel, out_port=wdmPort )
+        if wdmInputIntf.isInput():
+            # print(self, 'downlink', 'tx', transceiver.id, 'ch', channel, 'port', wdmInPort )
+            self.model.assoc_rx_to_channel( transceiver, channel, wdmInPort )
 
-        # Remove old flows to/from wdmPort
-        self.dpctl( 'del-flows', 'in_port=%d' % wdmPort )
-        self.dpctl( 'del-flows', 'out_port=%d' % wdmPort )
+        # Remove old flows if any
+        for port in wdmInPort, wdmPort:
+            self.dpctl( 'del-flows', 'in_port=%d' % port )
+            self.dpctl( 'del-flows', 'out_port=%d' % port )
 
         # Tag outbound packets and/or untag inbound packets
 
@@ -407,16 +403,15 @@ class Terminal( SwitchBase ):
                      'actions=mod_vlan_vid=%d,' % channel +
                      'output:%d' % wdmPort )
 
-
         inbound = ( 'priority=100,' +
                     'in_port=%d,' % wdmInPort +
                     'dl_vlan=%d,' % channel +
                     'actions=strip_vlan,'
                     'output:%d' % ethPort )
 
-        if not isinstance( wdmIntf, OpticalIn ):
+        if wdmIntf.isOutput():
             self.dpctl( 'add-flow', outbound )
-        if not isinstance( wdmInputIntf, OpticalOut ):
+        if wdmInputIntf.isInput():
             self.dpctl( 'add-flow', inbound )
 
     def receiverCallback( self, inport, signalInfoDict ):
@@ -462,7 +457,19 @@ class ROADM( SwitchBase ):
 
     model = None
     modelClass = PhyROADM
-    ruleIds = {}   # Cache of physical model rule IDs
+
+    def __init__( self, name, **kwargs ):
+        kwargs = kwargs.copy()
+        # FIXME: We need better explanations for these parameters
+        # FIXME: Also, the units seem to be wrong (power should be in dBm?)
+        roadm_linear_loss_dB = kwargs.pop( 'roadm_linear_loss_dB', 17)
+        operational_power_dB = kwargs.pop( 'operational_power_dB',  0)
+        reference_power = kwargs.setdefault( 'reference_power', operational_power_dB)
+        target_output_power_dB = kwargs.setdefault(
+            'target_output_power_dB', operational_power_dB - roadm_linear_loss_dB )
+        effective_output_power_dB = kwargs.setdefault(
+            'effective_output_power_dB', operational_power_dB )
+        super().__init__( name, **kwargs )
 
     def start( self, _controllers ):
         "Override to start without controller"
@@ -480,8 +487,6 @@ class ROADM( SwitchBase ):
 
     def phyReset( self ):
         "Reset physical model"
-        self.ruleIds = {}
-        self.nextRuleId = 1
         self.model.delete_switch_rules()
 
     def phyInstall( self, inport, outport, channels ):
@@ -489,18 +494,14 @@ class ROADM( SwitchBase ):
         self.model.install_switch_rule( inport, outport, channels )
 
     def phyRemove( self, inport, outport, channels ):
-        rule = ( inport, outport, tuple( sorted( channels ) ) )
-        ruleId = self.ruleIds.get( rule )
-        if ruleId:
-            self.model.delete_switch_rule( ruleId )
-            del self.ruleIds[ rule ]
-        else:
-            raise Exception( 'could not find rule %s' % str( rule ) )
+        for channel in channels:
+            self.model.delete_switch_rule( ( inport, channel ) )
 
     def restRulesHandler( self, query ):
         "Handle REST rules request"
-        return { str(ruleId): rule
-                 for rule, ruleId in self.ruleIds.items() }
+        return [ dict( inport=inport, channel=channel, outport=outport )
+                 for match, outport in self.model.switch_table
+                 for inport, channel in match ]
 
     def restCleanmeHandler(self, query):
         "Handle REST clean request - same as reset for now"
@@ -574,23 +575,14 @@ class ROADM( SwitchBase ):
         "REST remove handler"
         return self.restConnectHandler( query, action='remove' )
 
-    def isBidirectionalPair( self, port1, port2 ):
-        "Is (port1, port2) a bidirectional pair?"
-        # print(f"CHECKING {port1} {port2} {self.intfs}")
-        intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
-        if isinstance( intf1, OpticalIn ) or isinstance( intf2, OpticalOut ):
-            return False
-        if isinstance( intf1, OpticalIntf ) and isinstance( intf2, OpticalIntf ):
-            return True
-        print( isinstance( intf1, OpticalIntf ), isinstance( intf2, OpticalIntf ))
-        print(self.intfs)
-        raise Exception( "Expected OpticalIntfs for %s, %s" % ( intf1, intf2 ) )
-
     def connect( self, port1, port2, channels, action='install' ):
-        "Install rule connecting port1 and port2"
-        bidirectional = self.isBidirectionalPair( port1, port2 )
+        """Install rule connecting port1 -> port2.
+           If interfaces are bidirectional, connect port2<->port1"""
+        intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
+        assert intf1.isInput() and intf2.isOutput()
         self.install( port1, port2, channels, action=action )
-        if bidirectional:
+        # Install reverse rule if interfaces are bidirectional
+        if intf1.isOutput() and intf2.isInput():
             self.install( port2, port1, channels, action=action )
 
     def disconnect( self, port1, port2, channels, action='remove' ):
@@ -640,17 +632,32 @@ class SimpleROADM( ROADM ):
 
 class OpticalIntf( TCIntf ):
     "A bidirectional Optical Interface"
-    pass
+    def isInput( self ):
+        "Is this interface a WDM input?"
+        return True
+    def isOutput( self ):
+        "Is this interface a WDM output?"
+        return True
 
 
 class OpticalIn( OpticalIntf ):
     "A unidirectional optical input interface"
-    pass
+    def isInput( self ):
+        "Is this interface a WDM input?"
+        return True
+    def isOutput( self ):
+        "Is this interface a WDM output?"
+        return False
 
 
 class OpticalOut( OpticalIntf ):
     "A unidirectional  optical output interface"
-    pass
+    def isInput( self ):
+        "Is this interface a WDM input?"
+        return False
+    def isOutput( self ):
+        "Is this interface a WDM output?"
+        return True
 
 
 class OpticalLink( Link ):

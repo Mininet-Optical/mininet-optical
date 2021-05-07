@@ -244,6 +244,7 @@ def configureTerminals( net, power=0.0):
                                channel=channel, power=power )
     print("*** Turning on terminals")
     for terminal in net.terminals:
+        print("***************", proxies[terminal])
         proxies[terminal].turn_on()
 
 
