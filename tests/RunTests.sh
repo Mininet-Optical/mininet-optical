@@ -8,7 +8,7 @@ testdir=$(dirname $0)
 export PYTHONPATH=$testdir/..
 
 # Accumulate passed and failed tests
-tests=(*.py)
+tests=($testdir/*.py)
 passed=()
 failed=()
 
