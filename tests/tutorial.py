@@ -60,14 +60,13 @@ for i, p in enumerate(power_levels):
 
         # configure receiver terminal
         rx_transceiver = lt_5.id_to_transceivers[c]
-        lt_5.assoc_rx_to_channel(rx_transceiver, c)
+        lt_5.assoc_rx_to_channel(rx_transceiver, c, in_port=c)
 
     # This allows to iterate through the ROADMs
     roadms = net.roadms
     # Installing rules to the ROADMs (algorithms can vary)
-    for i, roadm in enumerate(roadms):
+    for i, current_roadm in enumerate(roadms):
         if i == 0:
-            current_roadm = roadm
             next_roadm = roadms[i + 1]
             # We find the output port of r1 towards r2
             out_port = net.find_link_and_out_port_from_nodes(current_roadm, next_roadm)
@@ -79,17 +78,18 @@ for i, p in enumerate(power_levels):
                 current_roadm.install_switch_rule(in_port, out_port, [channel])
         else:
             prev_roadm = roadms[i - 1]
-            current_roadm = roadm
             in_port = net.find_link_and_in_port_from_nodes(prev_roadm, current_roadm)
 
             if i < len(roadms) - 1:
                 next_roadm = roadms[i + 1]
                 out_port = net.find_link_and_out_port_from_nodes(current_roadm, next_roadm)
+                # It is possible to get a single rule for multiple channels
+                # for the connections between ROADMs.
+                current_roadm.install_switch_rule(in_port, out_port, channel_indexes)
             elif i == len(roadms) - 1:
-                out_port = net.find_link_and_out_port_from_nodes(current_roadm, lt_5)
-            # It is possible to get a single rule for multiple channels
-            # for the connections between ROADMs.
-            current_roadm.install_switch_rule(in_port, out_port, channel_indexes)
+                for channel in channel_indexes:
+                    out_port = 5200 + channel
+                    current_roadm.install_switch_rule(in_port, out_port, [channel])
 
     # Now we turn on the "comb source" connected to the main terminal
     lt_1.turn_on()
@@ -102,6 +102,5 @@ for i, p in enumerate(power_levels):
         # print(amp.monitor.get_list_osnr())
         osnrs.append(amp.monitor.get_list_osnr()[cut][1])
         gosnrs.append(amp.monitor.get_list_gosnr()[cut][1])
-    print(gosnrs)
     # write_files(osnrs, gosnrs, p)
 
