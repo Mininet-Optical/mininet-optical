@@ -143,7 +143,7 @@ for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
 
         # configure receiver terminal
         rx_transceiver = lt_rx.id_to_transceivers[c]
-        lt_rx.assoc_rx_to_channel(rx_transceiver, c)
+        lt_rx.assoc_rx_to_channel(rx_transceiver, c, in_port=1)
 
     # build paths from r_i to r_n
     path = [r] + roadms[i + 1:]

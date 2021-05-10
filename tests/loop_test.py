@@ -153,17 +153,17 @@ r2.install_switch_rule(in_port, out_port, [3], src_node=r1)
 
 print("*** TURNING ON LT1")
 lt1.assoc_tx_to_channel(lt1.id_to_transceivers[1], 1, out_port=1)
-lt3.assoc_rx_to_channel(lt3.id_to_transceivers[1], 1)
+lt3.assoc_rx_to_channel(lt3.id_to_transceivers[1], 1, in_port=1)
 lt1.turn_on()
 
 print("*** TURNING ON LT2")
 lt2.assoc_tx_to_channel(lt2.id_to_transceivers[2], 2, out_port=2)
-lt1.assoc_rx_to_channel(lt1.id_to_transceivers[2], 2)
+lt1.assoc_rx_to_channel(lt1.id_to_transceivers[2], 2, in_port=2)
 lt2.turn_on()
 
 print("*** TURNING ON LT3")
 lt3.assoc_tx_to_channel(lt3.id_to_transceivers[3], 3, out_port=3)
-lt2.assoc_rx_to_channel(lt2.id_to_transceivers[3], 3)
+lt2.assoc_rx_to_channel(lt2.id_to_transceivers[3], 3, in_port=3)
 lt3.turn_on()
 
 
