@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """
 apsp.py: all-pairs-shortest-paths routing for ofc demo
@@ -239,14 +239,14 @@ def configureTerminals( net, power=0.0):
         wdmPorts = sorted( int(port) for port, intf in net.ports[ terminal ].items()
                            if 'wdm' in intf )
         channels = sum( net.remoteChannels[ i + 1 ], [] )
+        print(termProxy)
         for ethPort, wdmPort, channel in zip(ethPorts, wdmPorts, channels):
             termProxy.connect( ethPort=ethPort, wdmPort=wdmPort,
                                channel=channel, power=power )
     print("*** Turning on terminals")
     for terminal in net.terminals:
-        print("***************", proxies[terminal])
+        print(proxies[terminal])
         proxies[terminal].turn_on()
-
 
 def configurePacketSwitches( net ):
     "Configure Open vSwitch 'routers' using OpenFlow"
