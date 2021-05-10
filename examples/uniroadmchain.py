@@ -106,6 +106,8 @@ if __name__ == '__main__':
     info(topo.__doc__, '\n')
     plotNet(net, outfile='uniroadmchain.png', directed=True)
     net.topo.configNet(net)
-    OpticalCLI(net)
-
+    if 'test' in argv:
+        assert net.pingAll() == 0  # 0% loss
+    else:
+        OpticalCLI(net)
     net.stop()
