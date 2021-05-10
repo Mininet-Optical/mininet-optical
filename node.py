@@ -266,21 +266,18 @@ class LineTerminal(Node):
         # add transceiver to LineTerminal list
         self.transceivers.append(transceiver)
 
-    def update_transceiver(self, transceiver, args):
+    def update_mod_format(self, transceiver, modulation_format):
         """
-        AD: Probably needs to be revisited
-        Update/modify the configuration attributes of a transceiver
+        Update the modulation format of a transceiver
         :param transceiver: transceiver object to configure
-        :param args: dict with parameters to update
+        :param modulation_format: string (i.e., '16_QAM'
         :return:
         """
-        transceiver.__dict__.update(args)
-        if 'modulation_format' in args:
-            transceiver.compute_gross_bit_rate()
+        transceiver.set_modulation_format(modulation_format)
 
-    def update_rx_threshold(self, new_rx_threshold):
-        # AD: Probably obsolete, threshold is a feature of Transceivers
-        self.rx_threshold_dB = new_rx_threshold
+    def update_rx_threshold(self, transceiver, new_rx_threshold_dB):
+        """Update the gOSNR RX threshold of the transceiver"""
+        transceiver.set_rx_threshold_dB(new_rx_threshold_dB)
 
     def tx_config(self, transceiver, operational_power_dBm):
         """ Configure the operational power of the transceiver """
@@ -452,6 +449,20 @@ class Transceiver(object):
     def remove_optical_signal(self):
         self.optical_signal = None
 
+    def set_modulation_format(self, modulation_format):
+        self.modulation_format = modulation_format
+
+    def set_symbol_rate(self, symbol_rate):
+        self.symbol_rate = symbol_rate
+        self.compute_gross_bit_rate()
+
+    def set_bits_per_symbol(self, bits_per_symbol):
+        self.bits_per_symbol = bits_per_symbol
+        self.compute_gross_bit_rate()
+
+    def set_rx_threshold_dB(self, rx_threshold_dB):
+        self.rx_threshold_dB = rx_threshold_dB
+
     def compute_gross_bit_rate(self):
         self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
 
@@ -558,16 +569,13 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name,
-                 target_output_power_dB=0,
-                 effective_output_power_dB=0,
-                 reference_power=0, monitor_mode=None):
+    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=0, monitor_mode=None):
         """
-        :param name:
-        :param target_output_power_dB:
-        :param effective_output_power_dB:
-        :param reference_power:
-        :param monitor_mode:
+        :param name: string, name tag of ROADM
+        :param insertion_loss_dB: int, linear insertion loss of ROADM (default 17 dB)
+        :param reference_power_dBm: int,
+                                    reference power for ROADM-variable optical attenuator (VOA) - (default 0 dBm)
+        :param monitor_mode: Monitor object
         """
         Node.__init__(self, name)
         # configuration attributes
@@ -584,9 +592,8 @@ class Roadm(Node):
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
 
-        self.target_output_power_dB = target_output_power_dB
-        self.effective_output_power_dB = effective_output_power_dB
-        self.reference_power = reference_power
+        # expected output power of signals
+        self.target_output_power_dBm = reference_power_dBm - insertion_loss_dB
 
     def monitor_query(self):
         if self.monitor:
@@ -767,7 +774,6 @@ class Roadm(Node):
         """
         Compute the total power at an input port, and
         use it to compute the carriers attenuation
-        AD: Should this be a function of the ROADM or the Node class?
         """
         carriers_power = []
         for optical_signal in self.port_to_optical_signal_in[in_port]:
@@ -777,15 +783,14 @@ class Roadm(Node):
 
             total_power = power_in + ase_noise_in + nli_noise_in
             carriers_power.append(total_power)
-        carriers_att = list(map(lambda x: abs_to_db(x * 1e3) - self.target_output_power_dB, carriers_power))
+        carriers_att = list(map(
+            lambda x: abs_to_db(x * 1e3) - self.target_output_power_dBm, carriers_power))
         exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
         carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
 
         return carriers_att
 
     def propagate(self, out_port, in_port, optical_signals):
-        self.effective_output_power_dB = min(self.reference_power, self.target_output_power_dB)
-        self.effective_loss = self.reference_power - self.target_output_power_dB
         carriers_att = self.compute_carrier_attenuation(in_port)
 
         link = self.port_to_link_out[out_port]

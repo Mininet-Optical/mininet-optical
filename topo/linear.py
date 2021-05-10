@@ -68,11 +68,9 @@ class LinearTopology:
             lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
             line_terminals.append(lt)
 
-        roadm_linear_loss = 17
         roadms = [net.add_roadm('r%s' % (i + 1),
-                                target_output_power_dB=op - roadm_linear_loss,
-                                effective_output_power_dB=op,
-                                reference_power=op) for i in range(non)]
+                                insertion_loss_dB=17,
+                                reference_power_dBm=op) for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Modelling Lumentum ROADM-20 port numbering

@@ -80,11 +80,9 @@ for i in range(non):
     lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
     line_terminals.append(lt)
 
-roadm_linear_loss = 17
 roadms = [net.add_roadm('r%s' % (i + 1),
-                        target_output_power_dB=operational_power - roadm_linear_loss,
-                        effective_output_power_dB=operational_power,
-                        reference_power=operational_power) for i in range(non)]
+                        insertion_loss_dB=17,
+                        reference_power_dBm=operational_power) for i in range(non)]
 
 # Modelling Lumentum ROADM-20 port numbering
 roadm20_in_ports = [i + 1 for i in range(4100, 4120)]
