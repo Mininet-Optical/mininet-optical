@@ -19,6 +19,10 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, warning
 from mininet.clean import cleanup
 
+from os.path import dirname, realpath, join
+from subprocess import run
+from sys import argv
+
 class SingleROADMTopo(Topo):
     """
     h1 - s1 - t1 -- r1 -- t2 - s2 - h2
@@ -91,6 +95,12 @@ def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo'):
     g.layout()
     g.draw(outfile)
 
+def test(net):
+    "Run config script and simple test"
+    testdir = dirname(realpath(argv[0]))
+    script = join(testdir, 'config-singleroadm.sh')
+    run(script)
+    assert net.pingPair() == 0
 
 if __name__ == '__main__':
 
@@ -100,10 +110,9 @@ if __name__ == '__main__':
     topo = SingleROADMTopo()
     net = Mininet(topo=topo, switch=OVSBridge, controller=None)
     restServer = RestServer(net)
-
     net.start()
     restServer.start()
     plotNet(net)
-    CLI(net)
+    test(net) if 'test' in argv else CLI(net)
     restServer.stop()
     net.stop()

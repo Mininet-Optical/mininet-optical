@@ -170,27 +170,38 @@ def configPacketNet(net):
                     'ip route add', dest.IP(), 'via', destrouter.IP())
 
 
+def config( net ):
+    "Configure optical and packet network"
+    configOpticalNet(net)
+    configPacketNet(net)
+
+
 class CLI( OpticalCLI ):
     "CLI with config command"
     def do_config(self, _line):
-        configOpticalNet(self.mn)
-        configPacketNet(self.mn)
+        config(self.mn)
+
+
+def test(net):
+    "Run script in test mode"
+    config(net)
+    assert net.pingAll() == 0  # 0% loss
 
 
 if __name__ == '__main__':
 
     cleanup()  # Just in case!
     setLogLevel('info')
-    if len(argv) == 2 and argv[1] == 'clean': exit(0)
-
+    if 'clean' in argv: exit(0)
     topo = UniRingTopo(N=4)
     net = Mininet(topo=topo)
     # restServer = RestServer(net)
     net.start()
     # restServer.start()
     plotNet(net, outfile='uniring.png', directed=True)
-    info( '*** Use config command to configure network \n' )
-    # config(net)
-    CLI(net)
+    if 'test' in argv:
+        test(net)
+    else:
+        CLI(net)
     # restServer.stop()
     net.stop()

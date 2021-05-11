@@ -212,6 +212,11 @@ class CLI( OpticalCLI ):
         config(self.mn)
 
 
+def test(net):
+    "Configure and test network"
+    config(net)
+    assert net.pingAll() == 0   # 0% loss
+
 if __name__ == '__main__':
 
     cleanup()  # Just in case!
@@ -226,7 +231,9 @@ if __name__ == '__main__':
     plotNet(net, outfile='unilinear1.png', directed=True,
             layout='neato')
     info( '*** Use config command to configure network \n' )
-    # config(net)
-    CLI(net)
+    if 'test' in argv:
+        test(net)
+    else:
+        CLI(net)
     # restServer.stop()
     net.stop()
