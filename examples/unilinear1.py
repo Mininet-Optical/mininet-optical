@@ -30,7 +30,8 @@ from mno.examples.singleroadm import plotNet
 
 from mininet.topo import Topo
 from mininet.link import Link
-from mininet.nodelib import LinuxBridge
+from mininet.node import OVSBridge
+
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 
@@ -89,10 +90,9 @@ class UniLinearTopo( OpticalTopo ):
                              for ch in range(1, 2*nodecount+1))
         topts = {'transceivers': transceivers, 'monitor_mode': 'in'}
         ropts = {} # was: { 'wss_dict': {ch:(7.0,None) for ch in range(1,91)}}
-        sopts = {'cls': LinuxBridge}
         for i in range(1, nodecount+1):
             self.addHost(f'h{i}')
-            self.addSwitch(f's{i}', **sopts)
+            self.addSwitch(f's{i}')
             self.addTerminal(f't{i}', **topts)
             self.addROADM(f're{i}', **ropts)
             self.addROADM(f'rw{i}', **ropts)
@@ -119,20 +119,22 @@ class UniLinearTopo( OpticalTopo ):
                              port1=lineout, port2=linein)
             # Uplinks/downlinks to/from destination nodes
             for dest in range(1, nodecount+1):
-                if dest == node: continue
-                # One switch<->terminal link per remote node
+                # One switch<->terminal link per dest node
                 port1 = port2 = self.ethport(dest)
+                if dest == node:
+                    # Host link for local traffic
+                    self.ethLink(f's{node}', f'h{node}', port1=port1)
+                    continue
+                # Terminal link for remote traffic
                 self.ethLink(
                     f's{node}', f't{node}', port1=port1, port2=port2)
-                # Inbound and outbound links
+                # Inbound and outbound roadm<->terminal links
                 outbound = f're{node}' if dest>node else f'rw{node}'
                 inbound = f'rw{node}' if dest>node else f're{node}'
                 self.wdmLink(f't{node}', outbound, spans=[1*m],
                              port1=uplink(dest), port2=addport(dest))
                 self.wdmLink(inbound, f't{node}', spans=[1*m],
                              port1=dropport(dest), port2=downlink(dest))
-            # Host-switch links
-            self.ethLink(f'h{node}', f's{node}', port1=1, port2=0)
 
 # Configuration
 
@@ -224,7 +226,7 @@ if __name__ == '__main__':
     if len(argv) == 2 and argv[1] == 'clean': exit(0)
 
     topo = UniLinearTopo(nodecount=4)
-    net = Mininet(topo=topo, controller=None)
+    net = Mininet(topo=topo, switch=OVSBridge, controller=None)
     # restServer = RestServer(net)
     net.start()
     # restServer.start()
