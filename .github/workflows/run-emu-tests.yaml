@@ -16,11 +16,11 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v2
 
-      - name: Install Python dependencies
-        uses: py-actions/py-dependency-install@v2
-
-      - name: apt update
-        run: sudo apt update
+      - name: Install dependencies
+        run: |
+             make depend
+             sudo apt update
+             sudo apt install python3-pygraphviz
 
       - name: Install Mininet (master)
         run: |
