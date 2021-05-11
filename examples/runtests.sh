@@ -5,7 +5,8 @@ set -e
 
 # Set necessary python path for execution
 testdir=$(dirname $0)
-export PYTHONPATH=$testdir/..
+timeout=60  # Fail test if it takes over 60s
+run="env PYTHONPATH=$testdir/.. timeout $timeout python3"
 
 # Accumulate passed and failed tests
 tests=($testdir/*.py)
@@ -13,9 +14,11 @@ passed=()
 failed=()
 
 # Run all scripts in this directory
+args='test'
 for test in ${tests[@]}; do
     echo -e "**** Running $test\n"
-    if python $test; then
+    echo "$run $test $args"
+    if $run $test $args; then
         echo -e "\n**** PASSED: $test\n"
         passed+=($test)
     else

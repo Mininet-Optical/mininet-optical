@@ -19,6 +19,10 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, warning
 from mininet.clean import cleanup
 
+from os.path import dirname, realpath, join
+from subprocess import run
+from sys import argv
+
 class SingleROADMTopo(Topo):
     """
     h1 - s1 - t1 -- r1 -- t2 - s2 - h2
@@ -58,7 +62,7 @@ class SingleROADMTopo(Topo):
 
 
 # Debugging: Plot network graph
-def plotNet(net, outfile="singleroadm.png"):
+def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo'):
     "Plot network graph to outfile"
     try:
         import pygraphviz as pgv
@@ -70,8 +74,11 @@ def plotNet(net, outfile="singleroadm.png"):
     colors = {node: color.get(type(node), 'black')
               for node in net.values()}
     nfont = {'fontname': 'helvetica bold', 'penwidth': 3}
-    g = pgv.AGraph(strict=False, directed=False, layout='circo')
-    for node in net.switches:
+    g = pgv.AGraph(strict=False, directed=directed, layout=layout)
+    roadms = [node for node in net.switches if isinstance(node, ROADM)]
+    terms = [node for node in net.switches if isinstance(node, Terminal)]
+    other = [node for node in net.switches if node not in set(roadms+terms)]
+    for node in roadms + terms + other:
         g.add_node(node.name, color=colors[node], **nfont)
     for node in net.hosts:
         g.add_node(node.name, color=colors[node], **nfont, shape='box')
@@ -88,6 +95,12 @@ def plotNet(net, outfile="singleroadm.png"):
     g.layout()
     g.draw(outfile)
 
+def test(net):
+    "Run config script and simple test"
+    testdir = dirname(realpath(argv[0]))
+    script = join(testdir, 'config-singleroadm.sh')
+    run(script)
+    assert net.pingPair() == 0
 
 if __name__ == '__main__':
 
@@ -97,10 +110,9 @@ if __name__ == '__main__':
     topo = SingleROADMTopo()
     net = Mininet(topo=topo, switch=OVSBridge, controller=None)
     restServer = RestServer(net)
-
     net.start()
     restServer.start()
     plotNet(net)
-    CLI(net)
+    test(net) if 'test' in argv else CLI(net)
     restServer.stop()
     net.stop()

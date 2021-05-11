@@ -41,22 +41,37 @@ class OpticalCLI( CLI ):
             try:
                 node = self.mn.get( nodename )
                 if hasattr( node, 'model' ):
-                    self.print_signals(node.model)
+                    self.printSignals( node.model )
             except:
                 pass
             return
         for node in self.mn.switches:
             if hasattr( node, 'model' ):
-                self.print_signals(node.model)
+                self.printSignals( node.model )
+
 
     @staticmethod
-    def print_signals(model):
-        "Print signals from a node's model"
-        print( model, "Inputs:" )
-        print( model.port_to_optical_signal_in )
-        print( model, "Outputs:" )
-        print( model.port_to_optical_signal_out )
+    def formatSigState( state ):
+        "Return formatted signal state string"
+        pwr = state[ 'power' ]
+        ase = state[ 'ase_noise' ]
+        nli = state[ 'nli_noise' ]
+        return 'pwr:%.1e ase:%.1e nli:%.1e' % ( pwr, ase, nli )
 
+    def printSignals(self, model):
+        "Print signals from a node's model"
+        for port, sigs in model.port_to_optical_signal_in.items():
+            if not sigs: continue
+            print( model, "in  %d:" % port, end='' )
+            for sig in sigs:
+                state = sig.loc_in_to_state.get( model, '' )
+                print( sig, self.formatSigState( state ) )
+        for port, sigs in model.port_to_optical_signal_out.items():
+            if not sigs: continue
+            print( model, "out %d:" % port, end='' )
+            for sig in sigs:
+                state = sig.loc_out_to_state.get( model, '' )
+                print( sig, self.formatSigState( state ) )
 
     def opticalLinks( self ):
         "Return optical links"
@@ -100,6 +115,8 @@ class OpticalCLI( CLI ):
         links = self.opticalLinks()
         phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
         for phyLink in sorted( phyLinks, key=natural ):
+            if not phyLink:
+                continue
             if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < minlength:
                 # Skip short lengths of fiber
                 continue
