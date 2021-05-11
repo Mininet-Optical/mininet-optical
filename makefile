@@ -2,6 +2,7 @@ all:
 
 # Install dependencies
 depend: requirements.txt
+	sudo apt install bridge-utils python3-pygraphviz
 	python3 -m pip install -r requirements.txt
 	sudo python3 -m pip install -r requirements.txt
 

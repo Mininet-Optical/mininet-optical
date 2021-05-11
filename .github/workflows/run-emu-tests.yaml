@@ -18,14 +18,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-             make depend
              sudo apt update
-             sudo apt install python3-pygraphviz
+             make depend
 
       - name: Install Mininet (master)
         run: |
              git clone https://github.com/mininet/mininet
              mininet/util/install.sh -nv
 
-      - name: Run Emulation tests
-        run: make emutest
+      - name: Run Tests
+        run: make test
