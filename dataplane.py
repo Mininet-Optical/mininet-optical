@@ -460,15 +460,6 @@ class ROADM( SwitchBase ):
 
     def __init__( self, name, **kwargs ):
         kwargs = kwargs.copy()
-        # FIXME: We need better explanations for these parameters
-        # FIXME: Also, the units seem to be wrong (power should be in dBm?)
-        roadm_linear_loss_dB = kwargs.pop( 'roadm_linear_loss_dB', 17)
-        operational_power_dB = kwargs.pop( 'operational_power_dB',  0)
-        reference_power = kwargs.setdefault( 'reference_power', operational_power_dB)
-        target_output_power_dB = kwargs.setdefault(
-            'target_output_power_dB', operational_power_dB - roadm_linear_loss_dB )
-        effective_output_power_dB = kwargs.setdefault(
-            'effective_output_power_dB', operational_power_dB )
         super().__init__( name, **kwargs )
 
     def start( self, _controllers ):
