@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 set -e  # exit script on error
 
@@ -6,35 +6,27 @@ set -e  # exit script on error
 url="localhost:8080"; t1=$url; t2=$url; t3=$url; r1=$url
 
 echo "* Configuring terminals in singleroadm.py network"
-
-curl "$t1/connect?node=t1&ethPort=3&wdmPort=1&channel=1"
-curl "$t1/connect?node=t1&ethPort=4&wdmPort=2&channel=2"
-curl "$t2/connect?node=t2&ethPort=3&wdmPort=1&channel=1"
-curl "$t2/connect?node=t2&ethPort=4&wdmPort=2&channel=2"
-curl "$t3/connect?node=t3&ethPort=3&wdmPort=1&channel=1"
-curl "$t3/connect?node=t3&ethPort=4&wdmPort=2&channel=2"
-
-echo "* Monitoring signals at endpoints"
 for tname in t1 t2 t3; do
     url=${!tname}
-    curl "$url/monitor?monitor=$tname-monitor"
+    curl "$url/connect?node=$tname&ethPort=3&wdmPort=1&channel=1"
+    curl "$url/connect?node=$tname&ethPort=4&wdmPort=2&channel=2"
 done
 
 echo "* Resetting ROADM"
 curl "$r1/reset?node=r1"
 
-echo "* Configuring ROADM to forward ch1 from t1 to t2"
+echo "* Configuring ROADM"
+# Connect t1 to t2 and t3 on channels 1 and 2
+# NB: this connects s3 <-> s1 <-> s2, so h3 can
+# talk to h2 via s1 !!
 curl "$r1/connect?node=r1&port1=1&port2=3&channels=1"
 curl "$r1/connect?node=r1&port1=2&port2=6&channels=2"
 
-echo "* Configuring ROADM to forward ch2 from t2 to t3"
-#curl "$r1/connect?node=r1&port1=4&port2=6&channels=2"
-
 echo "* Turning on terminals/transceivers"
-
-curl "$t1/turn_on?node=t1"
-#curl "$t2/turn_on?node=t2"
-#curl "$t3/turn_on?node=t3"
+for tname in t1 t2 t3; do
+    url=${!tname}
+    curl "$url/turn_on?node=$tname"
+done
 
 echo "* Monitoring signals at endpoints"
 for tname in t1 t2 t3; do
