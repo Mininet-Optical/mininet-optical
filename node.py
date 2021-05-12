@@ -1,5 +1,6 @@
 from units import *
 from edfa_params import *
+from terminal_params import *
 from pprint import pprint
 import random
 from collections import namedtuple
@@ -201,7 +202,7 @@ class Node(object):
 
 class LineTerminal(Node):
 
-    def __init__(self, name, transceivers=None, receiver_threshold=20, monitor_mode='out'):
+    def __init__(self, name, transceivers=None, monitor_mode='out'):
         Node.__init__(self, name)
         # list of transceivers in LineTerminal
         if transceivers is None:
@@ -220,16 +221,13 @@ class LineTerminal(Node):
         self.tx_to_channel = {}
         self.rx_to_channel = {}
 
-        # will become obsolete, threshold moved to the Transceiver
-        self.rx_threshold_dB = receiver_threshold
-
     def monitor_query(self):
         if self.monitor:
             return self.monitor
 
     def reset(self):
         """
-        This should reset all the dynamic attributes
+        FIXME: (AD) This should reset all the dynamic attributes
         """
         # clean output ports
         for out_port, _ in self.port_to_optical_signal_out.items():
@@ -248,10 +246,7 @@ class LineTerminal(Node):
             self.add_transceiver(transceiver)
 
     def existing_transceiver(self, transceiver):
-        if transceiver.name in self.name_to_transceivers:
-            return True
-        else:
-            return False
+        return transceiver.name in self.name_to_transceivers
 
     def add_transceiver(self, transceiver):
         """
@@ -266,18 +261,18 @@ class LineTerminal(Node):
         # add transceiver to LineTerminal list
         self.transceivers.append(transceiver)
 
-    def update_mod_format(self, transceiver, modulation_format):
+    def set_modulation_format(self, transceiver, modulation_format, tx=False):
         """
         Update the modulation format of a transceiver
-        :param transceiver: transceiver object to configure
-        :param modulation_format: string (i.e., '16_QAM'
+        :param transceiver: transmit transceiver object to configure
+        :param modulation_format: string, i.e., '16_QAM' (see units.py)
         :return:
         """
-        transceiver.set_modulation_format(modulation_format)
-
-    def update_rx_threshold(self, transceiver, new_rx_threshold_dB):
-        """Update the gOSNR RX threshold of the transceiver"""
-        transceiver.set_rx_threshold_dB(new_rx_threshold_dB)
+        print("*** %s update modulation format of %s to: %s " %
+              (self, transceiver.name, modulation_format))
+        transceiver.set_modulation_format(modulation_format, tx)
+        if tx:
+            self.turn_on(safe_switch=True)
 
     def tx_config(self, transceiver, operational_power_dBm):
         """ Configure the operational power of the transceiver """
@@ -294,9 +289,10 @@ class LineTerminal(Node):
         :return: associate a transceiver to an optical signal
         """
         # instantiate OpticalSignal object
-        optical_signal = OpticalSignal(channel,
-                                       transceiver.channel_spacing_H, transceiver.channel_spacing_nm,
-                                       transceiver.symbol_rate, transceiver.bits_per_symbol,
+        optical_signal = OpticalSignal(channel, transceiver.channel_spacing_H,
+                                       transceiver.channel_spacing_nm,
+                                       transceiver.modulation_format, transceiver.symbol_rate,
+                                       transceiver.bits_per_symbol,
                                        power=transceiver.operation_power)
 
         # associate transceiver to optical_signal
@@ -325,7 +321,7 @@ class LineTerminal(Node):
     def assoc_rx_to_channel(self, transceiver, channel_id, in_port):
         self.rx_to_channel[in_port] = {'channel_id': channel_id, 'transceiver':transceiver}
 
-    def turn_on(self, from_turn_off=False):
+    def turn_on(self, safe_switch=False):
         """Propagate signals to the link that the transceivers point to"""
         for signal_count, out_port in enumerate(self.tx_to_channel, start=1):
             optical_signal = self.tx_to_channel[out_port]['optical_signal']
@@ -337,7 +333,7 @@ class LineTerminal(Node):
             link.include_optical_signal_in(optical_signal)
 
             if signal_count == self.optical_signals_out:
-                link.propagate(is_last_port=True, from_turn_off=from_turn_off)
+                link.propagate(is_last_port=True, safe_switch=safe_switch)
             else:
                 link.propagate()
 
@@ -345,7 +341,7 @@ class LineTerminal(Node):
         for out_port in ports_out:
             self.disassoc_tx_to_channel(out_port)
         # call propagation with left-over signals (if any)
-        self.turn_on(from_turn_off=True)
+        self.turn_on(safe_switch=True)
 
     @staticmethod
     def osnr(power, ase_noise):
@@ -383,7 +379,7 @@ class LineTerminal(Node):
                 if gosnr < rx_transceiver.rx_threshold_dB:
                     print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
                           (optical_signal, self.__class__.__name__,
-                           self.name, gosnr, self.rx_threshold_dB))
+                           self.name, gosnr, rx_transceiver.rx_threshold_dB))
                     print("OSNR:", osnr)
 
                     signalInfoDict[optical_signal]['success'] = False
@@ -412,9 +408,10 @@ class LineTerminal(Node):
 
 
 class Transceiver(object):
+
     def __init__(self, tr_id, name, operation_power=0,
                  channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
-                 bandwidth=2.99792458 * 1e9, modulation_format='16-QAM',
+                 bandwidth=2.99792458 * 1e9, modulation_format='16QAM',
                  bits_per_symbol=4.0, symbol_rate=32.0e9, rx_threshold_dB=20.0):
         """
         :param name: human readable ID
@@ -438,7 +435,6 @@ class Transceiver(object):
         self.bits_per_symbol = bits_per_symbol
         self.symbol_rate = symbol_rate
         self.rx_threshold_dB = rx_threshold_dB
-        self.gross_bit_rate = symbol_rate * np.log2(bits_per_symbol)
 
         # state attributes
         self.optical_signal = None
@@ -449,22 +445,19 @@ class Transceiver(object):
     def remove_optical_signal(self):
         self.optical_signal = None
 
-    def set_modulation_format(self, modulation_format):
+    def set_modulation_format(self, modulation_format, tx):
+        """
+        Update modulation format, bits per symbol, symbol rate and
+        rx-threshold based on a modulation format label (i.e., 16QAM).
+        :param modulation_format: string i.e., '16QAM' (see units.py)
+        :param tx: boolean; True if transceiver is a transmitter
+        """
         self.modulation_format = modulation_format
-
-    def set_symbol_rate(self, symbol_rate):
-        self.symbol_rate = symbol_rate
-        self.compute_gross_bit_rate()
-
-    def set_bits_per_symbol(self, bits_per_symbol):
-        self.bits_per_symbol = bits_per_symbol
-        self.compute_gross_bit_rate()
-
-    def set_rx_threshold_dB(self, rx_threshold_dB):
-        self.rx_threshold_dB = rx_threshold_dB
-
-    def compute_gross_bit_rate(self):
-        self.gross_bit_rate = self.symbol_rate * np.log2(self.bits_per_symbol)
+        self.bits_per_symbol = bps[modulation_format]
+        self.symbol_rate = sr[modulation_format]
+        self.rx_threshold_dB = rx_thresholds[modulation_format]
+        if tx:
+            self.optical_signal.set_modulation_format(modulation_format)
 
     def describe(self):
         pprint(vars(self))
@@ -475,7 +468,8 @@ class OpticalSignal(object):
     spectrum_band_init_H = 191.3e12
 
     def __init__(self, index, channel_spacing_H,
-                 channel_spacing_nm, symbol_rate, bits_per_symbol,
+                 channel_spacing_nm, modulation_format,
+                 symbol_rate, bits_per_symbol,
                  power=0, ase_noise=0, nli_noise=0):
         self.uid = id(self)
         # configuration attributes
@@ -483,6 +477,7 @@ class OpticalSignal(object):
         self.frequency = self.spectrum_band_init_H + (channel_spacing_H * int(index))
         self.wavelength = c / self.frequency
         self.wavelength2 = self.spectrum_band_init_nm * nm + index * channel_spacing_nm
+        self.modulation_format = modulation_format
         self.symbol_rate = symbol_rate
         self.bits_per_symbol = bits_per_symbol
 
@@ -557,6 +552,10 @@ class OpticalSignal(object):
             self.loc_in_to_state = {}
             self.loc_out_to_state = {}
 
+    def set_modulation_format(self, modulation_format):
+        self.modulation_format = modulation_format
+        self.bits_per_symbol = bps[modulation_format]
+        self.symbol_rate = sr[modulation_format]
 
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
@@ -667,7 +666,7 @@ class Roadm(Node):
         for ruleId in list(self.switch_table):
             self.delete_switch_rule(ruleId[0])
 
-    def can_switch(self, in_port, from_turn_off):
+    def can_switch(self, in_port, safe_switch):
         """
         Check if switching is possible (i.e., no loops)
         """
@@ -711,7 +710,7 @@ class Roadm(Node):
                     port_out_to_port_in_signals[out_port].setdefault(in_port, [])
                     port_out_to_port_in_signals[out_port][in_port].append(optical_signal)
 
-        if not from_turn_off:
+        if not safe_switch:
             # now we check if we can switch
             port_to_optical_signal_out_copy = port_to_optical_signal_out.copy()
             # this if-clause is in case there is not a single switch rule
@@ -736,7 +735,7 @@ class Roadm(Node):
                         self.port_check_range_out[out_port] = 0
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
-    def can_switch_from_lt(self, src_node, from_turn_off):
+    def can_switch_from_lt(self, src_node, safe_switch):
         """
         Check all INPUT PORTS for signals coming from a LineTerminal.
         """
@@ -745,7 +744,7 @@ class Roadm(Node):
         for in_port in self.node_to_port_in[src_node]:
             if len(self.port_to_optical_signal_in[in_port]) > 0:
                 tmp_port_to_optical_signal_out, tmp_port_out_to_port_in_signals = \
-                    self.can_switch(in_port, from_turn_off)
+                    self.can_switch(in_port, safe_switch)
 
                 for out_port, optical_signals in tmp_port_to_optical_signal_out.items():
                     port_to_optical_signal_out.setdefault(out_port, [])
@@ -758,19 +757,19 @@ class Roadm(Node):
                     port_out_to_port_in_signals[out_port].update(_dict)
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
-    def switch(self, in_port, src_node, from_turn_off=False):
+    def switch(self, in_port, src_node, safe_switch=False):
         if isinstance(src_node, LineTerminal):
             # need to check for all (possible) input ports coming from LineTerminal
-            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch_from_lt(src_node, from_turn_off)
+            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch_from_lt(src_node, safe_switch)
         else:
-            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch(in_port, from_turn_off)
+            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch(in_port, safe_switch)
         # we will propagate and route signals at each out port individually
         for out_port, in_port_signals in port_out_to_port_in_signals.items():
             # we need to pass all the signals at a given in port to compute
             # the carrier's attenuation in self.propagate()
             for in_port, optical_signals in in_port_signals.items():
                 self.propagate(out_port, in_port, optical_signals)
-            self.route(out_port, from_turn_off)
+            self.route(out_port, safe_switch)
 
     def compute_carrier_attenuation(self, in_port):
         """
@@ -815,10 +814,10 @@ class Roadm(Node):
                                             ase_noise=ase_noise_out, nli_noise=nli_noise_out,
                                             out_port=out_port, dst_node=dst_node)
 
-    def route(self, out_port, from_turn_off):
+    def route(self, out_port, safe_switch):
         """Calling route will continue to propagate the signals in this link"""
         link = self.port_to_link_out[out_port]
-        link.propagate(is_last_port=True, from_turn_off=from_turn_off)
+        link.propagate(is_last_port=True, safe_switch=safe_switch)
 
 
 class Amplifier(Node):
@@ -853,17 +852,18 @@ class Amplifier(Node):
         self.power_excursions_flag_1 = False
         self.power_excursions_flag_2 = False
 
-        if equalization_function:
-            self.equalization_attenuation = db_to_abs(3)
-            self.equalization_function = equalization_function
-            self.equalization_target_out_power = None
-            self.equalization_compensation = \
-                self.equalization_safety_check(equalization_function, equalization_target_out_power)
-            self.equalization_flag_1 = True
-            self.equalization_flag_2 = True
-        else:
-            self.equalization_flag_1 = False
-            self.equalization_flag_2 = False
+        # FIXME: (AD) is this needed?
+        # if equalization_function:
+        #     self.equalization_attenuation = db_to_abs(3)
+        #     self.equalization_function = equalization_function
+        #     self.equalization_target_out_power = None
+        #     self.equalization_compensation = \
+        #         self.equalization_safety_check(equalization_function, equalization_target_out_power)
+        #     self.equalization_flag_1 = True
+        #     self.equalization_flag_2 = True
+        # else:
+        #     self.equalization_flag_1 = False
+        #     self.equalization_flag_2 = False
 
         self.boost = boost
 
@@ -871,51 +871,50 @@ class Amplifier(Node):
         if self.monitor:
             return self.monitor
 
-    def equalization_safety_check(self, equalization_function, equalization_target_out_power):
-        """
-        AD: TO BE UPDATED.
-        Safety check for the declaration of equalization reconfiguration parameters
-        :param equalization_function: string (i.e., 'flatten')
-        :param equalization_target_out_power: float
-        :return: True equalization reconf False otherwise
-        """
-        if equalization_target_out_power is not None:
-            # This check is to avoid pythonic-responses
-            # if equalization_target_out_power is set to zero
-            equalization_target_out_power = db_to_abs(equalization_target_out_power)
-            self.equalization_target_out_power = equalization_target_out_power
-        try:
-            err_msg = "Roadm.equalization_safety_check: inconsistent declaration of equalization params."
-            # Either both are passed or None
-            assert all([equalization_function, equalization_target_out_power]) or \
-                   all(x is None for x in [equalization_function, equalization_target_out_power]), err_msg
-        except AssertionError as err:
-            raise err
-        if all([equalization_function, equalization_target_out_power]):
-            return True
-        return False
-
-    def equalization_reconf(self, link, output_power_dict):
-        """
-        AD: TO BE UPDATED or removed, is this even used?
-        wavelength dependent attenuation
-        """
-        pass
-        # if self.equalization_function == 'flatten':
-        #     # compute equalization compensation and re-propagate only if there is a function
-        #     out_difference = {}
-        #     for k, out_power in output_power_dict.items():
-        #         # From the boost-amp, compute the difference between output power levels
-        #         # and the target output power. Set this as the compensation function.
-        #         delta = self.equalization_target_out_power / out_power
-        #         out_difference[k] = delta
-        #
-        #     for optical_signal, equalization_att in out_difference.items():
-        #         power = optical_signal.loc_in_to_state[self]['power'] * equalization_att
-        #         ase_noise = optical_signal.loc_in_to_state[self]['ase_noise'] * equalization_att
-        #         nli_noise = optical_signal.loc_in_to_state[self]['nli_noise'] * equalization_att
-        #         self.include_optical_signal_in((optical_signal, optical_signal.uid), power=power,
-        #                                        ase_noise=ase_noise, nli_noise=nli_noise)
+    # FIXME: (AD) is this needed?
+    # def equalization_safety_check(self, equalization_function, equalization_target_out_power):
+    #     """
+    #     Safety check for the declaration of equalization reconfiguration parameters
+    #     :param equalization_function: string (i.e., 'flatten')
+    #     :param equalization_target_out_power: float
+    #     :return: True equalization reconf False otherwise
+    #     """
+    #     if equalization_target_out_power is not None:
+    #         # This check is to avoid pythonic-responses
+    #         # if equalization_target_out_power is set to zero
+    #         equalization_target_out_power = db_to_abs(equalization_target_out_power)
+    #         self.equalization_target_out_power = equalization_target_out_power
+    #     try:
+    #         err_msg = "Roadm.equalization_safety_check: inconsistent declaration of equalization params."
+    #         # Either both are passed or None
+    #         assert all([equalization_function, equalization_target_out_power]) or \
+    #                all(x is None for x in [equalization_function, equalization_target_out_power]), err_msg
+    #     except AssertionError as err:
+    #         raise err
+    #     if all([equalization_function, equalization_target_out_power]):
+    #         return True
+    #     return False
+    #
+    # def equalization_reconf(self, link, output_power_dict):
+    #     """
+    #     wavelength dependent attenuation
+    #     """
+    #     pass
+    #     # if self.equalization_function == 'flatten':
+    #     #     # compute equalization compensation and re-propagate only if there is a function
+    #     #     out_difference = {}
+    #     #     for k, out_power in output_power_dict.items():
+    #     #         # From the boost-amp, compute the difference between output power levels
+    #     #         # and the target output power. Set this as the compensation function.
+    #     #         delta = self.equalization_target_out_power / out_power
+    #     #         out_difference[k] = delta
+    #     #
+    #     #     for optical_signal, equalization_att in out_difference.items():
+    #     #         power = optical_signal.loc_in_to_state[self]['power'] * equalization_att
+    #     #         ase_noise = optical_signal.loc_in_to_state[self]['ase_noise'] * equalization_att
+    #     #         nli_noise = optical_signal.loc_in_to_state[self]['nli_noise'] * equalization_att
+    #     #         self.include_optical_signal_in((optical_signal, optical_signal.uid), power=power,
+    #     #                                        ase_noise=ase_noise, nli_noise=nli_noise)
 
     def reset_gain(self):
         self.system_gain = self.target_gain
@@ -967,9 +966,6 @@ class Amplifier(Node):
         else:
             raise Exception("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
-    def propagate(self):
-        return
-
     def output_amplified_power(self, optical_signal, dst_node=None):
         """
         Compute the output power levels of each signal after amplification
@@ -1017,7 +1013,7 @@ class Amplifier(Node):
         system_gain = self.system_gain
 
         ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
-        gain_linear = db_to_abs(system_gain)  # * db_to_abs(wavelength_dependent_gain)
+        gain_linear = db_to_abs(system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise_out = ase_noise_in * gain_linear + (noise_figure_linear * h * optical_signal.frequency *
                                                       self.bandwidth * (gain_linear - 1))
         # associate amp to optical signal at output interface
@@ -1027,7 +1023,7 @@ class Amplifier(Node):
 
     def compute_power_excursions(self):
         """
-        TO BE UPDATED
+        FIXME: fix algorithm based on new model
         Balance system gain with respect with the mean
         gain of the signals in the amplifier: power excursions
         :return:

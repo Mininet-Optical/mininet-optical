@@ -110,7 +110,7 @@ class Link(object):
         else:
             optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
-    def propagate(self, is_last_port=False, from_turn_off=False):
+    def propagate(self, is_last_port=False, safe_switch=False):
         """
         Propagate the signals across the link
         :param is_last_port:
@@ -137,7 +137,7 @@ class Link(object):
                                                             in_port=in_port, src_node=self.src_node)
 
                 if is_last_port:
-                    self.dst_node.switch(in_port, self.src_node, from_turn_off=from_turn_off)
+                    self.dst_node.switch(in_port, self.src_node, safe_switch=safe_switch)
 
     def propagate_simulation(self):
         """
