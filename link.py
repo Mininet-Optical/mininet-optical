@@ -67,8 +67,7 @@ class Link(object):
         return "(%s->%s)" % (self.src_node, self.dst_node)
 
     def remove_optical_signal(self, optical_signal):
-        print("%s - %s removing signal: OpticalSignal:%s - UID;%s" %
-              (self.__class__.__name__, self, optical_signal, optical_signal.uid))
+        print("*** %s removing: %s" % (self, optical_signal))
         if optical_signal in self.optical_signals:
             self.optical_signals.remove(optical_signal)
 
@@ -111,7 +110,7 @@ class Link(object):
         else:
             optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
-    def propagate(self, is_last_port=False):
+    def propagate(self, is_last_port=False, from_turn_off=False):
         """
         Propagate the signals across the link
         :param is_last_port:
@@ -138,7 +137,7 @@ class Link(object):
                                                             in_port=in_port, src_node=self.src_node)
 
                 if is_last_port:
-                    self.dst_node.switch(in_port, self.src_node)
+                    self.dst_node.switch(in_port, self.src_node, from_turn_off=from_turn_off)
 
     def propagate_simulation(self):
         """

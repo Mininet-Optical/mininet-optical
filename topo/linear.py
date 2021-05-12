@@ -20,7 +20,7 @@ def build_spans(net, r1, r2):
     # store all spans (sequentially) in a list
     spans = []
     # get number of spans (int)
-    span_no = 3
+    span_no = 1
     span_length = 80
 
     for i in range(1, span_no + 1):

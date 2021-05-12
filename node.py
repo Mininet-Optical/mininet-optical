@@ -147,8 +147,7 @@ class Node(object):
         optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
     def remove_optical_signal(self, optical_signal):
-        print("*** %s - %s removing signal: OpticalSignal:%s" % (self.__class__.__name__,
-                                                                 self.name, optical_signal))
+        print("*** %s removing: %s" % (self, optical_signal))
 
         if optical_signal in self.optical_signal_to_node_in:
             src_node = self.optical_signal_to_node_in[optical_signal]
@@ -172,8 +171,9 @@ class Node(object):
             port_out = self.optical_signal_to_port_out[optical_signal]
             self.port_to_optical_signal_out[port_out].remove(optical_signal)
             del self.optical_signal_to_port_out[optical_signal]
-            link = self.port_to_link_out[port_out]
-            link.remove_optical_signal(optical_signal)
+            if not isinstance(self, Amplifier):
+                link = self.port_to_link_out[port_out]
+                link.remove_optical_signal(optical_signal)
 
     def remove_signal_from_out_port(self, port_out, optical_signal):
         if optical_signal in self.optical_signal_to_port_out:
@@ -302,50 +302,50 @@ class LineTerminal(Node):
         # associate transceiver to optical_signal
         transceiver.assoc_optical_signal(optical_signal)
 
-        # signals are originated at the Line Terminals,
-        # thus in_port=-1 (it helps to update input intf of Terminal)
-        # src_node=self always, needed for querying
-        # XXX Commented this out because it seems to add an extra unused signal/port
-        # self.include_optical_signal_in(optical_signal, in_port=-1, src_node=self)
-
         dst_node = self.port_to_node_out[out_port]
         # the goal of this function
         self.include_optical_signal_out(optical_signal, out_port=out_port, dst_node=dst_node)
         self.tx_to_channel[out_port] = {'optical_signal': optical_signal, 'transceiver': transceiver}
         self.optical_signals_out += 1
 
+    def disassoc_tx_to_channel(self, out_port):
+        # {'optical_signal': optical_signal, 'transceiver': transceiver}
+        _dict = self.tx_to_channel[out_port]
+        # remove optical_signal from LT and propagate deletion
+        optical_signal = _dict['optical_signal']
+        self.remove_optical_signal(optical_signal)
+
+        # remove optical_signal from transceiver
+        # and delete tx_to_channel register for out_port
+        transceiver = _dict['transceiver']
+        transceiver.remove_optical_signal()
+        del self.tx_to_channel[out_port]
+        self.optical_signals_out -= 1
+
     def assoc_rx_to_channel(self, transceiver, channel_id, in_port):
         self.rx_to_channel[in_port] = {'channel_id': channel_id, 'transceiver':transceiver}
 
-    def turn_on(self):
+    def turn_on(self, from_turn_off=False):
         """Propagate signals to the link that the transceivers point to"""
-        signal_count = 0
-        for out_port, link in self.port_to_link_out.items():
-            if out_port in self.tx_to_channel:
-                optical_signal = self.tx_to_channel[out_port]['optical_signal']
-                transceiver = self.tx_to_channel[out_port]['transceiver']
-                signal_count += 1
-                transceiver.optical_signal.reset(component=self)
-                # pass signal info to link
-                link.include_optical_signal_in(optical_signal)
+        for signal_count, out_port in enumerate(self.tx_to_channel, start=1):
+            optical_signal = self.tx_to_channel[out_port]['optical_signal']
+            transceiver = self.tx_to_channel[out_port]['transceiver']
+            transceiver.optical_signal.reset(component=self)
 
-                if signal_count == self.optical_signals_out:
-                    link.propagate(is_last_port=True)
-                else:
-                    link.propagate()
+            # pass signal info to link
+            link = self.port_to_link_out[out_port]
+            link.include_optical_signal_in(optical_signal)
+
+            if signal_count == self.optical_signals_out:
+                link.propagate(is_last_port=True, from_turn_off=from_turn_off)
+            else:
+                link.propagate()
 
     def turn_off(self, ports_out):
-        optical_signals = []
-        # find transceiver objects and create list
-        for tr in self.transceivers:
-            if tr.id in ports_out:
-                optical_signal = tr.optical_signal
-                optical_signals.append(optical_signal)
-                tr.remove_optical_signal()
-        for optical_signal in optical_signals:
-            self.remove_optical_signal(optical_signal)
+        for out_port in ports_out:
+            self.disassoc_tx_to_channel(out_port)
         # call propagation with left-over signals (if any)
-        self.turn_on()
+        self.turn_on(from_turn_off=True)
 
     @staticmethod
     def osnr(power, ase_noise):
@@ -667,7 +667,10 @@ class Roadm(Node):
         for ruleId in list(self.switch_table):
             self.delete_switch_rule(ruleId[0])
 
-    def can_switch(self, in_port):
+    def can_switch(self, in_port, from_turn_off):
+        """
+        Check if switching is possible (i.e., no loops)
+        """
         # Track which out ports are going to carry which signals
         port_to_optical_signal_out = {}
         port_out_to_port_in_signals = {}
@@ -693,7 +696,7 @@ class Roadm(Node):
             if not switch_rule:
                 print(self, "Unable to find switch rule for signal:", optical_signal)
 
-        # Note: this procedures is not checking for
+        # Note: this procedure is not checking for
         # ALL the other output ports, only the output ports
         # used by the switching rules found for the input port.
         port_to_optical_signal_out_copy = port_to_optical_signal_out.copy()
@@ -708,42 +711,41 @@ class Roadm(Node):
                     port_out_to_port_in_signals[out_port].setdefault(in_port, [])
                     port_out_to_port_in_signals[out_port][in_port].append(optical_signal)
 
-        # now we check if we can switch
-        port_to_optical_signal_out_copy = port_to_optical_signal_out.copy()
-        # this if-clause is in case there is not a single switch rule
-        if len(port_to_optical_signal_out) > 0:
-            for out_port, optical_signals in port_to_optical_signal_out_copy.items():
-                # check if optical_signals == self.port_to_optical_signal_out[out_port]
-                if all(optical_signal in optical_signals for optical_signal in
-                       self.port_to_optical_signal_out[out_port]) \
-                        and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
-                    # If this is the case, then we have routed them before,
-                    # thus, check the switching counter threshold
-                    self.port_check_range_out[out_port] += 1
-                    if self.port_check_range_out[out_port] >= self.check_range_th:
-                        if not isinstance(self.port_to_node_out[out_port], LineTerminal):
-                            print('RoadmWarning:', self, "loop detected. Stopping propagation.")
-                            print("Blocking:", port_to_optical_signal_out[out_port], "port:", out_port)
-                            # Disable the usage of this output port
-                            del port_to_optical_signal_out[out_port]
-                            del port_out_to_port_in_signals[out_port]
-                else:
-                    # The out port can be used
-                    self.port_check_range_out[out_port] = 0
+        if not from_turn_off:
+            # now we check if we can switch
+            port_to_optical_signal_out_copy = port_to_optical_signal_out.copy()
+            # this if-clause is in case there is not a single switch rule
+            if len(port_to_optical_signal_out) > 0:
+                for out_port, optical_signals in port_to_optical_signal_out_copy.items():
+                    # check if optical_signals == self.port_to_optical_signal_out[out_port]
+                    if all(optical_signal in optical_signals for optical_signal in
+                           self.port_to_optical_signal_out[out_port]) \
+                            and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
+                        # If this is the case, then we have routed them before,
+                        # thus, check the switching counter threshold
+                        self.port_check_range_out[out_port] += 1
+                        if self.port_check_range_out[out_port] >= self.check_range_th:
+                            if not isinstance(self.port_to_node_out[out_port], LineTerminal):
+                                print('RoadmWarning:', self, "loop detected. Stopping propagation.")
+                                print("Blocking:", port_to_optical_signal_out[out_port], "port:", out_port)
+                                # Disable the usage of this output port
+                                del port_to_optical_signal_out[out_port]
+                                del port_out_to_port_in_signals[out_port]
+                    else:
+                        # The out port can be used
+                        self.port_check_range_out[out_port] = 0
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
-    def can_switch_from_lt(self, src_node):
+    def can_switch_from_lt(self, src_node, from_turn_off):
         """
-        What I want to do is to be sure that when calling switch() for signals coming from
-        a LineTerminal all INPUT PORTS are being checked. Otherwise not all signals will be checked
-
-        Partly, this can be solved at can_switch()
+        Check all INPUT PORTS for signals coming from a LineTerminal.
         """
         port_to_optical_signal_out = {}
         port_out_to_port_in_signals = {}
         for in_port in self.node_to_port_in[src_node]:
             if len(self.port_to_optical_signal_in[in_port]) > 0:
-                tmp_port_to_optical_signal_out, tmp_port_out_to_port_in_signals = self.can_switch(in_port)
+                tmp_port_to_optical_signal_out, tmp_port_out_to_port_in_signals = \
+                    self.can_switch(in_port, from_turn_off)
 
                 for out_port, optical_signals in tmp_port_to_optical_signal_out.items():
                     port_to_optical_signal_out.setdefault(out_port, [])
@@ -756,19 +758,19 @@ class Roadm(Node):
                     port_out_to_port_in_signals[out_port].update(_dict)
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
-    def switch(self, in_port, src_node):
+    def switch(self, in_port, src_node, from_turn_off=False):
         if isinstance(src_node, LineTerminal):
             # need to check for all (possible) input ports coming from LineTerminal
-            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch_from_lt(src_node)
+            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch_from_lt(src_node, from_turn_off)
         else:
-            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch(in_port)
+            port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch(in_port, from_turn_off)
         # we will propagate and route signals at each out port individually
         for out_port, in_port_signals in port_out_to_port_in_signals.items():
             # we need to pass all the signals at a given in port to compute
             # the carrier's attenuation in self.propagate()
             for in_port, optical_signals in in_port_signals.items():
                 self.propagate(out_port, in_port, optical_signals)
-            self.route(out_port)
+            self.route(out_port, from_turn_off)
 
     def compute_carrier_attenuation(self, in_port):
         """
@@ -813,10 +815,10 @@ class Roadm(Node):
                                             ase_noise=ase_noise_out, nli_noise=nli_noise_out,
                                             out_port=out_port, dst_node=dst_node)
 
-    def route(self, out_port):
+    def route(self, out_port, from_turn_off):
         """Calling route will continue to propagate the signals in this link"""
         link = self.port_to_link_out[out_port]
-        link.propagate(is_last_port=True)
+        link.propagate(is_last_port=True, from_turn_off=from_turn_off)
 
 
 class Amplifier(Node):
