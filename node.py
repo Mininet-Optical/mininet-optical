@@ -321,6 +321,11 @@ class LineTerminal(Node):
     def assoc_rx_to_channel(self, transceiver, channel_id, in_port):
         self.rx_to_channel[in_port] = {'channel_id': channel_id, 'transceiver':transceiver}
 
+    def disassoc_rx_to_channel(self, rx_transceiver, channel, in_port):
+        """rx_transceiver and channel will be used when enabling
+        multiple channels on a single port"""
+        del self.rx_to_channel[in_port]
+
     def turn_on(self, safe_switch=False):
         """Propagate signals to the link that the transceivers point to"""
         for signal_count, out_port in enumerate(self.tx_to_channel, start=1):
@@ -377,17 +382,17 @@ class LineTerminal(Node):
                 signalInfoDict[optical_signal]['gosnr'] = gosnr
 
                 if gosnr < rx_transceiver.rx_threshold_dB:
-                    print("*** %s - %s.receiver.%s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
-                          (optical_signal, self.__class__.__name__,
-                           self.name, gosnr, rx_transceiver.rx_threshold_dB))
-                    print("OSNR:", osnr)
+                    print("*** %s receiving %s at port %s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
+                          (self.name, optical_signal, in_port,
+                           gosnr, rx_transceiver.rx_threshold_dB))
+                    print("OSNR: %f dB" % osnr)
 
                     signalInfoDict[optical_signal]['success'] = False
                     self.receiver_callback(in_port, signalInfoDict)
                 else:
-                    print("*** %s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
-                          (optical_signal, self.__class__.__name__, self.name, gosnr))
-                    print("OSNR:", osnr)
+                    print("*** %s receiving %s at port %s: Success!\ngOSNR: %f dB" %
+                          (self.name, optical_signal, in_port, gosnr))
+                    print("OSNR: %f dB" % osnr)
 
                     signalInfoDict[optical_signal]['success'] = True
                     self.receiver_callback(in_port, signalInfoDict)
@@ -603,7 +608,7 @@ class Roadm(Node):
         Switching rule installation, accessible from a Control System
         :param in_port: input port for incoming signals
         :param out_port: switching/output port for incoming signals
-        :param signal_indices: signal indices involved in switching procedure
+        :param signal_indices: int or list, signal index or indices
         :param src_node: source node
         :return:
         """
@@ -611,60 +616,79 @@ class Roadm(Node):
         self.node_to_rule_id_in.setdefault(src_node, [])
         # arbitrary rule identifier
         # the keys are tuples and the stored values int
-        for signal_index in signal_indices:
-            self.switch_table[in_port, signal_index] = out_port
+        if type(signal_indices) is list:
+            for signal_index in signal_indices:
+                self.switch_table[in_port, signal_index] = out_port
 
-            self.node_to_rule_id_in[src_node].append((in_port, signal_index))
-            self.rule_id_to_node_in[in_port, signal_index] = src_node
+                self.node_to_rule_id_in[src_node].append((in_port, signal_index))
+                self.rule_id_to_node_in[in_port, signal_index] = src_node
+        else:
+            self.switch_table[in_port, signal_indices] = out_port
 
-    def update_switch_rule(self, rule_id, new_port_out, switch=False):
+            self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
+            self.rule_id_to_node_in[in_port, signal_indices] = src_node
+
+
+    def update_switch_rule(self, in_port, signal_index, new_port_out, switch=False):
         """
         Update/create a new rule for switching
+        :param in_port: int, input port of existing rule
+        :param signal_index: int, signal index of existing rule
+        :param new_port_out: int, new output port
+        :param switch: boolean, specify if we want to switch
+                        to avoid unecessary switching
         :return:
         """
-        # self.switch_table[in_port, signal_index]
         # Get the rule that corresponds to the rule_id
-        if rule_id not in self.switch_table:
-            pass
+        if (in_port, signal_index) not in self.switch_table:
+            print("*** %s.update_switch_rule couldn't find "
+                  "switch rule for in_port: %d and channel: %d" %
+                  (self, in_port, signal_index))
         else:
-            in_port = rule_id[0]
-            optical_signal = self.port_to_optical_signal_in[in_port]
-            out_port = self.switch_table[rule_id]
+            for s in self.port_to_optical_signal_in[in_port]:
+                if s.index == signal_index:
+                    optical_signal = s
+            out_port = self.switch_table[in_port, signal_index]
             # remove signal from out port at a Node level
             self.remove_signal_from_out_port(out_port, optical_signal)
 
             # replace the out port of the rule (ROADM)
-            self.switch_table[rule_id] = new_port_out
+            self.switch_table[in_port, signal_index] = new_port_out
 
             if switch:
-                src_node = self.rule_id_to_node_in[rule_id]
-                self.switch(src_node, in_port)
+                src_node = self.rule_id_to_node_in[in_port, signal_index]
+                self.switch(in_port, src_node)
 
-    def delete_switch_rule(self, rule_id, switch=False):
+    def delete_switch_rule(self, in_port, signal_index, switch=False):
         """
         Switching rule deletion from Control System
         :return:
         """
         # self.switch_table: [in_port, signal_index] = out_port
-        if rule_id not in self.switch_table:
-            pass
+        if (in_port, signal_index) not in self.switch_table:
+            print("*** %s.update_switch_rule couldn't find "
+                  "switch rule for in_port: %d and channel: %d" %
+                  (self, in_port, signal_index))
         else:
-            in_port = rule_id[0]
-            optical_signal = self.port_to_optical_signal_in[in_port]
+            for s in self.port_to_optical_signal_in[in_port]:
+                if s.index == signal_index:
+                    optical_signal = s
 
             # Remove signal at Node level
             self.remove_optical_signal(optical_signal)
             # Remove switch rule
-            del self.switch_table[rule_id]
+            del self.switch_table[in_port, signal_index]
 
             if switch:
-                src_node = self.port_to_node_in[in_port]
-                self.switch(src_node, in_port)
+                src_node = self.rule_id_to_node_in[in_port, signal_index]
+                self.switch(in_port, src_node)
 
     def delete_switch_rules(self):
         """Delete all switching rules"""
-        for ruleId in list(self.switch_table):
-            self.delete_switch_rule(ruleId[0])
+        for ruleId in self.switch_table.keys():
+            in_port = ruleId[0]
+            signal_index = ruleId[1]
+            self.delete_switch_rule(in_port, signal_index)
 
     def can_switch(self, in_port, safe_switch):
         """
