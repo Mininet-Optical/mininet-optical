@@ -4,4 +4,4 @@
 # moved to simpledemo.py
 
 echo '*** Running demo script'
-sudo PYTHONPATH=..:. python ./demo.py
+sudo PYTHONPATH=..:. python3 ./demo.py
