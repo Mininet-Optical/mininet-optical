@@ -71,7 +71,7 @@ class sixNodeRingTopology(Topo):
         for r, t in zip(roadms, terminals):
             for portCount in range(0, num):
                 self.addLink(r, t, cls=OpticalLink, port1= portCount + 1, port2 = num + portCount + 1,
-                         boost1=boost, spans=spans)
+                         boost1=boost, spans=[1.0*m])
         i = 0
         for r1 in roadms:
             if(i == len(roadms)-1):
