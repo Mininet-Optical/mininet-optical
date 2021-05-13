@@ -7,6 +7,9 @@ from collections import defaultdict
 import random
 from collections import defaultdict
 import numpy as np
+from ofcdemo.fakecontroller import (
+    RESTProxy, TerminalProxy, ROADMProxy, OFSwitchProxy,
+    fetchNodes, fetchLinks, fetchPorts, fetchOSNR )
 
 
 km = dB = dBm = 1.0
@@ -91,7 +94,20 @@ def RoadmPhyNetwork():
 
 Mininet_Agent = Mininet_Optical_Simu_API()
 
-class Simple_Controller(object):
+class Simple_Controller_REST(object):
+
+
+    def Mininet_installPath(self, path, roadm_to_inport, roadm_to_outport, ruleID, channel):
+        "intall switch rules on roadms along a lightpath with a signal channel"
+
+        for i in range(len(path)):
+            roadm = path[i]
+            ROADMProxy(roadm).connect(roadm_to_inport[roadm], roadm_to_outport[roadm], channel)
+
+
+
+
+class Simple_Controller_Simu(object):
 
 
     def Mininet_installPath(self, path, roadm_to_inport, roadm_to_outport, ruleID, channel):
@@ -116,12 +132,10 @@ class Simple_Controller(object):
         self.Mininet_installPath(path, roadm_to_inport, roadm_to_outport, ruleID, channel)
         for i in range(len(path)):
             roadm = path[i]
-            if i == len(path) - 1:
-                Mininet_Agent.ROADM_voaPowerLeveling(node=roadm, outport=tranceiver, power=power, channel=channel)
-            else:
-                Mininet_Agent.ROADM_voaPowerLeveling(node=roadm, outport=LINE_OUT, power=power, channel=channel)
-        Mininet_Agent.Terminal_configChannel(terminal=terminal, transceiverIndx=tranceiver, channel=channel)
-        Mininet_Agent.Terminal_configChannelPower(terminal= terminal, transceiverIndx=tranceiver, power=power)
+            Mininet_Agent.ROADM_voaPowerLeveling(node=roadm, outport=roadm_to_outport[roadm], power=power, channel=channel)
+            print('leveling info', roadm, LINE_IN, channel)
+        Mininet_Agent.Terminal_configChannel(terminal=terminal, channel=channel)
+        Mininet_Agent.Terminal_configChannelPower(terminal= terminal, channel=channel, power=power)
         Mininet_Agent.Terminal_turnonChannel(terminal=terminal)
 
         return True
@@ -137,21 +151,45 @@ class Simple_Controller(object):
 def Control_Test():
     " set up a lightpath from r1 to r5 with channel 5, launch_power 0 dB"
 
+
+    '''
+    # install switch rule
+    ++port ('t5', 'r5', 'r4', 'r3', 'r2', 'r1', 't1') 19 91 90
+    ++port ('t5', 'r5', 'r4', 'r3', 'r2', 'r1', 't1') 19 91 90
+    ++port ('t5', 'r5', 'r4', 'r3', 'r2', 'r1', 't1') 19 91 90
+    ++port ('t5', 'r5', 'r4', 'r3', 'r2', 'r1', 't1') 19 91 90
+    ++port ('t5', 'r5', 'r4', 'r3', 'r2', 'r1', 't1') 19 91 18
+    
+    # power leveling for each roadm
+    leveling info r5 90 19
+    leveling info r4 90 19
+    leveling info r3 90 19
+    leveling info r2 90 19
+    leveling info r1 18 19
+    '''
+
     # tranceiver 0-89 for channel 1-90
-    controller = Simple_Controller()
-    channel = 6
+    controller = Simple_Controller_Simu()
+    channel = 19
     AddDrop = channel-1
     tranceiverIndx = channel-1
     net = RoadmPhyNetwork()
     nodes = net.name_to_node
     print(nodes)
 
-    path = [ nodes['r1'],nodes['r2'],nodes['r3'],nodes['r4'],nodes['r5'] ]
-    roadm_to_inport= { nodes['r1']: AddDrop, nodes['r2']:LINE_IN,  nodes['r3']:LINE_IN,  nodes['r4']:LINE_IN,  nodes['r5']:LINE_IN }
-    roadm_to_outport= { nodes['r1']:LINE_OUT, nodes['r2']:LINE_OUT, nodes['r3']:LINE_OUT, nodes['r4']:LINE_OUT, nodes['r5']:AddDrop }
+    path = [ nodes['r5'],nodes['r4'],nodes['r3'],nodes['r2'],nodes['r1'] ]
+    roadm_to_inport= { nodes['r5']: AddDrop, nodes['r4']:LINE_OUT,  nodes['r3']:LINE_OUT,  nodes['r2']:LINE_OUT,  nodes['r1']:LINE_OUT }
+    roadm_to_outport= { nodes['r5']:LINE_IN, nodes['r4']:LINE_IN, nodes['r3']:LINE_IN, nodes['r2']:LINE_IN, nodes['r1']:AddDrop }
+
+    # path = [ nodes['r5'],nodes['r4'] ]
+    # roadm_to_inport= { nodes['r5']: AddDrop, nodes['r4']:LINE_OUT}
+    # roadm_to_outport= { nodes['r5']:LINE_IN, nodes['r4']:AddDrop }
 
     controller.Mininet_setupLightpath(path=path, roadm_to_inport=roadm_to_inport, roadm_to_outport=roadm_to_outport,
-                           ruleID=1, channel=channel, terminal=nodes['t1'], tranceiver=tranceiverIndx, power=1)
+                           ruleID=1, channel=channel, terminal=nodes['t5'], tranceiver=tranceiverIndx, power=1)
+
+    data = Mininet_Agent.ROADM_monitor_all_gosnr(nodes['r5'])
+    print(data)
 
 
 
