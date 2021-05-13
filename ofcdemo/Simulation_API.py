@@ -15,7 +15,7 @@ class Mininet_Optical_Simu_API(object):
         "install a switch rule in a ROADM"
 
         node.install_switch_rule(rule_id=ruleID, in_port=inport, out_port=outport, signal_indices=[channelID])
-        print(node, ruleID, inport, outport, channelID)
+        print('install switch rule', node, ruleID, inport, outport, channelID)
 
     def ROADM_deleteSwitchRule(self, node, ruleID):
         "delete a switch rule in a ROADM using rule ID"
@@ -26,20 +26,24 @@ class Mininet_Optical_Simu_API(object):
     def ROADM_voaPowerLeveling(self, node, outport, power, channel):
         "Power control for a signal channel at a roadm using VOA leveling"
 
+        #print('leveling power, port, channel:', power, outport, channel)
         node.configure_voa(channel_id=channel, output_port=outport, operational_power_dB=power)
 
 
-    def Terminal_configChannelPower(self, terminal, transceiverIndx, power):
+    def Terminal_configChannelPower(self, terminal, channel, power):
         "Congifure Terminal Launch power for a channel"
 
-        terminal.transceivers[transceiverIndx].operation_power = db_to_abs(power)
+        terminal.transceivers[channel-1].operation_power = db_to_abs(power)
+        #terminal.name_to_transceivers['tx%d' % channel].operation_power = db_to_abs(power)
 
 
-    def Terminal_configChannel(self, terminal, transceiverIndx, channel):
+    def Terminal_configChannel(self, terminal, channel):
         "configure a Terminal with a given channel"
 
-        terminal.configure_terminal(transceiver=terminal.transceivers[transceiverIndx], channel=channel)
-        print(terminal, transceiverIndx, channel)
+        #terminal.configure_terminal(transceiver=terminal.transceivers[transceiverIndx], channel=channel)
+        terminal.configure_terminal(transceiver=terminal.transceivers[channel - 1], channel=channel)
+        #terminal.turn_on()
+        #print(terminal, channel)
 
 
     def Terminal_turnonChannel(self, terminal):
@@ -51,6 +55,9 @@ class Mininet_Optical_Simu_API(object):
         "Turn off a Terminal with a given channel"
 
         terminal.turn_off([channel-1])
+
+    def Terminal_Reset_Threshold(self, terminal, threshold):
+        terminal.update_rx_threshold(threshold)
 
 
     def ROADM_monitor_all_power(self, node):
