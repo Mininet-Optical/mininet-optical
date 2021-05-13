@@ -616,7 +616,7 @@ class Roadm(Node):
         self.node_to_rule_id_in.setdefault(src_node, [])
         # arbitrary rule identifier
         # the keys are tuples and the stored values int
-        if type(signal_indices) is list:
+        if type(signal_indices) is list or type(signal_indices) is set:
             for signal_index in signal_indices:
                 self.switch_table[in_port, signal_index] = out_port
 

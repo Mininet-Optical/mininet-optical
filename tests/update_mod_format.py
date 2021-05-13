@@ -47,10 +47,10 @@ for c, p in zip(channel_indexes, ports):
 
 lt_1.turn_on()
 
-tx1 = lt_1.id_to_transceivers[10]
-rx1 = lt_2.id_to_transceivers[10]
-print("*** Modulation format of %s before reconfiguration: %s" % (tx1.name, tx1.modulation_format))
-print("*** Modulation format of %s before reconfiguration: %s" % (rx1.name, rx1.modulation_format))
+tx1 = lt_1.id_to_transceivers[1]
+rx1 = lt_2.id_to_transceivers[1]
+print("*** Modulation format of %s in lt_1 before reconfiguration: %s" % (tx1.name, tx1.modulation_format))
+print("*** Modulation format of %s in lt_2 before reconfiguration: %s" % (rx1.name, rx1.modulation_format))
 # Important: modulation format of the receiver
 # needs to be updated before transmitter!
 lt_2.set_modulation_format(rx1, '64QAM')
@@ -58,5 +58,5 @@ lt_2.set_modulation_format(rx1, '64QAM')
 # tx is set to True,
 # tx default is False
 lt_1.set_modulation_format(tx1, '64QAM', tx=True)
-print("*** Modulation format of %s after reconfiguration: %s" % (tx1.name, tx1.modulation_format))
-print("*** Modulation format of %s after reconfiguration: %s" % (rx1.name, rx1.modulation_format))
+print("*** Modulation format of %s in lt_1 after reconfiguration: %s" % (tx1.name, tx1.modulation_format))
+print("*** Modulation format of %s in lt_2 after reconfiguration: %s" % (rx1.name, rx1.modulation_format))
