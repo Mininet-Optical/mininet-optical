@@ -392,7 +392,6 @@ class LineTerminal(Node):
                     print("*** %s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
                           (optical_signal, self.__class__.__name__, self.name, gosnr))
                     print("OSNR:", osnr)
-                    print("Power:", power)
 
                     signalInfoDict[optical_signal]['success'] = True
                     self.receiver_callback(in_port, signalInfoDict)
