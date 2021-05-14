@@ -1114,9 +1114,19 @@ class Monitor(Node):
         :return power: Returns Optical signals for the required objects
         """
         if self.mode == 'in':
-            return list(self.component.port_to_optical_signal_in.values())[0]
+            optical_signal_list = []
+            for value in self.component.port_to_optical_signal_in.values():
+                if value:
+                    for optical_signal in value:
+                        optical_signal_list.append(optical_signal)
+            return optical_signal_list
         else:
-            return list(self.component.port_to_optical_signal_out.values())[0]
+            optical_signal_list = []
+            for value in self.component.port_to_optical_signal_out.values():
+                if value:
+                    for optical_signal in value:
+                        optical_signal_list.append(optical_signal)
+            return optical_signal_list
 
     def get_list_osnr(self):
         """
