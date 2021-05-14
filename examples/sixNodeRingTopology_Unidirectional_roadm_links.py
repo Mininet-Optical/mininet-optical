@@ -81,13 +81,13 @@ class sixNodeRingTopology(Topo):
                 r2 = roadms[i + 1]
 
             ###################For Bidirectional Links########################################
-            self.addLink(r1, r2, cls=OpticalLink, port1 = 100, port2= 101,
-                    boost1=boost, spans=spans)
+            # self.addLink(r1, r2, cls=OpticalLink, port1 = 100, port2= 101,
+            #         boost1=boost, spans=spans)
             ###################For Bidirectional Links########################################
 
             ###################For unidirectional Links########################################
-            # self.addLink(r1, r2, cls=ULink, port1=100, port2=101,
-            #              boost1=boost, spans=spans)
+            self.addLink(r1, r2, cls=ULink, port1=100, port2=101,
+                         boost1=boost, spans=spans)
             #
             # if (i == 0):
             #     r2 = roadms[len(roadms) - 1]
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     net.start()
     restServer.start()
-    plotNet(net,  directed=False)
+    plotNet(net,  directed=True)
     CLI(net)
     restServer.stop()
     net.stop()
