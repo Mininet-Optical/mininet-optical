@@ -392,6 +392,7 @@ class LineTerminal(Node):
                     print("*** %s - %s.receiver.%s: Success!\ngOSNR: %f dB" %
                           (optical_signal, self.__class__.__name__, self.name, gosnr))
                     print("OSNR:", osnr)
+                    print("Power:", power)
 
                     signalInfoDict[optical_signal]['success'] = True
                     self.receiver_callback(in_port, signalInfoDict)
@@ -1092,9 +1093,19 @@ class Monitor(Node):
         :return power: Returns Optical signals for the required objects
         """
         if self.mode == 'in':
-            return list(self.component.port_to_optical_signal_in.values())[0]
+            optical_signal_list = []
+            for value in self.component.port_to_optical_signal_in.values():
+                if value:
+                    for optical_signal in value:
+                        optical_signal_list.append(optical_signal)
+            return optical_signal_list
         else:
-            return list(self.component.port_to_optical_signal_out.values())[0]
+            optical_signal_list = []
+            for value in self.component.port_to_optical_signal_out.values():
+                if value:
+                    for optical_signal in value:
+                        optical_signal_list.append(optical_signal)
+            return optical_signal_list
 
     def get_list_osnr(self):
         """
