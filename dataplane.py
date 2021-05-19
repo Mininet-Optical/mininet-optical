@@ -229,6 +229,7 @@ class Monitor:
             power_abs=monitor.get_power( signal )
             power_dbm=abs_to_dbm(power_abs)
             power_list.append(power_dbm)
+        plt.figure(figsize=(8,8))
         plt.plot(frequency_list, power_list,'o', label='node %s'%(self.name))
         plt.xlabel('Frequency [THz]')
         plt.ylabel('Power [dBm]')
@@ -242,6 +243,7 @@ class Monitor:
                          textcoords="offset points", # how to position the text
                          xytext=(0,10), # distance from text to points (x,y)
                          ha='center') # horizontal alignment can be left, right or center
+        #plt.tight_layout()
         plt.savefig('PlotMonitor.png')
         return None
 
