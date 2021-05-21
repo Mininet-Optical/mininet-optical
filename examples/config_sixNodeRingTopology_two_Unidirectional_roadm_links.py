@@ -62,7 +62,7 @@ def run( net, N=1 ):
     net.ports = fetchPorts( net, net.roadms + net.terminals + net.switches )
 
     # Calculate inter-pop routes
-    net.routes = { node: route( node, net.neighbors, net.terminals, net.roadmLinks, net.roadms )
+    net.routes = { node: route( node, net.neighbors, net.terminals)
                    for node in net.terminals }
 
     # Allocate N channels per endpoint pair
@@ -103,13 +103,13 @@ def run( net, N=1 ):
     countSignals( net.channelPairs, net.routes )
 
     # Monitor OSNR
-    print( '*** Monitoring OSNR...' )
-    failures = monitorOSNR( net )
-    reroutes = [ (channel, link)
-                 for _monitor, channel, link in failures ]
-
-    # Reroute (not yet implemented )
-    reroute( net, reroutes )
+    # print( '*** Monitoring OSNR...' )
+    # failures = monitorOSNR( net )
+    # reroutes = [ (channel, link)
+    #              for _monitor, channel, link in failures ]
+    #
+    # # Reroute (not yet implemented )
+    # reroute( net, reroutes )
 
 
 
@@ -200,32 +200,21 @@ def allocateChannels( terminals, N ):
 
 ### Routing (sorry Dijkstra, we don't need you)
 
-def route( src, neighbors, destinations, links, roadms ):
+def route( src, neighbors, destinations):
     """Route from src to destinations
        neighbors: adjacency list
        returns: routes dict"""
-    routes, seen, paths = {}, set( (src,) ), [ (src,) ]
+    routes, seen, paths = {}, set((src,)), [(src,)]
     while paths:
-        path = paths.pop( 0 )
-        lastNode = path[ -1 ]
-        for neighbor in neighbors[ lastNode ]:
-            if lastNode not in roadms or neighbor not in roadms:
-                if neighbor not in seen:
-                    newPath = (path + (neighbor,))
-                    paths.append(newPath)
-                    if neighbor in destinations:
-                        routes[neighbor] = newPath
-                    seen.add(neighbor)
-            else:
-                for neighborReachability in links:
-                    src1, dst1 = neighborReachability
-                    if src1 == lastNode and dst1 == neighbor:
-                        if neighbor not in seen:
-                            newPath = ( path + (neighbor, ) )
-                            paths.append( newPath )
-                            if neighbor in destinations:
-                                routes[ neighbor ] = newPath
-                            seen.add( neighbor)
+        path = paths.pop(0)
+        lastNode = path[-1]
+        for neighbor in neighbors[lastNode]:
+            if neighbor not in seen:
+                newPath = (path + (neighbor,))
+                paths.append(newPath)
+                if neighbor in destinations:
+                    routes[neighbor] = newPath
+                seen.add(neighbor)
     return routes
 
 
@@ -319,8 +308,20 @@ def installPath( path, channels, net):
         # This is a bit tricky. neighbors[node1] is a
         # dict of src:srcport, dst:dstport, so we
         # need to extract the dstport!!
-        port1 = net.neighbors[ node1 ][ roadm ]
-        port2 = net.neighbors[ node2 ][ roadm ]
+        if node1 not in net.roadms or roadm not in net.roadms:
+            port1 = net.neighbors[ node1 ][ roadm ]
+        else:
+            port1 = port3
+
+        if roadm not in net.roadms or node2 not in net.roadms:
+            port2 = net.neighbors[ node2 ][ roadm ]
+        else:
+            for link in net.roadmLinks:
+                src, dst = link
+                if roadm == src and node2 == dst:
+                    port2 = link[src]
+                    port3 = link[dst]
+        print("From ", node1, " - ", roadm, ": Port ", port1, "-> Port ", port2, " to ", node2)
         # For terminal nodes, use the proper channel port(s)
         if i == 1:
             ports1 = channelPorts( node1, net )
@@ -352,7 +353,7 @@ def installRoutes( net):
         if (src=='t0' and dst=='t3') or (src=='t1' and dst=='t4') or (src=='t2' and dst=='t5'):
             path = net.routes[src][dst]
             channels = net.pairChannels[ src, dst ]
-            installPath( path, channels, net )
+            installPath( path, channels, net)
 
             path = net.routes[dst][src]
             channels = net.pairChannels[dst, src]
@@ -384,6 +385,7 @@ def countSignals( channelPairs, routes):
     print("Average signal count = %.2f" % avgCount )
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
+def sixNodeRing_two_Unidirectional_Roadm_link_controller():
     net = RESTProxy()
     run( net )

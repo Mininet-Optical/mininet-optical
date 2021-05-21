@@ -320,6 +320,7 @@ def installPath( path, channels, net):
         # need to extract the dstport!!
         port1 = net.neighbors[ node1 ][ roadm ]
         port2 = net.neighbors[ node2 ][ roadm ]
+        print("From ", node1, " - ", roadm, ": Port ", port1, "-> Port ", port2, " to ", node2)
         # For terminal nodes, use the proper channel port(s)
         if i == 1:
             ports1 = channelPorts( node1, net )

@@ -11,8 +11,8 @@ or H3, depending on how the ROADM is configured.
 
 from dataplane import (Terminal, ROADM, OpticalLink, UnidirectionalOpticalLink as ULink,
                        OpticalNet as Mininet, km, m, dB, dBm)
-from examples.config_sixNodeRingTopology_Unidirectional_roadm_links import \
-    sixNodeRing_Unidirectional_Roadm_link_controller
+from examples.config_sixNodeRingTopology_two_Unidirectional_roadm_links import \
+    sixNodeRing_two_Unidirectional_Roadm_link_controller
 from rest import RestServer
 from ofcdemo.demolib import OpticalCLI as CLI
 
@@ -90,20 +90,20 @@ class sixNodeRingTopology(Topo):
             ###################For unidirectional Links########################################
             self.addLink(r1, r2, cls=ULink, port1=100, port2=101,
                          boost1=boost, spans=spans)
-            #
-            # if (i == 0):
-            #     r2 = roadms[len(roadms) - 1]
-            # else:
-            #     r2 = roadms[i - 1]
-            #
-            # self.addLink(r1, r2, cls=ULink, port1=102, port2=103,
-            #              boost1=boost, spans=spans)
+
+            if (i == 0):
+                r2 = roadms[len(roadms) - 1]
+            else:
+                r2 = roadms[i - 1]
+
+            self.addLink(r1, r2, cls=ULink, port1=102, port2=103,
+                         boost1=boost, spans=spans)
             # ###################For unidirectional Links########################################
 
             i = i + 1
 
 # Debugging: Plot network graph
-def plotNet(net, outfile="sixNodeRingTopology_v2.png", directed=False,):
+def plotNet(net, outfile="sixNodeRingTopology_v3.png", directed=False,):
     "Plot network graph to outfile"
     try:
         import pygraphviz as pgv
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     net.start()
     restServer.start()
     plotNet(net,  directed=True)
-    sixNodeRing_Unidirectional_Roadm_link_controller()
+    sixNodeRing_two_Unidirectional_Roadm_link_controller()
     CLI(net)
     restServer.stop()
     net.stop()

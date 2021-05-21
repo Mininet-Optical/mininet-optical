@@ -101,13 +101,13 @@ def run( net, N=1 ):
     countSignals( net.channelPairs, net.routes )
 
     # Monitor OSNR
-    print( '*** Monitoring OSNR...' )
-    failures = monitorOSNR( net )
-    reroutes = [ (channel, link)
-                 for _monitor, channel, link in failures ]
+    #print( '*** Monitoring OSNR...' )
+    #failures = monitorOSNR( net )
+    #reroutes = [ (channel, link)
+    #            for _monitor, channel, link in failures ]
 
     # Reroute (not yet implemented )
-    reroute( net, reroutes )
+    #reroute( net, reroutes )
 
 
 
@@ -301,6 +301,7 @@ def installPath( path, channels, net):
         # need to extract the dstport!!
         port1 = net.neighbors[ node1 ][ roadm ]
         port2 = net.neighbors[ node2 ][ roadm ]
+        print("From ", node1, " - ", roadm, ": Port ", port1, "-> Port ", port2, " to ", node2)
         # For terminal nodes, use the proper channel port(s)
         if i == 1:
             ports1 = channelPorts( node1, net )
@@ -360,6 +361,7 @@ def countSignals( channelPairs, routes):
     print("Average signal count = %.2f" % avgCount )
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
+def six_node_topo_controller():
     net = RESTProxy()
     run( net )

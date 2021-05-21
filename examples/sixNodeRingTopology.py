@@ -11,6 +11,7 @@ or H3, depending on how the ROADM is configured.
 
 from dataplane import (Terminal, ROADM, OpticalLink, UnidirectionalOpticalLink as ULink,
                        OpticalNet as Mininet, km, m, dB, dBm)
+from examples.config_sixNodeRingTopology import six_node_topo_controller
 from rest import RestServer
 from ofcdemo.demolib import OpticalCLI as CLI
 
@@ -101,7 +102,7 @@ class sixNodeRingTopology(Topo):
             i = i + 1
 
 # Debugging: Plot network graph
-def plotNet(net, outfile="sixNodeRingTopology.png", directed=False,):
+def plotNet(net, outfile="sixNodeRingTopology_v1.png", directed=False,):
     "Plot network graph to outfile"
     try:
         import pygraphviz as pgv
@@ -144,6 +145,7 @@ if __name__ == '__main__':
     net.start()
     restServer.start()
     plotNet(net,  directed=False)
+    six_node_topo_controller()
     CLI(net)
     restServer.stop()
     net.stop()
