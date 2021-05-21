@@ -15,8 +15,8 @@ class Link(object):
     connectivity.
     """
 
-    def __init__(self, src_node, dst_node, src_out_port=-1,
-                 dst_in_port=-1, srs_effect=False, spans=None):
+    def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
+                 boost_amp=None, srs_effect=False, spans=None):
         """
         :param src_node: source Node object
         :param dst_node: destination Node object
@@ -27,12 +27,16 @@ class Link(object):
         self.id = id(self)
         self.src_node = src_node
         self.dst_node = dst_node
+        self.boost_amp = boost_amp
         self.srs_effect = srs_effect
         self.spans = spans or []
 
         self.optical_signals = []
 
         # set connection ports for amps and the link
+        if boost_amp:
+            boost_amp.set_output_port(self.dst_node, self, output_port=0)
+            boost_amp.set_input_port(self.src_node, self, input_port=0)
         for span, amplifier in spans:
             if amplifier:
                 amplifier.set_output_port(self.dst_node, self, output_port=0)
@@ -140,6 +144,9 @@ class Link(object):
         """
         # get the output power of the signals at output boost port
         output_power_dict = {}
+
+        if self.boost_amp:
+            self.boost_amp.propagate()
 
         for span, amplifier in self.spans:
             for optical_signal in self.optical_signals:
