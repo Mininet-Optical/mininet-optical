@@ -25,26 +25,39 @@ def build_spans(net, r1, r2):
 
     for i in range(1, span_no + 1):
         # append all spans except last one
-        amp = net.add_amplifier(
-            '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
-        span = Span(span_length, amp=amp)
+        # amp = net.add_amplifier(
+        #     '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
+        span = Span(span_length, amp=None)
         spans.append(span)
 
     return net, spans
 
-
-def build_link(net, r1, r2, gain=17.0):
-    # boost amplifier object
-    boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
-    boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA',
-                                  target_gain=float(gain), boost=True, monitor_mode='out')
-
+def build_link(net, r1, r2):
     net, spans = build_spans(net, r1, r2)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
 
     # link object
-    net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
+    net.add_link(r1, r2, spans=spans)
+
+def add_amp(net, node_name=None, type=None, gain_dB=None):
+    """
+    Create an Amplifier object to add to a ROADM node
+    :param node_name: string
+    :param type: string ('boost' or 'preamp'
+    :param gain_dB: int or float
+    """
+    label = '%s-%s' % (node_name, type)
+    if type == 'preamp':
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 boost=True,
+                                 monitor_mode='out')
+    else:
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 preamp=True,
+                                 monitor_mode='out')
 
 
 class LinearTopology:
@@ -70,7 +83,10 @@ class LinearTopology:
 
         roadms = [net.add_roadm('r%s' % (i + 1),
                                 insertion_loss_dB=17,
-                                reference_power_dBm=op) for i in range(non)]
+                                reference_power_dBm=op,
+                                preamp=add_amp(net, node_name='r%s' % (i + 1), type='preamp', gain_dB=17.6),
+                                boost=add_amp(net, node_name='r%s' % (i + 1), type='boost', gain_dB=17.0))
+                  for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
         # Modelling Lumentum ROADM-20 port numbering
