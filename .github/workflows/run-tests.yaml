@@ -16,8 +16,15 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@v2
 
-      - name: Install Python dependencies
-        uses: py-actions/py-dependency-install@v2
+      - name: Install dependencies
+        run: |
+             sudo apt update
+             make depend
+
+      - name: Install Mininet (master)
+        run: |
+             git clone https://github.com/mininet/mininet
+             mininet/util/install.sh -nv
 
       - name: Run Tests
-        run: cd tests && ./RunTests.sh
+        run: make test

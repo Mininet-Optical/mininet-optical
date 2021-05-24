@@ -27,6 +27,10 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 
+from os.path import dirname, realpath, join
+from subprocess import run
+from sys import argv
+
 class SimpleLinkTopo(Topo):
     """Simple link topology:
        h1 - t1 - (boost->) --25km-- (<-boost) - t2 - h2"""
@@ -48,6 +52,14 @@ class SimpleLinkTopo(Topo):
                      boost=('boost', {'target_gain':17*dB}),
                      spans=[25*km])
 
+def test(net):
+    "Run config script and simple test"
+    testdir = dirname(realpath(argv[0]))
+    # Note config-singlelink.sh works for us as well
+    script = join(testdir, 'config-singlelink.sh')
+    run(script)
+    assert net.pingAll() == 0
+
 if __name__ == '__main__':
 
     cleanup()  # Just in case!
@@ -60,6 +72,6 @@ if __name__ == '__main__':
     net.start()
     restServer.start()
     info(__doc__)
-    CLI(net)
+    test(net) if 'test' in argv else CLI(net)
     restServer.stop()
     net.stop()

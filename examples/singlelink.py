@@ -21,8 +21,6 @@ curl "$t1/turn_on?node=t1'
 curl "$t2/turn_on?node=t2'
 """
 
-from sys import argv
-
 from dataplane import (Terminal, OpticalLink, OpticalNet as Mininet,
                        km, dB, dBm)
 from rest import RestServer
@@ -32,6 +30,10 @@ from mininet.node import Host, OVSBridge
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
+
+from os.path import dirname, realpath, join
+from subprocess import run
+from sys import argv
 
 class SingleLinkTopo(Topo):
     """Single link topology:
@@ -62,6 +64,13 @@ class SingleLinkTopo(Topo):
         self.addLink(t1, t2, cls=OpticalLink, port1=2, port2=2,
                      boost=boost, spans=spans)
 
+def test(net):
+    "Run config script and simple test"
+    testdir = dirname(realpath(argv[0]))
+    script = join(testdir, 'config-singlelink.sh')
+    run(script)
+    assert net.pingAll() == 0
+
 if __name__ == '__main__':
     cleanup()  # Just in case!
     setLogLevel('info')
@@ -73,6 +82,6 @@ if __name__ == '__main__':
     net.start()
     restServer.start()
     info(__doc__)
-    CLI(net)
+    test(net) if 'test' in argv else CLI(net)
     restServer.stop()
     net.stop()
