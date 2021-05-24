@@ -3,7 +3,7 @@
 set -e  # exit script on error
 
 # URL for REST server
-url="localhost:8080"; t1=$url; r1=$url
+url="localhost:8080"; t1=$url; t2=$url; r1=$url
 curl="curl -s"
 
 $curl "$t1/connect?node=t1&ethPort=1&wdmPort=2&channel=1"
