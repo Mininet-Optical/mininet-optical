@@ -95,12 +95,13 @@ for i, p in enumerate(power_levels):
     lt_1.turn_on()
 
     # print("*** Monitoring interfaces")
-    osnrs = []
-    gosnrs = []
-    # Iterate through monitoring nodes at each EDFA
-    for amp in net.amplifiers:
-        # print(amp.monitor.get_list_osnr())
-        osnrs.append(amp.monitor.get_list_osnr()[cut][1])
-        gosnrs.append(amp.monitor.get_list_gosnr()[cut][1])
+    # osnrs = []
+    # gosnrs = []
+    # # Iterate through monitoring nodes at each EDFA
+    # for amp in net.amplifiers:
+    #     # print(amp.monitor.get_list_osnr())
+    #     tmp = amp.monitor.get_list_osnr()
+    #     osnrs.append(amp.monitor.get_list_osnr()[cut])
+    #     gosnrs.append(amp.monitor.get_list_gosnr()[cut])
     # write_files(osnrs, gosnrs, p)
 
