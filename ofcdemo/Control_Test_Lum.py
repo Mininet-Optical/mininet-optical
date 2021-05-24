@@ -157,7 +157,7 @@ def Control_Test():
     ####### Lumentum Test ########
     path = ['r4', 'r3', 'r2', 'r1']
     Controller = Lumentum_Control_NETCONF()
-    Controller.installPath(path=path, channel=5, ruleID='1')
+    Controller.installPath(path=path, channel=5, ruleID=1)
     Controller.channel_monitor(path=path, ruleID=1)
     #Controller.uninstallPath(path=path, ruleID=1)
 
