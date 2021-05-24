@@ -144,12 +144,6 @@ class Link(object):
         """
         # get the output power of the signals at output boost port
         output_power_dict = {}
-        if self.boost_amp:
-            for optical_signal in self.optical_signals:
-                # associate boost_amp to optical signal at input interface
-                self.boost_amp.include_optical_signal_in(optical_signal,
-                                                         in_port=0, src_node=self.src_node)
-            self.boost_amp.propagate(self.src_node, self.dst_node, self.optical_signals)
 
         if self.boost_amp:
             for optical_signal in self.optical_signals:
