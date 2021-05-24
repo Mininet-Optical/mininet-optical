@@ -292,6 +292,9 @@ class Terminal( SwitchBase ):
         "Helper constructor for node.Transceiver"
         if isinstance( args, dict ):
             return Transceiver( txid, **args )
+        if isinstance( args, Transceiver ):
+            # enable passing Transceiver as param
+            return args
         # Remove obsolete 'C' band parameter if any
         if len( args ) > 2 and args[ 2 ] == 'C':
             args = args[ :2 ] + args[ 3: ]
