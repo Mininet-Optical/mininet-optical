@@ -10,4 +10,4 @@ $curl "$t1/connect?node=t1&ethPort=1&wdmPort=2&channel=1"
 $curl "$t2/connect?node=t2&ethPort=1&wdmPort=2&channel=1"
 $curl "$r1/connect?node=r1&port1=1&port2=2&channels=1"
 $curl "$t1/turn_on?node=t1"
-
+$curl "$t2/turn_on?node=t2"
