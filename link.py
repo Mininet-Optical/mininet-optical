@@ -2,7 +2,7 @@ from collections import namedtuple
 from units import *
 from pprint import pprint
 from numpy import errstate
-from node import LineTerminal, Roadm
+from node import LineTerminal, Roadm, Amplifier
 
 
 SpanTuple = namedtuple('Span', 'span amplifier')
@@ -24,7 +24,6 @@ class Link(object):
         if src_node == dst_node:
             raise ValueError("link.__init__ src_node must be different from dst_node!")
         # configuration attributes
-        self.id = id(self)
         self.src_node = src_node
         self.dst_node = dst_node
         self.boost_amp = boost_amp
@@ -35,22 +34,39 @@ class Link(object):
 
         # set connection ports for amps and the link
         if boost_amp:
-            boost_amp.set_output_port(self.dst_node, self, output_port=0)
-            boost_amp.set_input_port(self.src_node, self, input_port=0)
-        for span, amplifier in spans:
+            self.boost_amp.prev_component = src_node
+            self.boost_amp.next_component = spans[0][0]
+
+        prev_amp = None
+        for i, span in enumerate(spans):
+            prev_span = span[0]
+            prev_span.link = self
+            amplifier = span[1]
+
+            if i == 0:
+                prev_span.prev_component = src_node
+            else:
+                prev_span.prev_component = prev_amp
+
             if amplifier:
+                amplifier.link = self
                 amplifier.set_output_port(self.dst_node, self, output_port=0)
                 amplifier.set_input_port(self.src_node, self, input_port=0)
+
+                amplifier.prev_component = prev_span
+                if i + 1 < len(spans):
+                    next_span = spans[i + 1][0]
+                    amplifier.next_component = next_span
+                else:
+                    amplifier.next_component = dst_node
+
+                prev_amp = amplifier
+                prev_span.next_component = amplifier
+            else:
+                prev_span.next_component = dst_node
+
         self.src_node.set_output_port(self.dst_node, self, output_port=src_out_port)
         self.dst_node.set_input_port(self.src_node, self, input_port=dst_in_port)
-
-    def add_span(self, span, amplifier):
-        """
-        :param span: Span() object
-        :param amplifier: Amplifier() object
-        :return: appends a SpanTuple to the spans attribute
-        """
-        self.spans.append(SpanTuple(span, amplifier))
 
     def length(self):
         """
@@ -92,12 +108,9 @@ class Link(object):
         if optical_signal not in self.optical_signals:
             self.optical_signals.append(optical_signal)
 
-        if tup_key:
-            optical_signal.assoc_loc_in(tup_key, power, ase_noise, nli_noise)
-        else:
-            optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
+        optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
 
-    def include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None, tup_key=None):
+    def include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None):
         """
         Include optical signal in optical_signals_out
         :param optical_signal: OpticalSignal object
@@ -106,116 +119,154 @@ class Link(object):
         :param nli_noise: nli noise  level of OpticalSignal
         :param tup_key: tuple key composed of (Link, Span)
         """
-        if tup_key:
-            optical_signal.assoc_loc_out(tup_key, power, ase_noise, nli_noise)
-        else:
-            optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
+        optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
     def propagate(self, is_last_port=False, safe_switch=False):
         """
         Propagate the signals across the link
-        :param is_last_port:
+        :param is_last_port: boolean, needed for propagation algorithm
+        :param safe_switch: boolean, needed for propagation algorithm
         :return:
         """
-        if self.propagate_simulation():
-            in_port = self.dst_node.link_to_port_in[self]
-            # use is instance instead of checking the class
-            if isinstance(self.dst_node, LineTerminal):
-                # we need to pass the signals individually and indicate
-                # what port should match what signal
-                for optical_signal in self.optical_signals:
-                    self.dst_node.include_optical_signal_in(optical_signal,
-                                                            in_port=in_port, src_node=self.src_node)
-                    self.dst_node.receiver(optical_signal, in_port)
-            elif isinstance(self.dst_node, Roadm):
-                for optical_signal in self.optical_signals:
-                    # if it's just one signal this enters just once.
-                    # a single link could have multiple signals
-                    # and a link only has an input port of reference for
-                    # the dst_node
-                    self.dst_node.include_optical_signal_in_roadm(optical_signal, in_port, self.src_node)
-                if is_last_port:
-                    self.dst_node.switch(in_port, self.src_node, safe_switch=safe_switch)
-
-    def propagate_simulation(self):
-        """
-        Compute the propagation of signals over this link
-        :return:
-        """
-        # get the output power of the signals at output boost port
-        output_power_dict = {}
-
         if self.boost_amp:
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
                 self.boost_amp.include_optical_signal_in(optical_signal,
-                                                         in_port=0, src_node=self.src_node)
-            self.boost_amp.propagate(self.src_node, self.dst_node, self.optical_signals)
-
-        for span, amplifier in self.spans:
+                                                         in_port=0)
+            self.boost_amp.propagate(self.optical_signals,
+                                     is_last_port=is_last_port,
+                                     safe_switch=safe_switch)
+        else:
+            first_span = self.spans[0][0]
             for optical_signal in self.optical_signals:
-                # associate (Link, Span) to optical signal at input interface
-                self.include_optical_signal_in(optical_signal, tup_key=(self, span))
-                power_in = optical_signal.loc_in_to_state[(self, span)]['power']
-                ase_noise_in = optical_signal.loc_in_to_state[(self, span)]['ase_noise']
-                nli_noise_in = optical_signal.loc_in_to_state[(self, span)]['nli_noise']
-                # this will initialize the output state of the signal
-                # that will enable the subsequent computations
-                self.include_optical_signal_out(optical_signal,  tup_key=(self, span))
+                first_span.include_optical_signal_in(optical_signal)
+            first_span.propagate(is_last_port=is_last_port,
+                                 safe_switch=safe_switch)
 
+class Span(object):
 
-            # conn_loss_in = db_to_abs(span.conn_loss_in + span.att_in)
-            # for optical_signal in self.optical_signals:
-            #     power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / conn_loss_in
-            #     ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / conn_loss_in
-            #     nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / conn_loss_in
-            #
-            #     self.include_optical_signal_out(optical_signal, power=power_out,
-            #                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-            #                                     tup_key=(self, span))
+    ids = 1
 
-            if not isinstance(self.src_node, LineTerminal):
-                # Compute the nonlinear noise with the GN model
-                self.output_nonlinear_noise(span)
+    def __init__(self, fibre_type='SMF', length=20.0):
+        """
+        :param length: optical fiber span length in km - float
+        :param fibre_type: optical fiber type - string
+        """
+        self.span_id = Span.ids
+        Span.ids += 1
+        self.fibre_type = fibre_type
+        self.length = length * km
+        self.fibre_attenuation = 0.22 / km  # fiber attenuation in decibels/km
+        self.alpha = self.fibre_attenuation / (20 * np.log10(np.e))  # linear value fibre attenuation
+        self.effective_length = (1 - np.exp(-2 * self.alpha * self.length)) / (2 * self.alpha)
+        self.non_linear_coefficient = 0.78 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.dispersion = 2.1e-05
+        self.dispersion_coefficient = self.beta2()  # B_2 dispersion coefficient [ps^2 km^-1]
+        self.dispersion_slope = 0.1452 * (ps ** 3 / km)  # B_3 dispersion slope in (ps^3 km^-1)
+        self.effective_area = 80 * um * um  # Aeff - SMF effective area
+        self.raman_gain = 7.0 * 1e-12 * cm / W  # r - Raman Gain in SMF
+        self.raman_amplification_band = 15 * THz  # Raman amplification band ~15THz
+        # Raman coefficient
+        self.raman_coefficient = self.raman_gain / (2 * self.effective_area * self.raman_amplification_band)
 
-                # Compute SRS effects from the fibre
-                if self.srs_effect:
-                    if len(self.optical_signals) > 1:
-                        self.zirngibl_srs(span)
+        self.optical_signals = []
+        self.link = None
+        self.prev_component = None
+        self.next_component = None
 
-                # Compute linear effects from the fibre
-                span_attenuation = db_to_abs(span.length * span.fibre_attenuation)
-                for optical_signal in self.optical_signals:
-                    power_out = optical_signal.loc_out_to_state[(self, span)]['power'] / span_attenuation
-                    ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] / span_attenuation
-                    nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] / span_attenuation
+    def describe(self):
+        pprint(vars(self))
 
-                    self.include_optical_signal_out(optical_signal, power=power_out,
-                                                    ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                    tup_key=(self, span))
-                    if amplifier:
-                        amplifier.include_optical_signal_in(optical_signal, power=power_out,
-                                                            ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                            src_node=self.src_node)
+    def __repr__(self):
+        """String representation"""
+        return '<%d %.1fkm>' % (self.span_id, self.length/km)
 
-                # Compute amplifier compensation
-                if amplifier:
-                    amplifier.propagate(self.src_node, self.dst_node, self.optical_signals)
-                    for optical_signal in self.optical_signals:
-                        power_out = optical_signal.loc_out_to_state[amplifier]['power']
-                        ase_noise_out = optical_signal.loc_out_to_state[amplifier]['ase_noise']
-                        nli_noise_out = optical_signal.loc_out_to_state[amplifier]['nli_noise']
+    def attenuation(self):
+        return db_to_abs(self.fibre_attenuation * self.length)
 
-                        self.include_optical_signal_out(optical_signal, power=power_out,
-                                                        ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+    def beta2(self, ref_wavelength=1550e-9):
+        """Returns beta2 from dispersion parameter.
+        Dispersion is entered in ps/nm/km.
+        Translated from the GNPy project source code
+        :param ref_wavelength: can be a numpy array; default: 1550nm
+        """
+        D = abs(self.dispersion)
+        b2 = (ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
+        return b2  # s/Hz/m
 
-        return True
+    def include_optical_signal_in(self, optical_signal, power=None,
+                                  ase_noise=None, nli_noise=None):
+        """
+        Include optical signal in optical_signals
+        :param optical_signal: OpticalSignal object
+        :param power: power level of OpticalSignal
+        :param ase_noise: ase noise level of OpticalSignal
+        :param nli_noise: nli noise  level of OpticalSignal
+        """
+        if optical_signal not in self.optical_signals:
+            self.optical_signals.append(optical_signal)
+        optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
 
-    def zirngibl_srs(self, span):
+    def include_optical_signal_out(self, optical_signal, power=None,
+                                   ase_noise=None, nli_noise=None):
+        """
+        Include optical signal in optical_signals_out
+        :param optical_signal: OpticalSignal object
+        :param power: power level of OpticalSignal
+        :param ase_noise: ase noise level of OpticalSignal
+        :param nli_noise: nli noise  level of OpticalSignal
+        """
+        optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
+
+    def propagate(self, is_last_port=False, safe_switch=False):
+        for optical_signal in self.optical_signals:
+            power_in = optical_signal.loc_in_to_state[self]['power']
+            ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
+            nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
+
+            self.include_optical_signal_out(optical_signal, power=power_in,
+                                            ase_noise=ase_noise_in, nli_noise=nli_noise_in)
+            self.link.include_optical_signal_out(optical_signal, power=power_in,
+                                            ase_noise=ase_noise_in, nli_noise=nli_noise_in)
+
+        if not isinstance(self.prev_component, LineTerminal):
+            # Compute the nonlinear noise with the GN model
+            self.output_nonlinear_noise()
+            # Compute SRS effects from the fibre
+            if self.link.srs_effect:
+                if len(self.optical_signals) > 1:
+                    self.zirngibl_srs()
+
+            for optical_signal in self.optical_signals:
+                power_out = optical_signal.loc_out_to_state[self]['power'] / self.attenuation()
+                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise'] / self.attenuation()
+                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise'] / self.attenuation()
+
+                self.include_optical_signal_out(optical_signal, power=power_out,
+                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+
+        for optical_signal in self.optical_signals:
+            in_port = self.next_component.link_to_port_in[self.link]
+            if isinstance(self.next_component, LineTerminal):
+                self.next_component.include_optical_signal_in(optical_signal,
+                                                              in_port=in_port)
+                self.next_component.receiver(optical_signal, in_port)
+            elif isinstance(self.next_component, Roadm):
+                self.next_component.include_optical_signal_in(optical_signal,
+                                                              in_port=in_port)
+            elif isinstance(self.next_component, Amplifier):
+                self.next_component.include_optical_signal_in(optical_signal, in_port=0)
+
+        if isinstance(self.next_component, Amplifier):
+            self.next_component.propagate(self.optical_signals)
+        elif isinstance(self.next_component, Roadm) and is_last_port:
+            in_port = self.next_component.link_to_port_in[self.link]
+            self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+
+    def zirngibl_srs(self):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
-        :param span: Span() object
         :return:
         """
         min_wavelength_index = 90
@@ -232,12 +283,12 @@ class Link(object):
         frequency_min = min_signal.frequency  # minimum frequency of longest wavelength
         frequency_max = max_signal.frequency  # maximum frequency of shortest wavelength
 
-        effective_length = span.effective_length  # SMF effective distance
-        beta = span.raman_coefficient
+        effective_length = self.effective_length  # SMF effective distance
+        beta = self.raman_coefficient
 
         total_power = 0  # Total input power calculated by following loop
         for optical_signal in self.optical_signals:
-            total_power += optical_signal.loc_out_to_state[(self, span)]['power']
+            total_power += optical_signal.loc_out_to_state[self]['power']
 
         # Calculate delta P for each channel
         for optical_signal in self.optical_signals:
@@ -248,28 +299,23 @@ class Link(object):
                 r2 = math.e ** (beta * total_power * effective_length * (frequency_max - frequency_min)) - 1  # term 2
 
                 delta_p = float(r1 / r2)
-                power_out = optical_signal.loc_out_to_state[(self, span)]['power'] * delta_p
-                ase_noise_out = optical_signal.loc_out_to_state[(self, span)]['ase_noise'] * delta_p
-                nli_noise_out = optical_signal.loc_out_to_state[(self, span)]['nli_noise'] * delta_p
+                power_out = optical_signal.loc_out_to_state[self]['power'] * delta_p
+                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise'] * delta_p
+                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise'] * delta_p
                 self.include_optical_signal_out(optical_signal, power=power_out,
-                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                tup_key=(self, span))
+                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out)
 
-    def output_nonlinear_noise(self, span):
-        """
-        :param span: Span() object
-        """
-        nonlinear_noise = self.gn_model(span)
+    def output_nonlinear_noise(self):
+        nonlinear_noise = self.gn_model()
         for optical_signal in self.optical_signals:
-            nli_noise_in = optical_signal.loc_in_to_state[(self, span)]['nli_noise']
+            nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
             nli_noise_out = nli_noise_in + nonlinear_noise[optical_signal]
-            self.include_optical_signal_out(optical_signal, nli_noise=nli_noise_out, tup_key=(self, span))
+            self.include_optical_signal_out(optical_signal, nli_noise=nli_noise_out)
 
-    def gn_model(self, span):
+    def gn_model(self):
         """ Computes the nonlinear interference power on a single carrier.
         Translated from the GNPy project source code
         The method uses eq. 120 from arXiv:1209.0394.
-        :param span:
         :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
         """
         nonlinear_noise_struct = {}
@@ -279,24 +325,24 @@ class Link(object):
             nonlinear_noise_struct[channel] = None
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
-        alpha = span.alpha
-        beta2 = span.dispersion_coefficient
-        gamma = span.non_linear_coefficient
-        effective_length = span.effective_length
+        alpha = self.alpha
+        beta2 = self.dispersion_coefficient
+        gamma = self.non_linear_coefficient
+        effective_length = self.effective_length
         asymptotic_length = 1 / (2 * alpha)
 
         for optical_signal in self.optical_signals:
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
             bw_cut = symbol_rate_cut
-            pwr_cut = optical_signal.loc_out_to_state[(self, span)]['power']
+            pwr_cut = optical_signal.loc_out_to_state[self]['power']
             g_cut = pwr_cut / bw_cut  # G is the flat PSD per channel power (per polarization)
 
             g_nli = 0
             for ch in self.optical_signals:
                 symbol_rate_ch = ch.symbol_rate
                 bw_ch = symbol_rate_ch
-                pwr_ch = ch.loc_out_to_state[(self, span)]['power']
+                pwr_ch = ch.loc_out_to_state[self]['power']
                 g_ch = pwr_ch / bw_ch  # G is the flat PSD per channel power (per polarization)
                 psi = self.psi_factor(optical_signal, ch, beta2=beta2, asymptotic_length=asymptotic_length)
                 g_nli += g_ch ** 2 * g_cut * psi
@@ -328,59 +374,3 @@ class Link(object):
             psi -= np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi
-
-
-class Span(object):
-
-    ids = 1
-
-    def __init__(self, fibre_type='SMF', length=20.0):
-        """
-        :param length: optical fiber span length in km - float
-        :param fibre_type: optical fiber type - string
-        """
-        self.span_id = Span.ids  # was id(self)
-        Span.ids += 1
-        self.fibre_type = fibre_type
-        self.length = length * km
-        self.fibre_attenuation = 0.22 / km  # fiber attenuation in decibels/km
-        self.alpha = self.fibre_attenuation / (20 * np.log10(np.e))  # linear value fibre attenuation
-        self.effective_length = (1 - np.exp(-2 * self.alpha * self.length)) / (2 * self.alpha)
-        self.non_linear_coefficient = 0.78 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
-        self.dispersion = 2.1e-05
-        self.dispersion_coefficient = self.beta2()  # B_2 dispersion coefficient [ps^2 km^-1]
-        self.dispersion_slope = 0.1452 * (ps ** 3 / km)  # B_3 dispersion slope in (ps^3 km^-1)
-        self.effective_area = 80 * um * um  # Aeff - SMF effective area
-        self.raman_gain = 7.0 * 1e-12 * cm / W  # r - Raman Gain in SMF
-        self.raman_amplification_band = 15 * THz  # Raman amplification band ~15THz
-        # Raman coefficient
-        self.raman_coefficient = self.raman_gain / (2 * self.effective_area * self.raman_amplification_band)
-
-        self.input_power = {}  # dict signal to input power
-        self.output_power = {}  # dict signal to output power
-
-        # Parameters to add:
-        self.att_in = 0
-        self.conn_loss_in = 0
-        self.conn_loss_out = 0
-        self.padding = 0
-
-    def describe(self):
-        pprint(vars(self))
-
-    def __repr__(self):
-        """String representation"""
-        return '<%d %.1fkm>' % (self.span_id, self.length/km)
-
-    def attenuation(self):
-        return db_to_abs(self.fibre_attenuation * self.length)
-
-    def beta2(self, ref_wavelength=1550e-9):
-        """Returns beta2 from dispersion parameter.
-        Dispersion is entered in ps/nm/km.
-        Translated from the GNPy project source code
-        :param ref_wavelength: can be a numpy array; default: 1550nm
-        """
-        D = abs(self.dispersion)
-        b2 = (ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
-        return b2  # s/Hz/m
