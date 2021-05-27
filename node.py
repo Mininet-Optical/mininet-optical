@@ -223,7 +223,7 @@ class LineTerminal(Node):
 
     def tx_config(self, transceiver, operational_power_dBm):
         """ Configure the operational power of the transceiver """
-        transceiver.operation_power = db_to_abs(operational_power_dBm) * 1e-3  # Watts, will change after cleanup
+        transceiver.operation_power = db_to_abs(operational_power_dBm) * 1e-3
 
     def assoc_tx_to_channel(self, transceiver, channel, out_port=-1):
         """
@@ -578,7 +578,11 @@ class Roadm(Node):
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
 
         # expected output power of signals
-        self.target_output_power_dBm = reference_power_dBm - insertion_loss_dB
+        channel_no = 90
+        self.insertion_loss_dB = {k: insertion_loss_dB for k in range(1, channel_no + 1)}
+        self.reference_power_dBm = {k: reference_power_dBm for k in range(1, channel_no + 1)}
+        self.target_output_power_dBm = {k: self.reference_power_dBm[k] - self.insertion_loss_dB[k]
+                                        for k in range(1, channel_no + 1)}
 
         self.preamp = preamp
         self.boost = boost
@@ -812,7 +816,8 @@ class Roadm(Node):
         Compute the total power at an input port, and
         use it to compute the carriers attenuation
         """
-        carriers_power = []
+
+        carriers_att = {}
         for optical_signal in self.port_to_optical_signal_in[in_port]:
             if amp:
                 power_in = optical_signal.loc_out_to_state[amp]['power']
@@ -824,12 +829,16 @@ class Roadm(Node):
                 nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
 
             total_power = power_in + ase_noise_in + nli_noise_in
-            carriers_power.append(total_power)
+            carriers_att[optical_signal.index] = abs_to_db(total_power * 1e3) - \
+                                                 self.target_output_power_dBm[optical_signal.index]
 
-        carriers_att = list(map(
-            lambda x: abs_to_db(x * 1e3) - self.target_output_power_dBm, carriers_power))
-        exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
-        carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
+        # carriers_att = list(map(
+        #     lambda x: abs_to_db(x * 1e3) - self.target_output_power_dBm, carriers_power))
+        # exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
+        exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att.values())), default=0)
+        for k, x in carriers_att.items():
+            carriers_att[k] = db_to_abs(x + exceeding_att)
+        # carriers_att = list(map(lambda x: db_to_abs(x + exceeding_att), carriers_att))
 
         return carriers_att
 
@@ -840,17 +849,17 @@ class Roadm(Node):
         # Compute per carrier attenuation
         carriers_att = self.compute_carrier_attenuation(in_port, amp=amp)
 
-        for i, optical_signal in enumerate(optical_signals):
+        for optical_signal in optical_signals:
             if amp:
                 # attenuate signals at output interface of amp
-                power_out = optical_signal.loc_out_to_state[amp]['power'] / carriers_att[i]
-                ase_noise_out = optical_signal.loc_out_to_state[amp]['ase_noise'] / carriers_att[i]
-                nli_noise_out = optical_signal.loc_out_to_state[amp]['nli_noise'] / carriers_att[i]
+                power_out = optical_signal.loc_out_to_state[amp]['power'] / carriers_att[optical_signal.index]
+                ase_noise_out = optical_signal.loc_out_to_state[amp]['ase_noise'] / carriers_att[optical_signal.index]
+                nli_noise_out = optical_signal.loc_out_to_state[amp]['nli_noise'] / carriers_att[optical_signal.index]
             else:
                 # attenuate signals as they entered the ROADM (self)
-                power_out = optical_signal.loc_in_to_state[self]['power'] / carriers_att[i]
-                ase_noise_out = optical_signal.loc_in_to_state[self]['ase_noise'] / carriers_att[i]
-                nli_noise_out = optical_signal.loc_in_to_state[self]['nli_noise'] / carriers_att[i]
+                power_out = optical_signal.loc_in_to_state[self]['power'] / carriers_att[optical_signal.index]
+                ase_noise_out = optical_signal.loc_in_to_state[self]['ase_noise'] / carriers_att[optical_signal.index]
+                nli_noise_out = optical_signal.loc_in_to_state[self]['nli_noise'] / carriers_att[optical_signal.index]
 
             if self.boost and not isinstance(dst_node, LineTerminal):
                 # need to pass signals to boost for processing
@@ -905,6 +914,29 @@ class Roadm(Node):
         link = self.port_to_link_out[out_port]
         link.propagate(is_last_port=True, safe_switch=safe_switch)
 
+    def set_boost_gain(self, gain_dB):
+        self.boost.set_gain(gain_dB)
+        self.fast_switch()
+
+    def set_preamp_gain(self, gain_dB):
+        self.preamp.set_gain(gain_dB)
+        self.fast_switch()
+
+    def set_reference_power(self, ref_power_dBm, ch_index=None):
+        if ch_index or ch_index == 1:
+            self.target_output_power_dBm[ch_index] = ref_power_dBm - self.insertion_loss_dB[ch_index]
+        else:
+            for i, x in self.target_output_power_dBm.items():
+                self.target_output_power_dBm[i] = ref_power_dBm - self.insertion_loss_dB[i]
+        self.fast_switch()
+
+    def fast_switch(self):
+        for component, rule_list in self.node_to_rule_id_in.items():
+            # it's just necessary to pass one in_port to the switch
+            # function, since safe_switch is passed as True
+            in_port = rule_list[0][0]
+            self.switch(in_port, component, safe_switch=True)
+
 
 class Amplifier(Node):
 
@@ -925,8 +957,6 @@ class Amplifier(Node):
         Node.__init__(self, name)
         self.target_gain = target_gain
         self.system_gain = target_gain
-        # FIXME: (AD) is there a better way of allowing
-        #  the declaration of a noise figure function?
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
         self.bandwidth = bandwidth
         wavelength_dependent_gain_id = 'linear'
@@ -1128,6 +1158,15 @@ class Amplifier(Node):
                 self.next_component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
             elif isinstance(self.next_component, Roadm):
                 self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+
+    def set_gain(self, gain_dB):
+        self.system_gain = gain_dB
+        self.target_gain = gain_dB
+
+        if 0 in self.port_to_optical_signal_in:
+            optical_signals = self.port_to_optical_signal_in[0]
+            self.propagate(optical_signals, is_last_port=True, safe_switch=True)
+
 
     def __repr__(self):
         """String representation"""

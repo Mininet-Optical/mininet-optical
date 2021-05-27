@@ -20,14 +20,16 @@ def build_spans(net, r1, r2):
     # store all spans (sequentially) in a list
     spans = []
     # get number of spans (int)
-    span_no = 1
+    span_no = 2
     span_length = 80
 
     for i in range(1, span_no + 1):
         # append all spans except last one
-        # amp = net.add_amplifier(
-        #     '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
-        span = Span(span_length, amp=None)
+        amplifier = None
+        if span_no > 1 and i < span_no:
+            amplifier = net.add_amplifier(
+                '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
+        span = Span(span_length, amp=amplifier)
         spans.append(span)
 
     return net, spans
