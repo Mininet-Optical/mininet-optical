@@ -89,6 +89,7 @@ class Link(object):
             self.optical_signals.remove(optical_signal)
 
         for span, amplifier in self.spans:
+            span.remove_optical_signal(optical_signal)
             if amplifier:
                 amplifier.remove_optical_signal(optical_signal)
 
@@ -194,6 +195,11 @@ class Span(object):
         b2 = (ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
         return b2  # s/Hz/m
 
+    def remove_optical_signal(self, optical_signal):
+        print("*** %s removing: %s" % (self, optical_signal))
+        if optical_signal in self.optical_signals:
+            self.optical_signals.remove(optical_signal)
+
     def include_optical_signal_in(self, optical_signal, power=None,
                                   ase_noise=None, nli_noise=None):
         """
@@ -258,7 +264,7 @@ class Span(object):
                 self.next_component.include_optical_signal_in(optical_signal, in_port=0)
 
         if isinstance(self.next_component, Amplifier):
-            self.next_component.propagate(self.optical_signals)
+            self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
         elif isinstance(self.next_component, Roadm) and is_last_port:
             in_port = self.next_component.link_to_port_in[self.link]
             self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
