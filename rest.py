@@ -168,6 +168,12 @@ def connect():
     return nodeHandler( 'restConnectHandler' )
 
 
+@get( '/disconnect' )
+def disconnect():
+    "Configure (or install/remove) connection in optical node"
+    return nodeHandler( 'restDisconnectHandler' )
+
+
 @get( '/ports' )
 def ports():
     "Return a node's ports"
