@@ -363,7 +363,7 @@ class LineTerminal(Node):
                 else:
                     if ber!=None:
                         print("*** %s receiving %s at port %s: Success! \t modulation format: %s\n"
-                              "gOSNR: %f dB | OSNR: %f db |ber: %e" %
+                              "gOSNR: %f dB | OSNR: %f db | ber: %e" %
                           (self.name, optical_signal, in_port, modulation_format, gosnr, osnr, ber))
 
                     else:
