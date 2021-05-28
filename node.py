@@ -336,6 +336,7 @@ class LineTerminal(Node):
         if in_port in self.rx_to_channel:
             if self.rx_to_channel[in_port]['channel_id'] is optical_signal.index:
                 rx_transceiver = self.rx_to_channel[in_port]['transceiver']
+                modulation_format = rx_transceiver.modulation_format
                 # Get signal info
                 power = optical_signal.loc_in_to_state[self]['power']
                 ase_noise = optical_signal.loc_in_to_state[self]['ase_noise']
