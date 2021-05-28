@@ -84,7 +84,7 @@ class Lumentum_Control_NETCONF(object):
                 Lumentum_previous, Lumentum_this_in = NodeLink_to_LumentumLink[path[i - 1], path[i]]
                 Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service', conn_id=ruleID,
                                                   module_id=1, input_port=4100+THRUPORT, output_port=4201,
-                                                  start_freq=start_freq, end_freq=end_freq, attenuation=0,
+                                                  start_freq=start_freq, end_freq=end_freq, attenuation=10,
                                                   block='false', name='CH' + str(channel))
                 Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service', conn_id=ruleID,
                                                   module_id=2, input_port=5101, output_port=5200+THRUPORT,
@@ -92,7 +92,7 @@ class Lumentum_Control_NETCONF(object):
                                                   block='false', name='CH' + str(channel))
                 Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service', conn_id=ruleID,
                                                   module_id=1, input_port=4100 + THRUPORT, output_port=4201,
-                                                  start_freq=start_freq, end_freq=end_freq, attenuation=0,
+                                                  start_freq=start_freq, end_freq=end_freq, attenuation=10,
                                                   block='false', name='CH' + str(channel))
                 Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service', conn_id=ruleID,
                                                   module_id=2, input_port=5101, output_port=5200 + THRUPORT,
