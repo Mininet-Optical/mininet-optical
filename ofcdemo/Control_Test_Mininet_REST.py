@@ -261,6 +261,6 @@ def Test():
     control.configurePacketSwitch(src=1, dst=4, channel=channel, router=router)
     control.configurePacketSwitch(src=4, dst=1, channel=channel, router=router2)
 
-    #uninstallPath(path=path, channels=[channel], net=net)
+    control.uninstallPath(path=path, channels=[channel])
 
 Test()
