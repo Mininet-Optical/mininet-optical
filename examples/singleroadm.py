@@ -16,7 +16,7 @@ from ofcdemo.demolib import OpticalCLI as CLI
 
 from mininet.node import OVSBridge, Host
 from mininet.topo import Topo
-from mininet.log import setLogLevel, warning
+from mininet.log import setLogLevel, warning, info
 from mininet.clean import cleanup
 
 from os.path import dirname, realpath, join
@@ -97,10 +97,16 @@ def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo'):
 
 def test(net):
     "Run config script and simple test"
+    info( '*** Configuring network and checking connectivity' )
+    hosts = net.get( 'h1', 'h2' )
     testdir = dirname(realpath(argv[0]))
     script = join(testdir, 'config-singleroadm.sh')
     run(script)
-    assert net.pingPair() == 0
+    assert net.ping(hosts, timeout=.5) == 0
+    info( '*** Removing ROADM rule and checking connectivity' )
+    script = join(testdir, 'remove-singleroadm.sh')
+    run(script)
+    assert net.ping(hosts, timeout=.5) == 100
 
 if __name__ == '__main__':
 

@@ -489,7 +489,7 @@ class ROADM( SwitchBase ):
 
     def phyRemove( self, inport, outport, channels ):
         for channel in channels:
-            self.model.delete_switch_rule( ( inport, channel ) )
+            self.model.delete_switch_rule( inport, channel, switch=True )
 
     def restRulesHandler( self, query ):
         "Handle REST rules request"
@@ -525,7 +525,7 @@ class ROADM( SwitchBase ):
     def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
         "Install a switching rule into the dataplane"
         for channel in channels:
-            flow = self.dpFlow( inport, outport, channel, 'add-flow' )
+            flow = self.dpFlow( inport, outport, channel, cmd )
             self.dpctl( cmd, flow )
 
     def dpRemove( self, inport, outport, channels ):
@@ -565,23 +565,16 @@ class ROADM( SwitchBase ):
         self.connect( port1, port2, channels, action )
         return 'OK'
 
-    def restDisconnectHandler( self, query ):
-        "REST remove handler"
-        return self.restConnectHandler( query, action='remove' )
-
     def connect( self, port1, port2, channels, action='install' ):
         """Install rule connecting port1 -> port2.
-           If interfaces are bidirectional, connect port2<->port1"""
+           If interfaces are bidirectional, connect port2<->port1
+           action: 'install' | 'remove' to install or remove rule"""
         intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
         assert intf1.isInput() and intf2.isOutput()
         self.install( port1, port2, channels, action=action )
         # Install reverse rule if interfaces are bidirectional
         if intf1.isOutput() and intf2.isInput():
             self.install( port2, port1, channels, action=action )
-
-    def disconnect( self, port1, port2, channels, action='remove' ):
-        "Remove rule connecting port1 and port2"
-        self.connect( port1, port2, channels, action='remove' )
 
 
 class SimpleROADM( ROADM ):
