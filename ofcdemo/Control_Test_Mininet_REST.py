@@ -17,6 +17,7 @@ Since all the links are the same length, we don't even
 have to use Dijkstra's algorithm - BFS works just fine!
 
 """
+import random
 
 from ofcdemo.demolib import DemoTopo
 from dataplane import OpticalLink, ROADM
@@ -210,7 +211,7 @@ class Mininet_Control_REST(object):
 
     def uninstallPath(self, path, channels):
         "Program a lightpath into the network"
-        print("*** Installing path", path, "channels", channels)
+        print("*** Removing path", path, "channels", channels)
         # Uninnstall ROADM rules
         for i in range(1, len(path) - 1 ):
             node1, roadm, node2 = path[i-1], path[i], path[i+1]
@@ -221,46 +222,69 @@ class Mininet_Control_REST(object):
             if i == 1:
                 for channel in channels:
                     print('pin-pout', channel, port2)
-                    ROADMProxy( roadm ).disconnect( channel, port2, [channel] )
+                    ROADMProxy( roadm ).connect( channel, port2, [channel], action='remove' )
             elif i == len(path) - 2:
                 for channel in channels:
                     print('pin-pout', port1, channel)
-                    ROADMProxy( roadm ).disconnect( port1, channel, [channel] )
+                    ROADMProxy( roadm ).connect( port1, channel, [channel], action='remove' )
             # For roadm nodes, forward the channels en masse
             else:
                 print('pin-pout', port1, port2)
-                ROADMProxy( roadm ).disconnect( port1, port2, channels )
+                ROADMProxy( roadm ).connect( port1, port2, channels, action='remove' )
 
 
 def Test():
     "Configure and monitor network with N=3 channels for each path"
 
 
+    def install_lightpath(path, src_id, dst_id, channel, power, net):
+
+        # Install a route
+        control.installPath(path=path, channels=[channel])
+        # Configure terminals and start transmitting
+        terminal = net.terminals[src_id-1]
+        control.configureTerminal(terminal=terminal, channel=channel, power=power)
+        terminal2 = net.terminals[dst_id-1]
+        control.configureTerminal(terminal=terminal2, channel=channel, power=power)
+        control.turnonTerminal(terminal=terminal)
+        control.turnonTerminal(terminal=terminal2)
+        # Configure routers
+        router = net.switches[src_id-1]
+        router2 = net.switches[dst_id-1]
+        control.configurePacketSwitch(src=1, dst=4, channel=channel, router=router)
+        control.configurePacketSwitch(src=4, dst=1, channel=channel, router=router2)
+
+    def uninstall_lightpath(path, channel):
+        control.uninstallPath(path=path, channels=[channel])
 
     control = Mininet_Control_REST()
     net = control.net
+
     # Print routes
-    print( '*** Routes:' )
-    src, dst = net.terminals[0], net.terminals[3]
-    path = net.routes[src][dst]
-    print(src, '->', dst, path)
-
+    #print( '*** Routes:' )
+    #src, dst = net.terminals[0], net.terminals[3]
+    #path = net.routes[src][dst]
+    #print(src, '->', dst, path)
     channel = 10
-    # Install a route
-    control.installPath(path=path, channels= [channel])
-    # Configure terminals and start transmitting
-    terminal = net.terminals[0]
-    control.configureTerminal(terminal=terminal, channel=channel, power=0.0)
-    terminal2 = net.terminals[3]
-    control.configureTerminal(terminal=terminal2, channel=channel, power=0.0)
-    control.turnonTerminal(terminal=terminal)
-    control.turnonTerminal(terminal=terminal2)
-    # Configure routers
-    router = net.switches[0]
-    router2 = net.switches[3]
-    control.configurePacketSwitch(src=1, dst=4, channel=channel, router=router)
-    control.configurePacketSwitch(src=4, dst=1, channel=channel, router=router2)
 
-    control.uninstallPath(path=path, channels=[channel])
+    channel_sd = {}
+    NUM_WAV = 14
+    for channel in range(1,NUM_WAV+1):
+        src_id = random.randint(1,4)
+        dst_id = random.randint(1,4)
+        while dst_id==src_id:
+            dst_id = random.randint(1, 4)
+        src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
+        path = net.routes[src][dst]
+        channel_sd[channel] = (src_id,dst_id)
+        install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
+
+
+    """for channel in range(1,NUM_WAV+1):
+        src_id, dst_id = channel_sd[channel]
+        src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
+        path = net.routes[src][dst]
+        uninstall_lightpath(path, channel)
+    # """
 
 Test()
