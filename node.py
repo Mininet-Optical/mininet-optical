@@ -655,7 +655,7 @@ class Roadm(Node):
         """
         # self.switch_table: [in_port, signal_index] = out_port
         if (in_port, signal_index) not in self.switch_table:
-            print("*** %s.update_switch_rule couldn't find "
+            print("*** %s.delete_switch_rule couldn't find "
                   "switch rule for in_port: %d and channel: %d" %
                   (self, in_port, signal_index))
         else:
@@ -1258,14 +1258,16 @@ class Monitor(Node):
             for value in self.component.port_to_optical_signal_in.values():
                 if value:
                     for optical_signal in value:
-                        optical_signal_list.append(optical_signal)
+                        if self.component in optical_signal.loc_in_to_state:
+                            optical_signal_list.append(optical_signal)
             return optical_signal_list
         else:
             optical_signal_list = []
             for value in self.component.port_to_optical_signal_out.values():
                 if value:
                     for optical_signal in value:
-                        optical_signal_list.append(optical_signal)
+                        if self.component in optical_signal.loc_out_to_state:
+                            optical_signal_list.append(optical_signal)
             return optical_signal_list
 
     def get_list_osnr(self):
@@ -1385,6 +1387,8 @@ class Monitor(Node):
         else:
             gosnr_linear = 1
         gosnr = abs_to_db(gosnr_linear) - (12.5e9 / optical_signal.symbol_rate)
+        if gosnr < 0:
+            gosnr = 0
         return gosnr
 
     def __repr__(self):

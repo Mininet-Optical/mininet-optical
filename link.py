@@ -34,6 +34,8 @@ class Link(object):
 
         # set connection ports for amps and the link
         if boost_amp:
+            self.boost_amp.set_input_port(self.src_node, self, input_port=0)
+            self.boost_amp.set_output_port(spans[0][0], self, output_port=0)
             self.boost_amp.prev_component = src_node
             self.boost_amp.next_component = spans[0][0]
 
@@ -50,14 +52,15 @@ class Link(object):
 
             if amplifier:
                 amplifier.link = self
-                amplifier.set_output_port(self.dst_node, self, output_port=0)
-                amplifier.set_input_port(self.src_node, self, input_port=0)
+                amplifier.set_input_port(prev_span, self, input_port=0)
 
                 amplifier.prev_component = prev_span
                 if i + 1 < len(spans):
                     next_span = spans[i + 1][0]
+                    amplifier.set_output_port(next_span, self, output_port=0)
                     amplifier.next_component = next_span
                 else:
+                    amplifier.set_output_port(dst_node, self, output_port=0)
                     amplifier.next_component = dst_node
 
                 prev_amp = amplifier
