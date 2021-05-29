@@ -636,10 +636,10 @@ class Roadm(Node):
                 if s.index == signal_index:
                     optical_signal = s
 
-            # Remove signal at Node level
-            self.remove_optical_signal(optical_signal)
-            # Remove switch rule
-            del self.switch_table[in_port, signal_index]
+                    # Remove signal at Node level
+                    self.remove_optical_signal(optical_signal)
+                    # Remove switch rule
+                    del self.switch_table[in_port, signal_index]
 
             if switch:
                 src_node = self.rule_id_to_node_in[in_port, signal_index]
