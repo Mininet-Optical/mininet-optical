@@ -260,14 +260,19 @@ def Test():
     control = Mininet_Control_REST()
     net = control.net
 
-    # Print routes
-    #print( '*** Routes:' )
-    #src, dst = net.terminals[0], net.terminals[3]
-    #path = net.routes[src][dst]
-    #print(src, '->', dst, path)
+    # install ,delete, re-install a lighpath
+    src_id, dst_id = 1, 4
+    src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
+    path = net.routes[src][dst]
+    print(src, '->', dst, path)
     channel = 10
+    install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
+    uninstall_lightpath(path, channel)
+    install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
 
-    channel_sd = {}
+
+    # install lightpaths
+    """channel_sd = {}
     NUM_WAV = 14
     for channel in range(1,NUM_WAV+1):
         src_id = random.randint(1,4)
@@ -278,8 +283,9 @@ def Test():
         path = net.routes[src][dst]
         channel_sd[channel] = (src_id,dst_id)
         install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
+    # """
 
-
+    # delete these lightpaths
     """for channel in range(1,NUM_WAV+1):
         src_id, dst_id = channel_sd[channel]
         src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
