@@ -5,15 +5,15 @@ single_link_test.py: test monitoring on a single link
 Note this version uses and depends on explicit port assignment!
 """
 
-from network import Network
-from link import Span as Fiber, SpanTuple as Segment
-from node import Transceiver
-from units import *
+#from network import Network
+#from link import Span as Fiber, SpanTuple as Segment
+#from node import Transceiver
+#from units import *
 from collections import defaultdict
 import random
 from collections import defaultdict
-import numpy as np
-from lumentum_NETCONF_API import Lumentum_NETCONF
+#import numpy as np
+from Control_Test_Lum import Lumentum_Control_NETCONF
 
 
 km = dB = dBm = 1.0
@@ -22,7 +22,7 @@ m = .001
 # Parameters
 Controller_Lum = Lumentum_Control_NETCONF()
 
-NUM_WAV = 90
+NUM_WAV = 10
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
@@ -38,7 +38,7 @@ SRC_DST_TO_LIGHTPATH = defaultdict( set ) # (src, dst) : {set[lightpath_id]}
 PATH_CH_TO_LIGHTPATH = defaultdict(defaultdict) # (src, hop, dst) : {'channel_id': lightpath_id}
 TRAFFIC_ID = 0
 LIGHTPATH_ID = 0
-NUM_NODE = 6
+NUM_NODE = 4
 NAME_ROADM = []
 UP_TRAF_TIME_LIST = []
 UP_TRAF_ID_SET = set()
@@ -86,7 +86,7 @@ def RoadmPhyNetwork():
     #      t4 - r4 ----- r3 - t3
     ################################
 
-    net = Network()
+    #net = Network()
 
     for k in range(1, NUM_NODE):
         print('==range=', k)
@@ -109,7 +109,7 @@ def RoadmPhyNetwork():
             NETLINKS.append(('t%d' %k, add_drop_port, 'r%d' %k, add_drop_port))
             NETLINKS.append(('r%d' %k, add_drop_port, 't%d' %k, add_drop_port))
 
-    return net
+    return
 
 ############# Mininet Optical############
 
@@ -403,6 +403,7 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
         all_path_info = routes[src][dst]
         for path_info in all_path_info:
             path = path_info
+            path = path[1:-1]
             chs = waveAvailibility(path=path)
             if chs:
                 ch = waveSelection(chs)
@@ -553,11 +554,13 @@ def TrafficTest():
     # ROADM port numbers (input and output)
     random.seed(1000)
     "Create a single link and monitor its OSNR and gOSNR"
-    net = RoadmPhyNetwork()
+    RoadmPhyNetwork()
     AllLinks = getLinks(NETLINKS)
+    print(NETLINKS)
     global  GRAPH, NODES
     GRAPH = netGraph(AllLinks['links'])
-    NODES = net.name_to_node
+    #NODES = net.name_to_node
+    NODES = ['t1','t2','t3','t4']
     routes = {node: FindRoute(node, GRAPH, name_terminals)
                for node in name_terminals}
 
@@ -572,7 +575,7 @@ def TrafficTest():
 
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
-    N = 24 * 14  # total emulation time : 24 hour * y days
+    N = 24 * 1  # total emulation time : 24 hour * y days
     Total_traf = 35000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
@@ -643,6 +646,9 @@ def TrafficTest():
                     dst_t = 't1'
                     dst_back = 'r%d' % NUM_NODE
                     dst_t_back = 't%d' % NUM_NODE
+
+                print("route info", src_t, dst_t, routes)
+                #return
 
                 # install this traf to a lighpath
                 traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'))
