@@ -22,7 +22,7 @@ m = .001
 # Parameters
 Controller_Lum = Lumentum_Control_NETCONF()
 
-NUM_WAV = 10
+NUM_WAV = 20
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
@@ -221,32 +221,32 @@ def Mininet_monitorLightpath(path, channel, nodes):
 def Lumentum_installPath(lightpath_id, path, channel):
     "intall switch rules on roadms along a lightpath for some signal channels"
 
-    Controller_Lum.installPath(path=path, channel=channel, lightpathID=lightpath_id)
+    return Controller_Lum.installPath(path=path, channel=channel, lightpathID=lightpath_id)
 
 
 def Lumentum_uninstallPath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
 
     path = LIGHTPATH_INFO[lightpath_id]['path']
-    Controller_Lum.uninstallPath(path=path, lightpathID=lightpath_id)
+    return Controller_Lum.uninstallPath(path=path, lightpathID=lightpath_id)
 
 
 def Lumentum_setupLightpath(lightpath_id, path, channel):
     "configure a lightpath "
 
-    Lumentum_installPath(lightpath_id, path, channel)
-    return True
+    return Lumentum_installPath(lightpath_id, path, channel)
 
 
 def Lumentum_teardownLightpath(lightpath_id):
     "remove a lightpath"
 
-    Lumentum_uninstallPath(lightpath_id)
-    return True
+    return Lumentum_uninstallPath(lightpath_id)
+
 
 def Lumentum_MonitorLightpath(lightpath_id):
     path = LIGHTPATH_INFO[lightpath_id]['path']
-    Controller_Lum.channel_monitor(path=path, lightpathID=lightpath_id)
+    info = Controller_Lum.channel_monitor(path=path, lightpathID=lightpath_id)
+    return info
 
 ############### COSMOS Lumentum END ###############
 
@@ -319,11 +319,19 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf')):
     ## Install ROADM rules
     global LIGHTPATH_ID
     LIGHTPATH_ID += 1
+
+    # id : {'path':path, 'channel': channel_id, 'traf': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
+    res = Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
+    count =0
+    while not res and count<5:
+        res = Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
+        count += 1
+    if not res:
+        LIGHTPATH_ID -= 1
+        return None
     for i in range(len(path) - 1):
         NETLINK_INFO[path[i], path[i + 1]][channel] = LIGHTPATH_ID  # channel with lightpath_id
         NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
-    # id : {'path':path, 'channel': channel_id, 'traf': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
-    Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
     #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
     LIGHTPATH_INFO[LIGHTPATH_ID]['path'] = path
     LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id'] = channel
@@ -408,15 +416,22 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
             if chs:
                 ch = waveSelection(chs)
                 lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time)
-                TRAFFIC_ID += 1
-                traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
-                return traf_id
+                if lightpath_id:
+                    TRAFFIC_ID += 1
+                    traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+                    return traf_id
     return False
 
 
 def uninstall_Lightpath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
-    Lumentum_uninstallPath(lightpath_id=lightpath_id)
+    res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
+    count = 0
+    while not res and count<5:
+        res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
+        count+=1
+    if not res:
+        return None
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     for i in range(len(path) - 1):
@@ -709,12 +724,13 @@ def TrafficTest():
                         reassign_traf = []
                         fail_lightpaths = []
                         for lightpath_id, info in LIGHTPATH_INFO.items():
-                            powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'],
-                                                                                       channel=info['channel_id'],
-                                                                                       nodes=NODES)
-                            LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnrs[-1]
-                            LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnrs[-1]
-                            if 18 < gosnrs[-1] < 24:
+                            #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'],
+                            #                                                           channel=info['channel_id'],
+                            #                                                           nodes=NODES)
+                            osnr, gonsr = 25,25
+                            LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
+                            LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
+                            if 18 < gosnr < 24:
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
                                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                                 while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
@@ -723,7 +739,7 @@ def TrafficTest():
                                     ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
                                     traf_to_lightpath_Release(traf_id=traf_id)
                                     reassign_traf.append((s_t, d_t))
-                            elif gosnrs[-1] < 16:
+                            elif gosnr < 16:
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
                                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                                 while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
