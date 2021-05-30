@@ -4,7 +4,7 @@ Author:   Jiakai Yu (jiakaiyu@email.arizona.edu)
 Created:  2019/03/09
 Version:  2.0
 
-Last modified by Jiakai: 2020/08/11
+Last modified by Jiakai: 2021/05/26
 """
 
 
@@ -22,10 +22,15 @@ PASSWORD = "Sup%9User"
 class Lumentum(object):
 
     def __init__(self, IP_addr, usrname=USERNAME, psswd=PASSWORD):
-        self.m = manager.connect(host=IP_addr, port=830, username=usrname, password=psswd, hostkey_verify=False)
+        self.m = None
+        try:
+            self.m = manager.connect(host=IP_addr, port=830, username=usrname, password=psswd, hostkey_verify=False)
+        except Exception as e:
+            print('connection failed')
 
     def __del__(self):
-        self.m.close_session()
+        if self.m:
+            self.m.close_session()
 
 
     def edfa_status(self):
@@ -372,6 +377,7 @@ class Lumentum(object):
             connection_details = None
             print("Encountered the following RPC error!")
             print(e)
+        connections = None
         connections = Lumentum.WSSConnectionStatus.from_connection_details(connection_details) if connection_details else None
         return connections
 
@@ -413,9 +419,9 @@ class Lumentum_NETCONF(object):
 
     def _ConfigWSS(self, node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None):
         print ('============ConfigWSS_Setup_Start==============')
-        node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
-
+        
         try:
+            node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
             if status=='del':
                 rpc_reply = node.wss_delete_connection(str(module_id), str(conn_id))
             elif conn_id == 'all':
@@ -435,10 +441,11 @@ class Lumentum_NETCONF(object):
 
 
     def _WSSMonitor(self,node_ip):
-        node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
+        
         mux_info = {}
         demux_info = {}
         try:
+            node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
             connections = node.wss_get_connections()
             if connections:
                 l = len(connections)

@@ -52,7 +52,6 @@ class Link(object):
 
             if amplifier:
                 amplifier.link = self
-                # amplifier.set_output_port(self.dst_node, self, output_port=0)
                 amplifier.set_input_port(prev_span, self, input_port=0)
 
                 amplifier.prev_component = prev_span
