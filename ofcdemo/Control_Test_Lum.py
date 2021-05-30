@@ -40,6 +40,8 @@ ADD_DROP = 1
 ##
 Lumentum_NETCONF_Agent = Lumentum_NETCONF()
 
+AllLumName = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6']
+
 NodeLink_to_LumentumLink = {}
 NodeLink_to_LumentumLink['r1', 'r2'], NodeLink_to_LumentumLink['r2', 'r1'], \
 NodeLink_to_LumentumLink['r2', 'r3'], NodeLink_to_LumentumLink['r3', 'r2'], \
@@ -58,6 +60,24 @@ LumentumName_to_IP['L5'], LumentumName_to_IP['L6'] \
 
 class Lumentum_Control_NETCONF(object):
 
+    def __init__(self):
+        Lumentum_NETCONF_Agent = Lumentum_NETCONF()
+
+        AllLumName = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6']
+
+        NodeLink_to_LumentumLink = {}
+        NodeLink_to_LumentumLink['r1', 'r2'], NodeLink_to_LumentumLink['r2', 'r1'], \
+        NodeLink_to_LumentumLink['r2', 'r3'], NodeLink_to_LumentumLink['r3', 'r2'], \
+        NodeLink_to_LumentumLink['r3', 'r4'], NodeLink_to_LumentumLink['r4', 'r3'] \
+            = ('L1', 'L2'), ('L2', 'L1'), ('L3', 'L4'), ('L4', 'L3'), ('L5', 'L6'), ('L6', 'L5')
+
+        LumentumName_to_IP = {}
+        LumentumName_to_IP['L1'], LumentumName_to_IP['L2'], \
+        LumentumName_to_IP['L3'], LumentumName_to_IP['L4'], \
+        LumentumName_to_IP['L5'], LumentumName_to_IP['L6'] \
+            = '10.104.1.1', '10.104.1.2', '10.104.1.3', '10.104.1.4', '10.104.1.5', '10.104.1.6'
+
+
     def installPath(self, path, lightpathID, channel):
         "intall switch rules on roadms along a lightpath with a signal channel"
 
@@ -75,42 +95,56 @@ class Lumentum_Control_NETCONF(object):
             if i != 0 and i != len(path) - 1:
                 Lumentum_this_out, Lumentum_next = NodeLink_to_LumentumLink[path[i], path[i + 1]]
                 Lumentum_previous, Lumentum_this_in = NodeLink_to_LumentumLink[path[i - 1], path[i]]
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service',
+                res = Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service',
                                                   conn_id=lightpathID,
                                                   module_id=1, input_port=4100 + THRUPORT, output_port=4201,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=10,
                                                   block='false', name='CH' + str(channel))
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='in-service',
                                                   conn_id=lightpathID,
                                                   module_id=2, input_port=5101, output_port=5200 + THRUPORT,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=0,
                                                   block='false', name='CH' + str(channel))
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service',
                                                   conn_id=lightpathID,
                                                   module_id=1, input_port=4100 + THRUPORT, output_port=4201,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=10,
                                                   block='false', name='CH' + str(channel))
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='in-service',
                                                   conn_id=lightpathID,
                                                   module_id=2, input_port=5101, output_port=5200 + THRUPORT,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=0,
                                                   block='false', name='CH' + str(channel))
+                if not res:
+                    return None
+                
             # Add/drop using Lumentum WSSs
             if i == 0 or i == len(path) - 1:
                 if i == 0:
                     Lumentum_this_add_drop, Lumentum_next = NodeLink_to_LumentumLink[path[i], path[i + 1]]
                 else:
                     Lumentum_previous, Lumentum_this_add_drop = NodeLink_to_LumentumLink[path[i - 1], path[i]]
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop],
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop],
                                                   status='in-service', conn_id=lightpathID,
                                                   module_id=1, input_port=4100 + ADD_DROP, output_port=4201,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=0,
                                                   block='false', name='CH' + str(channel))
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop],
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop],
                                                   status='in-service', conn_id=lightpathID,
                                                   module_id=2, input_port=5101, output_port=5200 + ADD_DROP,
                                                   start_freq=start_freq, end_freq=end_freq, attenuation=0,
                                                   block='false', name='CH' + str(channel))
+                if not res:
+                    return None
+        return True
 
     def uninstallPath(self, path, lightpathID):
         "delete switch rules on roadms along a lightpath for some signal channels"
@@ -120,41 +154,59 @@ class Lumentum_Control_NETCONF(object):
             if i != 0 and i != len(path) - 1:
                 Lumentum_this_out, Lumentum_next = NodeLink_to_LumentumLink[path[i], path[i + 1]]
                 Lumentum_previous, Lumentum_this_in = NodeLink_to_LumentumLink[path[i - 1], path[i]]
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='del',
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=1)
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='del',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_in], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=2)
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='del',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=1)
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='del',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_out], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=2)
+                if not res:
+                    return None
             # del Add/Drop using East Lumentum (two WSSs)
             if i == 0 or i == len(path) - 1:
                 if i == 0:
                     Lumentum_this_add_drop, Lumentum_next = NodeLink_to_LumentumLink[path[i], path[i + 1]]
                 else:
                     Lumentum_previous, Lumentum_this_add_drop = NodeLink_to_LumentumLink[path[i - 1], path[i]]
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop], status='del',
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=1)
-                Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop], status='del',
+                if not res:
+                    return None
+                res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[Lumentum_this_add_drop], status='del',
                                                   conn_id=lightpathID,
                                                   module_id=2)
+                if not res:
+                    return None
+                
 
     def cleanAllROADMs(self):
         for name in AllLumName:
-            Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
+            res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
                                               conn_id='all',
                                               module_id=1)
-            Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
+            if not res:
+                    return None
+            res=Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
                                               conn_id='all',
                                               module_id=2)
+            if not res:
+                    return None
+        return True
+
             
-                
     def channel_monitor(self, path, lightpathID):
         Lumentum_Source, Lumentum_next = NodeLink_to_LumentumLink[path[0], path[1]]
         Lumentum_previous, Lumentum_Desination = NodeLink_to_LumentumLink[path[-2], path[-1]]
@@ -170,9 +222,10 @@ def Control_Test():
     ####### Lumentum Test ########
     path = ['r4', 'r3', 'r2', 'r1']
     Controller = Lumentum_Control_NETCONF()
-    Controller.installPath(path=path, channel=5, lightpathID=1)
-    Controller.channel_monitor(path=path, lightpathID=1)
-    # Controller.uninstallPath(path=path, ruleID=1)
+    Controller.cleanAllROADMs()
+    #Controller.installPath(path=path, channel=5, lightpathID=1)
+    #Controller.channel_monitor(path=path, lightpathID=1)
+    #Controller.uninstallPath(path=path, lightpathID=1)
 
 
 Control_Test()
