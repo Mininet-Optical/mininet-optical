@@ -656,7 +656,7 @@ class Roadm(Node):
         """
         # self.switch_table: [in_port, signal_index] = out_port
         if (in_port, signal_index) not in self.switch_table:
-            print("*** %s.update_switch_rule couldn't find "
+            print("*** %s.delete_switch_rule couldn't find "
                   "switch rule for in_port: %d and channel: %d" %
                   (self, in_port, signal_index))
         else:
