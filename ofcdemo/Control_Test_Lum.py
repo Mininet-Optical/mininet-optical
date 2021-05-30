@@ -145,6 +145,16 @@ class Lumentum_Control_NETCONF(object):
                                                   conn_id=lightpathID,
                                                   module_id=2)
 
+    def cleanAllROADMs(self):
+        for name in AllLumName:
+            Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
+                                              conn_id='all',
+                                              module_id=1)
+            Lumentum_NETCONF_Agent._ConfigWSS(node_ip=LumentumName_to_IP[name], status='del',
+                                              conn_id='all',
+                                              module_id=2)
+            
+                
     def channel_monitor(self, path, lightpathID):
         Lumentum_Source, Lumentum_next = NodeLink_to_LumentumLink[path[0], path[1]]
         Lumentum_previous, Lumentum_Desination = NodeLink_to_LumentumLink[path[-2], path[-1]]
