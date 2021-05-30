@@ -1364,9 +1364,9 @@ class Monitor(Node):
             ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
         if ase_noise != 0:
             osnr_linear = power / ase_noise
+            osnr = abs_to_db(osnr_linear)
         else:
-            osnr_linear = 1
-        osnr = abs_to_db(osnr_linear)
+            osnr = float('inf')
         return osnr
 
     def get_gosnr(self, optical_signal):
@@ -1384,13 +1384,11 @@ class Monitor(Node):
             ase_noise = optical_signal.loc_in_to_state[self.component]['ase_noise']
             nli_noise = optical_signal.loc_in_to_state[self.component]['nli_noise']
 
-        if ase_noise != 0 and nli_noise != 0:
+        if ase_noise != 0 or nli_noise != 0:
             gosnr_linear = output_power / (ase_noise + nli_noise)
+            gosnr = abs_to_db(gosnr_linear) - (12.5e9 / optical_signal.symbol_rate)
         else:
-            gosnr_linear = 1
-        gosnr = abs_to_db(gosnr_linear) - (12.5e9 / optical_signal.symbol_rate)
-        if gosnr < 0:
-            gosnr = 0
+            gosnr = float('inf')
         return gosnr
 
     def __repr__(self):
