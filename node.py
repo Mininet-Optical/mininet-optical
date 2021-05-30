@@ -610,6 +610,7 @@ class Roadm(Node):
 
             self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
             self.rule_id_to_node_in[in_port, signal_indices] = src_node
+        self.switch(in_port, src_node, safe_switch=True)
 
 
     def update_switch_rule(self, in_port, signal_index, new_port_out, switch=False):
@@ -1258,14 +1259,16 @@ class Monitor(Node):
             for value in self.component.port_to_optical_signal_in.values():
                 if value:
                     for optical_signal in value:
-                        optical_signal_list.append(optical_signal)
+                        if self.component in optical_signal.loc_in_to_state:
+                            optical_signal_list.append(optical_signal)
             return optical_signal_list
         else:
             optical_signal_list = []
             for value in self.component.port_to_optical_signal_out.values():
                 if value:
                     for optical_signal in value:
-                        optical_signal_list.append(optical_signal)
+                        if self.component in optical_signal.loc_out_to_state:
+                            optical_signal_list.append(optical_signal)
             return optical_signal_list
 
     def get_list_osnr(self):
@@ -1385,6 +1388,8 @@ class Monitor(Node):
         else:
             gosnr_linear = 1
         gosnr = abs_to_db(gosnr_linear) - (12.5e9 / optical_signal.symbol_rate)
+        if gosnr < 0:
+            gosnr = 0
         return gosnr
 
     def __repr__(self):
