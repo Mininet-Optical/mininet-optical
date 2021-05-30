@@ -610,7 +610,7 @@ class Roadm(Node):
 
             self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
             self.rule_id_to_node_in[in_port, signal_indices] = src_node
-        self.switch(in_port, src_node, safe_switch=True)
+        self.switch(in_port, src_node)
 
 
     def update_switch_rule(self, in_port, signal_index, new_port_out, switch=False):
@@ -761,20 +761,21 @@ class Roadm(Node):
         """
         port_to_optical_signal_out = {}
         port_out_to_port_in_signals = {}
-        for in_port in self.node_to_port_in[src_node]:
-            if len(self.port_to_optical_signal_in[in_port]) > 0:
-                tmp_port_to_optical_signal_out, tmp_port_out_to_port_in_signals = \
-                    self.can_switch(in_port, safe_switch)
+        if src_node in self.node_to_port_in:
+            for in_port in self.node_to_port_in[src_node]:
+                if len(self.port_to_optical_signal_in[in_port]) > 0:
+                    tmp_port_to_optical_signal_out, tmp_port_out_to_port_in_signals = \
+                        self.can_switch(in_port, safe_switch)
 
-                for out_port, optical_signals in tmp_port_to_optical_signal_out.items():
-                    port_to_optical_signal_out.setdefault(out_port, [])
-                    for optical_signal in optical_signals:
-                        if optical_signal not in port_to_optical_signal_out[out_port]:
-                            port_to_optical_signal_out[out_port].append(optical_signal)
+                    for out_port, optical_signals in tmp_port_to_optical_signal_out.items():
+                        port_to_optical_signal_out.setdefault(out_port, [])
+                        for optical_signal in optical_signals:
+                            if optical_signal not in port_to_optical_signal_out[out_port]:
+                                port_to_optical_signal_out[out_port].append(optical_signal)
 
-                for out_port, _dict in tmp_port_out_to_port_in_signals.items():
-                    port_out_to_port_in_signals.setdefault(out_port, {})
-                    port_out_to_port_in_signals[out_port].update(_dict)
+                    for out_port, _dict in tmp_port_out_to_port_in_signals.items():
+                        port_out_to_port_in_signals.setdefault(out_port, {})
+                        port_out_to_port_in_signals[out_port].update(_dict)
         return port_to_optical_signal_out, port_out_to_port_in_signals
 
     def switch(self, in_port, src_node, safe_switch=False):
