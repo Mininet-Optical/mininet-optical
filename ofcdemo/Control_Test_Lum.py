@@ -91,7 +91,7 @@ class Lumentum_Control_NETCONF(object):
         # ingress and egress nodes only use MUX and DEMUX respectively. Intermediate nodes use DEMUX -> MUX.
         for i in range(len(path)):
             # intermediate ROADM nodes using 2 Lumentum nodes (4 WSSs)
-            print(i)
+            #print(i)
             if i != 0 and i != len(path) - 1:
                 Lumentum_this_out, Lumentum_next = NodeLink_to_LumentumLink[path[i], path[i + 1]]
                 Lumentum_previous, Lumentum_this_in = NodeLink_to_LumentumLink[path[i - 1], path[i]]
@@ -212,8 +212,10 @@ class Lumentum_Control_NETCONF(object):
         Lumentum_previous, Lumentum_Desination = NodeLink_to_LumentumLink[path[-2], path[-1]]
         S_WSS_info = Lumentum_NETCONF_Agent._WSSMonitor(LumentumName_to_IP[Lumentum_Source])
         D_WSS_info = Lumentum_NETCONF_Agent._WSSMonitor(LumentumName_to_IP[Lumentum_Desination])
-        print(S_WSS_info)
-        print(D_WSS_info)
+        if not S_WSS_info['MUX'] or not D_WSS_info['DEMUX']:
+            return None,None
+        
+        return (S_WSS_info['MUX'][str(lightpathID)]), (D_WSS_info['DEMUX'][str(lightpathID)])
 
 
 def Control_Test():
