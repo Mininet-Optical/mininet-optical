@@ -69,7 +69,8 @@ class Network(object):
         self.amplifiers.append(amplifier)
         return amplifier
 
-    def add_link(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None):
+    def add_link(self, src_node, dst_node, src_out_port=-1,
+                 dst_in_port=-1, boost_amp=None, spans=None):
         """
         Add a uni-directional link
         :param src_node: source node in link

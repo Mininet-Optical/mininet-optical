@@ -2,9 +2,11 @@
     This script models a linear topology between two line terminals
     with two ROADMs in between and two links between ROADMS:
 
-                        ---> (link1)
+                       (link1)
+                       ------>
            lt1 ---> r1         r2 ----> lt2
-                        ---> (link2)
+                       ------>
+                       (link2)
 
     lt1 will transmit channel 1 at 0 dBm launch power and
     r1 will switch from port 4101 out to port 5203
@@ -24,11 +26,9 @@ from node import Transceiver
 km = dB = dBm = 1.0
 m = .001
 
-
 def Span(km, amp=None):
     """Return a fiber segment of length km with a compensating amp"""
     return Segment(span=Fiber(length=km), amplifier=amp)
-
 
 def build_spans(net, r1, r2, _id):
     """
@@ -51,27 +51,39 @@ def build_spans(net, r1, r2, _id):
 
     return net, spans
 
-
-def build_link(net, r1, r2, _id, gain=17.0):
-    # boost amplifier object
-    boost_l = '%s-%s-boost%s' % (r1, r2, _id)  # label boost amp
-    boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA',
-                                  target_gain=float(gain), boost=True,
-                                  monitor_mode='out')
-
+def build_link(net, r1, r2, _id):
     net, spans = build_spans(net, r1, r2, _id)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
 
     # link object
-    net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
+    net.add_link(r1, r2, spans=spans)
+
+def add_amp(net, node_name=None, type=None, gain_dB=None):
+    """
+    Create an Amplifier object to add to a ROADM node
+    :param node_name: string
+    :param type: string ('boost' or 'preamp'
+    :param gain_dB: int or float
+    """
+    label = '%s-%s' % (node_name, type)
+    if type == 'preamp':
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 boost=True,
+                                 monitor_mode='out')
+    else:
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 preamp=True,
+                                 monitor_mode='out')
 
 
 # Create the network object
 net = network.Network()
 # Create line terminals
 operational_power = 0  # power in dBm
-non = 2  # only 3 nodes in this script!
+non = 2  # only 2 nodes in this script!
 tr_no = [1, 2] # number of transceivers in a terminal
 tr_labels = ['tr%s' % str(x) for x in tr_no]
 
@@ -86,7 +98,10 @@ for i in range(non):
 # add roadms to the network
 roadms = [net.add_roadm('r%s' % (i + 1),
                         insertion_loss_dB=17,
-                        reference_power_dBm=operational_power) for i in range(non)]
+                        reference_power_dBm=operational_power,
+                        preamp=add_amp(net, node_name='r%s' % (i + 1), type='preamp', gain_dB=17.6),
+                        boost=add_amp(net, node_name='r%s' % (i + 1), type='boost', gain_dB=17.0)
+                        ) for i in range(non)]
 
 # Modelling Lumentum ROADM-20 port numbering
 roadm20_in_ports = [i + 1 for i in range(4100, 4120)]
@@ -128,7 +143,7 @@ lt_1.turn_on()
 
 # rerouting process:
 # reconfigure receiver terminal
-lt_2.disassoc_rx_to_channel(rx_transceiver, channel, in_port=1)
+lt_2.disassoc_rx_to_channel(in_port=1)
 
 # configure new receiver terminal
 new_rx_transceiver = lt_2.id_to_transceivers[2]
