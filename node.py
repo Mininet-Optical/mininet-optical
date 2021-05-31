@@ -369,12 +369,12 @@ class LineTerminal(Node):
                     self.receiver_callback(in_port, signalInfoDict)
             else:
                 self.receiver_callback(in_port, signalInfoDict)
-                raise ValueError("@%s, optical signal: %s not configured for Rx in LineTerminal.\n"
+                raise Exception("@%s, optical signal: %s not configured for Rx in LineTerminal.\n"
                                  "Try calling %s.assoc_rx_to_channel() before launching transmission." %
                                  (self, optical_signal, self))
         else:
             self.receiver_callback(in_port, signalInfoDict)
-            raise ValueError("@%s, input port: %s not configured correctly for "
+            raise Exception("@%s, input port: %s not configured correctly for "
                              "optical signal: %s in LineTerminal.\n"
                              "You can configure it with %s.assoc_rx_to_channel() before launching transmission." %
                              (self, in_port, optical_signal, self))
