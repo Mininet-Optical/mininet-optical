@@ -237,6 +237,15 @@ class LineTerminal(Node):
         :param out_port: input port to terminal, -1 if none.
         :return: associate a transceiver to an optical signal
         """
+        if transceiver.optical_signal:
+            if transceiver.optical_signal.index != channel:
+                self.assoc_channel(transceiver, channel, out_port)
+            else:
+                print("*** %s.assoc_tx_to_channel: signal %s already configure in transceiver %s!" % (self, transceiver.optical_signal, transceiver))
+        else:
+            self.assoc_channel(transceiver, channel, out_port)
+
+    def assoc_channel(self, transceiver, channel, out_port):
         # instantiate OpticalSignal object
         optical_signal = OpticalSignal(channel, transceiver.channel_spacing_H,
                                        transceiver.channel_spacing_nm,
@@ -252,6 +261,7 @@ class LineTerminal(Node):
         self.include_optical_signal_out(optical_signal, out_port=out_port)
         self.tx_to_channel[out_port] = {'optical_signal': optical_signal, 'transceiver': transceiver}
         self.optical_signals_out += 1
+
 
     def disassoc_tx_to_channel(self, out_port):
         """
@@ -595,14 +605,19 @@ class Roadm(Node):
         :param src_node: source node
         :return:
         """
+        switch = True
         # Used for update and delete rules
         self.node_to_rule_id_in.setdefault(src_node, [])
         # arbitrary rule identifier
         # the keys are tuples and the stored values int
         if type(signal_indices) is list or type(signal_indices) is set:
             for signal_index in signal_indices:
+                if (in_port, signal_index) in self.switch_table:
+                    if self.switch_table[in_port, signal_index] == out_port:
+                        print("*** %s.install_switch_rule: this rule already exists!" % self)
+                        self.port_check_range_out[out_port] = 0
+                        switch = False
                 self.switch_table[in_port, signal_index] = out_port
-
                 self.node_to_rule_id_in[src_node].append((in_port, signal_index))
                 self.rule_id_to_node_in[in_port, signal_index] = src_node
         else:
@@ -610,7 +625,8 @@ class Roadm(Node):
 
             self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
             self.rule_id_to_node_in[in_port, signal_indices] = src_node
-        self.switch(in_port, src_node)
+        if switch:
+            self.switch(in_port, src_node)
 
 
     def update_switch_rule(self, in_port, signal_index, new_port_out, switch=False):
@@ -740,7 +756,7 @@ class Roadm(Node):
                         # If this is the case, then we have routed them before,
                         # thus, check the switching counter threshold
                         self.port_check_range_out[out_port] += 1
-                        if self.port_check_range_out[out_port] >= self.check_range_th:
+                        if self.port_check_range_out[out_port] > self.check_range_th:
                             if not isinstance(self.port_to_node_out[out_port], LineTerminal):
                                 print('RoadmWarning:', self, "loop detected. Stopping propagation.")
                                 print("Blocking:", port_to_optical_signal_out[out_port], "port:", out_port)
