@@ -22,7 +22,7 @@ m = .001
 # Parameters
 Controller_Lum = Lumentum_Control_NETCONF()
 
-NUM_WAV = 20
+NUM_WAV = 40
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
@@ -591,7 +591,7 @@ def TrafficTest():
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
     N = 24 * 1  # total emulation time : 24 hour * y days
-    Total_traf = 35000 # Gbps
+    Total_traf = 20000 #35000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
     for i in range(2,NUM_NODE):
@@ -622,7 +622,7 @@ def TrafficTest():
         Rej = {} # rejected CPRI requests in each ROADM/terminal
         for key in TERMINAL_TO_ROADM.keys():
             Rej[key] = 0
-        print(i)
+        print('day time of hour:', i)
         factors = {}
         for src in RU_ROADMS:
             # weekdays
@@ -639,19 +639,20 @@ def TrafficTest():
             while factor*MAX_traf[src]/CPRI_CAP > len(ROADM_TRAF[src]):
                 count = 0
                 ADD_TRAF = False
+                print('receiving new request at node', src)
 
-                print(factor*MAX_traf[src]/CPRI_CAP, len(ROADM_TRAF[src]), Rej)
+                #print(factor*MAX_traf[src]/CPRI_CAP, len(ROADM_TRAF[src]), Rej)
                 dst = random.choice(DU_ROADMS)
                 RRH_traf[src_t] += 1
                 dst_t = ROADM_TO_TERMINAL[dst]
                 path_first = routes[src_t]['t1'][0]
                 path_last = routes[src_t]['t%d' % NUM_NODE][0]
                 dst_back = None
-                print('two_paths', path_first, path_last)
+                #print('two_paths', path_first, path_last)
 
                 # check which BBU ROADM can handle more traffic
                 if len(path_last)<len(path_first) and BBU_traf['t%d' % NUM_NODE] < BBU_limit['t%d' % NUM_NODE]:
-                    print('BBU R4 resource',BBU_traf['t%d' % NUM_NODE], BBU_limit['t%d' % NUM_NODE])
+                    #print('BBU R4 resource',BBU_traf['t%d' % NUM_NODE], BBU_limit['t%d' % NUM_NODE])
                     dst = 'r%d' % NUM_NODE
                     dst_t = 't%d' % NUM_NODE
                     dst_back = 'r1'
@@ -662,12 +663,12 @@ def TrafficTest():
                     dst_back = 'r%d' % NUM_NODE
                     dst_t_back = 't%d' % NUM_NODE
 
-                print("route info", src_t, dst_t, routes)
+                print("request_source_destination info", src_t, dst_t)
                 #return
 
                 # install this traf to a lighpath
                 traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'))
-                print('request', src, dst)
+                #print('request', src, dst)
                 if traf_id:
                     ADD_TRAF = True
                     ROADM_TRAF[src].add(traf_id)
@@ -775,7 +776,7 @@ def TrafficTest():
             while factor * MAX_traf[src] / CPRI_CAP < len(ROADM_TRAF[src]):
                 traf_id = random.choice(list(ROADM_TRAF[src]))
                 dst = TRAFFIC_INFO[traf_id]['dst']
-                BBU_traf[dst] -= 1
+                BBU_traf[ROADM_TO_TERMINAL[dst]] -= 1
                 lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                 traf_to_lightpath_Release(traf_id=traf_id)
@@ -783,7 +784,7 @@ def TrafficTest():
                 if not traf_set:
                     uninstall_Lightpath(lightpath_id=lightpath_id)
 
-        """while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
+        while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
             lightpath_id = UP_LIGHTPATH_TIME_LIST.pop(0)[1]
             uninstall_Lightpath(lightpath_id=lightpath_id)
         #"""
