@@ -22,7 +22,7 @@ m = .001
 # Parameters
 Controller_Lum = Lumentum_Control_NETCONF()
 
-NUM_WAV = 40
+NUM_WAV = 80
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
@@ -245,8 +245,8 @@ def Lumentum_teardownLightpath(lightpath_id):
 
 def Lumentum_MonitorLightpath(lightpath_id):
     path = LIGHTPATH_INFO[lightpath_id]['path']
-    info = Controller_Lum.channel_monitor(path=path, lightpathID=lightpath_id)
-    return info
+    s_d_info = Controller_Lum.channel_monitor(path=path, lightpathID=lightpath_id)
+    return s_d_info
 
 ############### COSMOS Lumentum END ###############
 
@@ -403,11 +403,16 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
         lightpath_id = avai_lightpaths[0]
 
     if lightpath_id:
+        print('find a provisioned lightpath for traffic successfully!')
+        info=Lumentum_MonitorLightpath(lightpath_id)
+        print('source ROADM', info[0])
+        print('destination ROADM', info[1])
         TRAFFIC_ID += 1
         traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
         LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
         return traf_id
     else:
+        print('install a new lightpath for traffic!')
         all_path_info = routes[src][dst]
         for path_info in all_path_info:
             path = path_info
@@ -419,12 +424,19 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
                 if lightpath_id:
                     TRAFFIC_ID += 1
                     traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+                    print('install a lightpath for traffic successfully!')
+                    info=Lumentum_MonitorLightpath(lightpath_id)
+                    print('source ROADM', info[0])
+                    print('destination ROADM', info[1])
                     return traf_id
+    print('traffic is rejected!')
     return False
 
 
 def uninstall_Lightpath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
+
+    print('tear down a lightpath!')
     res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
     count = 0
     while not res and count<5:
@@ -663,7 +675,7 @@ def TrafficTest():
                     dst_back = 'r%d' % NUM_NODE
                     dst_t_back = 't%d' % NUM_NODE
 
-                print("request_source_destination info", src_t, dst_t)
+                print("request_source_destination info", src_t, dst_t, routes[src_t][dst_t])
                 #return
 
                 # install this traf to a lighpath
