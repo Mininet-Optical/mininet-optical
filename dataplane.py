@@ -229,7 +229,7 @@ class Monitor:
             power_abs=monitor.get_power( signal )
             power_dbm=abs_to_dbm(power_abs)
             power_list.append(power_dbm)
-        plt.figure(figsize=(8,8))
+        #plt.figure(figsize=(8,8))
         plt.plot(frequency_list, power_list,'o', label='node %s'%(self.name))
         plt.xlabel('Frequency [THz]')
         plt.ylabel('Power [dBm]')

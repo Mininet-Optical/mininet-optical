@@ -78,7 +78,7 @@ def monitors():
 def monitor():
     "Return information for monitor"
     query = request.query
-    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
+    monitor = lookUpNode( query.monitor ) # pylint: disable=no-member
     if hasattr( monitor, 'restMonitor' ):
         result = monitor.restMonitor()
     else:
