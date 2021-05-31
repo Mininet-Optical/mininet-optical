@@ -72,7 +72,6 @@ def test(net):
     assert net.pingAll() == 0
 
 if __name__ == '__main__':
-
     cleanup()  # Just in case!
     setLogLevel('info')
 

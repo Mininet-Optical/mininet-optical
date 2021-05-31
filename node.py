@@ -316,6 +316,26 @@ class LineTerminal(Node):
         gosnr_linear = power / (ase_noise + nli_noise)
         return abs_to_db(gosnr_linear) - (12.5e9 / baud_rate)
 
+    @staticmethod
+    def get_ber(modulation_method, gosnr):
+        """
+        AD: We need to check this function
+        Get's the bit error rate based on gOSNR
+        :return: BitErrorRate at this OPM
+        Calculates Bit Error Rate based on equations from F. Forghieri
+        doi: 10.1109/JLT.1012.2.2189198
+        """
+        ber=None
+        if modulation_method == '2QAM':
+            ber = 0.5 * erfc(sqrt(gosnr))
+        if modulation_method == '4QAM':
+            ber = 0.5 * erfc(sqrt(gosnr/ 2))
+        if modulation_method == '8QAM':
+            ber = (2 / 3) * erfc(sqrt((3 / 14) * gosnr))
+        if modulation_method == '16QAM':
+            ber = (3 / 8) * erfc(sqrt(gosnr) / 10)
+        return ber
+
     def receiver(self, optical_signal, in_port):
         """
         Will verify that the signal can be received, then compute
@@ -330,6 +350,7 @@ class LineTerminal(Node):
         if in_port in self.rx_to_channel:
             if self.rx_to_channel[in_port]['channel_id'] is optical_signal.index:
                 rx_transceiver = self.rx_to_channel[in_port]['transceiver']
+                modulation_format = rx_transceiver.modulation_format
                 # Get signal info
                 power = optical_signal.loc_in_to_state[self]['power']
                 ase_noise = optical_signal.loc_in_to_state[self]['ase_noise']
@@ -338,6 +359,7 @@ class LineTerminal(Node):
                 # Compute OSNR and gOSNR
                 osnr = self.osnr(power, ase_noise)
                 gosnr = self.gosnr(power, ase_noise, nli_noise, optical_signal.symbol_rate)
+                ber = self.get_ber(modulation_format, gosnr)
 
                 signalInfoDict[optical_signal]['osnr'] = osnr
                 signalInfoDict[optical_signal]['gosnr'] = gosnr
@@ -351,10 +373,17 @@ class LineTerminal(Node):
                     signalInfoDict[optical_signal]['success'] = False
                     self.receiver_callback(in_port, signalInfoDict)
                 else:
-                    print("*** %s receiving %s at port %s: Success!\ngOSNR: %f dB" %
-                          (self.name, optical_signal, in_port, gosnr))
-                    print("OSNR: %f dB" % osnr)
+                    if ber!=None:
+                        print("*** %s receiving %s at port %s: Success! \t modulation format: %s\n"
+                              "gOSNR: %f dB | OSNR: %f db | ber: %e" %
+                          (self.name, optical_signal, in_port, modulation_format, gosnr, osnr, ber))
 
+                    else:
+                        print(
+                            "*** %s receiving %s at port %s: Success! \t modulation format: %s\n"
+                            "gOSNR: %f dB | OSNR: %f db | ber: None" %
+                            (self.name, optical_signal, in_port, modulation_format, gosnr, osnr))
+                        print("OSNR: %f dB" % osnr)
                     signalInfoDict[optical_signal]['success'] = True
                     self.receiver_callback(in_port, signalInfoDict)
             else:
