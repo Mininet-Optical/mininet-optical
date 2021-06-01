@@ -212,7 +212,6 @@ class Monitor:
                  for signal in signals }
         return dict( osnr=osnr )
 
-
     def __str__( self ):
         return str( self.model)
 
