@@ -23,7 +23,7 @@ m = .001
 Controller_Lum = Lumentum_Control_NETCONF()
 Controller_Mininet = Mininet_Control_REST()
 
-NUM_WAV = 15
+NUM_WAV = 90
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
