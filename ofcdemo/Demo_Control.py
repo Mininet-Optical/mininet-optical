@@ -136,6 +136,7 @@ def Mininet_installPath(lightpath_id, path, channel, power=-3):
     router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router)
     Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
+    return lightpath_id
 
 
 def Mininet_uninstallPath(lightpath_id):
@@ -145,6 +146,7 @@ def Mininet_uninstallPath(lightpath_id):
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     Controller_Mininet.uninstallPath(path=path, channels=[channel])
+    return lightpath_id
 
 
 def Mininet_setupLightpath(lightpath_id, path, channel):
@@ -165,13 +167,13 @@ def Mininet_monitorLightpath(lightpath_id):
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     osnrs, gosnrs = list(), list()
-    for i in range(len(path)-1):
+    for i in range(1,len(path)-2):
         node1, node2 = path[i], path[i+1]
         ID1, ID2 = ROADM_TO_ID[node1], ROADM_TO_ID[node2]
         monitorKey = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
         osnr, gosnr = Controller_Mininet.monitorOSNRbyKey(key=monitorKey, channel=channel)
         osnrs.append(osnr)
-        gosnrs.append(osnrs)
+        gosnrs.append(gosnr)
     return osnrs, gosnrs
     #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
 
@@ -329,7 +331,7 @@ def check_lightpath_for_traf(src, dst):
     for lighpath_id in lighpaths:
         if len(LIGHTPATH_INFO[lighpath_id]['traf_set']) < LIGHTPATH_INFO[lighpath_id]['link_cap']/CPRI_CAP:
             avai_lightpaths.add(lighpath_id)
-    return avai_lightpaths
+    return list(avai_lightpaths)
 
 
 def update_lightpath_down_time(lightpath_id, down_time):
@@ -586,7 +588,7 @@ def TrafficTest(Mininet_Enable=False):
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
     N = int(24 * 7)  # total emulation time : 24 hour * y days
-    Total_traf = NUM_WAV*35000/90.0 #35000 # Gbps
+    Total_traf = 2000 #35000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
     for i in range(2,NUM_NODE):
@@ -676,10 +678,14 @@ def TrafficTest(Mininet_Enable=False):
                     reassign_traf = []
                     for lightpath_id, info in LIGHTPATH_INFO.items():
                         #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'], channel=info['channel_id'], nodes=NODES)
-                        osnr, gosnr = 25, 25
+                        if not Mininet_Enable:
+                            osnr, gosnr = 25, 25
+                        else:
+                            osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
+                            osnr, gosnr = min(osnrs), min(gosnrs)
                         LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                         LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
-
+                        #print(osnr,gosnr)
                         # upgrade or downgrade the modulation/capacity of a lightpath based on gosnr
                         if 18< gosnr < 24:
                             LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
@@ -727,7 +733,11 @@ def TrafficTest(Mininet_Enable=False):
                             #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path=info['path'],
                             #                                                           channel=info['channel_id'],
                             #                                                           nodes=NODES)
-                            osnr, gonsr = 25,25
+                            if not Mininet_Enable:
+                                osnr, gosnr = 25, 25
+                            else:
+                                osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
+                                osnr, gosnr = min(osnrs), min(gosnrs)
                             LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                             LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
                             if 18 < gosnr < 24:
@@ -775,7 +785,10 @@ def TrafficTest(Mininet_Enable=False):
             while factor * MAX_traf[src] / CPRI_CAP < len(ROADM_TRAF[src]):
                 traf_id = random.choice(list(ROADM_TRAF[src]))
                 dst = TRAFFIC_INFO[traf_id]['dst']
-                BBU_traf[ROADM_TO_TERMINAL[dst]] -= 1
+                if not Mininet_Enable:
+                    BBU_traf[ROADM_TO_TERMINAL[dst]] -= 1
+                else:
+                    BBU_traf[dst] -= 1
                 lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                 traf_to_lightpath_Release(traf_id=traf_id)
