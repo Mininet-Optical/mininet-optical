@@ -60,39 +60,60 @@ class Mininet_Control_REST(object):
         self.net.routes = {node: self.route(node, self.net.graph, self.net.terminals)
                       for node in self.net.terminals}
 
-
-    def monitorKey(self, monitor ):
+    def monitorKey(self, monitor):
         "Key for sorting monitor names"
-        items =  monitor.split( '-' )
+        items = monitor.split('-')
         return items
 
-    def monitorOSNR(self, gosnrThreshold=18.0 ):
+    def getMonitorKey(self, src_id, dst_id, spanID=1):
+
+        return 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
+
+    def monitorOSNRbyKey(self, key, channel):
+
+        monitors = self.net.get('monitors').json()['monitors']
+        for monitor in sorted(monitors, key=self.monitorKey):
+            if monitor == key:
+                response = self.net.get('monitor', params=dict(monitor=monitor))
+                osnrdata = response.json()['osnr']
+                for ch, data in osnrdata.items():
+                    if ch != str(channel):
+                        continue
+                    THz = float(data['freq']) / 1e12
+                    osnr, gosnr = data['osnr'], data['gosnr']
+                    return osnr, gosnr
+        return 0, 0
+
+    def monitorOSNR(self, channel, gosnrThreshold=18.0 ):
         """Monitor gOSNR continuously; if any monitored gOSNR drops
            below threshold, return list of (monitor, channel, link)"""
         monitors = self.net.get( 'monitors' ).json()['monitors']
-        fmt = '%s:(%.0f,%.0f) '
-        failures = []
-        while not failures:
-            logtime = datetime.now().strftime("%H:%M:%S")
-            # print( logtime, 'OSNR, gOSNR from monitors:' )
-            for monitor in sorted( monitors, key=monitorKey ):
-                response = self.net.get( 'monitor', params=dict( monitor=monitor ) )
-                osnrdata = response.json()[ 'osnr' ]
-                # print( monitor + ':', end=' ' )
-                for channel, data in osnrdata.items():
-                    THz = float( data['freq'] )/1e12
-                    osnr, gosnr = data['osnr'], data['gosnr']
-                    # print( fmt % ( channel, osnr, gosnr ), end='' )
-                    if gosnr < gosnrThreshold:
-                        print( "WARNING! gOSNR %.2f below %.2f dB threshold:" %
-                               ( gosnr, gosnrThreshold ) )
-                        link = monitors[ monitor ][ 'link' ]
-                        print( monitor, '<ch%s:%.2fTHz OSNR=%.2fdB gOSNR=%.2fdB>' %
-                               (channel, THz, osnr, gosnr ) )
-                        failures.append( ( monitor, channel, link ) )
-                # print()
-            sleep( 1)
-        return failures
+        channel, osnrs, gosnrs, isWorking = channel, list(), list(), 1
+
+        for monitor in sorted( monitors, key=self.monitorKey ):
+            response = self.net.get( 'monitor', params=dict( monitor=monitor ) )
+            osnrdata = response.json()[ 'osnr' ]
+            print(monitor, '\n', osnrdata.items())
+            # print( monitor + ':', end=' ' )
+            for ch, data in osnrdata.items():
+                if ch != str(channel):
+                    continue
+                THz = float( data['freq'] )/1e12
+                osnr, gosnr = data['osnr'], data['gosnr']
+                osnrs.append(osnr)
+                gosnrs.append(gosnr)
+                # print( fmt % ( channel, osnr, gosnr ), end='' )
+                #print('ch, osnr, gosnr: ', ch, osnr, gosnr)
+                if gosnr < gosnrThreshold:
+                    isWorking = 0
+                    print( "WARNING! gOSNR %.2f below %.2f dB threshold:" %
+                           ( gosnr, gosnrThreshold ) )
+                    link = monitors[ monitor ][ 'link' ]
+                    print( monitor, '<ch%s:%.2fTHz OSNR=%.2fdB gOSNR=%.2fdB>' %
+                           (channel, THz, osnr, gosnr ) )
+                    print ( monitor, channel, link )
+
+        return channel, osnrs, gosnrs, isWorking
 
 
     def buildGraph(self, links):
@@ -172,14 +193,14 @@ class Mininet_Control_REST(object):
 
         # to local
         for protocol in 'ip', 'icmp', 'arp':
-            print('add-flow, proto, dst, port', protocol, subnet(src), localport)
+            #print('add-flow, proto, dst, port', protocol, subnet(src), localport)
             flow = ( protocol + ',ip_dst=' + subnet( src )+
                      ',actions=dec_ttl,output:%d' % localport )
             # print( router, 'add-flow',  flow )
             routerProxy.dpctl( 'add-flow', flow )
         # to destination
         for protocol in 'ip', 'icmp', 'arp':
-            print('add-flow, proto, dst, port', protocol, subnet(dst), channel)
+            #print('add-flow, proto, dst, port', protocol, subnet(dst), channel)
             flow = ( protocol + ',ip_dst=' + subnet( dst )+
                      ',actions=dec_ttl,output:%d' % channel )
             # print( router, 'add-flow',  flow )
@@ -251,8 +272,8 @@ def Test():
         # Configure routers
         router = net.switches[src_id-1]
         router2 = net.switches[dst_id-1]
-        control.configurePacketSwitch(src=1, dst=4, channel=channel, router=router)
-        control.configurePacketSwitch(src=4, dst=1, channel=channel, router=router2)
+        control.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router)
+        control.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
 
     def uninstall_lightpath(path, channel):
         control.uninstallPath(path=path, channels=[channel])
@@ -265,11 +286,13 @@ def Test():
     src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
     path = net.routes[src][dst]
     print(src, '->', dst, path)
-    channel = 10
+    channel = 12
     install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
     uninstall_lightpath(path, channel)
     install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
-
+    control.monitorOSNR(channel=12, gosnrThreshold=15)
+    print('first hop osnr', control.monitorOSNRbyKey('r1-r2-amp1-monitor',channel=12))
+    #"""
 
     # install lightpaths
     """channel_sd = {}
@@ -283,6 +306,8 @@ def Test():
         path = net.routes[src][dst]
         channel_sd[channel] = (src_id,dst_id)
         install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
+        ch, osnrs, gosnrs, isWorking = control.monitorOSNR(channel=channel, gosnrThreshold=15)
+        print(ch, osnrs, gosnrs, isWorking )
     # """
 
     # delete these lightpaths
@@ -293,4 +318,4 @@ def Test():
         uninstall_lightpath(path, channel)
     # """
 
-Test()
+#Test()
