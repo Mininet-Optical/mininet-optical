@@ -132,7 +132,6 @@ class Link(object):
         :param safe_switch: boolean, needed for propagation algorithm
         :return:
         """
-        self.check_signals()
         if self.boost_amp:
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
@@ -147,17 +146,6 @@ class Link(object):
                 first_span.include_optical_signal_in(optical_signal)
             first_span.propagate(is_last_port=is_last_port,
                                  safe_switch=safe_switch)
-
-    def check_signals(self):
-        """
-        Check for duplication of signals in a Link
-        """
-        optical_signals = set()
-        for optical_signal in self.optical_signals:
-            if optical_signal.frequency in optical_signals:
-                raise Exception("@%s duplicated signals in link" % self)
-            else:
-                optical_signals.add(optical_signal.frequency)
 
 class Span(object):
 

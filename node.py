@@ -203,7 +203,7 @@ class LineTerminal(Node):
         :return: added transceiver
         """
         if self.existing_transceiver(transceiver):
-            raise ValueError("Node.LineTerminal.add_transceiver: Transceiver with this name already exist!")
+            raise ValueError("%s.add_transceiver: Transceiver named %s already exist!" % (self, transceiver.name))
         # enable to retrieve Transceiver object by name and ID
         self.name_to_transceivers[transceiver.name] = transceiver
         self.id_to_transceivers[transceiver.id] = transceiver
@@ -241,7 +241,8 @@ class LineTerminal(Node):
             if transceiver.optical_signal.index != channel:
                 self.assoc_channel(transceiver, channel, out_port)
             else:
-                print("*** %s.assoc_tx_to_channel: signal %s already configure in transceiver %s!" % (self, transceiver.optical_signal, transceiver))
+                print("*** LineTerminal %s.assoc_tx_to_channel: %s already configure in transceiver %s!" %
+                      (self, transceiver.optical_signal, transceiver.name))
         else:
             self.assoc_channel(transceiver, channel, out_port)
 
@@ -302,6 +303,8 @@ class LineTerminal(Node):
             transceiver = self.tx_to_channel[out_port]['transceiver']
             transceiver.optical_signal.reset(component=self)
 
+            print("*** %s.turn_on %s on port %s" % (self, optical_signal, out_port))
+
             # pass signal info to link
             link = self.port_to_link_out[out_port]
             link.include_optical_signal_in(optical_signal)
@@ -353,17 +356,15 @@ class LineTerminal(Node):
                 signalInfoDict[optical_signal]['gosnr'] = gosnr
 
                 if gosnr < rx_transceiver.rx_threshold_dB:
-                    print("*** %s receiving %s at port %s: Failure!\ngOSNR: %f dB - rx-thd:%s dB" %
+                    print("*** %s receiving %s at port %s: Failure! gOSNR: %f dB OSNR: %f dB - rx-thd:%s dB" %
                           (self.name, optical_signal, in_port,
-                           gosnr, rx_transceiver.rx_threshold_dB))
-                    print("OSNR: %f dB" % osnr)
+                           gosnr, osnr, rx_transceiver.rx_threshold_dB))
 
                     signalInfoDict[optical_signal]['success'] = False
                     self.receiver_callback(in_port, signalInfoDict)
                 else:
-                    print("*** %s receiving %s at port %s: Success!\ngOSNR: %f dB" %
-                          (self.name, optical_signal, in_port, gosnr))
-                    print("OSNR: %f dB" % osnr)
+                    print("*** %s receiving %s at port %s: Success! gOSNR: %f dB OSNR: %f dB" %
+                          (self.name, optical_signal, in_port, gosnr, osnr))
 
                     signalInfoDict[optical_signal]['success'] = True
                     self.receiver_callback(in_port, signalInfoDict)
@@ -374,6 +375,7 @@ class LineTerminal(Node):
                                  (self, optical_signal, self))
         else:
             self.receiver_callback(in_port, signalInfoDict)
+            print("*** %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel) )
             raise Exception("@%s, input port: %s not configured correctly for "
                              "optical signal: %s in LineTerminal.\n"
                              "You can configure it with %s.assoc_rx_to_channel() before launching transmission." %
@@ -596,6 +598,45 @@ class Roadm(Node):
             self.preamp.include_optical_signal_in(optical_signal, in_port=0)
         self.include_optical_signal_in(optical_signal,in_port=in_port)
 
+    def remove_switch_rule(self, rule_in_port, rule_signal_index, rule_out_port):
+        """
+        Removes a switch rule from switch_table and removes the signal object
+        from the output port to model blocking
+        """
+        print("*** %s.remove_switch_rule: [%s, %s]: %s" %
+              (self, rule_in_port, rule_signal_index, rule_out_port))
+        del self.switch_table[(rule_in_port, rule_signal_index)]
+        for optical_signal in self.port_to_optical_signal_in[rule_in_port]:
+            if rule_signal_index == optical_signal.index:
+                self.remove_signal_from_out_port(rule_out_port, optical_signal)
+
+    def check_switch_rule(self, in_port, out_port, signal_indices):
+        """
+        Check if there are conflicting rules switching signals with equal
+        frequencies on the same output port. If so, delete the previously
+        allocated rule, and remove the signal from the output port and
+        propagate this removal (modeling blocking that signal and cleaning
+        the data structures).
+        :param in_port: int, input port
+        :param out_port: int, output port
+        :param signal_indices: int or list, signal indices
+        """
+        self.switch_table_copy = self.switch_table.copy()
+        if type(signal_indices) is list or type(signal_indices) is set:
+            for (rule_in_port, rule_signal_index), rule_out_port in self.switch_table_copy.items():
+                for signal_index in signal_indices:
+                    if signal_index == rule_signal_index and out_port == rule_out_port:
+                        print("*** %s.check_switch_rule: removing switch rule (%d, %d): %d" %
+                              (self, rule_in_port, rule_signal_index, rule_out_port))
+                        self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
+                        self.port_check_range_out[out_port] = 0
+        else:
+            for (rule_in_port, rule_signal_index), rule_out_port  in self.switch_table_copy.items():
+                if signal_indices == rule_signal_index and out_port == rule_out_port:
+                    self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
+                    self.port_check_range_out[out_port] = 0
+
+
     def install_switch_rule(self, in_port, out_port, signal_indices, src_node=None):
         """
         Switching rule installation, accessible from a Control System
@@ -605,18 +646,15 @@ class Roadm(Node):
         :param src_node: source node
         :return:
         """
-        switch = True
+        print("*** %s.install_switch_rule: [%d, %s]: %d" %
+              (self, in_port, signal_indices, out_port))
+        self.check_switch_rule(in_port, out_port, signal_indices)
         # Used for update and delete rules
         self.node_to_rule_id_in.setdefault(src_node, [])
         # arbitrary rule identifier
         # the keys are tuples and the stored values int
         if type(signal_indices) is list or type(signal_indices) is set:
             for signal_index in signal_indices:
-                if (in_port, signal_index) in self.switch_table:
-                    if self.switch_table[in_port, signal_index] == out_port:
-                        print("*** %s.install_switch_rule: this rule already exists!" % self)
-                        self.port_check_range_out[out_port] = 0
-                        switch = False
                 self.switch_table[in_port, signal_index] = out_port
                 self.node_to_rule_id_in[src_node].append((in_port, signal_index))
                 self.rule_id_to_node_in[in_port, signal_index] = src_node
@@ -625,9 +663,7 @@ class Roadm(Node):
 
             self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
             self.rule_id_to_node_in[in_port, signal_indices] = src_node
-        if switch:
-            self.switch(in_port, src_node)
-
+        self.switch(in_port, src_node)
 
     def update_switch_rule(self, in_port, signal_index, new_port_out, switch=False):
         """
