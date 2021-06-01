@@ -91,16 +91,6 @@ def opticalLinks():
     return [ link for link in net().links
              if isinstance( link, OpticalLink ) ]
 
-@get( '/plot' )
-def plot():
-    "Return information for monitor"
-    query = request.query
-    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
-    if hasattr( monitor, 'plotMonitor' ):
-        result = monitor.plotMonitor()
-    else:
-        abort( 404, "Node %s does not appear to be a monitor" % monitor )
-    return result
 
 @get ( '/links' )
 def links():

@@ -25,12 +25,7 @@ import numpy as np
 
 class SixROADMTopo(Topo):
     """
-    h1 - s1 - t1 -- r1 -- t2 - s2 - h2
-                    |
-                    t3 - s3 - h3
-
-    Note that t1--r1 and r2--t2 are 50km spans:
-    (boost->,amp2<-) --25km-- amp1 --25km-- (amp2->,boost<-)
+    Six ROADMs ring topology with 6 transceivers at each Terminal.
     """
     def build(self):
         "Build single ROADM topology"
@@ -38,7 +33,7 @@ class SixROADMTopo(Topo):
         hosts = [self.addHost(h) for h in ('BBU1', 'RRU1', 'RRU2', 'BBU2', 'RRU3', 'RRU4')]
         switches = [self.addSwitch(s)
                     for s in ('s1', 's2', 's3', 's4', 's5', 's6')]
-        ran = np.arange(1, 7)
+        ran = np.arange(1, 7) # Number of transceivers per Terminal
         tr_labels = ['tx%s' % str(x) for x in ran]
         transceivers = [(tr, 0*dBm, 'C') for tr in tr_labels]
         t1, t2, t3, t4, t5, t6 = terminals = [
@@ -51,7 +46,7 @@ class SixROADMTopo(Topo):
         # Ethernet links
         for h, s, t in zip(hosts, switches, terminals):
             self.addLink(h, s, port1=0, port2=10)
-            self.addLink(s, t, port1=1, port2=1) #this add veth link
+            self.addLink(s, t, port1=1, port2=1) #t his add veth link
             self.addLink(s, t, port1=2, port2=2)
             self.addLink(s, t, port1=3, port2=3)
             self.addLink(s, t, port1=4, port2=4)
@@ -64,8 +59,8 @@ class SixROADMTopo(Topo):
         spans = [15*km, amp1, 15*km, amp2]
         #links between Roadms and Terminals
         for r, t in zip(roadms, terminals):
-            self.addLink(r, t, cls=OpticalLink, port1=1, port2=11, spans=spans) #this add optical link #boost1=boost,
-            self.addLink(r, t, cls=OpticalLink, port1=2, port2=12, spans=spans) #boost1=boost,
+            self.addLink(r, t, cls=OpticalLink, port1=1, port2=11, spans=spans) #this add optical link
+            self.addLink(r, t, cls=OpticalLink, port1=2, port2=12, spans=spans)
             self.addLink(r, t, cls=OpticalLink, port1=3, port2=13, spans=spans)
             self.addLink(r, t, cls=OpticalLink, port1=4, port2=14, spans=spans)
             self.addLink(r, t, cls=OpticalLink, port1=5, port2=15, spans=spans)
@@ -121,7 +116,6 @@ if __name__ == '__main__':
 
     net.start()
     restServer.start()
-    #visualize_topology(net)
     plotNet(net)
     CLI(net)
     restServer.stop()

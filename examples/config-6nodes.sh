@@ -5,14 +5,6 @@ set -e  # exit script on error
 # URL for REST server
 url="localhost:8080"; t1=$url; t2=$url; t3=$url; t4=$url; t5=$url; t6=$url; r1=$url; r2=$url; r3=$url; r4=$url; r5=$url; r6=$url;
 
-#echo "* Resetting Terminals"
-#curl "$t1/reset?node=t1"
-#curl "$t2/reset?node=t2"
-#curl "$t3/reset?node=t3"
-#curl "$t4/reset?node=t4"
-#curl "$t5/reset?node=t5"
-#curl "$t6/reset?node=t6"
-
 echo "* Configuring terminals in 6nodestopo.py network"
 
 echo "* Configuring terminal 1 in 6nodestopo.py network"
@@ -44,13 +36,6 @@ curl "$t5/connect?node=t5&ethPort=5&wdmPort=15&channel=5"
 echo "* Configuring terminal 6 in 6nodestopo.py network"
 curl "$t6/connect?node=t6&ethPort=4&wdmPort=14&channel=4"
 
-
-#I don't think this is doing something here. See the same function after launch
-#echo "* Monitoring signals at endpoints"
-#for tname in t1 t2 t3 t4 t5 t6; do
-#    url=${!tname}
-#    curl "$url/monitor?monitor=$tname-monitor"
-#done
 
 echo "* Resetting ROADM"
 curl "$r1/reset?node=r1"
@@ -110,17 +95,5 @@ for rname in r1 r2 r3 r4 r5 r6; do
     echo "* $rname"
     curl "$url/monitor?monitor=$rname-monitor"
 done
-#echo "* Monitoring signals at t1"
-#curl "$t1/monitor?monitor=$t1-monitor"
-
-#echo "* Monitoring signals at t4"
-#curl "$t4/monitor?monitor=$t4-monitor"
-
-#echo "Try to plot"
-#for rname in r6; do
-#    url=${!rname}
-#    echo "* $rname"
-#    curl "$url/plot?monitor=$rname-monitor"
-#done
 
 echo "* Done."
