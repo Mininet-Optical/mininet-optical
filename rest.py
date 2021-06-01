@@ -78,7 +78,7 @@ def monitors():
 def monitor():
     "Return information for monitor"
     query = request.query
-    monitor = lookUpNode( query.monitor ) # pylint: disable=no-member
+    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
     if hasattr( monitor, 'restMonitor' ):
         result = monitor.restMonitor()
     else:
@@ -90,7 +90,6 @@ def opticalLinks():
     "Return optical links"
     return [ link for link in net().links
              if isinstance( link, OpticalLink ) ]
-
 
 @get ( '/links' )
 def links():

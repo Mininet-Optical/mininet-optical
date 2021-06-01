@@ -30,9 +30,7 @@ from node import ( LineTerminal as PhyTerminal, Transceiver,
                    Node as PhyNode,
                    Roadm as PhyROADM, Monitor as PhyMonitor,
                    SwitchRule as PhySwitchRule,
-                   db_to_abs,
-                   abs_to_db,
-                   abs_to_dbm )
+                   db_to_abs )
 
 # Data plane
 from mininet.net import Mininet
@@ -44,7 +42,6 @@ from mininet.cli import CLI
 from mininet.clean import sh, Cleanup, cleanup
 from mininet.util import BaseString
 
-import matplotlib.pyplot as plt
 from itertools import chain
 from operator import attrgetter
 from sys import argv
@@ -215,37 +212,6 @@ class Monitor:
                  for signal in signals }
         return dict( osnr=osnr )
 
-    def plotMonitor(self):
-        "Return the spectrum of the node"
-        monitor = self.model
-        signals = monitor.get_optical_signals()
-        signals = sorted(signals, key=lambda s:s.index)
-        frequency_list = []
-        power_list = []
-        for signal in signals:
-            freq=signal.frequency
-            freq_thz=freq*1e-12
-            frequency_list.append(freq_thz)
-            power_abs=monitor.get_power( signal )
-            power_dbm=abs_to_dbm(power_abs)
-            power_list.append(power_dbm)
-        #plt.figure(figsize=(8,8))
-        plt.plot(frequency_list, power_list,'o', label='node %s'%(self.name))
-        plt.xlabel('Frequency [THz]')
-        plt.ylabel('Power [dBm]')
-        #plt.ylim([-50, -30])
-        plt.legend(bbox_to_anchor=(0,1.05,1,0.2), loc="lower left",
-                   mode="expand", borderaxespad=0, ncol=3)
-        for x,y in zip(frequency_list,power_list):
-            label = "{:.2f}".format(y)
-            plt.annotate(label, # this is the text
-                         (x,y), # this is the point to label
-                         textcoords="offset points", # how to position the text
-                         xytext=(0,10), # distance from text to points (x,y)
-                         ha='center') # horizontal alignment can be left, right or center
-        #plt.tight_layout()
-        plt.savefig('PlotMonitor.png')
-        return None
 
     def __str__( self ):
         return str( self.model)

@@ -25,7 +25,7 @@ def abs_to_db(absolute_value):
 def abs_to_dbm(absolute_value):
     """
     :param absolute_value: list or float
-    :return: Convert absolute value to dB
+    :return: Convert absolute value to dBm
     """
     dbm_value = 10 * np.log10(absolute_value/1e-3)
     return dbm_value
