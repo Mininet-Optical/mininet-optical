@@ -585,8 +585,8 @@ def TrafficTest(Mininet_Enable=False):
 
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
-    N = int(24 * 0.1)  # total emulation time : 24 hour * y days
-    Total_traf = 2000 #35000 # Gbps
+    N = int(24 * 7)  # total emulation time : 24 hour * y days
+    Total_traf = NUM_WAV*35000/90.0 #35000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
     for i in range(2,NUM_NODE):
