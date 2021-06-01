@@ -14,15 +14,16 @@ import random
 from collections import defaultdict
 #import numpy as np
 from Control_Test_Lum import Lumentum_Control_NETCONF
-
+from Control_Test_Mininet_REST import Mininet_Control_REST
 
 km = dB = dBm = 1.0
 m = .001
 
 # Parameters
 Controller_Lum = Lumentum_Control_NETCONF()
+Controller_Mininet = Mininet_Control_REST()
 
-NUM_WAV = 80
+NUM_WAV = 15
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
@@ -54,11 +55,15 @@ name_roadms = []
 name_terminals = []
 ROADM_TO_TERMINAL = {}
 TERMINAL_TO_ROADM = {}
+ROADM_TO_ID = {}
+TERMINAL_TO_ID = {}
 for i in range(NUM_NODE):
     name_roadms.append('r%d'%(i+1))
     name_terminals.append('t%d'%(i+1))
     ROADM_TO_TERMINAL['r%d' % (i + 1)] = 't%d' % (i + 1)
     TERMINAL_TO_ROADM['t%d' % (i + 1)] = 'r%d' % (i + 1)
+    ROADM_TO_ID['r%d' % (i + 1)] = (i + 1)
+    TERMINAL_TO_ID['t%d' % (i + 1)] = (i + 1)
     node = 'r%d' %(i+1)
     if node not in DU_ROADMS:
         RU_ROADMS.append(node)
@@ -113,104 +118,63 @@ def RoadmPhyNetwork():
 
 ############# Mininet Optical############
 
-def Mininet_installPath(lightpath_id, path, channels, graph, nodes):
+def Mininet_installPath(lightpath_id, path, channel, power=-3):
     "intall switch rules on roadms along a lightpath for some signal channels"
 
-    # Install ROADM rules
-    print(graph, nodes)
-    for channel in channels:
+    src_id, dst_id = TERMINAL_TO_ID[path[0]], TERMINAL_TO_ID[path[-1]]
+    # Install a route
+    Controller_Mininet.installPath(path=path, channels=[channel])
+    # Configure terminals and start transmitting
+    terminal = Controller_Mininet.net.terminals[src_id - 1]
+    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
+    terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
+    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
+    Controller_Mininet.turnonTerminal(terminal=terminal)
+    Controller_Mininet.turnonTerminal(terminal=terminal2)
+    # Configure routers
+    router = Controller_Mininet.net.switches[src_id - 1]
+    router2 = Controller_Mininet.net.switches[dst_id - 1]
+    Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router)
+    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
 
-        LIGHTPATH_INFO[lightpath_id]['rule_path'] = None
 
-
-def Mininet_uninstallPath(lightpath_id, nodes):
+def Mininet_uninstallPath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
 
 
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
-    Mininet_turnoffTerminalChannel(terminal=nodes[path[0]], channel=channel)
-    nodes[roadm].delete_switch_rule(rule_path[roadm])
+    Controller_Mininet.uninstallPath(path=path, channels=[channel])
 
 
+def Mininet_setupLightpath(lightpath_id, path, channel):
+    "configure a lightpath "
 
-def Mininet_setupLightpath(lightpath_id, path, channel, power, graph, nodes):
-    channel = channel[0]
-    Mininet_installPath(lightpath_id, path, [channel], graph, nodes)
-    Mininet_configTerminalChannelPower(terminal= nodes[path[0]], channel=channel, power=power)
-    Mininet_configTerminalChannel(terminal=nodes[path[0]], channel=channel)
-    return True
+    return Mininet_installPath(lightpath_id, path, channel)
 
 
-def Mininet_teardownLightpath(lightpath_id, nodes):
+def Mininet_teardownLightpath(lightpath_id):
+    "remove a lightpath"
 
-    Mininet_uninstallPath(lightpath_id, nodes)
-    return True
-
-
-
-def Mininet_configTerminalChannelPower(terminal, channel, power):
-    "Congifure Terminal Launch power for a channel"
-
-    terminal.name_to_transceivers['tx%d'% channel].operation_power = db_to_abs(power)
+    return Mininet_uninstallPath(lightpath_id)
 
 
-def Mininet_configTerminalChannel(terminal, channel):
-    "Turn on a Terminal with a given channel"
-
-    terminal.configure_terminal(transceiver=terminal.transceivers[channel-1], channel=channel)
-    terminal.turn_on()
-
-
-def Mininet_turnoffTerminalChannel(terminal, channel):
-    "Turn on a Terminal with a given channel"
-
-    terminal.turn_off([channel-1])
-
-
-def Mininet_monitorAll(node):
-    "monitoring all data at a node"
-
-    return node.monitor.get_dict_power(),node.monitor.get_dict_osnr(), node.monitor.get_dict_gosnr()
-
-
-def Mininet_monitorLightpath(path, channel, nodes):
+def Mininet_monitorLightpath(lightpath_id):
     "monitoring a signal along a lightpath"
-    #print('monitor_path_ch', path, channel)
 
-    powers = list()
-    osnrs = list()
-    gosnrs = list()
-    ase_noise = list()
-    nli_noise = list()
-    freq = round((191.30 + 0.05*channel)*10**12,1)
-    for i in range(1, len(path) - 1):
-        name = path[i]
-        node = nodes[name]
-        optical_signals = node.monitor.extract_optical_signal()
-        for sig in optical_signals:
-            if freq==sig[0].frequency:
-                if node.monitor.mode == 'out':
-                    output_power = (sig[0].loc_out_to_state[node.monitor.component]['power'])
-                    ase = (sig[0].loc_out_to_state[node.monitor.component]['ase_noise'])
-                    nli = (sig[0].loc_out_to_state[node.monitor.component]['nli_noise'])
-                else:
-                    output_power = (sig[0].loc_in_to_state[node.monitor.component]['power'])
-                    ase = (sig[0].loc_in_to_state[node.monitor.component]['ase_noise'])
-                    nli = (sig[0].loc_in_to_state[node.monitor.component]['nli_noise'])
-                gosnr_linear = output_power / (ase + nli * (12.5e9 / 32.0e9))
-                gosnr = abs_to_db(gosnr_linear)
-                osnr_linear = output_power / ase
-                osnr = abs_to_db(osnr_linear)
-                powers.append(output_power)
-                osnrs.append(osnr)
-                gosnrs.append(gosnr)
-                ase_noise.append(ase)
-                nli_noise.append(nli)
-                #powers.append((name,output_power))
-                #osnrs.append((name,osnr))
-                #gosnrs.append((name,gosnr))
-    return powers, osnrs, gosnrs, ase_noise, nli_noise
+    path = LIGHTPATH_INFO[lightpath_id]['path']
+    channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
+    osnrs, gosnrs = list(), list()
+    for i in range(len(path)-1):
+        node1, node2 = path[i], path[i+1]
+        ID1, ID2 = ROADM_TO_ID[node1], ROADM_TO_ID[node2]
+        monitorKey = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
+        osnr, gosnr = Controller_Mininet.monitorOSNRbyKey(key=monitorKey, channel=channel)
+        osnrs.append(osnr)
+        gosnrs.append(osnrs)
+    return osnrs, gosnrs
+    #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
+
 
 ################# END ####################
 
@@ -313,19 +277,22 @@ def waveSelection(channels):
     return random.choice(channels)
 
 
-def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf')):
+def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mininet = False):
     "intall switch rules on roadms along a lightpath for some signal channels, update control database"
 
     ## Install ROADM rules
     global LIGHTPATH_ID
     LIGHTPATH_ID += 1
-
-    # id : {'path':path, 'channel': channel_id, 'traf': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
-    res = Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
-    count =0
-    while not res and count<5:
+    if not Mininet:
+        # id : {'path':path, 'channel': channel_id, 'traf': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
         res = Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
-        count += 1
+        count =0
+        while not res and count<5:
+            res = Lumentum_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
+            count += 1
+
+    else:
+        res = Mininet_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
     if not res:
         LIGHTPATH_ID -= 1
         return None
@@ -392,7 +359,7 @@ def traf_to_lightpah_Assignment(traf_id, lightpath_id, down_time = float('inf'))
     return traf_id
 
 
-def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
+def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = False):
     '''
     source RRH node to destination BBU node
     '''
@@ -404,9 +371,14 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
 
     if lightpath_id:
         print('find a provisioned lightpath for traffic successfully!')
-        info=Lumentum_MonitorLightpath(lightpath_id)
-        print('source ROADM', info[0])
-        print('destination ROADM', info[1])
+        if not Mininet:
+            info=Lumentum_MonitorLightpath(lightpath_id=lightpath_id)
+            print('source ROADM', info[0])
+            print('destination ROADM', info[1])
+        else:
+            info=Mininet_monitorLightpath(lightpath_id=lightpath_id)
+            print('osnr', info[0])
+            print('gosnr', info[1])
         TRAFFIC_ID += 1
         traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
         LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
@@ -416,32 +388,41 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf')):
         all_path_info = routes[src][dst]
         for path_info in all_path_info:
             path = path_info
-            path = path[1:-1]
+            if not Mininet:
+                path = path[1:-1]
             chs = waveAvailibility(path=path)
             if chs:
                 ch = waveSelection(chs)
-                lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time)
+                lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time, Mininet=Mininet)
                 if lightpath_id:
                     TRAFFIC_ID += 1
                     traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
                     print('install a lightpath for traffic successfully!')
-                    info=Lumentum_MonitorLightpath(lightpath_id)
-                    print('source ROADM', info[0])
-                    print('destination ROADM', info[1])
+                    if not Mininet:
+                        info = Lumentum_MonitorLightpath(lightpath_id=lightpath_id)
+                        print('source ROADM', info[0])
+                        print('destination ROADM', info[1])
+                    else:
+                        info = Mininet_monitorLightpath(lightpath_id=lightpath_id)
+                        print('osnr', info[0])
+                        print('gosnr', info[1])
                     return traf_id
     print('traffic is rejected!')
     return False
 
 
-def uninstall_Lightpath(lightpath_id):
+def uninstall_Lightpath(lightpath_id, Mininet = False):
     "delete switch rules on roadms along a lightpath for some signal channels"
 
     print('tear down a lightpath!')
-    res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
-    count = 0
-    while not res and count<5:
+    if not Mininet:
         res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
-        count+=1
+        count = 0
+        while not res and count<5:
+            res = Lumentum_uninstallPath(lightpath_id=lightpath_id)
+            count+=1
+    else:
+        res = Mininet_uninstallPath(lightpath_id=lightpath_id)
     if not res:
         return None
     path = LIGHTPATH_INFO[lightpath_id]['path']
@@ -577,7 +558,9 @@ def trafficPattern(pattern, time):
         traffic_weeked = resident_weekend
     return traffic_week[hour], traffic_weeked[hour]
 
-def TrafficTest():
+def TrafficTest(Mininet_Enable=False):
+
+    #Mininet_Enable = True
     # ROADM port numbers (input and output)
     random.seed(1000)
     "Create a single link and monitor its OSNR and gOSNR"
@@ -602,8 +585,8 @@ def TrafficTest():
 
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
-    N = 24 * 1  # total emulation time : 24 hour * y days
-    Total_traf = 20000 #35000 # Gbps
+    N = int(24 * 0.1)  # total emulation time : 24 hour * y days
+    Total_traf = 2000 #35000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
     for i in range(2,NUM_NODE):
@@ -629,6 +612,10 @@ def TrafficTest():
     ROADM_TYPE = {}
     for i in range(2, NUM_NODE):
         ROADM_TYPE['r%d' %i] = random.choice(Traf_Type)
+
+    # clean all ROADM info if use Lumentum
+    if not Mininet_Enable:
+        Controller_Lum.cleanAllROADMs()
 
     for i in range(N):
         Rej = {} # rejected CPRI requests in each ROADM/terminal
@@ -679,7 +666,7 @@ def TrafficTest():
                 #return
 
                 # install this traf to a lighpath
-                traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'))
+                traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
                 #print('request', src, dst)
                 if traf_id:
                     ADD_TRAF = True
@@ -717,7 +704,7 @@ def TrafficTest():
 
 
                     for s_t, d_t in reassign_traf:
-                        traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'))
+                        traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
                         if traf_id:
                             ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].add(traf_id)
                         else:
@@ -729,7 +716,7 @@ def TrafficTest():
                     dst = dst_back
                     dst_t = dst_t_back
                     print('try_backup_path', src, dst)
-                    traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'))
+                    traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
                     if traf_id:
                         ADD_TRAF = True
                         ROADM_TRAF[src].add(traf_id)
@@ -765,7 +752,7 @@ def TrafficTest():
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
 
                         for s_t, d_t in reassign_traf:
-                            traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'))
+                            traf_id = install_Traf(s_t, d_t, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
                             if traf_id:
                                 ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].add(traf_id)
                             else:
@@ -794,11 +781,11 @@ def TrafficTest():
                 traf_to_lightpath_Release(traf_id=traf_id)
                 ROADM_TRAF[src].remove(traf_id)
                 if not traf_set:
-                    uninstall_Lightpath(lightpath_id=lightpath_id)
+                    uninstall_Lightpath(lightpath_id=lightpath_id, Mininet=Mininet_Enable)
 
-        while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
+        """while UP_LIGHTPATH_TIME_LIST and UP_LIGHTPATH_TIME_LIST[0][0]< time:
             lightpath_id = UP_LIGHTPATH_TIME_LIST.pop(0)[1]
-            uninstall_Lightpath(lightpath_id=lightpath_id)
+            uninstall_Lightpath(lightpath_id=lightpath_id, Mininet=Mininet_Enable)
         #"""
 
     #     OneG = 0
@@ -848,8 +835,12 @@ def TrafficTest():
     # print('rej_ratio', 1.0*Rej['t2']/RRH_traf['t2'], 1.0*Rej['t3']/RRH_traf['t3'])
     # print('total_rej_rate', 1.0* Total_Rej/sum(RRH_traf.values()) )
 
+def testMininet():
+    path = ['t1', 'r1', 'r2', 'r3', 'r4', 't4']
+    install_Lightpath(path=path, channel=5, up_time=0, Mininet=True)
 
 if __name__ == '__main__':
     #RoadmPhyTest()
-    TrafficTest()
+    TrafficTest(Mininet_Enable=True)
+    #testMininet()
 
