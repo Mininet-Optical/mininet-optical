@@ -1,0 +1,52 @@
+from node import db_to_abs, abs_to_db, abs_to_dbm
+from ofcdemo.fakecontroller import (
+    RESTProxy, TerminalProxy, ROADMProxy, OFSwitchProxy,
+    fetchNodes, fetchLinks, fetchPorts, fetchOSNR, fetchRules )
+
+import matplotlib.pyplot as plt
+import time
+
+
+def plot_power_vs_wavelength(net, monitor_name):
+    frequency_list=[]
+    power_list=[]
+    plt.ion()
+    figure, ax = plt.subplots(figsize=(8,8))
+    plt.plot(frequency_list, power_list,'bo', label='node %s'%(monitor_name))
+    plt.xlabel('Frequency [THz]')
+    plt.ylabel('Power [dBm]')
+    plt.legend(bbox_to_anchor=(0,1.05,1,0.2), loc="lower left",
+               mode="expand", borderaxespad=0)
+    plt.savefig('PlotMonitor.png')
+
+    while True:
+        response = net.get( 'monitor', params=dict( monitor=monitor_name ) )
+        monidata = response.json()[ 'osnr' ]
+        frequency_list=[]
+        power_list=[]
+        for channel, data in monidata.items():
+            THz = float( data['freq'] )/1e12
+            frequency_list.append(THz)
+            power_abs = data['power']
+            power_dbm=abs_to_dbm(power_abs)
+            power_list.append(power_dbm)
+        #print('frequency_list= ', frequency_list)
+        #print('power_list= ', power_list)
+        plt.plot(frequency_list, power_list,'bo', label='node %s'%(monitor_name))
+        for x,y in zip(frequency_list,power_list):
+            label = "{:.2f}".format(y)
+            plt.annotate(label, # text
+                        (x,y), # point to label
+                        textcoords="offset points", # position of the text
+                        xytext=(0,10), # distance from text to points (x,y)
+                        ha='center') # horizontal alignment (left, right or center)
+        figure.canvas.draw()
+        figure.canvas.flush_events()
+        time.sleep(1) # updated each second
+    return None
+
+
+if __name__ == '__main__':
+
+    net=RESTProxy()
+    plot_power_vs_wavelength(net, 'r4-monitor')
