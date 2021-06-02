@@ -19,8 +19,6 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, warning
 from mininet.clean import cleanup
 
-from visualize_topo import visualize_topology
-
 import numpy as np
 
 class SixROADMTopo(Topo):
