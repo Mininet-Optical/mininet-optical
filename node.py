@@ -174,16 +174,37 @@ class LineTerminal(Node):
         if self.monitor:
             return self.monitor
 
+    def get_optical_signals(self):
+        """
+        Get all optical signals by looking into
+        the Transceiver objects
+        """
+        optical_signals = []
+        for t in self.transceivers:
+            if t.optical_signal:
+                if t.optical_signal not in optical_signals:
+                    optical_signals.append(t.optical_signal)
+        return optical_signals
+
+    def reset_transceivers(self):
+        """
+        Disassociate signals from all transceivers
+        """
+        for t in self.transceivers:
+            t.optical_signal = None
+
     def reset(self):
         """
-        FIXME: (AD) This should reset all the dynamic attributes
+        Remove all optical signals from the LineTerminal,
+        and reset dynamic data structures
         """
-        # clean output ports
-        for out_port, _ in self.port_to_optical_signal_out.items():
-            self.port_to_optical_signal_out[out_port] = []
-        # clean input ports
-        for in_port, _ in self.port_to_optical_signal_in.items():
-            self.port_to_optical_signal_in[in_port] = []
+        optical_signals = self.get_optical_signals()
+        for optical_signal in optical_signals:
+            self.remove_optical_signal(optical_signal)
+        self.reset_transceivers()
+        self.optical_signals_out = 0
+        self.tx_to_channel = {}
+        self.rx_to_channel = {}
 
     def add_transceivers(self, transceivers):
         """
@@ -582,6 +603,21 @@ class Roadm(Node):
 
         self.preamp = preamp
         self.boost = boost
+
+    def get_optical_signals(self):
+        optical_signals = []
+        for optical_signal in self.optical_signal_to_port_in.keys():
+            optical_signals.append(optical_signal)
+        return optical_signals
+
+    def reset(self):
+        for optical_signal in self.get_optical_signals():
+            self.remove_optical_signal(optical_signal)
+        self.switch_table = {}
+        self.port_check_range_out = {}
+        self.node_to_rule_id_in = {}
+        self.rule_id_to_node_in = {}
+
 
     def monitor_query(self):
         if self.monitor:
