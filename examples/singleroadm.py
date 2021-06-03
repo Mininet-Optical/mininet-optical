@@ -62,7 +62,8 @@ class SingleROADMTopo(Topo):
 
 
 # Debugging: Plot network graph
-def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo'):
+def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo',
+            colorMap=None):
     "Plot network graph to outfile"
     try:
         import pygraphviz as pgv
@@ -71,6 +72,8 @@ def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo'):
         return
     color = {ROADM: 'red', Terminal: 'blue', OVSBridge: 'orange',
              Host: 'black'}
+    if colorMap:
+        color.update(colorMap)
     colors = {node: color.get(type(node), 'black')
               for node in net.values()}
     nfont = {'fontname': 'helvetica bold', 'penwidth': 3}
