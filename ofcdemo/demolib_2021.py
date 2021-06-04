@@ -258,7 +258,7 @@ class LinearRoadmTopo( OpticalTopo ):
             ('t%d' %t, 0*dBm, 'C') for t in range(1, txCount+1) ]
         terminal = self.addSwitch(
             't%d' % p, cls=Terminal, transceivers=transceivers )
-        roadm = self.addSwitch( 'r%d' % p,  cls=ROADM )
+        roadm = self.addSwitch( 'r%d' % p,  cls=ROADM, monitor_mode='out')
         # Local links
         for port in range( 1, txCount+1 ):
             self.ethLink( router, terminal, port1=port, port2=port )
