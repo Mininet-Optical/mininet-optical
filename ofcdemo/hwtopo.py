@@ -67,9 +67,9 @@ class LumentumLinear( Topo ):
 
     def hostname( self, i ):
         "Return hostname for host i"
-        if i == 1: return 'RRU1'
-        if i == self.nodecount: return 'RRU2'
-        return f'BBU{i-1}'
+        if i == 1: return 'BBU1'
+        if i == self.nodecount: return 'BBU2'
+        return f'RU{i-1}'
 
     def build( self, nodecount=4, power=0*dBm, txcount=10 ):
         "Build demo-like topology"
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         netconfServer.start()
     configComb( net )
     if 'plot' in argv:
-       plotNet(net, outfile='lroadm.png', directed=True,
+       plotNet(net, outfile='hwtopo.png', directed=True,
                layout='neato', colorMap={Lumentum: 'darkGreen'})
     CLI(net)
     if 'netconf' in argv:
