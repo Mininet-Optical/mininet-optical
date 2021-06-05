@@ -13,17 +13,19 @@ def plot_power_vs_wavelength(net, monitor_name):
     plt.ion()
     figure, ax = plt.subplots(figsize=(8,8))
     plt.plot(frequency_list, power_list,'bo', label='node %s'%(monitor_name))
-    plt.xlabel('Frequency [THz]')
-    plt.ylabel('Power [dBm]')
+    plt.xlabel('Frequency [THz]', size = 20)
+    plt.ylabel('Power [dBm]', size = 20)
     plt.legend(bbox_to_anchor=(0,1.05,1,0.2), loc="lower left",
                mode="expand", borderaxespad=0)
     plt.savefig('PlotMonitor.png')
-
+    bbox_args = dict(boxstyle="round", fc="0.8")
+    arrow_args = dict(facecolor='black', shrink=0.02) # or arrowstyle="->",
     while True:
         frequency_list=[]
         power_list=[]
-        plt.xlabel('Frequency [THz]')
-        plt.ylabel('Power [dBm]')
+        plt.xlabel('Frequency [THz]', size = 20)
+        plt.ylabel('Power [dBm]', size = 20)
+        plt.grid()
         response = net.get( 'monitor', params=dict( monitor=monitor_name ) )
         monidata = response.json()[ 'osnr' ]
         for channel, data in monidata.items():
@@ -37,15 +39,22 @@ def plot_power_vs_wavelength(net, monitor_name):
         plt.plot(frequency_list, power_list,'bo', label='node %s'%(monitor_name))
         plt.legend(bbox_to_anchor=(0,1.05,1,0.2), loc="lower left",
                    mode="expand", borderaxespad=0)
-        # Uncomment to have the power value above the points:
-        #for x,y in zip(frequency_list,power_list):
-        #    label = "{:.2f}".format(y)
-        #    plt.annotate(label, # text
-        #                (x,y), # point to label
-        #                textcoords="offset points", # position of the text
-        #                xytext=(0,10), # distance from text to points (x,y)
-        #                ha='center') # horizontal alignment (left, right or center)
-        plt.ylim([-20, -10])
+        # Power value above every 6 points:
+        i=1
+        for x,y in zip(frequency_list,power_list):
+            if (i%6 == 0):
+                label = '(%.1f, %.4f)'%(x, y)
+                plt.annotate(label, # text
+                            (x,y), # point to label
+                            textcoords="offset points", # position of the text
+                            xytext=(0,60), # distance from text to points (x,y)
+                            ha='center', # horizontal alignment (left, right or center)
+                            va="bottom",
+                            bbox=bbox_args,
+                            size= 15,
+                            arrowprops=arrow_args)
+            i+=1
+        plt.ylim([-20, 0])
         figure.canvas.draw()
         figure.canvas.flush_events()
         time.sleep(1) # updated each second
