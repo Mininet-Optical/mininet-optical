@@ -118,7 +118,7 @@ def RoadmPhyNetwork():
 
 ############# Mininet Optical############
 
-def Mininet_installPath(lightpath_id, path, channel, power=-3):
+def Mininet_installPath(lightpath_id, path, channel, power=0):
     "intall switch rules on roadms along a lightpath for some signal channels"
 
     src_id, dst_id = TERMINAL_TO_ID[path[0]], TERMINAL_TO_ID[path[-1]]
@@ -587,7 +587,7 @@ def TrafficTest(Mininet_Enable=False):
 
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
-    N = int(24 * 1)  # total emulation time : 24 hour * y days
+    N = int(24 * 7)  # total emulation time : 24 hour * y days
     Total_traf = 40000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
@@ -602,7 +602,7 @@ def TrafficTest(Mininet_Enable=False):
 
     # Assign max number of processing traffic in a BBU ROADM (any endpoints)
     BBU_limit = {}
-    BBU_limit['t%d' % NUM_NODE] = 50
+    BBU_limit['t%d' % NUM_NODE] = 100
 
     # Initial number of requested traffic in RRH ROADMs
     RRH_traf = {}
