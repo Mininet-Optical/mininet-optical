@@ -567,7 +567,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=-3,
+    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=0,
                  preamp=None, boost=None, monitor_mode=None):
         """
         :param name: string, name tag of ROADM
@@ -1098,7 +1098,7 @@ class Amplifier(Node):
         self.system_gain = target_gain
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
         self.bandwidth = bandwidth
-        #wavelength_dependent_gain_id = 'linear'
+        # wavelength_dependent_gain_id = 'linear'
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 
@@ -1134,7 +1134,8 @@ class Amplifier(Node):
             k = random.choice(list(ripple_functions.keys()))
             self.wdgfunc = k
             wavelength_dependent_gain_id = k
-        return ripple_functions[wavelength_dependent_gain_id]
+            wdg = [x for x in ripple_functions[wavelength_dependent_gain_id]]
+        return wdg #ripple_functions[wavelength_dependent_gain_id]
 
     def set_ripple_function(self, wavelength_dependent_gain_id):
         self.wavelength_dependent_gain = (
