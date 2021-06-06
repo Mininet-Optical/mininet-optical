@@ -567,7 +567,7 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=0,
+    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=-3,
                  preamp=None, boost=None, monitor_mode=None):
         """
         :param name: string, name tag of ROADM
@@ -596,7 +596,7 @@ class Roadm(Node):
         # By default ROADMs support up to 90 channels indexed 1-90
         channel_no = 90
         self.insertion_loss_dB = {k: insertion_loss_dB for k in range(1, channel_no + 1)}
-        self.reference_power_dBm = {k: reference_power_dBm for k in range(1, channel_no + 1)}
+        self.reference_power_dBm = {k: reference_power_dBm * 1e-3 for k in range(1, channel_no + 1)}
         # expected output power of signals
         self.target_output_power_dBm = {k: self.reference_power_dBm[k] - self.insertion_loss_dB[k]
                                         for k in range(1, channel_no + 1)}
@@ -1098,7 +1098,7 @@ class Amplifier(Node):
         self.system_gain = target_gain
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
         self.bandwidth = bandwidth
-        wavelength_dependent_gain_id = 'linear'
+        #wavelength_dependent_gain_id = 'linear'
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wavelength_dependent_gain_id))
 

@@ -16,7 +16,7 @@ class Link(object):
     """
 
     def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
-                 boost_amp=None, srs_effect=False, spans=None):
+                 boost_amp=None, srs_effect=True, spans=None):
         """
         :param src_node: source Node object
         :param dst_node: destination Node object
@@ -261,7 +261,7 @@ class Span(object):
                                                               in_port=in_port)
                 self.next_component.receiver(optical_signal, in_port)
             elif isinstance(self.next_component, Roadm):
-                self.next_component.include_optical_signal_in(optical_signal,
+                self.next_component.include_optical_signal_in_roadm(optical_signal,
                                                               in_port=in_port)
             elif isinstance(self.next_component, Amplifier):
                 self.next_component.include_optical_signal_in(optical_signal, in_port=0)
