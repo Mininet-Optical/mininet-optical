@@ -49,13 +49,13 @@ class OpticalCLI( CLI ):
             if hasattr( node, 'model' ):
                 self.printSignals( node.model )
 
-
     @staticmethod
     def formatSigState( state ):
         "Return formatted signal state string"
-        pwr = state[ 'power' ]
-        ase = state[ 'ase_noise' ]
-        nli = state[ 'nli_noise' ]
+        nan = float( 'nan' )
+        pwr = state.get( 'power', nan )
+        ase = state.get( 'ase_noise', nan )
+        nli = state.get( 'nli_noise', nan )
         return 'pwr:%.1e ase:%.1e nli:%.1e' % ( pwr, ase, nli )
 
     def printSignals(self, model):
@@ -64,13 +64,13 @@ class OpticalCLI( CLI ):
             if not sigs: continue
             print( model, "in  %d:" % port, end='' )
             for sig in sigs:
-                state = sig.loc_in_to_state.get( model, '' )
+                state = sig.loc_in_to_state.get( model, {} )
                 print( sig, self.formatSigState( state ) )
         for port, sigs in model.port_to_optical_signal_out.items():
             if not sigs: continue
             print( model, "out %d:" % port, end='' )
             for sig in sigs:
-                state = sig.loc_out_to_state.get( model, '' )
+                state = sig.loc_out_to_state.get( model, {} )
                 print( sig, self.formatSigState( state ) )
 
     def opticalLinks( self ):
