@@ -171,7 +171,7 @@ class Mininet_Control_REST(object):
         proxies[terminal].turn_on()
 
 
-    def configurePacketSwitch(self, src, dst, channel, router):
+    def configurePacketSwitch(self, src, dst, channel, router, port):
         "Configure Open vSwitch 'routers' using OpenFlow"
 
         print( "*** Configuring Open vSwitch 'routers' remotely... " )
@@ -179,7 +179,7 @@ class Mininet_Control_REST(object):
         def subnet( pop ):
             return '10.%d.0.0/24' % pop
 
-        routerProxy = OFSwitchProxy( router )
+        routerProxy = OFSwitchProxy( name=router, port=port )
 
         # Initialize flow table
         print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )

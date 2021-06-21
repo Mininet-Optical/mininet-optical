@@ -15,6 +15,7 @@ from collections import defaultdict
 #import numpy as np
 #from Control_Test_Lum import Lumentum_Control_NETCONF
 from Control_Test_Mininet_REST import Mininet_Control_REST
+from fakecontroller import ListenPortBase
 
 km = dB = dBm = 1.0
 m = .001
@@ -134,8 +135,8 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
-    Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router)
-    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
+    Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
+    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
     return lightpath_id
 
 
@@ -870,4 +871,3 @@ if __name__ == '__main__':
     #RoadmPhyTest()
     TrafficTest(Mininet_Enable=True)
     #testMininet()
-
