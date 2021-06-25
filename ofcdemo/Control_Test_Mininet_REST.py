@@ -27,6 +27,7 @@ from ofcdemo.fakecontroller import (
     fetchNodes, fetchLinks, fetchPorts, fetchOSNR )
 
 from collections import defaultdict
+import copy
 from datetime import datetime
 from itertools import chain
 from time import sleep
@@ -66,24 +67,45 @@ class Mininet_Control_REST(object):
         return items
 
     def getMonitorKey(self, src_id, dst_id, spanID=1):
+        key1 = 'r{}-r{}-amp{}-monitor'.format(dst_id, src_id, spanID)
+        key2 = 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
+        return key1, key2
 
-        return 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
-
-    def monitorOSNRbyKey(self, key, channel):
-
+    def monitorOSNRbyKey(self, key1, key2, channel):
+        """Return osnr and gosnr for a given monitor"""
         monitors = self.net.get('monitors').json()['monitors']
-        for monitor in sorted(monitors, key=self.monitorKey):
-            if monitor == key:
-                response = self.net.get('monitor', params=dict(monitor=monitor))
-                osnrdata = response.json()['osnr']
-                for ch, data in osnrdata.items():
-                    if ch != str(channel):
-                        continue
-                    THz = float(data['freq']) / 1e12
-                    osnr, gosnr = data['osnr'], data['gosnr']
-                    return osnr, gosnr
+        if key1 in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key1))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
+        elif key2 in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key2))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
         return 0, 0
 
+    def availableLightpathsforMonitor(self):
+        """Returns the channels the monitor can monitor"""
+        monitors = self.net.get('monitors').json()['monitors']
+        for key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            print(key, osnrdata.keys())
+
+    def monitorKeyAndLightpaths(self):
+        Monitors_and_Signals ={}
+        monitors = self.net.get('monitors').json()['monitors']
+        for key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            Monitors_and_Signals[key] = osnrdata.keys()
+        return Monitors_and_Signals
     def monitorOSNR(self, channel, gosnrThreshold=18.0 ):
         """Monitor gOSNR continuously; if any monitored gOSNR drops
            below threshold, return list of (monitor, channel, link)"""
@@ -171,10 +193,10 @@ class Mininet_Control_REST(object):
         proxies[terminal].turn_on()
 
 
-    def configurePacketSwitch(self, src, dst, channel, router, port):
+    def configurePacketSwitch(self, src, dst, channel, router, port=0):
         "Configure Open vSwitch 'routers' using OpenFlow"
 
-        print( "*** Configuring Open vSwitch 'routers' remotely... " )
+        print( "*** Configuring Open vSwitch 'routers' remotely... " ) #UNCOMMENT FOR DEMO
 
         def subnet( pop ):
             return '10.%d.0.0/24' % pop
@@ -182,13 +204,13 @@ class Mininet_Control_REST(object):
         routerProxy = OFSwitchProxy( name=router, port=port )
 
         # Initialize flow table
-        print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )
+        print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' ) #UNCOMMENT FOR DEMO
         routerProxy.dpctl( 'del-flows' )
 
         # Find local port
         ethports = sorted( int(port) for port, intf in self.net.ports[ router ].items()
                            if 'eth' in intf )
-        print('==router ethports==', ethports)
+        print('==router ethports==', ethports) #UNCOMMENT FOR DEMO
         localport = ethports[ -1 ]
 
         # to local
@@ -242,15 +264,15 @@ class Mininet_Control_REST(object):
             # For terminal nodes, use the proper channel port(s)
             if i == 1:
                 for channel in channels:
-                    print('pin-pout', channel, port2)
+                    print('REMOVING LINK: pin-pout', channel, port2) #Connects the channel to the port
                     ROADMProxy( roadm ).connect( channel, port2, [channel], action='remove' )
             elif i == len(path) - 2:
                 for channel in channels:
-                    print('pin-pout', port1, channel)
+                    print('REMOVING LINK: pin-pout', port1, channel)
                     ROADMProxy( roadm ).connect( port1, channel, [channel], action='remove' )
             # For roadm nodes, forward the channels en masse
             else:
-                print('pin-pout', port1, port2)
+                print('REMOVING LINK: pin-pout', port1, port2)
                 ROADMProxy( roadm ).connect( port1, port2, channels, action='remove' )
 
 

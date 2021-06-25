@@ -398,6 +398,7 @@ class DemoTopo( LinearRoadmTopo ):
         for i in range( 1, n ):
             src, dst = roadms[i], roadms[i+1]
             self.addPopLink( src, dst )
+            self.addPopLink( dst, src )
 
 
 if __name__ == '__main__':
