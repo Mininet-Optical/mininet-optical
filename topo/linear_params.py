@@ -24,9 +24,9 @@ class LinearTopology:
                         for id, tr in enumerate(tr_labels, start=1)]
         tx = net.add_lt('tx', transceivers=transceivers)
         # Receiver terminal
-        transceivers = [Transceiver(id, tr, operation_power=power_dBm, debugger=debugger)
+        transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
-        rx = net.add_lt('rx', transceivers=transceivers, monitor_mode='in')
+        rx = net.add_lt('rx', transceivers=transceivers, monitor_mode='in', debugger=debugger)
 
         # Create ROADM objects
         roadms = [net.add_roadm('r%s' % (i + 1),
