@@ -22,6 +22,7 @@ class LinearTopology:
         # Transmitter terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
+
         tx = net.add_lt(name='tx', transceivers=transceivers, debugger=debugger)
         # Receiver terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
