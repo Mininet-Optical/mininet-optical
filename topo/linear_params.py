@@ -27,6 +27,7 @@ class LinearTopology:
         # Receiver terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
+
         rx = net.add_lt(name='rx', transceivers=transceivers, monitor_mode='in', debugger=debugger)
 
         # Create ROADM objects
