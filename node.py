@@ -12,7 +12,7 @@ class Node(object):
     input_port_base = 0
     output_port_base = 0
 
-    def __init__(self, name, debugger=True):
+    def __init__(self, name, debugger=False):
         self.name = name
         self.debugger = debugger
 
