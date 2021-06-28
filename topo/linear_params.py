@@ -8,7 +8,7 @@ from topo.helper_funcs import *
 class LinearTopology:
 
     @staticmethod
-    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=True):
+    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False):
         """
         :param op: operational power in dBm
         :param non: number of nodes (integer)
@@ -22,11 +22,11 @@ class LinearTopology:
         # Transmitter terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
-        tx = net.add_lt('tx', transceivers=transceivers)
+        tx = net.add_lt(name='tx', transceivers=transceivers, debugger=debugger)
         # Receiver terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
-        rx = net.add_lt('rx', transceivers=transceivers, monitor_mode='in', debugger=debugger)
+        rx = net.add_lt(name='rx', transceivers=transceivers, monitor_mode='in', debugger=debugger)
 
         # Create ROADM objects
         roadms = [net.add_roadm('r%s' % (i + 1),

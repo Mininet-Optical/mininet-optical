@@ -149,5 +149,5 @@ if __name__ == '__main__':
     combinations = [(-12, 5, 1, 1, 5), (-6, 5, 1, 3, 5)]
     for test_no, combination in enumerate(combinations, start=1):
         # execute Mininet-Optical tests
-        mininet_optical_test(test_no, combination, logdata=True)
+        mininet_optical_test(test_no, combination, logdata=False)
     print("It took %s seconds to run auto_tests.py" % str(time.time() - start_time))

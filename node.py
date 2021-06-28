@@ -12,7 +12,7 @@ class Node(object):
     input_port_base = 0
     output_port_base = 0
 
-    def __init__(self, name, debugger=True):
+    def __init__(self, name, debugger=False):
         self.name = name
         self.debugger = debugger
 
@@ -151,7 +151,7 @@ class Node(object):
 
 class LineTerminal(Node):
 
-    def __init__(self, name, transceivers=None, monitor_mode='out', debugger=True):
+    def __init__(self, name, transceivers=None, monitor_mode='out', debugger=False):
         Node.__init__(self, name)
         # list of transceivers in LineTerminal
         if transceivers is None:
@@ -576,7 +576,7 @@ class Roadm(Node):
     """
 
     def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=0,
-                 preamp=None, boost=None, monitor_mode=None, debugger=True):
+                 preamp=None, boost=None, monitor_mode=None, debugger=False):
         """
         :param name: string, name tag of ROADM
         :param insertion_loss_dB: int, linear insertion loss of ROADM (default 17 dB)
@@ -1097,7 +1097,7 @@ class Amplifier(Node):
     def __init__(self, name, amplifier_type='EDFA', target_gain=17.6,
                  noise_figure=(5.5, 91), noise_figure_function=None,
                  bandwidth=32.0e9, wavelength_dependent_gain_id=None,
-                 preamp=False, boost=False, monitor_mode=None, debugger=True):
+                 preamp=False, boost=False, monitor_mode=None, debugger=False):
         """
         :param amplifier_type: OBSOLETE; kept for backwards compatibility
         :param target_gain: units: dB - float

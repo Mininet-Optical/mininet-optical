@@ -16,7 +16,7 @@ class Link(object):
     """
 
     def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
-                 boost_amp=None, srs_effect=True, spans=None, debugger=True):
+                 boost_amp=None, srs_effect=True, spans=None, debugger=False):
         """
         :param src_node: Node, source Node
         :param dst_node: Node, destination Node
@@ -159,11 +159,12 @@ class Span(object):
 
     ids = 1
 
-    def __init__(self, fibre_type='SMF', length=20.0):
+    def __init__(self, fibre_type='SMF', length=20.0, debugger=False):
         """
         :param length: optical fiber span length in km - float
         :param fibre_type: optical fiber type - string
         """
+        self.debugger = debugger
         self.span_id = Span.ids
         Span.ids += 1
         self.fibre_type = fibre_type
