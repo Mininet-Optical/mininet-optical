@@ -16,13 +16,20 @@ class Link(object):
     """
 
     def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
-                 boost_amp=None, srs_effect=True, spans=None):
+                 boost_amp=None, srs_effect=True, spans=None, debugger=True):
         """
-        :param src_node: source Node object
-        :param dst_node: destination Node object
+        :param src_node: Node, source Node
+        :param dst_node: Node, destination Node
+        :param src_out_port: int, output port of src node
+        :param dst_in_port: int, input port of dst node
+        :param boost_amp: Amplifier, booster
+        :param srs_effect: boolean, enabling/disabling SRS effect
+        :param spans: list, list of Span objects
+        :param debugger: boolean, debugging flag
         """
         if src_node == dst_node:
             raise ValueError("link.__init__ src_node must be different from dst_node!")
+        self.debugger = debugger
         # configuration attributes
         self.src_node = src_node
         self.dst_node = dst_node
@@ -87,7 +94,8 @@ class Link(object):
         return "(%s->%s)" % (self.src_node, self.dst_node)
 
     def remove_optical_signal(self, optical_signal):
-        print("*** %s removing: %s" % (self, optical_signal))
+        if self.debugger:
+            print("*** %s removing: %s" % (self, optical_signal))
         if optical_signal in self.optical_signals:
             self.optical_signals.remove(optical_signal)
 
@@ -199,7 +207,8 @@ class Span(object):
         return b2  # s/Hz/m
 
     def remove_optical_signal(self, optical_signal):
-        print("*** %s removing: %s" % (self, optical_signal))
+        if self.debugger:
+            print("*** %s removing: %s" % (self, optical_signal))
         if optical_signal in self.optical_signals:
             self.optical_signals.remove(optical_signal)
 
@@ -315,6 +324,9 @@ class Span(object):
                                                 ase_noise=ase_noise_out, nli_noise=nli_noise_out)
 
     def output_nonlinear_noise(self):
+        """
+        Compute GN model and updates state data structures
+        """
         nonlinear_noise = self.gn_model()
         for optical_signal in self.optical_signals:
             nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
