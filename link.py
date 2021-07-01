@@ -16,7 +16,7 @@ class Link(object):
     """
 
     def __init__(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1,
-                 boost_amp=None, srs_effect=True, spans=None, debugger=False):
+                 boost_amp=None, srs_effect=False, spans=None, debugger=False):
         """
         :param src_node: Node, source Node
         :param dst_node: Node, destination Node
@@ -119,7 +119,6 @@ class Link(object):
         """
         if optical_signal not in self.optical_signals:
             self.optical_signals.append(optical_signal)
-
         optical_signal.assoc_loc_in(self, power, ase_noise, nli_noise)
 
     def include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None):
