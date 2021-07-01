@@ -639,8 +639,10 @@ class Roadm(Node):
         Removes a switch rule from switch_table and removes the signal object
         from the output port to model blocking
         """
-        print("*** %s.remove_switch_rule: [%s, %s]: %s" %
-              (self, rule_in_port, rule_signal_index, rule_out_port))
+        # print("*** %s.remove_switch_rule: [%s, %s]: %s" %
+        #       (self, rule_in_port, rule_signal_index, rule_out_port))
+        print(f"*** {self}.check_switch_rule: removing switch rule | (inport:{rule_in_port}, "
+              f"outport:{rule_out_port}) |Signals {rule_signal_index}")
         del self.switch_table[(rule_in_port, rule_signal_index)]
         for optical_signal in self.port_to_optical_signal_in[rule_in_port]:
             if rule_signal_index == optical_signal.index:
@@ -662,15 +664,19 @@ class Roadm(Node):
             for (rule_in_port, rule_signal_index), rule_out_port in self.switch_table_copy.items():
                 for signal_index in signal_indices:
                     if signal_index == rule_signal_index and out_port == rule_out_port:
-                        print("*** %s.check_switch_rule: removing switch rule (%d, %d): %d" %
-                              (self, rule_in_port, rule_signal_index, rule_out_port))
+                        # print("*** %s.check_switch_rule: removing switch rule (%d, %d): %d" %
+                        #       (self, rule_in_port, rule_signal_index, rule_out_port))
                         self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
                         self.port_check_range_out[out_port] = 0
+                        print(f"*** {self}.check_switch_rule: removing switch rule | (inport:{rule_in_port}, "
+                              f"outport:{rule_out_port}) |Signals {rule_signal_index}")
         else:
             for (rule_in_port, rule_signal_index), rule_out_port  in self.switch_table_copy.items():
                 if signal_indices == rule_signal_index and out_port == rule_out_port:
                     self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
                     self.port_check_range_out[out_port] = 0
+                    print(f"*** {self}.check_switch_rule: removing switch rule | (inport:{rule_in_port}, "
+                          f"outport:{rule_out_port}) |Signals {rule_signal_index}")
 
 
     def install_switch_rule(self, in_port, out_port, signal_indices, src_node=None):
@@ -682,8 +688,9 @@ class Roadm(Node):
         :param src_node: source node
         :return:
         """
-        print("*** %s.install_switch_rule: [%d, %s]: %d" %
-              (self, in_port, signal_indices, out_port))
+        # print("*** %s.install_switch_rule: [%d, %s]: %d" %
+        #       (self, in_port, signal_indices, out_port))
+        print(f"*** {self}.install_Switch_Rule: inport:{in_port}, outport:{out_port} | Signal_Indicies {signal_indices}")
         self.check_switch_rule(in_port, out_port, signal_indices)
         # Used for update and delete rules
         self.node_to_rule_id_in.setdefault(src_node, [])

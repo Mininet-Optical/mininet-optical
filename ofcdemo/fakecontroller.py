@@ -71,6 +71,12 @@ class RESTProxy( Proxy ):
         # print(result.url)
         return result
 
+class proxyMessage( RESTProxy ):
+    def message( self, message ):
+        params = message
+
+
+
 
 class NodeProxy( RESTProxy ):
     "Base class for switching node proxies"
@@ -99,6 +105,7 @@ class TerminalProxy( SwitchProxy ):
                        channel=channel, power=power)
         # print('connect', params)
         r = self.get( 'connect', params=params )
+        print(f"{self} SIGNAL ESTABLISHED: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}, response {r}")
         # print( r )
 
     def reset(self):
@@ -125,7 +132,7 @@ class ROADMProxy( SwitchProxy ):
         # print('connect', params)
         r = self.get( 'connect', params=params)
         # print( r )
-
+        print(f"ROADM PROXY: {self} port:{port1}->port:{port2} with channels:{channels} | r: {r}")
     def reset(self):
         params = dict(node=self.name)
         # print('reset', params)

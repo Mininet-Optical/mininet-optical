@@ -378,14 +378,16 @@ class Terminal( SwitchBase ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
+        print(f"+++{self} SIGNAL ESTABLISHED: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}")#TESTING_DEMO
         # Update physical model
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
         self.configTx( txNum=tx, channel=channel, power=power )
-        if wdmInPort is None:
+        if wdmInPort is None: #If we do not define a wdmInPort, it's set to our wdmPort
             wdmInPort = wdmPort
         wdmInputIntf = self.intfs[ wdmInPort ]
         wdmIntf = self.intfs[ wdmPort ]
+        print(f"++{self} wdm:({wdmPort}, {wdmIntf}) | wdmInput:({wdmInPort}, {wdmInputIntf})")
         if wdmIntf.isOutput():
             # print(self, 'uplink', 'tx', transceiver.id, 'ch', channel, 'port', wdmPort )
             self.model.assoc_tx_to_channel(
@@ -398,6 +400,7 @@ class Terminal( SwitchBase ):
         for port in wdmInPort, wdmPort:
             self.dpctl( 'del-flows', 'in_port=%d' % port )
             self.dpctl( 'del-flows', 'out_port=%d' % port )
+            print(f"++{self} REMOVING PORT {port}") #TESTING_DEMO
 
         # Tag outbound packets and/or untag inbound packets
 
@@ -411,6 +414,7 @@ class Terminal( SwitchBase ):
                     'dl_vlan=%d,' % channel +
                     'actions=strip_vlan,'
                     'output:%d' % ethPort )
+        print(f"{self} \tinbound signal:{inbound} \n\tOutbound signal:{outbound}")
 
         if wdmIntf.isOutput():
             self.dpctl( 'add-flow', outbound )
@@ -525,7 +529,7 @@ class ROADM( SwitchBase ):
     def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
         "Install a switching rule into the dataplane"
         for channel in channels:
-            print('install/uninstall', inport, outport, channel, cmd)
+            print(f"\n{self} INSTALL/UNINSTALL: {cmd}, inport: {inport}, outport: {outport}, channel: {channel} ")
             flow = self.dpFlow( inport, outport, channel, cmd )
             self.dpctl( cmd, flow )
 
@@ -574,9 +578,27 @@ class ROADM( SwitchBase ):
         intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
         assert intf1.isInput() and intf2.isOutput()
         self.install( port1, port2, channels, action=action )
+        print(f"{self} propegating {intf1}->{intf2} on channel {channels}")
         # Install reverse rule if interfaces are bidirectional
         if intf1.isOutput() and intf2.isInput():
-            self.install( port2, port1, channels, action=action )
+           self.install( port2, port1, channels, action=action )
+           print(f"{self} propegating bidirectionally {intf2}->{intf1} on channel {channels}")
+        print(f"{self} Port1:Intf1 [{port1}, {intf1}] | Port2:Intf2 [{port2}, {intf2}] \n \n"
+              #f"+++{self} ALL INTFS: {self.intfs.items()} \n"
+              f"")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class SimpleROADM( ROADM ):
