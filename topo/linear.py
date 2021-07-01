@@ -65,10 +65,11 @@ def add_amp(net, node_name=None, type=None, gain_dB=None):
 class LinearTopology:
 
     @staticmethod
-    def build(op=0, non=3):
+    def build(op=0, non=3, bidirectional=False):
         """
-        :param op: operational power in dBm
-        :param non: number of nodes (integer)
+        :param op: int, operational power in dBm
+        :param non: int, number of nodes (integer)
+        :param bidirectional: boolean, bidirectional links
         :return: Network object
         """
         # Create an optical-network object
@@ -110,5 +111,7 @@ class LinearTopology:
             r1 = name_to_roadm['r' + str(i + 1)]
             r2 = name_to_roadm['r' + str(i + 2)]
             build_link(net, r1, r2)
+            if bidirectional:
+                build_link(net, r2, r1)
 
         return net
