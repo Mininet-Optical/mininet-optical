@@ -867,7 +867,8 @@ class Roadm(Node):
                                 # these signals can be safely terminated at a LineTerminal
                                 if not isinstance(self.port_to_node_out[out_port], LineTerminal):
                                     if self.debugger:
-                                        print('RoadmWarning:', self, "probable loop detected. Stopping propagation.")
+                                        print('RoadmWarning:', self, "same signals already propagated on this output "
+                                                                     "port. Stopping propagation.")
                                         print("Blocking:", port_to_optical_signal_out[out_port], "port:", out_port)
                                     # Disable the usage of this output port
                                     # and avoid repropagation of signals
