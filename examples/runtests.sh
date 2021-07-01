@@ -18,7 +18,7 @@ args='test'
 for test in ${tests[@]}; do
     echo -e "**** Running $test\n"
     echo "$run $test $args"
-    if $run $test $args; then
+    if $run $test $args < /dev/null; then
         echo -e "\n**** PASSED: $test\n"
         passed+=($test)
     else
