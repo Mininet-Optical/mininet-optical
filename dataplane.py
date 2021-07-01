@@ -530,7 +530,7 @@ class ROADM( SwitchBase ):
     def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
         "Install a switching rule into the dataplane"
         for channel in channels:
-            print(f"\n{self} INSTALL/UNINSTALL: {cmd}, inport->outport: {inport}->{outport}, channel={channel} ")
+            print(f"\n{self} INSTALL/UNINSTALL: cmd:{cmd}, inport:{inport}->outport:{outport}, channel={channel} ")
             flow = self.dpFlow( inport, outport, channel, cmd )
             self.dpctl( cmd, flow )
 
@@ -579,14 +579,14 @@ class ROADM( SwitchBase ):
         intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
         assert intf1.isInput() and intf2.isOutput()
         self.install( port1, port2, channels, action=action )
-        print(f"{self} propegating {intf1}->{intf2} on channel {channels}")
+        print(f"{self} propegating Port1:({port1}, {intf1})->Port2:({port2}, {intf2}) on channel {channels}")
         # Install reverse rule if interfaces are bidirectional
         if intf1.isOutput() and intf2.isInput():
            self.install( port2, port1, channels, action=action )
-           print(f"{self} propegating bidirectionally {intf2}->{intf1} on channel {channels}")
-        print(f"{self} Connecting Port1->Port2 ({port1}, {intf1})->({port2}, {intf2}) \n"
+           print(f"{self} propegating bidirectionally Port2:({port2}, {intf2})->Port1:({port1}, {intf1}) on channel {channels}")
+        #print(f"{self} Connecting Port1:({port1}, {intf1})->Port2:({port2}, {intf2}) \n"
               #f"+++{self} ALL INTFS: {self.intfs.items()} \n"
-              f"")
+        #      f"")
 
 
 
