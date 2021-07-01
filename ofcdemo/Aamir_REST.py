@@ -1,3 +1,4 @@
+import random
 
 from ofcdemo.fakecontroller import (
     RESTProxy, TerminalProxy, ROADMProxy, OFSwitchProxy,
@@ -30,6 +31,27 @@ class Mininet_Control_Rest(object):
         self.net.routes = {node: self.route(node, self.net.graph, self.net.terminals)
                            for node in self.net.terminals}
 
+    def monitorKey(self, monitor):
+        "Key for sorting monitor names"
+        items = monitor.split('-')
+        return items
+
+    def getMonitorKey(self, src_id, dst_id, spanID=1):
+        "Generate key for monitors"
+        return 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
+
+    def monitorOSNRbyKey(self, key, channel):
+
+        monitors = self.net.get('monitors').json()['monitors']
+        if key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
+        return 0, 0
+
     def buildGraph(self, links):
         "Return an adjacency dict for links"
         neighbors = defaultdict( defaultdict )
@@ -58,6 +80,71 @@ class Mininet_Control_Rest(object):
                     seen.add( neighbor)
         return routes
 
+    def configureTerminal(self, terminal, channel, power=0.0):
+        "Configure terminals statically: ethN <-> wdmM:channel"
+        print("*** Configuring terminals")
+        proxies = { terminal: TerminalProxy(terminal) }
+        termProxy = proxies[ terminal ]
+        ethPorts = sorted( int(port) for port, intf in self.net.ports[ terminal ].items()
+                           if 'eth' in intf )
+        wdmPorts = sorted( int(port) for port, intf in self.net.ports[ terminal ].items()
+                           if 'wdm' in intf )
+        print(f"+++TERMINAL configurations: proxies: {proxies} termProxy: {termProxy}"
+              #f"wdmPorts {terminal}: {wdmPorts} \n"
+              #f"ethPorts {terminal}: {ethPorts} \n"
+              #f"All ports: {self.net.ports[ terminal ].items()}"
+              f"")
+        if channel is not None:
+            ethPort, wdmPort = ethPorts[channel-1], wdmPorts[channel-1]
+        #print('Pin-Pout-channel', ethPort, wdmPort, channel)
+        termProxy.connect( ethPort=ethPort, wdmPort=wdmPort,
+                           channel=channel, power=power )
+        print(f"*** Turning on terminal {terminal} *** Channel: {channel}, ethPort:{ethPort}, wdmPort:{wdmPort}")
+
+
+    def turnonTerminal(self, terminal):
+        "turn on terminal"
+        proxies = {terminal: TerminalProxy(terminal)}
+        proxies[terminal].turn_on()
+
+
+    def configurePacketSwitch(self, src, dst, channel, router, port):
+        "Configure Open vSwitch 'routers' using OpenFlow"
+
+        print( "*** Configuring Open vSwitch 'routers' remotely... " )
+
+        def subnet( pop ):
+            return '10.%d.0.0/24' % pop
+
+        routerProxy = OFSwitchProxy( name=router, port=port )
+
+        # Initialize flow table
+        print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )
+        routerProxy.dpctl( 'del-flows' )
+
+        # Find local port
+        ethports = sorted( int(port) for port, intf in self.net.ports[ router ].items()
+                           if 'eth' in intf )
+        #print('==router ethports==', ethports)
+        localport = ethports[ -1 ]
+
+        # to local
+        for protocol in 'ip', 'icmp', 'arp':
+            #print('add-flow, proto, dst, port', protocol, subnet(src), localport)
+            flow = ( protocol + ',ip_dst=' + subnet( src )+
+                     ',actions=dec_ttl,output:%d' % localport )
+            # print( router, 'add-flow',  flow )
+            routerProxy.dpctl( 'add-flow', flow )
+        # to destination
+        for protocol in 'ip', 'icmp', 'arp':
+            #print('add-flow, proto, dst, port', protocol, subnet(dst), channel)
+            flow = ( protocol + ',ip_dst=' + subnet( dst )+
+                     ',actions=dec_ttl,output:%d' % channel )
+            # print( router, 'add-flow',  flow )
+            routerProxy.dpctl( 'add-flow', flow )
+
+
+
     def installPath(self, path, channels):
         "Program a lightpath into the network"
         # Install ROADM rules
@@ -83,11 +170,92 @@ class Mininet_Control_Rest(object):
 def test():
     control = Mininet_Control_Rest()
     net = control.net
-    src_id, dst_id = 1, 4
-    src, dst = net.terminals[src_id - 1], net.terminals[dst_id - 1]
-    path = net.routes[src][dst]
-    channel = 12
-    control.installPath(path, [channel])
-    for node in net.graph:
-        print(node, net.graph[node])
+    #src_id, dst_id = 1, 4
+    #src, dst = net.terminals[src_id - 1], net.terminals[dst_id - 1]
+    t1,t2,t3,t4 = net.terminals
+    TERMINAL_ID={}
+    ROADM_ID={}
+    id=1
+    for terminal in net.terminals:
+        TERMINAL_ID['t%d' %id] = id
+        ROADM_ID['r%d' %id] = id
+        id+=1
+    print(TERMINAL_ID)
+
+    Forward_paths = [(t1, t4), (t1, t3), (t2, t4), (t1, t2), (t2, t3), (t3, t4)]
+    Backward_paths = [(t4, t1), (t3, t1), (t4, t2), (t2, t1), (t3, t2), (t4, t3)]
+
+    def install_lightpath(path, src_id, dst_id, channel, power, net):
+
+        # Install a route
+        control.installPath(path=path, channels=[channel])
+        # Configure terminals and start transmitting
+        terminal = net.terminals[src_id-1]
+        control.configureTerminal(terminal=terminal, channel=channel, power=power)
+        terminal2 = net.terminals[dst_id-1]
+        control.configureTerminal(terminal=terminal2, channel=channel, power=power)
+        control.turnonTerminal(terminal=terminal)
+        control.turnonTerminal(terminal=terminal2)
+        # Configure routers
+        router = net.switches[src_id-1]
+        router2 = net.switches[dst_id-1]
+        control.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router ,port=ListenPortBase+src_id)
+        control.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase + dst_id)
+
+    def monitorLightpath(path, channel):
+        osnrs, gosnrs = list(), list()
+        for i in range(1,len(path)-2):
+            node1,node2 = path[i], path[i+1]
+            ID1, ID2 = ROADM_ID[node1], ROADM_ID[node2]
+            key = control.getMonitorKey(ID1, ID2)
+            print(key)
+            osnr, gosnr = control.monitorOSNRbyKey(key, channel)
+            osnrs.append(osnr)
+            gosnrs.append(gosnr)
+        print(osnrs, gosnrs)
+        return osnrs, gosnrs
+
+    def TestLoop(node1, node2, channel):
+        path = net.routes[node1][node2]
+        src_id = TERMINAL_ID[path[0]]
+        dst_id = TERMINAL_ID[path[-1]]
+        install_lightpath(path, src_id, dst_id, channel, 0.0, net)
+        osnrs, gosnrs = monitorLightpath(path, channel)
+        print(f"osnrs:{osnrs}, \ngosnrs:{gosnrs}")
+
+
+    channel=0
+    for path in Forward_paths:
+        node1 = path[0]
+        node2 = path[1]
+        channel+=1
+        print(f"\n Transmitting channel {channel} from {node1}->{node2}")
+        TestLoop(node1,node2,channel)
+
+    channel = 0
+    for path in Forward_paths:
+        node1 = path[0]
+        node2 = path[1]
+        channel +=1
+        print(f"\n checking channel {channel} from {node1}->{node2}")
+        monpath = net.routes[node1][node2]
+        monitorLightpath(monpath, channel)
+
+    channel=0
+    for path in Forward_paths:
+        node1 = path[0]
+        node2 = path[1]
+        channel+=1
+        print(f"\n Transmitting channel {channel} from {node1}->{node2}")
+        TestLoop(node1,node2,channel)
+
+    channel = 0
+    for path in Forward_paths:
+        node1 = path[0]
+        node2 = path[1]
+        channel +=1
+        print(f"\n checking channel {channel} from {node1}->{node2}")
+        monpath = net.routes[node1][node2]
+        monitorLightpath(monpath, channel)
+
 test()

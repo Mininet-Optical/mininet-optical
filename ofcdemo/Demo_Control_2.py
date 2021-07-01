@@ -13,7 +13,7 @@ import random
 from collections import defaultdict
 #import numpy as np
 #from Control_Test_Lum import Lumentum_Control_NETCONF
-from Control_Test_Mininet_REST import Mininet_Control_REST
+from Control_Test_Mininet_REST_2 import Mininet_Control_REST
 
 km = dB = dBm = 1.0
 m = .001
@@ -120,22 +120,24 @@ def RoadmPhyNetwork():
 
 def Mininet_installPath(lightpath_id, path, channel, power=0):
     "intall switch rules on roadms along a lightpath for some signal channels"
-
+    print(f'+++INSTALLING PATH +++ Channels: {channel}, path: {path}, power {power}')
     src_id, dst_id = TERMINAL_TO_ID[path[0]], TERMINAL_TO_ID[path[-1]]
+    print(f'+source: {path[0]}, {src_id} | destination: {path[-1]}, {dst_id}')
     # Install a route
     Controller_Mininet.installPath(path=path, channels=[channel])
     # Configure terminals and start transmitting
     terminal = Controller_Mininet.net.terminals[src_id - 1]
+    #terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
+
     Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
-    terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
-    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
+    #Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
     Controller_Mininet.turnonTerminal(terminal=terminal)
-    Controller_Mininet.turnonTerminal(terminal=terminal2)
+    #Controller_Mininet.turnonTerminal(terminal=terminal2)
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
-    router2 = Controller_Mininet.net.switches[dst_id - 1]
+    #router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router)
-    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
+    #Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2)
     return lightpath_id
 
 
@@ -160,6 +162,18 @@ def Mininet_teardownLightpath(lightpath_id):
 
     return Mininet_uninstallPath(lightpath_id)
 
+def Mininet_monitorLightpath_1(lightpath_id):
+    "monitoring a signal along a lightpath"
+    path = LIGHTPATH_INFO[lightpath_id]['path']
+    channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
+    osnrs, gosnrs = list(), list()
+    ID_dst= ROADM_TO_ID[path[len(path)-2]]
+    monitorKey = Controller_Mininet.getMonitorKeyTerm(dst_id=ID_dst)
+    osnr, gosnr = Controller_Mininet.monitorOSNRbyKeyTerm(key=monitorKey, channel=channel)
+    osnrs.append(osnr)
+    gosnrs.append(gosnr)
+    return osnrs, gosnrs
+    #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
 
 def Mininet_monitorLightpath(lightpath_id):
     "monitoring a signal along a lightpath"
@@ -170,8 +184,8 @@ def Mininet_monitorLightpath(lightpath_id):
     for i in range(1,len(path)-2):
         node1, node2 = path[i], path[i+1]
         ID1, ID2 = ROADM_TO_ID[node1], ROADM_TO_ID[node2]
-        key1, key2 = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
-        osnr, gosnr = Controller_Mininet.monitorOSNRbyKey(key1=key1, key2=key2, channel=channel)
+        key= Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
+        osnr, gosnr = Controller_Mininet.monitorOSNRbyKey(key=key, channel=channel)
         osnrs.append(osnr)
         gosnrs.append(gosnr)
     return osnrs, gosnrs
@@ -193,21 +207,6 @@ def Mininet_availLightpath(route=None):
                 monitorKey = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
                 print(f"UTILISED KEYS {monitorKey}")
     print('\n')
-
-def Mininet_availLightpath(route=None):
-    """Function which allows us to see All available paths for the monitors in the route"""
-    Controller_Mininet.availableLightpathsforMonitor()
-    if route:
-        for path in route:
-            print(f"Path is {path}")
-            for i in range(1, len(path) - 2):
-                node1, node2 = path[i], path[i + 1]
-                ID1, ID2 = ROADM_TO_ID[node1], ROADM_TO_ID[node2]
-                monitorKey = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
-                print(f"UTILISED KEYS {monitorKey}")
-    print('\n')
-################# END ####################
-
 def Mininet_monitorDifference(file):
     Monitors = Controller_Mininet.monitorKeyAndLightpaths()
     file.write('------------------------------------------------------------------------------------------\n')
@@ -222,6 +221,9 @@ def Mininet_monitorDifference(file):
         print(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t          {string_Light_IDs}')
         file.write(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t                  {string_Light_IDs}\n')
         file.write('------------------------------------------------------------------------------------------\n')
+################# END ####################
+
+
 
 ############### COSMOS Lumentum ###############
 
@@ -311,9 +313,16 @@ def waveAvailibility(path):
     avai_channels = set([i for i in range(NUM_WAV + 1)])
     for i in range(len(path) - 1):
         link_channels = set(NETLINK_INFO[path[i], path[i + 1]].keys())
+        print(f"Link channels are for {path[i]} to {path[i+1]} : {link_channels}")
+        #link_channels = availMonitors(path[i], path[i+1])
         avai_channels = avai_channels.difference(link_channels)
     return avai_channels
 
+def availMonitors(node1, node2):
+    ID1, ID2 = ROADM_TO_ID[node1], ROADM_TO_ID[node2]
+    Monitor_key = Controller_Mininet.getMonitorKey(src_id=ID1, dst_id=ID2)
+    Available_lightpaths = Controller_Mininet.availableLightpathsforMonitor(Monitor_key)
+    return Available_lightpaths
 
 def waveSelection(channels):
     channels = list(channels)
@@ -336,10 +345,12 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mini
 
     else:
         res = Mininet_setupLightpath(lightpath_id=LIGHTPATH_ID, path=path, channel=channel)
+        print(f"Install mininet res: {res}")
     if not res:
         LIGHTPATH_ID -= 1
         return None
     for i in range(len(path) - 1):
+        #print(f"Lightpaths are: {path[i]}, {path[i+1]}")
         NETLINK_INFO[path[i], path[i + 1]][channel] = LIGHTPATH_ID  # channel with lightpath_id
         NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
     #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
@@ -616,9 +627,8 @@ def trafficPattern(pattern, time):
         traffic_weeked = resident_weekend
     return traffic_week[hour], traffic_weeked[hour]
 def Routing_wavelength(lightpath_id, gosnr, backup_attempts, reassign_traffic, failing_routes):
-    if gosnr > 28:
-        LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
-    elif 18 < gosnr <= 28:
+
+    if 18 < gosnr <= 28:
         backup_attempts = 0
         LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
         traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
@@ -629,7 +639,7 @@ def Routing_wavelength(lightpath_id, gosnr, backup_attempts, reassign_traffic, f
             ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
             traf_to_lightpath_Release(traf_id=traf_id)
             reassign_traffic.append((s_t, d_t))
-    elif 1 < gosnr <= 18:
+    elif gosnr <= 18:
         backup_attempts = 0
         LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
         traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
@@ -639,18 +649,19 @@ def Routing_wavelength(lightpath_id, gosnr, backup_attempts, reassign_traffic, f
             ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
             traf_to_lightpath_Release(traf_id=traf_id)
             reassign_traffic.append((s_t, d_t))
-
     else:
-        traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
-        LIGHTPATH_INFO[lightpath_id]['link_cap'] = 0
-        while len(traf_set) > 0:#DOWN_LINK_CAP / CPRI_CAP:
-            traf_id = random.choice(list(traf_set))
-            s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
-            ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
-            traf_to_lightpath_Release(traf_id=traf_id)
-            reassign_traffic.append((s_t, d_t))
-        failing_routes.write('Lightpath ID: {}, Lightpath_Info{}'
-                                 '\n'.format(lightpath_id, LIGHTPATH_INFO[lightpath_id]))
+        LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
+
+    # else:
+    #     traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
+    #     LIGHTPATH_INFO[lightpath_id]['link_cap'] = 0
+    #     while len(traf_set) > 0:#DOWN_LINK_CAP / CPRI_CAP:
+    #         traf_id = random.choice(list(traf_set))
+    #         s_t, d_t = TRAFFIC_INFO[traf_id]['src'], TRAFFIC_INFO[traf_id]['dst']
+    #         ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
+    #         traf_to_lightpath_Release(traf_id=traf_id)
+    #         reassign_traffic.append((s_t, d_t))
+
     return reassign_traffic, backup_attempts
 
 
@@ -716,8 +727,10 @@ def TrafficTest(Mininet_Enable=False):
     # Traffic type in RRH ROADMs
     Traf_Type = ['office', 'resident']
     ROADM_TYPE = {}
-    for i in range(2, NUM_NODE):
-        ROADM_TYPE['r%d' %i] = random.choice(Traf_Type)
+    #for i in range(2, NUM_NODE):
+    #    ROADM_TYPE['r%d' %i] = random.choice(Traf_Type)
+    ROADM_TYPE['r2']=Traf_Type[0]
+    ROADM_TYPE['r3'] = Traf_Type[1]
 
     # clean all ROADM info if use Lumentum
     if not Mininet_Enable:
@@ -734,7 +747,7 @@ def TrafficTest(Mininet_Enable=False):
         factors = {}
         for src in RU_ROADMS:
             # weekdays
-            if i%(24*7) < 24 * 5:
+            if i%(24*7) < 24 * 3: #Change to i%(24*7) < 24 * 5: for a week
                 factor = trafficPattern(pattern=ROADM_TYPE[src], time=i)[0] #* random.uniform(0.8, 1.1)
             # weekends
             else:
@@ -897,9 +910,9 @@ def TrafficTest(Mininet_Enable=False):
                                     factors['r3'] * MAX_traf['r3'],
                                     len(LIGHTPATH_INFO.keys()),
                                     avg_wav, BBU_traf['t1'], BBU_traf['t%d' % NUM_NODE],
-                                    len(NETLINK_INFO['r2', 'r1'].items()),
-                                    len(NETLINK_INFO['r2', 'r3'].items()),
-                                    len(NETLINK_INFO['r3', 'r4'].items()),
+                                    len(NETLINK_INFO['r2', 'r1'].items()),# + len(NETLINK_INFO['r1', 'r2'].items()),
+                                    len(NETLINK_INFO['r2', 'r3'].items()),# + len(NETLINK_INFO['r3', 'r2'].items()),
+                                    len(NETLINK_INFO['r3', 'r4'].items()),# + len(NETLINK_INFO['r4', 'r3'].items()),
                                     1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
                                     1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
                                     FiftyG, OneG, TwoG,
@@ -943,7 +956,7 @@ def TrafficTest(Mininet_Enable=False):
                                                 LIGHTPATH_INFO_copy[light_id].get('link_cap'),
                                                 LIGHTPATH_INFO_copy[light_id].get('traf_set'),
                                                 LIGHTPATH_INFO_copy[light_id].get('path')))
-        Mininet_availLightpath()
+        #Mininet_availLightpath()
     #
     # print('==traf')
     # for item in TRAFFIC_INFO.items():
@@ -1025,10 +1038,20 @@ def testMininet(Mininet_Enable=True):
     def Test_Loop(node1, node2):
         traf_id = install_Traf(node1, node2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
         lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
-        channel = LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id']
+        channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
         print(f'Installed traffic: {traf_id} on lightpath: {channel}')
-        MonMon.write(f'************ Installed traffic: {traf_id} on lightpath: {channel} \n')
-        Mininet_monitorDifference(MonMon)  # ()
+        MonMon.write(f'****** Installed traffic: {traf_id}, on lightpath: {lightpath_id}, on channel {channel}, from {str(node1)}->{str(node2)} \n')
+        Mininet_monitorDifference(MonMon)
+    def Test_Loop_2(node1, node2, lightpath):
+        str_node1 = str(node1)
+        str_node2 = str(node2)
+
+        lightpath_id = install_Lightpath(routes[str_node1][str_node2][0], lightpath, up_time=0.0, down_time=float('inf'), Mininet=True)
+        #lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
+        channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
+        print(f'Installing lightpath: {channel}')
+        MonMon.write(f'************ Installed lightpath: {lightpath_id} on channel: {channel} \n')
+        Mininet_monitorDifference(MonMon)
 
 
     # install_Lightpath(routes['t1']['t4'][0], 1, up_time=0.0, down_time=float('inf'), Mininet=True)
@@ -1046,22 +1069,13 @@ def testMininet(Mininet_Enable=True):
         print('\n \n')
         for path in Forward_paths:
             Test_Loop(path[0], path[1])
-        # Mininet_monitorDifference(MonMon)#()
-        # install_Traf(t1, t4, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t1']['t4'])
-        # install_Traf(t1, t3, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t1']['t3'])
-        # install_Traf(t2, t4, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t2']['t4'])
-        # install_Traf(t3, t4, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t3']['t4'])
-        # install_Traf(t2, t3, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t2']['t3'])
-        # install_Traf(t1, t2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t1']['t2'])
+
         print(f"r1-r2 paths are {sorted(NETLINK_INFO['r1', 'r2'].keys())} ")
         print(f"r2-r3 paths are {sorted(NETLINK_INFO['r2', 'r3'].keys())} ")
         print(f"r3-r4 paths are {sorted(NETLINK_INFO['r3', 'r4'].keys())} ")
+        print(f"r2-r1 paths are {sorted(NETLINK_INFO['r2', 'r1'].keys())} ")
+        print(f"r3-r2 paths are {sorted(NETLINK_INFO['r3', 'r2'].keys())} ")
+        print(f"r4-r3 paths are {sorted(NETLINK_INFO['r4', 'r3'].keys())} ")
 
         print("**************************************************")
         print(f"*********** STARTING ROUND {i} REVERSE ***********" )
@@ -1070,24 +1084,21 @@ def testMininet(Mininet_Enable=True):
         print('\n \n')
         for path in Backward_paths:
             Test_Loop(path[0], path[1])
-        # Mininet_monitorDifference(MonMon)#()
-        # install_Traf(t4, t1, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t4']['t1'])
-        # install_Traf(t3, t1, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t3']['t1'])
-        # install_Traf(t4, t2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t4']['t2'])
-        # install_Traf(t4, t3, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t4']['t3'])
-        # install_Traf(t3, t2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t3']['t2'])
-        # install_Traf(t2, t1, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
-        # Mininet_monitorDifference(MonMon)#(routes['t2']['t1'])
 
+        print(f"r1-r2 paths are {sorted(NETLINK_INFO['r1', 'r2'].keys())} ")
+        print(f"r2-r3 paths are {sorted(NETLINK_INFO['r2', 'r3'].keys())} ")
+        print(f"r3-r4 paths are {sorted(NETLINK_INFO['r3', 'r4'].keys())} ")
+        print(f"r2-r1 paths are {sorted(NETLINK_INFO['r2', 'r1'].keys())} ")
+        print(f"r3-r2 paths are {sorted(NETLINK_INFO['r3', 'r2'].keys())} ")
+        print(f"r4-r3 paths are {sorted(NETLINK_INFO['r4', 'r3'].keys())} ")
 
+    #KILL EVERYTHING!!! LET THE WORLD BURN
+    # Lightpath_ids = LIGHTPATH_INFO.copy()
+    # for lighpath_id in Lightpath_ids.keys():
+    #     uninstall_Lightpath(lighpath_id, Mininet=Mininet_Enable)
 
 
 if __name__ == '__main__':
     #RoadmPhyTest()
-    testMininet(Mininet_Enable=True)
+    TrafficTest(Mininet_Enable=True)
     #testMininet()
