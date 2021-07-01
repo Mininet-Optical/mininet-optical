@@ -1539,3 +1539,30 @@ class Monitor(Node):
     def __repr__(self):
         return "<name: %s, component: %s, mode: %s>" % (
             self.name, self.component, self.mode)
+
+
+### Debugging support
+
+def node_channel_signals(node, channel):
+    "Return node's output signals with index == channel"
+    return [signal
+            for signals in node.port_to_optical_signal_out.values()
+            for signal in signals
+            if signal.index == channel]
+
+def node_signal_path(node, signal):
+    """Return the node path that a signal takes through the network
+       node: starting node in path
+       signal: signal to trace
+       returns: list [(node,port),...]"""
+    # Note that the current implementation forbids loopback of the
+    # same signal twice through a single node.
+    result = []
+    port = node.port_to_optical_signal_out.get(signal)
+    while node and port:
+        result.append((node, port))
+        node = node.port_to_node_out.get(signal)
+        port = node.port_to_optical_signal_out[signal]
+    if not result:
+        warning( f'signal path: {signal} is not an output signal of {node}' )
+    return result

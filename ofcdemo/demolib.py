@@ -12,6 +12,9 @@ from dataplane import ( Terminal, ROADM, OpticalLink,
                         SwitchBase as OpticalSwitchBase,
                         dBm, dB, km,
                         cleanOptLinks, disableIPv6, Mininet )
+
+from node import node_channel_signals, node_signal_path
+
 from rest import RestServer
 
 from mininet.topo import Topo
@@ -203,6 +206,20 @@ class OpticalCLI( CLI ):
             return
         ampName, gain = params
         print( self.mn.setgainCmd( ampName, gain ) )
+
+    def do_trace( self, _line ):
+        "Trace signal(s) from node on specified channel"
+        params = line.split()
+        if len( params ) != 2:
+            print( "usage: trace node channel" )
+        node, channel = params
+        node = self.mn[ node ].model
+        channel = int( channel )
+        signals = node_channel_signals( node, channel )
+        for signal in signals:
+            path = node_signal_path( node, signal )
+            print( f'{port} {signal}:' )
+            print( path )
 
 CLI = OpticalCLI
 
