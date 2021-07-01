@@ -12,7 +12,7 @@ class Node(object):
     input_port_base = 0
     output_port_base = 0
 
-    def __init__(self, name, debugger=False):
+    def __init__(self, name, debugger=True):
         self.name = name
         self.debugger = debugger
 
@@ -892,6 +892,7 @@ class Roadm(Node):
                 for out_port, optical_signals in port_to_optical_signal_out_copy.items():
                     # check if optical_signals == self.port_to_optical_signal_out[out_port]
                     # check if the power levels have changed
+
                     if all(optical_signal in optical_signals for optical_signal in
                            self.port_to_optical_signal_out[out_port]) \
                             and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
@@ -903,6 +904,7 @@ class Roadm(Node):
                                     if self.debugger:
                                         print('RoadmWarning:', self, "same signals already propagated on this output "
                                                                      "port. Stopping propagation.")
+
                                         print("Blocking:", port_to_optical_signal_out[out_port], "port:", out_port)
                                     # Disable the usage of this output port
                                     # and avoid repropagation of signals
