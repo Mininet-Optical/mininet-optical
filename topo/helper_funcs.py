@@ -8,24 +8,16 @@ def Span(km, amp=None):
     """Return a fiber segment of length km with a compensating amp"""
     return Segment(span=Fiber(length=km), amplifier=amp)
 
-def build_spans(net, r1, r2, debugger=True):
-    """
-    Helper function for building spans of
-    fixed length of 50km and handling those
-    that require different lengths
-    """
+def build_spans(net, r1, r2, span_no, span_length, port_no, amp=False, debugger=True):
     # store all spans (sequentially) in a list
     spans = []
-    # get number of spans (int)
-    span_no = 2
-    span_length = 80
 
     for i in range(1, span_no + 1):
         # append all spans except last one
         amplifier = None
-        if span_no > 1 and i < span_no:
+        if amp:
             amplifier = net.add_amplifier(
-                '%s-%s-amp%d' % (r1, r2, i),
+                '%s-%s-amp%d-%d' % (r1, r2, i, port_no),
                 target_gain=span_length * 0.22 * dB,
                 monitor_mode='out',
                 debugger=debugger)
@@ -35,7 +27,7 @@ def build_spans(net, r1, r2, debugger=True):
     return net, spans
 
 def build_link(net, r1, r2, span_no, span_length, debugger=True):
-    net, spans = build_spans(net, r1, r2, debugger=debugger)
+    net, spans = build_spans(net, r1, r2, span_no, span_length, debugger=debugger)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
 
