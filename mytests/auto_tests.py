@@ -136,7 +136,8 @@ def mininet_optical_test(test_no, c, logdata=False):
 if __name__ == '__main__':
     # Feature sets
     power_levels_dBm = range(-12, 8, 2)
-    fibre_lengths_km = [5] + list(range(10, 130, 10))
+    # fibre_lengths_km = [5] + list(range(10, 130, 10))
+    fibre_lengths_km = list(range(50, 130, 10))
     span_no = range(1, 4)  # span no between hops
     hop_no = range(1, 7)
     signal_no = [5] + list(range(10, 100, 10))
@@ -146,8 +147,8 @@ if __name__ == '__main__':
     #                                  fibre_lengths_km,
     #                                  span_no, hop_no, signal_no)
     start_time = time.time()
-    combinations = [(-12, 5, 1, 1, 5), (-6, 5, 1, 3, 5)]
+    combinations = [(-12, 50, 1, 1, 5), (6, 50, 3, 1, 5)]
     for test_no, combination in enumerate(combinations, start=1):
         # execute Mininet-Optical tests
-        mininet_optical_test(test_no, combination, logdata=False)
+        mininet_optical_test(test_no, combination, logdata=True)
     print("It took %s seconds to run auto_tests.py" % str(time.time() - start_time))
