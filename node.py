@@ -700,6 +700,8 @@ class Roadm(Node):
         if self.debugger:
             print("*** %s.install_switch_rule: [%d, %s]: %d" %
                   (self, in_port, signal_indices, out_port))
+            print(f"{self}.install_switch_rule: in_port:{in_port}, out_port:{out_port}"
+                  f" | Channel {signal_indices}")
         self.check_switch_rule(in_port, out_port, signal_indices)
         # Used for update and delete rules
         self.node_to_rule_id_in.setdefault(src_node, [])

@@ -387,7 +387,8 @@ class Terminal( SwitchBase ):
             wdmInPort = wdmPort
         wdmInputIntf = self.intfs[ wdmInPort ]
         wdmIntf = self.intfs[ wdmPort ]
-        print(f"++{self} wdm:({wdmPort}, {wdmIntf}) | wdmInput:({wdmInPort}, {wdmInputIntf})")
+        print(f"++{self} WDM PORT INFO: wdm:({wdmPort}, {wdmIntf}) | wdmInput:({wdmInPort}, {wdmInputIntf}) "
+              f"| CHANNEL={channel}")
         if wdmIntf.isOutput():
             # print(self, 'uplink', 'tx', transceiver.id, 'ch', channel, 'port', wdmPort )
             self.model.assoc_tx_to_channel(
@@ -529,7 +530,7 @@ class ROADM( SwitchBase ):
     def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
         "Install a switching rule into the dataplane"
         for channel in channels:
-            print(f"\n{self} INSTALL/UNINSTALL: {cmd}, inport: {inport}, outport: {outport}, channel: {channel} ")
+            print(f"\n{self} INSTALL/UNINSTALL: {cmd}, inport->outport: {inport}->{outport}, channel={channel} ")
             flow = self.dpFlow( inport, outport, channel, cmd )
             self.dpctl( cmd, flow )
 
@@ -583,7 +584,7 @@ class ROADM( SwitchBase ):
         if intf1.isOutput() and intf2.isInput():
            self.install( port2, port1, channels, action=action )
            print(f"{self} propegating bidirectionally {intf2}->{intf1} on channel {channels}")
-        print(f"{self} Port1:Intf1 [{port1}, {intf1}] | Port2:Intf2 [{port2}, {intf2}] \n \n"
+        print(f"{self} Connecting Port1->Port2 ({port1}, {intf1})->({port2}, {intf2}) \n"
               #f"+++{self} ALL INTFS: {self.intfs.items()} \n"
               f"")
 
