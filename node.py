@@ -777,7 +777,7 @@ class Roadm(Node):
 
     def delete_switch_rules(self):
         """Delete all switching rules"""
-        for ruleId in self.switch_table.keys():
+        for ruleId in tuple(self.switch_table.keys()):
             in_port = ruleId[0]
             signal_index = ruleId[1]
             self.delete_switch_rule(in_port, signal_index)
