@@ -51,6 +51,14 @@ class Mininet_Control_Rest(object):
                 osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
                 return osnr, gosnr
         return 0, 0
+    def lightpathsInMonitor(self, key=None):
+        monitors = self.net.get('monitors').json()['monitors']
+        if key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            print(key, osnrdata.keys())
+            return osnrdata.keys()
+
 
     def buildGraph(self, links):
         "Return an adjacency dict for links"
@@ -258,4 +266,4 @@ def test():
         monpath = net.routes[node1][node2]
         monitorLightpath(monpath, channel)
 
-test()
+#test()
