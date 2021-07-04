@@ -1539,3 +1539,129 @@ class Monitor(Node):
     def __repr__(self):
         return "<name: %s, component: %s, mode: %s>" % (
             self.name, self.component, self.mode)
+
+
+
+class SignalTracing:
+    """Routines for Signal tracing and debugging"""
+
+    @staticmethod
+    def signal_path(node, signal):
+        """Return signal path [node, link, node....]
+           for signal, starting from node
+           node: starting Node
+           signal: OpticalSignal
+           missing: value to return for missing state"""
+        path = []
+        port = node.optical_signal_to_port_out.get( signal, None )
+        while node and port is not None:
+            path.append(node)
+            port = node.optical_signal_to_port_out.get(signal)
+            link = node.port_to_link_out.get(port)
+            if not link or signal not in link.optical_signals:
+                break
+            path.append(link)
+            node = node.port_to_node_out.get( port, None )
+            port = node.optical_signal_to_port_in.get( signal, None )
+        return path
+
+    @staticmethod
+    def channel_paths(node, channel=None):
+        """Return signal paths for channel
+           node: starting Node
+           channel: signal index to match (or None to match all)
+           returns: [path,...]"""
+        paths = []
+        signals = [signal
+                   for port, siglist in node.port_to_optical_signal_out.items()
+                   for signal in siglist
+                   if signal.index == channel or channel is None]
+        return {signal: SignalTracing.signal_path(node, signal)
+                for signal in signals}
+
+    pathEntry = namedtuple( 'pathEntry', 'location instate outstate' )
+
+    @staticmethod
+    def path_state(signal, path, missing=None):
+        "Return signal's state along a path"
+        result = []
+        for location in path:
+            instate = signal.loc_in_to_state.get(location, missing)
+            outstate = signal.loc_out_to_state.get(location, missing)
+            entry = SignalTracing.pathEntry(location, instate, outstate)
+            result.append(entry)
+        return result
+
+
+class NodeAuditing:
+    "WIP: Auditing class with propagation checks"
+
+    @staticmethod
+    def check_roadm_propagation(roadm):
+        "Check ROADM propagation and report errors"
+        print( f'*** Checking ROADM {roadm} signal propagation' )
+        switch_table = roadm.switch_table
+        errcount = 0
+        for port in sorted(roadm.port_to_optical_signal_in):
+            sigs = roadm.port_to_optical_signal_in[port]
+            for sig in sorted(sigs, key=lambda sig: sig.index):
+                ch = sig.index
+                if (port, ch) not in switch_table:
+                    print(
+                        f'{roadm}: No rule for input channel {ch} on port {port}')
+                    errcount += 1
+                    continue
+                outport = switch_table[(port, ch)]
+                if sig not in roadm.port_to_optical_signal_out[outport]:
+                    print(
+                        f'*** ERROR {roadm}: {sig} missing on outport {outport}' )
+                    errcount += 1
+                    continue
+                outlink = roadm.port_to_link_out.get( outport, None )
+                if outlink and sig not in outlink.optical_signals:
+                    print(f'*** ERROR {roadm}: {sig} missing on '
+                          f'output port {outport} link {outlink}')
+                    errcount += 1
+                    continue
+                else:
+                    print(f'{roadm}: {sig} present on '
+                          f'output port {outport} link {outlink}' )
+                print(f'{roadm} channel {ch} inport {port} -> outport {outport}')
+        print(f'*** {roadm}: {errcount} propagation errors detected')
+        return errcount
+
+    @staticmethod
+    def check_link_propagation(link):
+        "Check link propagation and report errors"
+        print(f'*** Checking link {link} signal propagation')
+        errcount = 0
+        linksigs = sorted(link.optical_signals, key=lambda s: s.index)
+        linkset = set(linksigs)
+        for span in link.spans:
+            if span.amplifier:
+                amp = span.amplifier
+                ampsigs = set(amp.port_to_optical_signal_in[0])
+                # Check for missing signals and signal state
+                for sig in linksigs:
+                    if sig not in ampsigs:
+                       print(f'*** ERROR: {sig} missing '
+                             f'at {amp}' )
+                       errcount += 1
+                    if amp not in sig.loc_in_to_state:
+                       print(f'**** ERROR: {sig} input state'
+                             f'missing at {amp}')
+                       errcount += 1
+                    if amp not in sig.loc_out_to_state:
+                        print(f'*** ERROR: {sig} output state'
+                              f'missing at {amp}')
+                        errcount += 1
+                monitor = getattr(amp, 'monitor', None)
+                if monitor:
+                    mode = monitor.mode
+                    osnr = monitor.get_dict_osnr()
+                    missing = linkset - set(osnr.keys())
+                    if missing:
+                        print(f'missing signals at {monitor}: {missing}')
+                    errcount += len(missing)
+        print(f'{errcount} propagation errors detected')
+        return errcount
