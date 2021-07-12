@@ -22,6 +22,7 @@ m = .001
 
 # Parameters
 Controller_Lum = None#Lumentum_Control_NETCONF()
+print(f"Starting Mininet rest controller")
 Controller_Mininet = Mininet_Control_REST()
 
 NUM_WAV = 90
@@ -127,8 +128,8 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     Controller_Mininet.installPath(path=path, channels=[channel])
     # Configure terminals and start transmitting
     terminal = Controller_Mininet.net.terminals[src_id - 1]
-    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
     terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
+    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
     Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
     Controller_Mininet.turnonTerminal(terminal=terminal)
     #Controller_Mininet.turnonTerminal(terminal=terminal2)
@@ -136,7 +137,8 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
-    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    #Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    Controller_Mininet.getOSNR()
     return lightpath_id
 
 
@@ -190,18 +192,22 @@ def Mininet_monitorLightpath_1(lightpath_id):
     gosnrs.append(gosnr)
     return osnrs, gosnrs
     #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
-def Mininet_monitorDifference():
+def Mininet_monitorDifference(file=None):
     Monitors = Controller_Mininet.monitorKeyAndLightpaths()
     print('------------------------------------------------------------------------------------------\n')
+    if file: file.write('------------------------------------------------------------------------------------------\n')
     for monitor in Monitors:
         print(f'Mininet_Monitor {monitor} has CHANNELS \t{ Monitors[monitor]}')
+        if file: file.write(f'Mininet_Monitor {monitor} has CHANNELS \t{Monitors[monitor]}\n')
         MonKey = Controller_Mininet.monitorKey(monitor)
         Light_IDs = sorted(NETLINK_INFO[MonKey[0], MonKey[1]].keys())
         string_Light_IDs = [str(x) for x in Light_IDs]
         zero='0'
         if zero in string_Light_IDs: string_Light_IDs.remove(zero)
         print(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t          {string_Light_IDs}')
+        if file: file.write(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t          {string_Light_IDs}\n')
         print('------------------------------------------------------------------------------------------\n')
+        if file: file.write('------------------------------------------------------------------------------------------\n')
 
 ################# END ####################
 
@@ -325,7 +331,7 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mini
         return None
     for i in range(len(path) - 1):
         NETLINK_INFO[path[i], path[i + 1]][channel] = LIGHTPATH_ID  # channel with lightpath_id
-        NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
+        #NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
     #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
     LIGHTPATH_INFO[LIGHTPATH_ID]['path'] = path
     LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id'] = channel
@@ -460,7 +466,7 @@ def uninstall_Lightpath(lightpath_id, Mininet = False):
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     for i in range(len(path) - 1):
         del NETLINK_INFO[path[i], path[i + 1]][channel]
-        del NETLINK_INFO[path[i + 1], path[i]][channel]
+        #del NETLINK_INFO[path[i + 1], path[i]][channel]
     #print(PATH_CH_TO_LIGHTPATH)
     #print('==', lightpath_id)
     del LIGHTPATH_INFO[lightpath_id]
@@ -614,6 +620,103 @@ def trafficProvisioning(lightpath_id, gosnr, reassign_traf, backup_attempts):
         LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
         backup_attempts = 0
     return reassign_traf, backup_attempts
+
+def Hourly_Results_MONITORS(file):
+    Monitors = Controller_Mininet.monitorKeyAndLightpaths()
+    print('------------------------------------------------------------------------------------------\n')
+    if file: file.write('------------------------------------------------------------------------------------------\n')
+    for monitor in Monitors:
+        print(f'Mininet_Monitor {monitor} has CHANNELS \t{Monitors[monitor]}')
+        if file: file.write(f'Mininet_Monitor {monitor} has CHANNELS \t{Monitors[monitor]}\n')
+        MonKey = Controller_Mininet.monitorKey(monitor)
+        Light_IDs = sorted(NETLINK_INFO[MonKey[0], MonKey[1]].keys())
+        string_Light_IDs = [str(x) for x in Light_IDs]
+        zero = '0'
+        if zero in string_Light_IDs: string_Light_IDs.remove(zero)
+        print(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t          {string_Light_IDs}')
+        if file: file.write(f'NETLINK_info: {MonKey[0]}-{MonKey[1]} has channels \t\t\t          {string_Light_IDs}\n')
+        print('------------------------------------------------------------------------------------------\n')
+        if file: file.write(
+            '------------------------------------------------------------------------------------------\n')
+
+    LIGHTPATH_INFO_copy = LIGHTPATH_INFO.copy()
+
+    Monitors = Controller_Mininet.monitorKeyAndLightpaths()
+    file.write('Number of Lightpaths active: link r1-r2: {}, link r2-r3: {}, '
+                         'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()),
+                                                   len(NETLINK_INFO['r2', 'r3'].items()),
+                                                   len(NETLINK_INFO['r3', 'r4'].items())
+                                                   )
+                         )
+    file.write('\t Links between r1-r2: {} \n'.format(NETLINK_INFO['r2', 'r1'].items()))
+    for light_id in sorted(NETLINK_INFO['r2', 'r1'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+    file.write('\t Links between r2-r3: {} \n'.format(NETLINK_INFO['r2', 'r3'].items()))
+    for light_id in sorted(NETLINK_INFO['r2', 'r3'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+    file.write('\t Links between r3-r4: {} \n'.format(NETLINK_INFO['r3', 'r4'].items()))
+    for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+def Hourly_Results_NETLINKS(file):
+    LIGHTPATH_INFO_copy = LIGHTPATH_INFO.copy()
+    file.write('Number of Lightpaths active: link r1-r2: {}, link r2-r3: {}, '
+                         'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()),
+                                                   len(NETLINK_INFO['r2', 'r3'].items()),
+                                                   len(NETLINK_INFO['r3', 'r4'].items())
+                                                   )
+                         )
+    file.write('\t Links between r1-r2: {} \n'.format(NETLINK_INFO['r2', 'r1'].items()))
+    for light_id in sorted(NETLINK_INFO['r2', 'r1'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+    file.write('\t Links between r2-r3: {} \n'.format(NETLINK_INFO['r2', 'r3'].items()))
+    for light_id in sorted(NETLINK_INFO['r2', 'r3'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+    file.write('\t Links between r3-r4: {} \n'.format(NETLINK_INFO['r3', 'r4'].items()))
+    for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()):
+        file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                             '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                             '\n'.format(light_id,
+                                         LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                         LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                         LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                         LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                         LIGHTPATH_INFO_copy[light_id].get('path')))
+
 
 def TrafficTest(Mininet_Enable=False):
 
@@ -876,43 +979,8 @@ def TrafficTest(Mininet_Enable=False):
                                     UnderUse,
                                     OneG * 100 + TwoG * 200 + FiftyG * 50,
                                     Total_Traf_Rate*25))
-        LIGHTPATH_INFO_copy = LIGHTPATH_INFO.copy()
-        hourly_results.write('Number of Lightpaths active: link r1-r2: {}, link r2-r3: {}, '
-                             'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()),
-                                                       len(NETLINK_INFO['r2', 'r3'].items()),
-                                                       len(NETLINK_INFO['r3', 'r4'].items())
-                                                       )
-                             )
-        hourly_results.write('\t Links between r1-r2: {} \n'.format(NETLINK_INFO['r2', 'r1'].items()))
-        for light_id in sorted(NETLINK_INFO['r2', 'r1'].values()):
-            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
-                                 '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
-                                 '\n'.format(light_id,
-                                                LIGHTPATH_INFO_copy[light_id].get('channel_id'),
-                                                LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
-                                                LIGHTPATH_INFO_copy[light_id].get('link_cap'),
-                                                LIGHTPATH_INFO_copy[light_id].get('traf_set'),
-                                                LIGHTPATH_INFO_copy[light_id].get('path')))
-        hourly_results.write('\t Links between r2-r3: {} \n'.format(NETLINK_INFO['r2', 'r3'].items()))
-        for light_id in sorted(NETLINK_INFO['r2', 'r3'].values()):
-            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
-                                 '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
-                                 '\n'.format(light_id,
-                                                LIGHTPATH_INFO_copy[light_id].get('channel_id'),
-                                                LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
-                                                LIGHTPATH_INFO_copy[light_id].get('link_cap'),
-                                                LIGHTPATH_INFO_copy[light_id].get('traf_set'),
-                                                LIGHTPATH_INFO_copy[light_id].get('path')))
-        hourly_results.write('\t Links between r3-r4: {} \n'.format(NETLINK_INFO['r3', 'r4'].items()))
-        for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()):
-            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
-                                 '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
-                                 '\n'.format(light_id,
-                                                LIGHTPATH_INFO_copy[light_id].get('channel_id'),
-                                                LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
-                                                LIGHTPATH_INFO_copy[light_id].get('link_cap'),
-                                                LIGHTPATH_INFO_copy[light_id].get('traf_set'),
-                                                LIGHTPATH_INFO_copy[light_id].get('path')))
+        Hourly_Results(hourly_results)
+
     #
     #
     # print('==traf')
@@ -943,14 +1011,12 @@ def TrafficTest(Mininet_Enable=False):
     # print('total_rej_rate', 1.0* Total_Rej/sum(RRH_traf.values()) )
 
 def testMininet(Mininet_Enable = False):
-    # path = ['t1', 'r1', 'r2', 'r3', 'r4', 't4']
-    # install_Lightpath(path=path, channel=5, up_time=0, Mininet=Mininet_Enable)
+    file = open('Monitor_Lightpath.txt','w')
+    hourly_results = open('Hourly_Results_test.txt','w')
     RoadmPhyNetwork()
     AllLinks = getLinks(NETLINKS)
     global GRAPH, NODES
     GRAPH = netGraph(AllLinks['links'])
-    # NODES = net.name_to_node
-    # NODES = ['t1', 't2', 't3', 't4']
     routes = {node: FindRoute(node, GRAPH, name_terminals)
               for node in name_terminals}
 
@@ -961,25 +1027,33 @@ def testMininet(Mininet_Enable = False):
 
     Forward_paths =  [(t1,t4),(t1,t3),(t2,t4),(t1,t2),(t2,t3),(t3,t4)]
     Backward_paths = [(t4,t1),(t3,t1),(t4,t2),(t2,t1),(t3,t2),(t4,t3)]
-    #Mininet_monitorDifference()
+
     def Test_Loop(node1, node2):
+        print(f" Setting up path from {node1}->{node2}")
+        file.write(f" Setting up path from {node1}->{node2}\n")
         traf_id = install_Traf(node1, node2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
         lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
-        channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
         osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
         osnr, gosnr = min(osnrs), min(gosnrs)
         LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
         LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
         channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
         print(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++")
+        file.write(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++\n")
+        Mininet_monitorDifference(file)
 
-    for i in range(1, 4):
+    for i in range(1, 15):
         print("**************************************************")
         print("************** STARTING ROUND", i, " ************")
         print("**************************************************")
+        file.write(f"************************Starting round {i}**********************\n")
+        hourly_results.write(f"************************Starting round {i}**********************\n")
+        Hourly_Results_NETLINKS(hourly_results)
         for path in Forward_paths:
             Test_Loop(path[0], path[1])
-        print(f"**************Reverse paths {i}*******************")
+        print(f"\n**************Reverse paths {i}*******************")
+        file.write(f"************************Starting REVERSE round {i}**********************\n")
+        hourly_results.write(f"************************Starting round {i}**********************\n")
         for path in Backward_paths:
             Test_Loop(path[0], path[1])
 

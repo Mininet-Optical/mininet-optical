@@ -330,7 +330,8 @@ class Span(object):
         nonlinear_noise = self.gn_model()
         for optical_signal in self.optical_signals:
             nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
-            nli_noise_out = nli_noise_in + nonlinear_noise[optical_signal]
+            if nonlinear_noise[optical_signal] == 'NoneType': nonlinear_noise[optical_signal] = 0
+            nli_noise_out = float(nli_noise_in) + nonlinear_noise[optical_signal]
             self.include_optical_signal_out(optical_signal, nli_noise=nli_noise_out)
 
     def gn_model(self):

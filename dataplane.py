@@ -378,7 +378,7 @@ class Terminal( SwitchBase ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
-        print(f"+++{self} SIGNAL ESTABLISHED: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}")#TESTING_DEMO
+        print(f"\n+++{self} SIGNAL ESTABLISHED: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}")#TESTING_DEMO
         # Update physical model
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
@@ -579,27 +579,14 @@ class ROADM( SwitchBase ):
         intf1, intf2 = self.intfs[ port1 ], self.intfs[ port2 ]
         assert intf1.isInput() and intf2.isOutput()
         self.install( port1, port2, channels, action=action )
-        print(f"{self} propegating Port1:({port1}, {intf1})->Port2:({port2}, {intf2}) on channel {channels}")
+        print(f"{self} Propagating Port1:({port1}, {intf1})->Port2:({port2}, {intf2}) on channel {channels}")
         # Install reverse rule if interfaces are bidirectional
         if intf1.isOutput() and intf2.isInput():
            self.install( port2, port1, channels, action=action )
-           print(f"{self} propegating bidirectionally Port2:({port2}, {intf2})->Port1:({port1}, {intf1}) on channel {channels}")
+           print(f"{self} Propagating bidirectionally Port2:({port2}, {intf2})->Port1:({port1}, {intf1}) on channel {channels}")
         #print(f"{self} Connecting Port1:({port1}, {intf1})->Port2:({port2}, {intf2}) \n"
               #f"+++{self} ALL INTFS: {self.intfs.items()} \n"
         #      f"")
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class SimpleROADM( ROADM ):

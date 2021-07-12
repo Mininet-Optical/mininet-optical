@@ -105,7 +105,9 @@ class TerminalProxy( SwitchProxy ):
                        channel=channel, power=power)
         # print('connect', params)
         r = self.get( 'connect', params=params )
-        print(f"{self} SIGNAL ESTABLISHED: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}, response {r}")
+        print(f"{self} TERMINAL PROXY: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}, response {r}")
+        if not r.ok:
+            print(r.text)
         # print( r )
 
     def reset(self):
@@ -133,6 +135,9 @@ class ROADMProxy( SwitchProxy ):
         r = self.get( 'connect', params=params)
         # print( r )
         print(f"ROADM PROXY: {self} port:{port1}->port:{port2} with channels:{channels} | r: {r}")
+        if not r.ok:
+            print(r.text)
+
     def reset(self):
         params = dict(node=self.name)
         # print('reset', params)
@@ -184,4 +189,10 @@ def fetchOSNR( net ):
         osnr = net.get( 'monitor', params=dict(monitor=monitor ) )
         print( monitor + ':' )
         print( desc )
-        print( osnr.json() )
+        channels = []
+        for channel in osnr.json()['osnr']:
+            channel_osnr = osnr.json()['osnr'][channel]['osnr']
+            channel_gosnr = osnr.json()['osnr'][channel]['gosnr']
+            channels.append((channel, channel_osnr, channel_gosnr))
+
+        print(channels)

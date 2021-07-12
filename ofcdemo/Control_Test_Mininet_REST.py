@@ -61,48 +61,16 @@ class Mininet_Control_REST(object):
         return items
 
     def getMonitorKey(self, src_id, dst_id, spanID=1):
-
         return 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
-    def monitorOSNRbyKey_2(self, key1, key2, channel):
-        """Return osnr and gosnr for a given monitor"""
-        monitors = self.net.get('monitors').json()['monitors']
-        if key1 in sorted(monitors, key=self.monitorKey):
-            response = self.net.get('monitor', params=dict(monitor=key1))
-            osnrdata = response.json()['osnr']
-            if str(channel) in osnrdata.keys():
-                THz = float(osnrdata[str(channel)]['freq']) / 1e12
-                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
-                return osnr, gosnr
-        elif key2 in sorted(monitors, key=self.monitorKey):
-            response = self.net.get('monitor', params=dict(monitor=key2))
-            osnrdata = response.json()['osnr']
-            if str(channel) in osnrdata.keys():
-                THz = float(osnrdata[str(channel)]['freq']) / 1e12
-                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
-                return osnr, gosnr
-        return 0, 0
-
-    def monitorOSNRbyKey_1(self, key, channel):
-
-        monitors = self.net.get('monitors').json()['monitors']
-        for monitor in sorted(monitors, key=self.monitorKey):
-            if monitor == key:
-                response = self.net.get('monitor', params=dict(monitor=monitor))
-                osnrdata = response.json()['osnr']
-                for ch, data in osnrdata.items():
-                    if ch != str(channel):
-                        continue
-                    THz = float(data['freq']) / 1e12
-                    osnr, gosnr = data['osnr'], data['gosnr']
-                    return osnr, gosnr
-        return 0, 0
 
     def monitorOSNRbyKey(self, key, channel):
-
         monitors = self.net.get('monitors').json()['monitors']
         if key in sorted(monitors, key=self.monitorKey):
             response = self.net.get('monitor', params=dict(monitor=key))
             osnrdata = response.json()['osnr']
+            print(f"Monitor: {key} | Response: {response}")
+            if not response.ok:
+                print(response.text)
             if str(channel) in osnrdata.keys():
                 THz = float(osnrdata[str(channel)]['freq']) / 1e12
                 osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
@@ -273,6 +241,7 @@ class Mininet_Control_REST(object):
                 for channel in channels:
                     #print('pin-pout', channel, port2)
                     ROADMProxy( roadm ).connect( channel, port2, [channel] )
+
             elif i == len(path) - 2:
                 for channel in channels:
                     #print('pin-pout', port1, channel)
@@ -283,6 +252,9 @@ class Mininet_Control_REST(object):
                 ROADMProxy( roadm ).connect( port1, port2, channels )
 
 
+    def getOSNR(self):
+        "Return fetchOSNR "
+        fetchOSNR(self.net)
     def uninstallPath(self, path, channels):
         "Program a lightpath into the network"
         print("*** Removing path", path, "channels", channels)
@@ -371,4 +343,4 @@ def Test():
         uninstall_lightpath(path, channel)
     # """
 
-Test()
+#Test()

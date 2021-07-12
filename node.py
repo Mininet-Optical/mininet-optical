@@ -272,7 +272,7 @@ class LineTerminal(Node):
             self.assoc_channel(transceiver, channel, out_port)
 
     def assoc_channel(self, transceiver, channel, out_port):
-        # instantiate OpticalSignal object
+        "instantiate OpticalSignal object"
         optical_signal = OpticalSignal(channel, transceiver.channel_spacing_H,
                                        transceiver.channel_spacing_nm,
                                        transceiver.modulation_format, transceiver.symbol_rate,
@@ -329,7 +329,7 @@ class LineTerminal(Node):
             transceiver.optical_signal.reset(component=self)
 
             if self.debugger:
-                print("*** %s.turn_on %s on port %s" % (self, optical_signal, out_port))
+                print("+++ %s.turn_on %s on port %s" % (self, optical_signal, out_port))
 
             # pass signal info to link
             link = self.port_to_link_out[out_port]
@@ -383,7 +383,7 @@ class LineTerminal(Node):
 
                 if gosnr < rx_transceiver.rx_threshold_dB:
                     if self.debugger:
-                        print("*** %s receiving %s at port %s: Failure! gOSNR: %f dB OSNR: %f dB - rx-thd:%s dB" %
+                        print("+++ %s receiving %s at port %s: Failure! gOSNR: %f dB OSNR: %f dB - rx-thd:%s dB" %
                               (self.name, optical_signal, in_port,
                                gosnr, osnr, rx_transceiver.rx_threshold_dB))
 
@@ -391,7 +391,7 @@ class LineTerminal(Node):
                     self.receiver_callback(in_port, signalInfoDict)
                 else:
                     if self.debugger:
-                        print("*** %s receiving %s at port %s: Success! gOSNR: %f dB OSNR: %f dB" %
+                        print("+++ %s receiving %s at port %s: Success! gOSNR: %f dB OSNR: %f dB" %
                               (self.name, optical_signal, in_port, gosnr, osnr))
 
                     signalInfoDict[optical_signal]['success'] = True
@@ -404,7 +404,7 @@ class LineTerminal(Node):
         else:
             self.receiver_callback(in_port, signalInfoDict)
             if self.debugger:
-                print("*** %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel) )
+                print("+++ %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel) )
             raise Exception("@%s, input port: %s not configured correctly for "
                              "optical signal: %s in LineTerminal.\n"
                              "You can configure it with %s.assoc_rx_to_channel() before launching transmission." %
