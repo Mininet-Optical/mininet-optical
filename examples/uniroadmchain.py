@@ -65,11 +65,12 @@ class UniRoadmChain(Topo):
         self.addLink(f're{roadmCount}', 't2',
                      port1=lineout, port2=downlink,
                      cls=ULink, spans=[1*m])
-        boost = ('boost', {'target_gain':3.0*dB})
+        boost = ('boost', {'target_gain':3.0*dB, 'monitor_mode':'out'})
+        amp1 = ('amp1', {'target_gain': 25*.22*dB, 'monitor_mode':'out'})
         for i in range(1, roadmCount):
             self.addLink(f're{i}', f're{i+1}',
                          port1=lineout, port2=linein,
-                         cls=ULink, boost=boost, spans=[25*km])
+                         cls=ULink, boost=boost, spans=[25*km, amp1])
             self.addLink(f'rw{i}', f'rw{i+1}',
                          port1=lineout, port2=linein,
                          cls=ULink, boost=boost, spans=[25*km])
