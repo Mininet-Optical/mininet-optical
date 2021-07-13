@@ -131,12 +131,12 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
     Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
     Controller_Mininet.turnonTerminal(terminal=terminal)
-    #Controller_Mininet.turnonTerminal(terminal=terminal2)
+    # Controller_Mininet.turnonTerminal(terminal=terminal2)
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
-    #Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
     return lightpath_id
 
 
@@ -494,16 +494,19 @@ def testMininet(Mininet_Enable = False):
         file.write(f" Setting up path from {node1}->{node2}\n")
         traf_id = install_Traf(node1, node2, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
         lightpath_id = TRAFFIC_INFO[traf_id]['lightpath_id']
-        osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
-        osnr, gosnr = min(osnrs), min(gosnrs)
-        LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
-        LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
+        #osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
+        #osnr, gosnr = min(osnrs), min(gosnrs)
+        #LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
+        #LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
         channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
-        print(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++")
-        file.write(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++\n")
+        #print(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++")
+        print(f"+++ Installed path: {node1}->{node2}, channel: {channel} ")
+        file.write(f"+++ Installed path: {node1}->{node2}, channel: {channel} "
+                   #f"osnr: {osnr} gosnr:{gosnr} +++"
+                   f"\n")
         Mininet_monitorDifference(file)
 
-    for i in range(1, 15):
+    for i in range(1, 3):
         print("**************************************************")
         print("************** STARTING ROUND", i, " ************")
         print("**************************************************")
@@ -514,6 +517,9 @@ def testMininet(Mininet_Enable = False):
         file.write(f"************************Starting REVERSE round {i}**********************\n")
         for path in Backward_paths:
             Test_Loop(path[0], path[1])
+
+    for lightpath in sorted(SRC_DST_TO_LIGHTPATH):
+        print(lightpath, SRC_DST_TO_LIGHTPATH[lightpath])
 
 if __name__ == '__main__':
     #RoadmPhyTest()
