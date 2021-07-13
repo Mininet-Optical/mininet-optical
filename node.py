@@ -77,7 +77,7 @@ class Node(object):
         return input_port
 
     def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None,
-                                  nli_noise=None, in_port=None):
+                                  nli_noise=None, in_port=0):
         """
         :param optical_signal: OpticalSignal object, OpticalSignal uid
         :param power: power level of OpticalSignal
@@ -632,7 +632,8 @@ class Roadm(Node):
         if self.monitor:
             return self.monitor
 
-    def include_optical_signal_in_roadm(self, optical_signal, in_port):
+    def include_optical_signal_in_roadm(self, optical_signal, power=None, ase_noise=None,
+                                  nli_noise=None, in_port=0):
         """
         Include optical signals in preamp if object exists, and include
         input signals at a Node level
@@ -640,8 +641,10 @@ class Roadm(Node):
         :param in_port: int, input port
         """
         if self.preamp and not isinstance(self.port_to_node_in[in_port], LineTerminal):
-            self.preamp.include_optical_signal_in(optical_signal, in_port=0)
-        self.include_optical_signal_in(optical_signal,in_port=in_port)
+            self.preamp.include_optical_signal_in(optical_signal, power=power,
+                                                  ase_noise=ase_noise, nli_noise=nli_noise, in_port=0)
+        self.include_optical_signal_in(optical_signal, power=power,
+                                       ase_noise=ase_noise, nli_noise=nli_noise, in_port=in_port)
 
     def remove_switch_rule(self, rule_in_port, rule_signal_index, rule_out_port):
         """
@@ -667,9 +670,9 @@ class Roadm(Node):
         :param out_port: int, output port
         :param signal_indices: int or list, signal indices
         """
-        self.switch_table_copy = self.switch_table.copy()
+        switch_table_copy = self.switch_table.copy()
         if type(signal_indices) is list or type(signal_indices) is set:
-            for (rule_in_port, rule_signal_index), rule_out_port in self.switch_table_copy.items():
+            for (rule_in_port, rule_signal_index), rule_out_port in switch_table_copy.items():
                 for signal_index in signal_indices:
                     if signal_index == rule_signal_index and out_port == rule_out_port:
                         if self.debugger:
@@ -678,7 +681,7 @@ class Roadm(Node):
                         self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
                         self.port_check_range_out[out_port] = 0
         else:
-            for (rule_in_port, rule_signal_index), rule_out_port  in self.switch_table_copy.items():
+            for (rule_in_port, rule_signal_index), rule_out_port  in switch_table_copy.items():
                 if signal_indices == rule_signal_index and out_port == rule_out_port:
                     self.remove_switch_rule(rule_in_port, rule_signal_index, rule_out_port)
                     self.port_check_range_out[out_port] = 0
@@ -857,7 +860,6 @@ class Roadm(Node):
                 for out_port, optical_signals in port_to_optical_signal_out_copy.items():
                     # check if optical_signals == self.port_to_optical_signal_out[out_port]
                     # check if the power levels have changed
-                    # if self.repeated_switch(optical_signals, out_port):
                     if all(optical_signal in optical_signals for optical_signal in
                            self.port_to_optical_signal_out[out_port]) \
                             and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
@@ -874,6 +876,9 @@ class Roadm(Node):
                                     # and avoid repropagation of signals
                                     del port_to_optical_signal_out[out_port]
                                     del port_out_to_port_in_signals[out_port]
+                                    # reset self.port_check_range_out[out_port]
+                                    # otherwise it may remain unusable
+                                    self.port_check_range_out[out_port] = 0
                     else:
                         # The out port can be used
                         self.port_check_range_out[out_port] = 0
@@ -930,8 +935,9 @@ class Roadm(Node):
         else:
             port_to_optical_signal_out, port_out_to_port_in_signals = self.can_switch(in_port, safe_switch)
 
-        # process in the event of a preamp
-        self.prepropagation(port_out_to_port_in_signals, src_node)
+        if self.preamp and not isinstance(src_node, LineTerminal):
+            # process in the event of a preamp
+            self.prepropagation(port_out_to_port_in_signals, src_node)
 
         # propagate and route signals at each out port individually
         for out_port, in_port_signals in port_out_to_port_in_signals.items():
@@ -949,16 +955,17 @@ class Roadm(Node):
         """
         # iterate through the output ports to switch
         for out_port, in_port_signals in port_out_to_port_in_signals.items():
-            if self.preamp and not isinstance(src_node, LineTerminal):
-                for in_port, optical_signals in in_port_signals.items():
+            # we need to pass all the signals at a given in port to compute
+            # the carrier's attenuation in self.propagate()
+            for in_port, optical_signals in in_port_signals.items():
+                if self.preamp:
+                    optical_signals_in_preamp = []
                     for optical_signal in optical_signals:
-                        self.preamp.include_optical_signal_in(optical_signal)
-                # we need to pass all the signals at a given in port to compute
-                # the carrier's attenuation in self.propagate()
-                for in_port, optical_signals in in_port_signals.items():
-                    if self.preamp:
-                        # need to process signal before switch-based propagation
-                        self.preamp.propagate(optical_signals)
+                        if self.preamp in optical_signal.loc_in_to_state:
+                            optical_signals_in_preamp.append(optical_signal)
+
+                    # need to process signal before switch-based propagation
+                    self.preamp.propagate(optical_signals_in_preamp)
 
     def compute_carrier_attenuation(self, in_port, amp=None):
         """
@@ -1221,6 +1228,7 @@ class Amplifier(Node):
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(self.system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
+        # pprint(optical_signal.loc_in_to_state)
         input_power = optical_signal.loc_in_to_state[self]['power']
         output_power = input_power * system_gain_linear * \
                        wavelength_dependent_gain_linear
@@ -1323,7 +1331,7 @@ class Amplifier(Node):
                     self.next_component.receiver(optical_signal, in_port)
                 elif isinstance(self.next_component, Roadm):
                     in_port = self.next_component.link_to_port_in[self.link]
-                    self.next_component.include_optical_signal_in(
+                    self.next_component.include_optical_signal_in_roadm(
                         optical_signal, power=power_out,
                         ase_noise=ase_noise_out, nli_noise=nli_noise_out,
                         in_port=in_port)
