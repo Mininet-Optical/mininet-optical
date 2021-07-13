@@ -55,6 +55,22 @@ class Mininet_Control_REST(object):
         self.net.routes = {node: self.route(node, self.net.graph, self.net.terminals)
                       for node in self.net.terminals}
 
+
+    ###################### Aamir's code ##############################################
+    def getOSNR(self):
+        "Return fetchOSNR "
+        fetchOSNR(self.net)
+
+    def monitorKeyAndLightpaths(self):
+        Monitors_and_Signals ={}
+        monitors = self.net.get('monitors').json()['monitors']
+        for key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            Monitors_and_Signals[key] = osnrdata.keys()
+        return Monitors_and_Signals
+    ##########################################################################################
+
     def monitorKey(self, monitor):
         "Key for sorting monitor names"
         items = monitor.split('-')

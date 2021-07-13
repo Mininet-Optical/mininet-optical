@@ -266,14 +266,27 @@ class Span(object):
         for optical_signal in self.optical_signals:
             in_port = self.next_component.link_to_port_in[self.link]
             if isinstance(self.next_component, LineTerminal):
-                self.next_component.include_optical_signal_in(optical_signal,
-                                                              in_port=in_port)
+                self.next_component.include_optical_signal_in(
+                    optical_signal,
+                    power=optical_signal.loc_out_to_state[self]['power'],
+                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
+                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
+                    in_port=in_port)
                 self.next_component.receiver(optical_signal, in_port)
             elif isinstance(self.next_component, Roadm):
-                self.next_component.include_optical_signal_in_roadm(optical_signal,
-                                                              in_port=in_port)
+                self.next_component.include_optical_signal_in_roadm(
+                    optical_signal,
+                    power=optical_signal.loc_out_to_state[self]['power'],
+                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
+                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
+                    in_port=in_port)
             elif isinstance(self.next_component, Amplifier):
-                self.next_component.include_optical_signal_in(optical_signal, in_port=0)
+                self.next_component.include_optical_signal_in(
+                    optical_signal,
+                    power=optical_signal.loc_out_to_state[self]['power'],
+                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
+                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
+                    in_port=0)
 
         if isinstance(self.next_component, Amplifier):
             self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)

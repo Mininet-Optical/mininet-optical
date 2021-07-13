@@ -12,7 +12,12 @@ from dataplane import ( Terminal, ROADM, OpticalLink,
                         SwitchBase as OpticalSwitchBase,
                         dBm, dB, km,
                         cleanOptLinks, disableIPv6, Mininet )
+
+from node import SignalTracing, NodeAuditing
+
 from rest import RestServer
+
+from units import abs_to_dbm
 
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
@@ -49,13 +54,13 @@ class OpticalCLI( CLI ):
             if hasattr( node, 'model' ):
                 self.printSignals( node.model )
 
-
     @staticmethod
     def formatSigState( state ):
         "Return formatted signal state string"
-        pwr = state[ 'power' ]
-        ase = state[ 'ase_noise' ]
-        nli = state[ 'nli_noise' ]
+        nan = float( 'nan' )
+        pwr = state.get( 'power', nan )
+        ase = state.get( 'ase_noise', nan )
+        nli = state.get( 'nli_noise', nan )
         return 'pwr:%.1e ase:%.1e nli:%.1e' % ( pwr, ase, nli )
 
     def printSignals(self, model):
@@ -78,14 +83,92 @@ class OpticalCLI( CLI ):
         return [ link for link in self.mn.links
                  if isinstance( link, OpticalLink ) ]
 
-    def do_linksignals( self, _line ):
-        "Print signals for links between ROADMs"
-        for link in self.opticalLinks():
-            if ( isinstance( link.intf1.node, ROADM ) and
-                 isinstance( link.intf2.node, ROADM ) ):
-                link.phyLink1.print_signals()
-                link.phyLink2.print_signals()
+    @staticmethod
+    def printNodeSignals( node ):
+        "print a node's signals"
+        print( node, 'inputs:', node.port_to_optical_signal_in )
+        print( node, 'outputs:', node.port_to_optical_signal_out )
 
+    def do_linksignals( self, line='' ):
+        "linksignals {pattern}: Print signals for links between ROADMs"
+        selector = line  # substring to match in phylink name
+        minlength = 10  # Skip short lengths of fiber (<10m)
+        errors = 0  # Count of propagation errors
+        for link in self.opticalLinks():
+            for plink in link.phyLink1, link.phyLink2:
+                if plink and selector in str( plink ):
+                    if ( len( plink.spans ) == 1 and
+                         plink.spans[0].span.length < minlength ):
+                        continue
+                    if line not in str( plink ):
+                        continue
+                    locs = []
+                    for span, amp in plink.spans:
+                        if span:
+                            locs.append( span )
+                        if amp:
+                            locs.append( amp )
+                    paths = { sig: locs for sig in plink.optical_signals }
+                    print('***', plink)
+                    self._printPathState( paths )
+
+    def _fmtSigState( self, state ):
+        "Return formatted signal state"
+        result = []
+        fields = {'power':'P', 'ase_noise':'A', 'nli_noise':'N'}
+        for field, abbrev in fields.items():
+            if state:
+                val = state.get( field, None )
+                if val is not None:
+                    val = abs_to_dbm(val)
+                    result.append( '%s:%.2fdBm' % ( abbrev, val ) )
+        return result
+
+    def _fmtPathEntry( self, entry ):
+        "Format path entry"
+        result = []
+        if entry.instate:
+            result.append( 'in' )
+            result += self._fmtSigState( entry.instate )
+        if entry.outstate:
+            result.append( 'out' )
+            result += self._fmtSigState( entry.outstate )
+        return ' '.join( result )
+
+    def do_sigtrace( self, line ):
+        "sigtrace node [ch]: trace signal(s) originating at node"
+        params = line.split()
+        try:
+            name = params.pop( 0 )
+            ch = int( params.pop( 0 ) ) if params else None
+            node = self.mn[ name ].model
+            paths = SignalTracing.channel_paths(node, ch)
+            self._printPathState( paths )
+        except:
+            print( 'usage: sigtrace {terminal} [{channel}' )
+
+    def _printPathState( self, paths ):
+        "Print out path state for each signal:path in paths"
+        for signal in sorted(paths, key=lambda s:s.index):
+            path = paths[signal]
+            print( f'*** {signal}')
+            state = SignalTracing.path_state(signal, path)
+            for entry in state:
+                print( entry.location, self._fmtPathEntry( entry ) )
+
+    def do_sigpath( self, line ):
+        """sigpath node [ch]: return path of signal(s)
+           starting at node"""
+        params = line.split()
+        try:
+            name = params.pop( 0 )
+            ch = int( params.pop( 0 ) ) if params else None
+            node = self.mn[ name ].model
+            paths = SignalTracing.channel_paths( node, ch )
+            for signal, path in paths.items():
+                print( f'{signal}: {path}')
+        except:
+            print( 'usage: sigpath {terminal} [{channel}' )
 
     def do_monitors( self, _line ):
         "List monitors on optical links and nodes"
@@ -97,18 +180,24 @@ class OpticalCLI( CLI ):
             if link.monitors:
                 print( '%s:' % link )
                 for monitor in link.monitors:
-                    print( ' ', monitor )
+                    monitor = monitor.model
+                    print( monitor )
+                    self.printOsnr( monitor )
+
+    @staticmethod
+    def printOsnr( monitor ):
+        print( str(monitor) + ':' )
+        osnr = monitor.get_dict_osnr()
+        gosnr = monitor.get_dict_gosnr()
+        for signal in sorted(osnr, key=lambda s:s.index):
+            print( '%s OSNR: %.2f dB' % ( signal, osnr[signal] ), end='' )
+            print( ' gOSNR: %.2f dB' % gosnr.get(signal, float('nan') ) )
 
     def do_osnr( self, _line ):
         "List osnr for monitors"
         for monitor in self.mn.monitors:
             monitor = monitor.model
-            print( str(monitor) + ':' )
-            osnr = monitor.get_dict_osnr()
-            gosnr = monitor.get_dict_gosnr()
-            for signal in sorted(osnr, key=lambda s:s.index):
-                print( '%s OSNR: %.2f dB' % ( signal, osnr[signal] ), end='' )
-                print( ' gOSNR: %.2f dB' % gosnr.get(signal, float('nan') ) )
+            self.printOsnr( monitor )
 
     def spans( self, minlength=100):
         "Span iterator"
@@ -116,7 +205,7 @@ class OpticalCLI( CLI ):
         phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
         for phyLink in sorted( phyLinks, key=natural ):
             if not phyLink:
-                continue
+                continuename
             if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < minlength:
                 # Skip short lengths of fiber
                 continue
@@ -189,6 +278,41 @@ class OpticalCLI( CLI ):
         for host in self.mn.hosts:
             host.cmdPrint( 'arping -bf -c1 -U -I',
                            host.defaultIntf().name, host.IP() )
+
+    def do_checkroadms( self, line ):
+        "checkroadms {roadm...}: Check signals going through one or more ROADMs"
+        roadms = line.split()
+        if not roadms:
+            roadms = sorted( ( sw.name for sw in self.mn.switches
+                               if isinstance( sw, ROADM ) ), key=natural )
+        for roadm in roadms:
+            if roadm not in self.mn:
+                print( f'{roadm} is not in the network!' )
+            else:
+                roadm = self.mn[roadm]
+            NodeAuditing.check_roadm_propagation( roadm.model )
+
+    def do_checklinks( self, line='' ):
+        "checklinks {pattern}: Check signals going through links"
+        pattern = line
+        for link in self.opticalLinks():
+            for plink in link.phyLink1, link.phyLink2:
+                if not pattern in str( plink ):
+                    continue
+                if plink:
+                    errors = NodeAuditing.check_link_propagation( plink )
+
+    def do_reset( self, line ):
+        "reset {node...}: reset one or all optical nodes"
+        # FIXME: this doesn't work reliably for some reason
+        names = line.split()
+        if not names:
+            names = [sw.name for sw in self.mn.switches]
+        for name in names:
+            sw = self.mn[name]
+            if hasattr( sw, 'reset'):
+                print( f'resetting {sw}' )
+                sw.reset()
 
     # FIXME: This is ugly and also doesn't seem to work.
     # The amplifier gain is updated but the signals
