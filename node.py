@@ -860,7 +860,6 @@ class Roadm(Node):
                 for out_port, optical_signals in port_to_optical_signal_out_copy.items():
                     # check if optical_signals == self.port_to_optical_signal_out[out_port]
                     # check if the power levels have changed
-                    # if self.repeated_switch(optical_signals, out_port):
                     if all(optical_signal in optical_signals for optical_signal in
                            self.port_to_optical_signal_out[out_port]) \
                             and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
@@ -956,7 +955,6 @@ class Roadm(Node):
         """
         # iterate through the output ports to switch
         for out_port, in_port_signals in port_out_to_port_in_signals.items():
-            # if self.preamp and not isinstance(src_node, LineTerminal):
             # we need to pass all the signals at a given in port to compute
             # the carrier's attenuation in self.propagate()
             for in_port, optical_signals in in_port_signals.items():
@@ -965,7 +963,6 @@ class Roadm(Node):
                     for optical_signal in optical_signals:
                         if self.preamp in optical_signal.loc_in_to_state:
                             optical_signals_in_preamp.append(optical_signal)
-                    # if self in optical_signal.loc_in_to_state:
                     # need to process signal before switch-based propagation
                     self.preamp.propagate(optical_signals_in_preamp)
 
@@ -1230,7 +1227,6 @@ class Amplifier(Node):
         # Conversion from dB to linear
         system_gain_linear = db_to_abs(self.system_gain)
         wavelength_dependent_gain_linear = db_to_abs(wavelength_dependent_gain)
-        # pprint(optical_signal.loc_in_to_state)
         input_power = optical_signal.loc_in_to_state[self]['power']
         output_power = input_power * system_gain_linear * \
                        wavelength_dependent_gain_linear
