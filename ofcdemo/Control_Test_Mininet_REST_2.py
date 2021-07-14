@@ -2,15 +2,20 @@
 
 """
 apsp.py: all-pairs-shortest-paths routing for ofc demo
+
 The goal is *not* to demonstrate an elaborate routing and
 rebalancing algorithm, but to demonstrate how
 mininet-optical enables packet-optical SDN controller
 development and experimentation!!
+
 So our routing is extremely simple:
+
 1. Every pair of nodes gets a unique channel
 2. Routes are shortest paths
+
 Since all the links are the same length, we don't even
 have to use Dijkstra's algorithm - BFS works just fine!
+
 """
 import random
 
@@ -22,6 +27,7 @@ from ofcdemo.fakecontroller import (
     fetchNodes, fetchLinks, fetchPorts, fetchOSNR, ListenPortBase )
 
 from collections import defaultdict
+import copy
 from datetime import datetime
 from itertools import chain
 from time import sleep
@@ -55,52 +61,18 @@ class Mininet_Control_REST(object):
         self.net.routes = {node: self.route(node, self.net.graph, self.net.terminals)
                       for node in self.net.terminals}
 
-
-    ###################### Aamir's code ##############################################
-    def getOSNR(self):
-        "Return fetchOSNR "
-        fetchOSNR(self.net)
-
-    def monitorKeyAndLightpaths(self):
-        Monitors_and_Signals ={}
-        monitors = self.net.get('monitors').json()['monitors']
-        for key in sorted(monitors, key=self.monitorKey):
-            response = self.net.get('monitor', params=dict(monitor=key))
-            osnrdata = response.json()['osnr']
-            Monitors_and_Signals[key] = osnrdata.keys()
-        return Monitors_and_Signals
-    ##########################################################################################
-
     def monitorKey(self, monitor):
         "Key for sorting monitor names"
         items = monitor.split('-')
         return items
 
+    def getMonitorKey_1(self, src_id, dst_id, spanID=1):
+        key1 = 'r{}-r{}-amp{}-monitor'.format(dst_id, src_id, spanID)
+        key2 = 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
+        return key1, key2
+
     def getMonitorKey(self, src_id, dst_id, spanID=1):
         return 'r{}-r{}-amp{}-monitor'.format(src_id, dst_id, spanID)
-
-    def monitorOSNRbyKey(self, key, channel):
-        monitors = self.net.get('monitors').json()['monitors']
-        if key in sorted(monitors, key=self.monitorKey):
-            response = self.net.get('monitor', params=dict(monitor=key))
-            osnrdata = response.json()['osnr']
-            print(f"Monitor: {key} | Response: {response}")
-            if not response.ok:
-                print(response.text)
-            if str(channel) in osnrdata.keys():
-                THz = float(osnrdata[str(channel)]['freq']) / 1e12
-                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
-                return osnr, gosnr
-        return 0, 0
-
-    def monitorKeyAndLightpaths(self):
-        Monitors_and_Signals ={}
-        monitors = self.net.get('monitors').json()['monitors']
-        for key in sorted(monitors, key=self.monitorKey):
-            response = self.net.get('monitor', params=dict(monitor=key))
-            osnrdata = response.json()['osnr']
-            Monitors_and_Signals[key] = osnrdata.keys()
-        return Monitors_and_Signals
 
     def getMonitorKeyTerm(self, dst_id):
         return 't{}-monitor'.format(dst_id)
@@ -116,6 +88,67 @@ class Mininet_Control_REST(object):
             return osnr, gosnr
         return 0, 0
 
+    def monitorOSNRbyKey(self, key, channel):
+        """Return osnr and gosnr for a given monitor"""
+        monitors = self.net.get('monitors').json()['monitors']
+        if key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
+        return 0, 0
+
+    def monitorOSNRbyKey_1(self, key1, key2, channel):
+        """Return osnr and gosnr for a given monitor"""
+        monitors = self.net.get('monitors').json()['monitors']
+        if key1 in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key1))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
+        elif key2 in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key2))
+            osnrdata = response.json()['osnr']
+            if str(channel) in osnrdata.keys():
+                THz = float(osnrdata[str(channel)]['freq']) / 1e12
+                osnr, gosnr = osnrdata[str(channel)]['osnr'], osnrdata[str(channel)]['gosnr']
+                return osnr, gosnr
+        return 0, 0
+
+    def allAvailableLightpathsforMonitor(self):
+        """Returns the channels the monitor can monitor"""
+        monitors = sorted(self.net.get('monitors').json()['monitors'])
+        for key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            print(key, osnrdata.keys())
+
+
+    def availableLightpathsforMonitor(self, key=None):
+
+        if key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            print(key, osnrdata.keys())
+            return osnrdata.keys()
+        """Returns the channels the monitor can monitor"""
+        monitors = self.net.get('monitors').json()['monitors']
+        response = self.net.get('monitor', params=dict(monitor=key))
+        osnrdata = response.json()['osnr']
+        print(key, osnrdata.keys())
+
+    def monitorKeyAndLightpaths(self):
+        Monitors_and_Signals ={}
+        monitors = self.net.get('monitors').json()['monitors']
+        for key in sorted(monitors, key=self.monitorKey):
+            response = self.net.get('monitor', params=dict(monitor=key))
+            osnrdata = response.json()['osnr']
+            Monitors_and_Signals[key] = osnrdata.keys()
+        return Monitors_and_Signals
     def monitorOSNR(self, channel, gosnrThreshold=18.0 ):
         """Monitor gOSNR continuously; if any monitored gOSNR drops
            below threshold, return list of (monitor, channel, link)"""
@@ -125,7 +158,7 @@ class Mininet_Control_REST(object):
         for monitor in sorted( monitors, key=self.monitorKey ):
             response = self.net.get( 'monitor', params=dict( monitor=monitor ) )
             osnrdata = response.json()[ 'osnr' ]
-            #print(monitor, '\n', osnrdata.items())
+            print(monitor, '\n', osnrdata.items())
             # print( monitor + ':', end=' ' )
             for ch, data in osnrdata.items():
                 if ch != str(channel):
@@ -179,7 +212,7 @@ class Mininet_Control_REST(object):
 
 
 
-    def configureTerminal(self, terminal, channel, power=0.0, type='bidirectional'):
+    def configureTerminal(self, terminal, channel, power=0.0):
         "Configure terminals statically: ethN <-> wdmM:channel"
         print("*** Configuring terminals")
         proxies = { terminal: TerminalProxy(terminal) }
@@ -188,18 +221,13 @@ class Mininet_Control_REST(object):
                            if 'eth' in intf )
         wdmPorts = sorted( int(port) for port, intf in self.net.ports[ terminal ].items()
                            if 'wdm' in intf )
-        print(f"+++TERMINAL configurations: proxies: {proxies} termProxy: {termProxy}"
-              #f"\n"
-              #f"wdmPorts {terminal}: {wdmPorts} \n"
-              #f"ethPorts {terminal}: {ethPorts} \n"
-              #f"All ports: {self.net.ports[ terminal ].items()}"
-              f"")
-        if channel is not None:
-            ethPort, wdmPort = ethPorts[channel-1], wdmPorts[channel-1]
+        #print('ethports, wdmports', ethPorts, wdmPorts)
+        print(termProxy)
+        ethPort, wdmPort = ethPorts[channel-1], wdmPorts[channel-1]
         #print('Pin-Pout-channel', ethPort, wdmPort, channel)
         termProxy.connect( ethPort=ethPort, wdmPort=wdmPort,
-                           channel=channel, power=power, type=type )
-        print(f"*** Turning on terminal {terminal} type:{type} *** Channel: {channel}, ethPort:{ethPort}, wdmPort:{wdmPort}")
+                           channel=channel, power=power )
+        print("*** Turning on terminals")
 
 
     def turnonTerminal(self, terminal):
@@ -208,10 +236,10 @@ class Mininet_Control_REST(object):
         proxies[terminal].turn_on()
 
 
-    def configurePacketSwitch(self, src, dst, channel, router, port):
+    def configurePacketSwitch(self, src, dst, channel, router, port=0):
         "Configure Open vSwitch 'routers' using OpenFlow"
 
-        print( "*** Configuring Open vSwitch 'routers' remotely... " )
+        print( "*** Configuring Open vSwitch 'routers' remotely... " ) #UNCOMMENT FOR DEMO
 
         def subnet( pop ):
             return '10.%d.0.0/24' % pop
@@ -219,13 +247,13 @@ class Mininet_Control_REST(object):
         routerProxy = OFSwitchProxy( name=router, port=port )
 
         # Initialize flow table
-        print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' )
+        print( 'Configuring', router, 'at', routerProxy.remote, 'via OpenFlow...' ) #UNCOMMENT FOR DEMO
         routerProxy.dpctl( 'del-flows' )
 
         # Find local port
         ethports = sorted( int(port) for port, intf in self.net.ports[ router ].items()
                            if 'eth' in intf )
-        print('==router ethports==', ethports)
+        print('==router ethports==', ethports) #UNCOMMENT FOR DEMO
         localport = ethports[ -1 ]
 
         # to local
@@ -246,27 +274,31 @@ class Mininet_Control_REST(object):
 
     def installPath(self, path, channels):
         "Program a lightpath into the network"
-        print("*** Installing path", path, "channels", channels)
+        print(f"*** Installing path {path} on channels {channels}")
         # Install ROADM rules
         for i in range(1, len(path) - 1 ):
             node1, roadm, node2 = path[i-1], path[i], path[i+1]
+            print(f"Nodes are: node1: {node1}, roadm {roadm}, node2: {node2}")
             port1 = self.net.graph[ node1 ][ roadm ]
             port2 = self.net.graph[ node2 ][ roadm ]
-            print(f"segment {i}: {node1}-[{port1}]->{roadm}-[{port2}]->{node2}")
+            print(f"{node1}={roadm}-port1: {port1}, {node2}={roadm}-port2: {port2}")
             # For terminal nodes, use the proper channel port(s)
-            for channel in channels:
-                if i == 1:
+            if i == 1:
+                for channel in channels:
                     #print('pin-pout', channel, port2)
-                    ROADMProxy( roadm ).connect( channel, port2, [channel] )
-
-                elif i == len(path) - 2:
+                    install_link = ROADMProxy( roadm ).connect( channel, port2, [channel] )
+                    print(install_link)
+            elif i == len(path) - 2:
+                for channel in channels:
                     #print('pin-pout', port1, channel)
-                    ROADMProxy( roadm ).connect( port1, channel, [channel] )
-                # For roadm nodes, forward the channels en masse
-                else:
-                    #print('pin-pout', port1, port2)
-                    ROADMProxy( roadm ).connect( port1, port2, [channel] )
-        return
+                    install_link = ROADMProxy( roadm ).connect( port1, channel, [channel] )
+                    print(install_link)
+            # For roadm nodes, forward the channels en masse
+            else:
+                #print('pin-pout', port1, port2)
+                install_link = ROADMProxy( roadm ).connect( port1, port2, channels )
+                print(install_link)
+
 
     def uninstallPath(self, path, channels):
         "Program a lightpath into the network"
@@ -278,17 +310,18 @@ class Mininet_Control_REST(object):
             port1 = self.net.graph[ node1 ][ roadm ]
             port2 = self.net.graph[ node2 ][ roadm ]
             # For terminal nodes, use the proper channel port(s)
-            for channel in channels:
-                if i == 1:
-                    print('pin-pout', channel, port2)
+            if i == 1:
+                for channel in channels:
+                    print('REMOVING LINK: pin-pout', channel, port2) #Connects the channel to the port
                     ROADMProxy( roadm ).connect( channel, port2, [channel], action='remove' )
-                elif i == len(path) - 2:
-                    print('pin-pout', port1, channel)
+            elif i == len(path) - 2:
+                for channel in channels:
+                    print('REMOVING LINK: pin-pout', port1, channel)
                     ROADMProxy( roadm ).connect( port1, channel, [channel], action='remove' )
-                # For roadm nodes, forward the channels en masse
-                else:
-                    print('pin-pout', port1, port2)
-                    ROADMProxy( roadm ).connect( port1, port2, [channel], action='remove' )
+            # For roadm nodes, forward the channels en masse
+            else:
+                print('REMOVING LINK: pin-pout', port1, port2)
+                ROADMProxy( roadm ).connect( port1, port2, channels, action='remove' )
 
 
 def Test():
@@ -322,13 +355,13 @@ def Test():
     src_id, dst_id = 1, 4
     src, dst = net.terminals[src_id-1], net.terminals[dst_id-1]
     path = net.routes[src][dst]
-    #print(src, '->', dst, path)
+    print(src, '->', dst, path)
     channel = 12
-    install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
+    install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net, lis)
     uninstall_lightpath(path, channel)
     install_lightpath(path=path, src_id=src_id, dst_id=dst_id, channel=channel, power=0, net=net)
     control.monitorOSNR(channel=12, gosnrThreshold=15)
-    #print('first hop osnr', control.monitorOSNRbyKey('r1-r2-amp1-monitor',channel=12))
+    print('first hop osnr', control.monitorOSNRbyKey('r1-r2-amp1-monitor','r2-r1-amp1-monitor',channel=12))
     #"""
 
     # install lightpaths

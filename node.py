@@ -477,7 +477,7 @@ class OpticalSignal(object):
     def __init__(self, index, channel_spacing_H,
                  channel_spacing_nm, modulation_format,
                  symbol_rate, bits_per_symbol,
-                 power=0, ase_noise=0, nli_noise=0):
+                 power=0.0, ase_noise=0, nli_noise=0):
         self.uid = id(self)
         # configuration attributes
         self.index = index
@@ -670,7 +670,9 @@ class Roadm(Node):
         :param out_port: int, output port
         :param signal_indices: int or list, signal indices
         """
+        print("==== RUNNING check_switch_rule ====")
         switch_table_copy = self.switch_table.copy()
+        print(f"{self} in:{in_port}->out:{out_port} | Switch Table {switch_table_copy} | signal indicies:{signal_indices}")
         if type(signal_indices) is list or type(signal_indices) is set:
             for (rule_in_port, rule_signal_index), rule_out_port in switch_table_copy.items():
                 for signal_index in signal_indices:

@@ -374,7 +374,7 @@ class Terminal( SwitchBase ):
         return 'OK'
 
     def connect( self, ethPort, wdmPort, channel=None, power=None,
-                wdmInPort=None ):
+                wdmInPort=None, type='bidirectional' ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
            wdmPort: WDM port number"""
@@ -389,13 +389,18 @@ class Terminal( SwitchBase ):
         wdmIntf = self.intfs[ wdmPort ]
         print(f"++{self} WDM PORT INFO: wdm:({wdmPort}, {wdmIntf}) | wdmInput:({wdmInPort}, {wdmInputIntf}) "
               f"| CHANNEL={channel}")
-        if wdmIntf.isOutput():
-            # print(self, 'uplink', 'tx', transceiver.id, 'ch', channel, 'port', wdmPort )
-            self.model.assoc_tx_to_channel(
-                transceiver, channel, out_port=wdmPort )
-        if wdmInputIntf.isInput():
-            # print(self, 'downlink', 'tx', transceiver.id, 'ch', channel, 'port', wdmInPort )
-            self.model.assoc_rx_to_channel( transceiver, channel, wdmInPort )
+        if type == 'bidirectional':
+            if wdmIntf.isOutput():
+                # print(self, 'uplink', 'tx', transceiver.id, 'ch', channel, 'port', wdmPort )
+                self.model.assoc_tx_to_channel(
+                    transceiver, channel, out_port=wdmPort )
+            if wdmInputIntf.isInput():
+                # print(self, 'downlink', 'tx', transceiver.id, 'ch', channel, 'port', wdmInPort )
+                self.model.assoc_rx_to_channel( transceiver, channel, wdmInPort )
+        if type == 'transceiver':
+            self.model.assoc_tx_to_channel(transceiver, channel, out_port=wdmPort)
+        if type == 'receiver':
+            self.model.assoc_rx_to_channel(transceiver, channel, out_port=wdmInPort)
 
         # Remove old flows if any
         for port in wdmInPort, wdmPort:
@@ -447,7 +452,7 @@ class Terminal( SwitchBase ):
         "Unblock signal at inport"
         if ( channel, inport ) not in self.failedChannels:
             return
-        print("***", self, "unblocking port", inport, "channel", channel)
+        print("***", self, "UNBLOCKING port", inport, "channel", channel)
         self.failedChannels.remove( ( channel, inport ) )
         # No priority or actions in delete
         blockInbound  = ( 'in_port=%d,' % inport +
@@ -538,6 +543,7 @@ class ROADM( SwitchBase ):
         "Remove a switching rule from the dataplane"
         #print('remove', inport, outport, channels)
         self.dpInstall( inport, outport, channels, cmd='del-flows' )
+        print(f"\n{self} INSTALL/UNINSTALL: cmd:'del-flows' , inport:{inport}->outport:{outport}, channels={channels} ")
 
     # Combined dataplane/phy emulation operations
 

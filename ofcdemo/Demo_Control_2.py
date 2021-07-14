@@ -37,6 +37,7 @@ NETLINK_INFO = defaultdict( defaultdict ) # ('node_name', 'node_name'): {channel
 TRAFFIC_INFO = defaultdict( defaultdict ) # id : {'src':src, 'dst':dst, 'lightpath_id': lightpath_id, 'up_time':s_time, 'down_time': d_time}
 LIGHTPATH_INFO = defaultdict( defaultdict ) # id : {'path':path, 'channel_id': channel_id, 'traf_set': set(), 'up_time':s_time, 'down_time': d_time, 'OSNR': 25, 'GOSNR': 24.5 }
 SRC_DST_TO_LIGHTPATH = defaultdict( set ) # (src, dst) : {set[lightpath_id]}
+SRC_DST_TO_CHANNEL = defaultdict( set ) # (src, dst) : {set[channels]}
 PATH_CH_TO_LIGHTPATH = defaultdict(defaultdict) # (src, hop, dst) : {'channel_id': lightpath_id}
 TRAFFIC_ID = 0
 LIGHTPATH_ID = 0
@@ -121,22 +122,22 @@ def RoadmPhyNetwork():
 
 def Mininet_installPath(lightpath_id, path, channel, power=0):
     "intall switch rules on roadms along a lightpath for some signal channels"
-
+    print(f"INSTALLING new lightpath onto the mininet System! ch.{channel} from {path[0]}->{path[-1]}")
     src_id, dst_id = TERMINAL_TO_ID[path[0]], TERMINAL_TO_ID[path[-1]]
     # Install a route
     Controller_Mininet.installPath(path=path, channels=[channel])
     # Configure terminals and start transmitting
     terminal = Controller_Mininet.net.terminals[src_id - 1]
     terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
-    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
-    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
+    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power, type='transceiver')
+    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power, type='receiver')
     Controller_Mininet.turnonTerminal(terminal=terminal)
     #Controller_Mininet.turnonTerminal(terminal=terminal2)
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
-    #Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
     return lightpath_id
 
 
@@ -330,6 +331,7 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mini
     LIGHTPATH_INFO[LIGHTPATH_ID]['GOSNR'] = 0
     # (src, dst) : {1,2,3,4,5}  ##lightpath_id
     SRC_DST_TO_LIGHTPATH[path[0], path[-1]].add(LIGHTPATH_ID)
+    SRC_DST_TO_CHANNEL[path[0], path[-1]].add(channel)
     # (src, hop, dst) : {'channel_id': lightpath_id}
 
     PATH_CH_TO_LIGHTPATH[tuple(path)][channel] = int(LIGHTPATH_ID)
@@ -502,8 +504,9 @@ def testMininet(Mininet_Enable = False):
         print(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++")
         file.write(f"+++ Installed path: {node1}->{node2}, channel: {channel} osnr: {osnr} gosnr:{gosnr} +++\n")
         Mininet_monitorDifference(file)
-
-    for i in range(1, 15):
+    count=0
+    countstop=10
+    for i in range(1, 3):
         print("**************************************************")
         print("************** STARTING ROUND", i, " ************")
         print("**************************************************")
@@ -514,6 +517,9 @@ def testMininet(Mininet_Enable = False):
         file.write(f"************************Starting REVERSE round {i}**********************\n")
         for path in Backward_paths:
             Test_Loop(path[0], path[1])
+
+    for path in sorted(SRC_DST_TO_CHANNEL):
+        print(path, SRC_DST_TO_CHANNEL[path])
 
 if __name__ == '__main__':
     #RoadmPhyTest()

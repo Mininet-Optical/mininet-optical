@@ -99,13 +99,13 @@ class SwitchProxy( NodeProxy ):
 class TerminalProxy( SwitchProxy ):
     "Local proxy for Terminal/transceiver configuration via REST"
 
-    def connect( self, ethPort, wdmPort, channel=None, power=None ):
+    def connect( self, ethPort, wdmPort, channel=None, power=None, type='bidirectional' ):
         "Configure terminal/transceiver"
         params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort,
-                       channel=channel, power=power)
+                       channel=channel, power=power, type=type)
         # print('connect', params)
         r = self.get( 'connect', params=params )
-        print(f"{self} TERMINAL PROXY: channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}, response {r}")
+        print(f"TERMINAL PROXY: {self}  channel:{channel}, wdmPort:{wdmPort}, ethPort:{ethPort}, type:{type}, response {r}")
         if not r.ok:
             print(r.text)
         # print( r )
@@ -120,6 +120,7 @@ class TerminalProxy( SwitchProxy ):
         params = dict(node=self.name)
         # print('turn_on', params)
         r = self.get('turn_on', params)
+        print(f"Turning on{self}. Result: {r}")
         # print(r)
 
 
