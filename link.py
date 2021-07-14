@@ -93,6 +93,24 @@ class Link(object):
         """String representation"""
         return "(%s->%s)" % (self.src_node, self.dst_node)
 
+    def reset(self):
+        """
+        Remove all optical signals from Link
+        """
+        print("*** resetting link", self)
+        if len(self.optical_signals) > 0:
+            self.optical_signals = []
+            for span_tuple in self.spans:
+                span = span_tuple[0]
+                span.reset()
+
+                amplifier = span_tuple[1]
+                if amplifier:
+                    amplifier.reset()
+
+            if self.dst_node is not None:
+                self.dst_node.reset()
+
     def remove_optical_signal(self, optical_signal):
         if self.debugger:
             print("*** %s removing: %s" % (self, optical_signal))
@@ -192,6 +210,9 @@ class Span(object):
     def __repr__(self):
         """String representation"""
         return '<%d %.1fkm>' % (self.span_id, self.length/km)
+
+    def reset(self):
+        self.optical_signals = []
 
     def attenuation(self):
         return db_to_abs(self.fibre_attenuation * self.length)

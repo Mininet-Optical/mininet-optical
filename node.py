@@ -141,6 +141,26 @@ class Node(object):
         link = self.port_to_link_out[port_out]
         link.remove_optical_signal(optical_signal)
 
+    def reset_component(self):
+        """
+        reset the dynamic attributes from node
+        """
+        print("*** resetting component", self)
+        # reset dynamic attributes - inputs
+        for port_in in self.port_to_optical_signal_in:
+            self.port_to_optical_signal_in[port_in] = []
+        self.optical_signal_to_port_in = {}
+
+        # reset dynamic attributes - outputs
+        for port_out in self.port_to_optical_signal_out:
+            self.port_to_optical_signal_out[port_out] = []
+            if port_out in self.port_to_link_out:
+                # iterate through each node degree and
+                # reset links
+                link = self.port_to_link_out[port_out]
+                link.reset()
+        self.optical_signal_to_port_out = {}
+
     def describe(self):
         pprint(vars(self))
 
@@ -200,13 +220,11 @@ class LineTerminal(Node):
         Remove all optical signals from the LineTerminal,
         and reset dynamic data structures
         """
-        optical_signals = self.get_optical_signals()
-        for optical_signal in optical_signals:
-            self.remove_optical_signal(optical_signal)
         self.reset_transceivers()
         self.optical_signals_out = 0
         self.tx_to_channel = {}
         self.rx_to_channel = {}
+        self.reset_component()
 
     def add_transceivers(self, transceivers):
         """
@@ -620,13 +638,15 @@ class Roadm(Node):
         return optical_signals
 
     def reset(self):
-        for optical_signal in self.get_optical_signals():
-            self.remove_optical_signal(optical_signal)
         self.switch_table = {}
         self.port_check_range_out = {}
         self.node_to_rule_id_in = {}
         self.rule_id_to_node_in = {}
-
+        if self.preamp:
+            self.preamp.reset()
+        if self.boost:
+            self.boost.reset()
+        self.reset_component()
 
     def monitor_query(self):
         if self.monitor:
@@ -1162,6 +1182,10 @@ class Amplifier(Node):
         self.prev_component = None
         self.next_component = None
         self.link = None
+
+    def reset(self):
+        self.reset_gain()
+        self.reset_component()
 
     def monitor_query(self):
         if self.monitor:
