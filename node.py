@@ -1437,6 +1437,9 @@ class Monitor(Node):
                     for optical_signal in value:
                         if self.component in optical_signal.loc_in_to_state:
                             optical_signal_list.append(optical_signal)
+                        else:
+                            print(f'*** ERROR: missing input state for {optical_signal}'
+                                  f' at {self.component}')
             return optical_signal_list
         else:
             optical_signal_list = []
@@ -1445,6 +1448,10 @@ class Monitor(Node):
                     for optical_signal in value:
                         if self.component in optical_signal.loc_out_to_state:
                             optical_signal_list.append(optical_signal)
+                        else:
+                            print(f'*** ERROR: missing output state for {optical_signal}'
+                                  f' at {self.component}')
+
             return optical_signal_list
 
     def get_list_osnr(self):
@@ -1692,11 +1699,11 @@ class NodeAuditing:
                              f'at {amp}' )
                        errcount += 1
                     if amp not in sig.loc_in_to_state:
-                       print(f'**** ERROR: {sig} input state'
+                       print(f'**** ERROR: {sig} input state '
                              f'missing at {amp}')
                        errcount += 1
                     if amp not in sig.loc_out_to_state:
-                        print(f'*** ERROR: {sig} output state'
+                        print(f'*** ERROR: {sig} output state '
                               f'missing at {amp}')
                         errcount += 1
                 monitor = getattr(amp, 'monitor', None)
