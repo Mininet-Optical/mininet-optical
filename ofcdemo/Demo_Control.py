@@ -176,7 +176,7 @@ def Mininet_monitorLightpath(lightpath_id):
         osnrs.append(osnr)
         gosnrs.append(gosnr)
     return osnrs, gosnrs
-    #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
+    Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
 
 
 ################# END ####################
@@ -585,10 +585,13 @@ def TrafficTest(Mininet_Enable=False):
         print(key, routes[key])
 
     file = open('record.txt', 'w')
-
+    hourly_results = open('Hourly_Results.txt', 'w')
+    file.write("Hour, r2, r3, Lightpaths, average wavelengths, T1 traffic, t4 traffic, r2 rejections, r3 rejections,"
+               "50G, 100G, 200G, Uniderutilised, Total Provisionsing")
+    hourly_results.write(f"*****Results for every hour*****\n")
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
     Total_Rej = 0
-    N = int(24 * 7)  # total emulation time : 24 hour * y days
+    N = int(24 * 1)  # total emulation time : 24 hour * y days
     Total_traf = 40000 # Gbps
     MAX_traf = {}
     traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
@@ -619,8 +622,9 @@ def TrafficTest(Mininet_Enable=False):
     # clean all ROADM info if use Lumentum
     if not Mininet_Enable:
         Controller_Lum.cleanAllROADMs()
-
+    backup_attempts = 0
     for i in range(N):
+        hourly_results.write(f"Running hour # {i}\n")
         Rej = {} # rejected CPRI requests in each ROADM/terminal
         for key in TERMINAL_TO_ROADM.keys():
             Rej[key] = 0
@@ -684,6 +688,7 @@ def TrafficTest(Mininet_Enable=False):
                         else:
                             osnrs, gosnrs = Mininet_monitorLightpath(lightpath_id=lightpath_id)
                             osnr, gosnr = min(osnrs), min(gosnrs)
+                        backup_attempts = 0
                         LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                         LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
                         #print(osnr,gosnr)
@@ -721,6 +726,12 @@ def TrafficTest(Mininet_Enable=False):
                             BBU_traf[d_t] -= 1
 
                 elif dst_back:
+                    backup_attempts += 1
+                    if backup_attempts >= 10:
+                        backup_attempts=0
+                        Rej[src_t] += 1
+                        Total_Rej += 1
+                        break
                     dst = dst_back
                     dst_t = dst_t_back
                     print('try_backup_path', src, dst)
@@ -742,6 +753,7 @@ def TrafficTest(Mininet_Enable=False):
                                 osnr, gosnr = min(osnrs), min(gosnrs)
                             LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                             LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
+                            backup_attempts = 0
                             if 18 < gosnr < 28:
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
                                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
@@ -822,7 +834,7 @@ def TrafficTest(Mininet_Enable=False):
             total_wav += len(NETLINK_INFO[key].items())
         avg_wav = (1.0 * total_wav) / (NUM_NODE - 1)
 
-        file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(i,
+        file.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(i,
                                                                                              factors['r2'] * MAX_traf['r2'],
                                                                                              factors['r3'] * MAX_traf['r3'],
                                                                                                      len(LIGHTPATH_INFO.keys()),
@@ -834,6 +846,45 @@ def TrafficTest(Mininet_Enable=False):
                                                                                                      FiftyG, OneG, TwoG,
                                                                                                      UnderUse,
                                                                                                      OneG * 100 + TwoG * 200 + FiftyG * 50))
+
+        LIGHTPATH_INFO_copy = LIGHTPATH_INFO.copy()
+        hourly_results.write('Number of Lightpaths active: link r1-r2: {}, link r2-r3: {}, '
+                   'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()),
+                                             len(NETLINK_INFO['r2', 'r3'].items()),
+                                             len(NETLINK_INFO['r3', 'r4'].items())
+                                             )
+                   )
+        hourly_results.write('\t Links between r1-r2: {} \n'.format(NETLINK_INFO['r2', 'r1'].items()))
+        for light_id in sorted(NETLINK_INFO['r2', 'r1'].values()):
+            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                       '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                       '\n'.format(light_id,
+                                   LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                   LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                   LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                   LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                   LIGHTPATH_INFO_copy[light_id].get('path')))
+        hourly_results.write('\t Links between r2-r3: {} \n'.format(NETLINK_INFO['r2', 'r3'].items()))
+        for light_id in sorted(NETLINK_INFO['r2', 'r3'].values()):
+            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                       '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                       '\n'.format(light_id,
+                                   LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                   LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                   LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                   LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                   LIGHTPATH_INFO_copy[light_id].get('path')))
+        hourly_results.write('\t Links between r3-r4: {} \n'.format(NETLINK_INFO['r3', 'r4'].items()))
+        for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()):
+            hourly_results.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
+                       '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
+                       '\n'.format(light_id,
+                                   LIGHTPATH_INFO_copy[light_id].get('channel_id'),
+                                   LIGHTPATH_INFO_copy[light_id].get('GOSNR'),
+                                   LIGHTPATH_INFO_copy[light_id].get('link_cap'),
+                                   LIGHTPATH_INFO_copy[light_id].get('traf_set'),
+                                   LIGHTPATH_INFO_copy[light_id].get('path')))
+
     #
     #
     # print('==traf')
