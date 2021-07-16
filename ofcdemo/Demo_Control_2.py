@@ -129,10 +129,10 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     # Configure terminals and start transmitting
     terminal = Controller_Mininet.net.terminals[src_id - 1]
     terminal2 = Controller_Mininet.net.terminals[dst_id - 1]
-    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power, type='transceiver')
-    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power, type='receiver')
+    Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power, type='bidirectional')
+    Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power, type='bidirectional')
     Controller_Mininet.turnonTerminal(terminal=terminal)
-    #Controller_Mininet.turnonTerminal(terminal=terminal2)
+    Controller_Mininet.turnonTerminal(terminal=terminal2)
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
@@ -318,7 +318,7 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mini
         return None
     for i in range(len(path) - 1):
         NETLINK_INFO[path[i], path[i + 1]][channel] = LIGHTPATH_ID  # channel with lightpath_id
-        #NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
+        NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
     #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
     LIGHTPATH_INFO[LIGHTPATH_ID]['path'] = path
     LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id'] = channel
@@ -454,7 +454,7 @@ def uninstall_Lightpath(lightpath_id, Mininet = False):
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     for i in range(len(path) - 1):
         del NETLINK_INFO[path[i], path[i + 1]][channel]
-        #del NETLINK_INFO[path[i + 1], path[i]][channel]
+        del NETLINK_INFO[path[i + 1], path[i]][channel]
     #print(PATH_CH_TO_LIGHTPATH)
     #print('==', lightpath_id)
     del LIGHTPATH_INFO[lightpath_id]
@@ -506,7 +506,7 @@ def testMininet(Mininet_Enable = False):
         Mininet_monitorDifference(file)
     count=0
     countstop=10
-    for i in range(1, 3):
+    for i in range(1, 10):
         print("**************************************************")
         print("************** STARTING ROUND", i, " ************")
         print("**************************************************")

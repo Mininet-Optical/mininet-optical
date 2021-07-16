@@ -132,12 +132,12 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     Controller_Mininet.configureTerminal(terminal=terminal, channel=channel, power=power)
     Controller_Mininet.configureTerminal(terminal=terminal2, channel=channel, power=power)
     Controller_Mininet.turnonTerminal(terminal=terminal)
-    #Controller_Mininet.turnonTerminal(terminal=terminal2)
+    Controller_Mininet.turnonTerminal(terminal=terminal2)
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
     Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
-    #Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
     Controller_Mininet.getOSNR()
     return lightpath_id
 
@@ -178,7 +178,7 @@ def Mininet_monitorLightpath(lightpath_id):
         osnrs.append(osnr)
         gosnrs.append(gosnr)
     return osnrs, gosnrs
-    #Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
+    Controller_Mininet.monitorOSNR(channel=channel, gosnrThreshold=15)
 
 def Mininet_monitorLightpath_1(lightpath_id):
     "monitoring a signal along a lightpath"
@@ -392,6 +392,12 @@ def traf_to_lightpah_Assignment(traf_id, lightpath_id, down_time = float('inf'))
     UP_TRAF_ID_SET.add(traf_id)
     return traf_id
 
+def control_lightpath_provisioning(lightpath_id, gosnr):
+    if gosnr > 28:
+        LIGHTPATH_INFO[lightpath_id]['link_cap'] = LINK_CAP
+    elif 18 < gosnr < 28:
+        LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
+    else: LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
 
 def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = False):
     '''
@@ -414,6 +420,7 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = F
             print('osnr', info[0])
             print('gosnr', info[1])
         TRAFFIC_ID += 1
+        control_lightpath_provisioning(lightpath_id, min(info[1]))
         traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
         LIGHTPATH_INFO[lightpath_id]['traf_set'].add(TRAFFIC_ID)
         channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
@@ -432,8 +439,6 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = F
                 lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time, Mininet=Mininet)
                 if lightpath_id:
                     TRAFFIC_ID += 1
-                    traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
-                    channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
                     if not Mininet:
                         info = Lumentum_MonitorLightpath(lightpath_id=lightpath_id)
                         print('source ROADM', info[0])
@@ -442,6 +447,9 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = F
                         info = Mininet_monitorLightpath(lightpath_id=lightpath_id)
                         print('osnr', info[0])
                         print('gosnr', info[1])
+                    control_lightpath_provisioning(lightpath_id, min(info[1]))
+                    traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
+                    channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
                     print(f"Grooming traf_id {traf_id} into channel {channel} | {src}->{dst} | INSTALLED NEW PATH | ")
                     return traf_id
     print('traffic is rejected!')
@@ -651,7 +659,7 @@ def Hourly_Results_NETLINKS(file):
                                          LIGHTPATH_INFO_copy[light_id].get('traf_set'),
                                          LIGHTPATH_INFO_copy[light_id].get('path')))
     file.write('\t Links between r3-r4: {} \n'.format(NETLINK_INFO['r3', 'r4'].items()))
-    for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()):
+    for light_id in sorted(NETLINK_INFO['r3', 'r4'].values()) :
         file.write('\t \t Lightpath # {} is propegating on channel {} with gOSNR of '
                              '{}, Link cap of {}, and these channels:{} and travelling down this path: {} '
                              '\n'.format(light_id,
