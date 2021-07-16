@@ -97,7 +97,6 @@ class Link(object):
         """
         Remove all optical signals from Link
         """
-        print("*** resetting link", self)
         if len(self.optical_signals) > 0:
             self.optical_signals = []
             for span_tuple in self.spans:

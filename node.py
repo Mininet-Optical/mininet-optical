@@ -145,7 +145,6 @@ class Node(object):
         """
         reset the dynamic attributes from node
         """
-        print("*** resetting component", self)
         # reset dynamic attributes - inputs
         for port_in in self.port_to_optical_signal_in:
             self.port_to_optical_signal_in[port_in] = []
@@ -626,7 +625,9 @@ class Roadm(Node):
         self.target_output_power_dBm = {k: self.reference_power_dBm[k] - self.insertion_loss_dB[k]
                                         for k in range(1, channel_no + 1)}
 
-        self.repropagation_power_th_dBm = 0.5
+        # keep track of previous power
+        # levels of individual signals
+        self.port_to_optical_signal_power_in = {}
 
         self.preamp = preamp
         self.boost = boost
@@ -642,6 +643,7 @@ class Roadm(Node):
         self.port_check_range_out = {}
         self.node_to_rule_id_in = {}
         self.rule_id_to_node_in = {}
+        self.port_to_optical_signal_power_in = {}
         if self.preamp:
             self.preamp.reset()
         if self.boost:
@@ -665,6 +667,16 @@ class Roadm(Node):
                                                   ase_noise=ase_noise, nli_noise=nli_noise, in_port=0)
         self.include_optical_signal_in(optical_signal, power=power,
                                        ase_noise=ase_noise, nli_noise=nli_noise, in_port=in_port)
+
+        self.port_to_optical_signal_power_in.setdefault(in_port, [])
+        signal_found = False
+        for _tuple in self.port_to_optical_signal_power_in[in_port]:
+            if optical_signal is _tuple[0]:
+                signal_found = True
+                break
+        if not signal_found:
+            self.port_to_optical_signal_power_in[in_port].append(
+                (optical_signal, optical_signal.loc_in_to_state[self]['power']))
 
     def remove_switch_rule(self, rule_in_port, rule_signal_index, rule_out_port):
         """
@@ -805,18 +817,18 @@ class Roadm(Node):
             signal_index = ruleId[1]
             self.delete_switch_rule(in_port, signal_index)
 
-    def power_divergence(self, optical_signals, out_port):
+    def power_divergence(self, optical_signals, in_port):
         """
-        Check if the optical signals to be switched on an output port
-        are different from the previously switched signals on that output port
+        Check if the power state of the incoming signals to be switched
+        are different from the previous power state at the same input port
         """
         total_power_now = 0
         total_power_prev = 0
-        for optical_signal_now, optical_signal_prev in zip(optical_signals,
-                                                           self.port_to_optical_signal_out[out_port]):
-            total_power_now += abs_to_db(optical_signal_now.power * 1e3)
-            total_power_prev += abs_to_db(optical_signal_prev.power * 1e3)
-        if abs(total_power_now - total_power_prev) > self.repropagation_power_th_dBm:
+        for _tuple in self.port_to_optical_signal_power_in[in_port]:
+            total_power_prev += abs_to_db(_tuple[1] * 1e3)
+        for optical_signal in self.port_to_optical_signal_in[in_port]:
+            total_power_now += abs_to_db(optical_signal.loc_in_to_state[self]['power'] * 1e3)
+        if abs(total_power_now - total_power_prev) > 0:
             return True
         return False
 
@@ -884,7 +896,7 @@ class Roadm(Node):
                            self.port_to_optical_signal_out[out_port]) \
                             and len(optical_signals) == len(self.port_to_optical_signal_out[out_port]):
                         self.port_check_range_out[out_port] += 1
-                        if not self.power_divergence(optical_signals, out_port):
+                        if not self.power_divergence(optical_signals, in_port):
                             if self.port_check_range_out[out_port] > self.check_range_th:
                                 # these signals can be safely terminated at a LineTerminal
                                 if not isinstance(self.port_to_node_out[out_port], LineTerminal):
