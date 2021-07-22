@@ -1,0 +1,7 @@
+<map id="optical&#45;network&#45;emulator.dataplane.SwitchBase" name="optical&#45;network&#45;emulator.dataplane.SwitchBase">
+<area shape="rect" id="node1" title=" " alt="" coords="145,39,407,80"/>
+<area shape="rect" id="node3" href="$classoptical-network-emulator_1_1dataplane_1_1ROADM.html" title=" " alt="" coords="455,5,716,47"/>
+<area shape="rect" id="node5" href="$classoptical-network-emulator_1_1dataplane_1_1Terminal.html" title=" " alt="" coords="455,71,716,112"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,46,97,73"/>
+<area shape="rect" id="node4" href="$classoptical-network-emulator_1_1dataplane_1_1SimpleROADM.html" title=" " alt="" coords="764,5,1025,47"/>
+</map>
