@@ -143,12 +143,14 @@ if __name__ == '__main__':
     signal_no = [5] + list(range(10, 100, 10))
 
     # create all possible combinations with the sets
-    # combinations = itertools.product(power_levels_dBm,
-    #                                  fibre_lengths_km,
-    #                                  span_no, hop_no, signal_no)
+    combinations = itertools.product(power_levels_dBm,
+                                     fibre_lengths_km,
+                                     span_no, hop_no, signal_no)
     start_time = time.time()
-    combinations = [(-12, 50, 1, 1, 5), (6, 50, 3, 1, 5)]
+    # combinations = [(-12, 50, 1, 1, 5), (6, 50, 3, 1, 5)]
     for test_no, combination in enumerate(combinations, start=1):
+        if test_no > 20:
+            break
         # execute Mininet-Optical tests
         mininet_optical_test(test_no, combination, logdata=True)
     print("It took %s seconds to run auto_tests.py" % str(time.time() - start_time))

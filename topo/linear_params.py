@@ -22,12 +22,10 @@ class LinearTopology:
         # Transmitter terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
-
         tx = net.add_lt(name='tx', transceivers=transceivers, debugger=debugger)
         # Receiver terminal
         transceivers = [Transceiver(id, tr, operation_power=power_dBm)
                         for id, tr in enumerate(tr_labels, start=1)]
-
         rx = net.add_lt(name='rx', transceivers=transceivers, monitor_mode='in', debugger=debugger)
 
         # Create ROADM objects
@@ -35,7 +33,7 @@ class LinearTopology:
                                 insertion_loss_dB=17,
                                 reference_power_dBm=power_dBm,
                                 preamp=add_amp(net, node_name='r%s' % (i + 1),
-                                               type='preamp', gain_dB=span_length_km * 0.22, debugger=debugger),
+                                               type='preamp', gain_dB=span_length_km*0.22, debugger=debugger),
                                 boost=add_amp(net, node_name='r%s' % (i + 1),
                                               type='boost', gain_dB=17.0, debugger=debugger),
                                 debugger=debugger)
@@ -47,6 +45,8 @@ class LinearTopology:
 
         for port_no, tr in enumerate(tx.transceivers, start=1):
             net.add_link(tx, first_roadm, src_out_port=tr.id, dst_in_port=port_no, spans=[Span(0 * m)])
+        for port_no, tr in enumerate(rx.transceivers, start=1):
+            net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=[Span(0 * m)])
 
         if hop_no == 1:
             for port_no, tr in enumerate(rx.transceivers, start=1):
