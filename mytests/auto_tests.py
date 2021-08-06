@@ -39,15 +39,15 @@ def configure_terminals(net, power_level_dBm, signal_no):
         tx_transceiver = tx.id_to_transceivers[c]
         tx.assoc_tx_to_channel(tx_transceiver, c, out_port=p)
         # configure receiver terminal
-        rx_transceiver = rx.id_to_transceivers[c]
-        rx.assoc_rx_to_channel(rx_transceiver, c, in_port=p)
+        rx_transceiver = rx.id_to_transceivers[1]
+        rx.assoc_rx_to_channel(rx_transceiver, c, in_port=1)
 
-def configure_roadms(net, span_no, signal_no):
-    if span_no == 1:
+def configure_roadms(net, hop_no, signal_no):
+    if hop_no == 1:
         # case when there's only one ROADM
         r = net.roadms[0]
         for port, c in enumerate(range(1, signal_no + 1), start=1):
-            r.install_switch_rule(port, port, c)
+            r.install_switch_rule(port, 1, c)
     else:
         in_port = out_port = 0
         for i, r in enumerate(net.roadms):
@@ -59,7 +59,7 @@ def configure_roadms(net, span_no, signal_no):
                 in_port = 0
                 # case for last ROADM
                 for out_port, c in enumerate(range(1, signal_no + 1), start=1):
-                    r.install_switch_rule(in_port, out_port, c)
+                    r.install_switch_rule(in_port, 1, c)
             else:
                 # case for intermediate ROADM
                 in_port = out_port = 0
@@ -99,6 +99,7 @@ def log_data(test_no, optical_signals, power_dict,
               str(nli_noise_dict[optical_signal]) + ',' + \
               str(osnr_noise_dict[optical_signal]) + ',' + \
               str(gosnr_noise_dict[optical_signal]) + '\n'
+        # rows.append(str(nli_noise_dict[optical_signal])+ '\n')
         rows.append(row)
     with open('mo_tests.csv', 'a') as mo_tests:
         mo_tests.writelines(rows)
@@ -147,9 +148,9 @@ if __name__ == '__main__':
                                      fibre_lengths_km,
                                      span_no, hop_no, signal_no)
     start_time = time.time()
-    # combinations = [(-12, 50, 1, 1, 5), (6, 50, 3, 1, 5)]
+    # combinations = [(0, 50, 2, 2, 5)]
     for test_no, combination in enumerate(combinations, start=1):
-        if test_no > 20:
+        if test_no > 100:
             break
         # execute Mininet-Optical tests
         mininet_optical_test(test_no, combination, logdata=True)

@@ -42,17 +42,16 @@ class LinearTopology:
 
         first_roadm = roadms[0]
         last_roadm = roadms[-1]
-
         for port_no, tr in enumerate(tx.transceivers, start=1):
+            # connect tx to first roadm
             net.add_link(tx, first_roadm, src_out_port=tr.id, dst_in_port=port_no, spans=[Span(0 * m)])
+        for port_no, tr in enumerate(rx.transceivers, start=1):
+            # connect last roadm to rx
+            net, spans = build_spans(net, last_roadm, rx, span_no, span_length_km, port_no, amp=True, last_ok=True)
+            net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=spans)
 
-        if hop_no == 1:
-            for port_no, tr in enumerate(rx.transceivers, start=1):
-                net, spans = build_spans(net, last_roadm, rx, span_no, span_length_km, port_no, amp=True)
-                net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=spans)
-        else:
-            for port_no, tr in enumerate(rx.transceivers, start=1):
-                net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=[Span(0 * m)])
+        # connect hops
+        if hop_no > 1:
             for i in range(hop_no-1):
                 # Iterate through the number of nodes linearly connected
                 r1 = name_to_roadm['r' + str(i + 1)]

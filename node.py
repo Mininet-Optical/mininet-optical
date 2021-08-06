@@ -326,17 +326,26 @@ class LineTerminal(Node):
         """
         Associate a receiver transceiver (rx) to a signal at an input port
         :param transceiver: Transceiver object
-        :param channel_id: int, channel index
+        :param channel_id: int of channel index
         :param in_port: int, input port
         """
-        self.rx_to_channel[in_port] = {'channel_id': channel_id, 'transceiver':transceiver}
+        if in_port in self.rx_to_channel:
+            if channel_id not in self.rx_to_channel[in_port]['channel_id']:
+                if self.rx_to_channel[in_port]['transceiver'] is not transceiver:
+                    raise Exception("Misconfiguration of receivers!")
+                else:
+                    self.rx_to_channel[in_port]['channel_id'].append(channel_id)
+        else:
+            self.rx_to_channel[in_port] = {'channel_id': [], 'transceiver': transceiver}
+            self.rx_to_channel[in_port]['channel_id'].append(channel_id)
 
-    def disassoc_rx_to_channel(self, in_port):
+    def disassoc_rx_to_channel(self, in_port, channel_id):
         """
         Disassociate a receiver transceiver (rx) to an input port
         :param in_port: int, input port
         """
-        del self.rx_to_channel[in_port]
+        if channel_id in self.rx_to_channel[in_port]['channel_id']:
+            self.rx_to_channel[in_port]['channel_id'].remove(channel_id)
 
     def turn_on(self, safe_switch=False):
         """Propagate signals to the link that the transceivers point to"""
@@ -384,7 +393,7 @@ class LineTerminal(Node):
                                            'ber': None, 'success': False}}
 
         if in_port in self.rx_to_channel:
-            if self.rx_to_channel[in_port]['channel_id'] is optical_signal.index:
+            if optical_signal.index in self.rx_to_channel[in_port]['channel_id']:
                 rx_transceiver = self.rx_to_channel[in_port]['transceiver']
                 # Get signal info
                 power = optical_signal.loc_in_to_state[self]['power']
@@ -1006,6 +1015,14 @@ class Roadm(Node):
         :param in_port: int, input port for total power calculation
         :param amp: Amplifier object, if there are boost and preamp
                     the signals are contained within these objects
+
+        per_degree_pch = self.per_degree_pch_out_db[degree] if degree in self.per_degree_pch_out_db.keys() else self.params.target_pch_out_db
+        self.effective_pch_out_db = min(pref.p_spani, per_degree_pch)
+        self.effective_loss = pref.p_spani - self.effective_pch_out_db
+        carriers_power = array([c.power.signal + c.power.nli + c.power.ase for c in carriers])
+        carriers_att = list(map(lambda x: lin2db(x * 1e3) - per_degree_pch, carriers_power))
+        exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
+        carriers_att = list(map(lambda x: db2lin(x + exceeding_att), carriers_att))
         """
         carriers_att = {}
         for optical_signal in self.port_to_optical_signal_in[in_port]:
@@ -1019,9 +1036,9 @@ class Roadm(Node):
                 nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
 
             total_power = power_in + ase_noise_in + nli_noise_in
+            # total_power = power_in
             carriers_att[optical_signal.index] = abs_to_db(total_power * 1e3) - \
                                                  self.target_output_power_dBm[optical_signal.index]
-
         exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att.values())), default=0)
         for k, x in carriers_att.items():
             carriers_att[k] = db_to_abs(x + exceeding_att)
@@ -1305,7 +1322,7 @@ class Amplifier(Node):
         ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
         gain_linear = db_to_abs(self.system_gain) * db_to_abs(wavelength_dependent_gain)
         ase_noise_out = ase_noise_in * gain_linear + (noise_figure_linear * h * optical_signal.frequency *
-                                                      self.bandwidth * (gain_linear - 1))
+                                                      self.bandwidth * (gain_linear))
         # associate amp to optical signal at output interface
         # and update the optical signal state (power)
         self.include_optical_signal_out(optical_signal,
@@ -1582,7 +1599,7 @@ class Monitor(Node):
 
         if ase_noise != 0 or nli_noise != 0:
             gosnr_linear = output_power / (ase_noise + nli_noise)
-            gosnr = abs_to_db(gosnr_linear) - (12.5e9 / optical_signal.symbol_rate)
+            gosnr = abs_to_db(gosnr_linear)
         else:
             gosnr = float('inf')
         return gosnr

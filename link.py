@@ -188,8 +188,8 @@ class Span(object):
         self.fibre_attenuation = 0.22 / km  # fiber attenuation in decibels/km
         self.alpha = self.fibre_attenuation / (20 * np.log10(np.e))  # linear value fibre attenuation
         self.effective_length = (1 - np.exp(-2 * self.alpha * self.length)) / (2 * self.alpha)
-        self.non_linear_coefficient = 0.78 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
-        self.dispersion = 2.1e-05
+        self.non_linear_coefficient = 1.27 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.dispersion = 1.67e-05
         self.dispersion_coefficient = self.beta2()  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (ps ** 3 / km)  # B_3 dispersion slope in (ps^3 km^-1)
         self.effective_area = 80 * um * um  # Aeff - SMF effective area
@@ -223,7 +223,7 @@ class Span(object):
         :param ref_wavelength: can be a numpy array; default: 1550nm
         """
         D = abs(self.dispersion)
-        b2 = (ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
+        b2 = -(ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
         return b2  # s/Hz/m
 
     def remove_optical_signal(self, optical_signal):
@@ -380,11 +380,10 @@ class Span(object):
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
         alpha = self.alpha
-        beta2 = self.dispersion_coefficient
+        beta2 = self.beta2()
         gamma = self.non_linear_coefficient
         effective_length = self.effective_length
         asymptotic_length = 1 / (2 * alpha)
-
         for optical_signal in self.optical_signals:
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
