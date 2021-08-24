@@ -609,7 +609,7 @@ class Roadm(Node):
         self.switch_table = {}
 
         self.port_check_range_out = {}
-        self.check_range_th = 2
+        self.check_range_th = 1500
 
         self.node_to_rule_id_in = {}
         self.rule_id_to_node_in = {}

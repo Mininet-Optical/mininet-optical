@@ -423,8 +423,8 @@ class Span(object):
             psi = np.arcsinh(0.5 * np.pi ** 2 * asymptotic_length * abs(beta2) * bw_cut ** 2)
         else:  # XCI, XPM
             delta_f = carrier.frequency - interfering_carrier.frequency
-            psi = np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
-                             bw_cut * (delta_f + 0.5 * bw_ch))
+            psi =  np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
+                              bw_cut * (delta_f + 0.5 * bw_ch))
             psi -= np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi

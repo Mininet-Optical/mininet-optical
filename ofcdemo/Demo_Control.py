@@ -11,11 +11,15 @@ Note this version uses and depends on explicit port assignment!
 #from units import *
 from collections import defaultdict
 import random
+import numpy as np
 from collections import defaultdict
 #import numpy as np
 #from Control_Test_Lum import Lumentum_Control_NETCONF
 from Control_Test_Mininet_REST import Mininet_Control_REST
 from fakecontroller import ListenPortBase
+from scipy import signal
+import matplotlib.pyplot as plt
+
 
 km = dB = dBm = 1.0
 m = .001
@@ -561,6 +565,12 @@ def trafficPattern(pattern, time):
         traffic_weeked = resident_weekend
     return traffic_week[hour], traffic_weeked[hour]
 
+def sawtoothTraf(pattern, time):
+    if pattern=='sawtooth':
+        return signal.sawtooth(2 * np.pi * time / 24 * 2 - 0.0000001, 0) + 1
+
+
+
 def TrafficTest(Mininet_Enable=False):
 
     #Mininet_Enable = True
@@ -585,18 +595,38 @@ def TrafficTest(Mininet_Enable=False):
         print(key, routes[key])
 
     file = open('record.txt', 'w')
+    histogram = open('histogram10.txt', 'w')
     hourly_results = open('Hourly_Results.txt', 'w')
-    file.write("Hour, r2, r3, Lightpaths, average wavelengths, T1 traffic, t4 traffic, r2 rejections, r3 rejections,"
-               "50G, 100G, 200G, Uniderutilised, Total Provisionsing")
     hourly_results.write(f"*****Results for every hour*****\n")
+    # file.write(f"time, r2_traf, r3_traf, number_of_lightpath, avg_wav_per_link, r1_BBU_traf, r4_BBU_traf, r1-r2_link,"
+    #            f"r2-r3_link, r3-r4_link, r2_rej, r3_rej, 50G, 100G, 200G, underutilized, Total_cap, Total_Traffic_Requests \n")
     # CPRI Request initilization, assign total max traffic to network, and each RRH ROADM traffic peak
+
+    #Experimental Margins ####################
+    CAP_Min_100 = 20 #gosnr (dB)
+    CAP_Min_200 = 25.8 #gosnr (dB)
+    Traffic_Rate = 1.0
+    BBU_Cap = 100 #Requests
+    Days = 7 #Days
+    pattern='diurnal'
+    #############################################
+    file.write(f"Running Simulation with {pattern} traffic loaded at <{Traffic_Rate}> capacity | "
+               f"with 100G margin of {CAP_Min_100} to {CAP_Min_200} | "
+               f"And BBU4 Capacity of {BBU_Cap} Requests | For {Days} Days.\n")
+    file.write("Hour, r2, r3, Lightpaths, average wavelengths, T1 traffic, t4 traffic, r2 rejections, r3 rejections, Total_Rejections,"
+               "50G, 100G, 200G, Uniderutilised, Total Provisionsing\n")
     Total_Rej = 0
-    N = int(24 * 1)  # total emulation time : 24 hour * y days
-    Total_traf = 40000 # Gbps
+    N = int(24 * Days)  # total emulation time : 24 hour * y days
+    Full_Load = 36000
+    Total_traf = Traffic_Rate*Full_Load # Gbps
+    # Margin=28
+    # BBU_cap=200
     MAX_traf = {}
-    traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
+    #traffic_ratio = [random.uniform(0.8, 1.1) for i in range(len(RU_ROADMS))]
+    traffic_ratio = [1 for i in range(len(RU_ROADMS))]
     for i in range(2,NUM_NODE):
-        MAX_traf['r%d' %i] = 1.0*Total_traf*traffic_ratio[i-2]/sum(traffic_ratio)
+        MAX_traf['r%d' %i] = 1.0 * Total_traf*traffic_ratio[i-2]/sum(traffic_ratio)
+
     print('---max_traf',MAX_traf)
 
     # Initial number of processing traffic in BBU ROADMs
@@ -606,7 +636,7 @@ def TrafficTest(Mininet_Enable=False):
 
     # Assign max number of processing traffic in a BBU ROADM (any endpoints)
     BBU_limit = {}
-    BBU_limit['t%d' % NUM_NODE] = 100
+    BBU_limit['t%d' % NUM_NODE] = BBU_Cap
 
     # Initial number of requested traffic in RRH ROADMs
     RRH_traf = {}
@@ -616,8 +646,10 @@ def TrafficTest(Mininet_Enable=False):
     # Traffic type in RRH ROADMs
     Traf_Type = ['office', 'resident']
     ROADM_TYPE = {}
-    for i in range(2, NUM_NODE):
-        ROADM_TYPE['r%d' %i] = random.choice(Traf_Type)
+    # for i in range(2, NUM_NODE):
+    #     ROADM_TYPE['r%d' %i] = random.choice(Traf_Type)
+    ROADM_TYPE['r2'] = 'office'
+    ROADM_TYPE['r3'] = 'resident'
 
     # clean all ROADM info if use Lumentum
     if not Mininet_Enable:
@@ -631,12 +663,20 @@ def TrafficTest(Mininet_Enable=False):
         print('day time of hour:', i)
         factors = {}
         for src in RU_ROADMS:
+            if pattern=='diurnal':
             # weekdays
-            if i%(24*7) < 24 * 5:
-                factor = trafficPattern(pattern=ROADM_TYPE[src], time=i)[0] * random.uniform(0.8, 1.1)
-            # weekends
-            else:
-                factor = trafficPattern(pattern=ROADM_TYPE[src], time=i)[1] * random.uniform(0.8, 1.1)
+                if i%(24*7) < 24 * 5:
+                    factor = trafficPattern(pattern=ROADM_TYPE[src], time=i)[0] #* random.uniform(0.8, 1.1)
+                # weekends
+                else:
+                    factor = trafficPattern(pattern=ROADM_TYPE[src], time=i)[1] #* random.uniform(0.8, 1.1)
+            if pattern == 'sawtooth':
+                if i%(24) > 12:
+                    factor = 0.1
+                else:
+                    #factor = sawtoothTraf('sawtooth', i)
+                    factor = .9 * ((signal.sawtooth(2 * np.pi * i / 24 * 2  - 0.0000001, 0) + 1 )/2) + 0.1
+
             factors[src] = factor
             src_t = ROADM_TO_TERMINAL[src]
 
@@ -691,10 +731,11 @@ def TrafficTest(Mininet_Enable=False):
                         backup_attempts = 0
                         LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                         LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
+                        histogram.write(f"{gosnr}\n")
                         #print(osnr,gosnr)
                         # upgrade or downgrade the modulation/capacity of a lightpath based on gosnr
-                        if 18< gosnr < 28:
-                            print("downgrading lightpath capacity from 200G to 100G")
+                        if CAP_Min_100 < gosnr < CAP_Min_200:
+                            print(f"downgrading lightpath capacity from 200G to 100G. gosnr:{gosnr} ")
                             LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
                             traf_set =  LIGHTPATH_INFO[lightpath_id]['traf_set']
                             while len(traf_set) > DOWN_LINK_CAP/CPRI_CAP:
@@ -703,7 +744,7 @@ def TrafficTest(Mininet_Enable=False):
                                  ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
                                  traf_to_lightpath_Release(traf_id=traf_id)
                                  reassign_traf.append((s_t, d_t))
-                        elif gosnr < 18:
+                        elif gosnr < CAP_Min_100:
                             LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
                             traf_set =  LIGHTPATH_INFO[lightpath_id]['traf_set']
                             while len(traf_set) > DOWN_LINK_CAP/CPRI_CAP:
@@ -728,13 +769,16 @@ def TrafficTest(Mininet_Enable=False):
                 elif dst_back:
                     backup_attempts += 1
                     if backup_attempts >= 10:
-                        backup_attempts=0
-                        Rej[src_t] += 1
-                        Total_Rej += 1
+                        backup_attempts = 0
+
+                        fails = factor * MAX_traf[src] / CPRI_CAP - len(ROADM_TRAF[src])
+                        #RRH_traf[src_t] += fails
+                        Rej[src_t] += fails
+                        Total_Rej += fails
                         break
                     dst = dst_back
                     dst_t = dst_t_back
-                    print('try_backup_path', src, dst)
+                    print('try_backup_path', src, dst, "Hour #", i, 'attempt #', backup_attempts)
                     traf_id = install_Traf(src_t, dst_t, routes, cur_time=0, down_time=float('inf'), Mininet=Mininet_Enable)
                     if traf_id:
                         ADD_TRAF = True
@@ -753,8 +797,9 @@ def TrafficTest(Mininet_Enable=False):
                                 osnr, gosnr = min(osnrs), min(gosnrs)
                             LIGHTPATH_INFO[lightpath_id]['GOSNR'] = gosnr
                             LIGHTPATH_INFO[lightpath_id]['OSNR'] = osnr
+                            histogram.write(f"{gosnr}\n")
                             backup_attempts = 0
-                            if 18 < gosnr < 28:
+                            if CAP_Min_100 < gosnr < CAP_Min_200:
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = DOWN_LINK_CAP
                                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                                 while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
@@ -763,7 +808,7 @@ def TrafficTest(Mininet_Enable=False):
                                     ROADM_TRAF[TERMINAL_TO_ROADM[s_t]].remove(traf_id)
                                     traf_to_lightpath_Release(traf_id=traf_id)
                                     reassign_traf.append((s_t, d_t))
-                            elif gosnr < 18:
+                            elif gosnr < CAP_Min_100:
                                 LIGHTPATH_INFO[lightpath_id]['link_cap'] = 50
                                 traf_set = LIGHTPATH_INFO[lightpath_id]['traf_set']
                                 while len(traf_set) > DOWN_LINK_CAP / CPRI_CAP:
@@ -784,10 +829,12 @@ def TrafficTest(Mininet_Enable=False):
                                 Total_Rej += 1
                                 BBU_traf[d_t] -= 1
 
-                if not ADD_TRAF:
+                #if not ADD_TRAF:
+                else:
                     Rej[src_t] += 1
                     Total_Rej += 1
                     count += 1
+                    print(f"Here we are in the else, count={count}")
                     # if # of continously failed requests >3, discard remained requests
                     if count == 4:
                         fails = factor*MAX_traf[src]/CPRI_CAP - len(ROADM_TRAF[src])
@@ -795,6 +842,7 @@ def TrafficTest(Mininet_Enable=False):
                         Rej[src_t] += fails
                         Total_Rej += fails
                         break
+                    continue
             # check if there are more traffic than max processing traf, if yeas, release some
             while factor * MAX_traf[src] / CPRI_CAP < len(ROADM_TRAF[src]):
                 traf_id = random.choice(list(ROADM_TRAF[src]))
@@ -830,28 +878,47 @@ def TrafficTest(Mininet_Enable=False):
             elif link_cap == 50:
                 FiftyG += 1
         total_wav = 0
-        for key in NETLINK_INFO.keys():
-            total_wav += len(NETLINK_INFO[key].items())
+        links = [('r1', 'r2'), ('r2', 'r3'), ('r3', 'r4')]
+        for link in links:
+            total_wav += len(NETLINK_INFO[link].items())
         avg_wav = (1.0 * total_wav) / (NUM_NODE - 1)
-
-        file.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(i,
-                                                                                             factors['r2'] * MAX_traf['r2'],
-                                                                                             factors['r3'] * MAX_traf['r3'],
-                                                                                                     len(LIGHTPATH_INFO.keys()),
-                                                                                                     avg_wav,
-                                                                                                     BBU_traf['t1'],
-                                                                                                     BBU_traf['t%d' % NUM_NODE],
-                                                                                                     1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
-                                                                                                     1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
-                                                                                                     FiftyG, OneG, TwoG,
-                                                                                                     UnderUse,
-                                                                                                     OneG * 100 + TwoG * 200 + FiftyG * 50))
+        file.write('{}, {}, {}, {}, {}, {}, {}, {}, '
+                   '{}, {}, {}, {}, {}, {}, {}, {}\n'.format(i, factors['r2'] * MAX_traf['r2'],
+                                                         factors['r3'] * MAX_traf['r3'],
+                                                         len(LIGHTPATH_INFO.keys()), avg_wav,
+                                                         BBU_traf['t1'], BBU_traf['t%d' % NUM_NODE],
+                                                         1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
+                                                         1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
+                                                         (Rej['t2'] + Rej['t3'])/((factors['r2'] *MAX_traf['r2'] / CPRI_CAP) + (factors['r3'] *MAX_traf['r3'] / CPRI_CAP)),
+                                                         FiftyG, OneG, TwoG,
+                                                         UnderUse,
+                                                         OneG * 100 + TwoG * 200 + FiftyG * 50,
+                                                         factors['r2'] * MAX_traf['r2'] + factors['r3'] * MAX_traf['r3']))
+        # file.write('{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(i,
+        #                                                                                      factors['r2'] * MAX_traf['r2'],
+        #                                                                                      factors['r3'] * MAX_traf['r3'],
+        #                                                                                              len(LIGHTPATH_INFO.keys()),
+        #                                                                                              avg_wav,
+        #                                                                                              BBU_traf['t1'],
+        #                                                                                              BBU_traf['t%d' % NUM_NODE],
+        #                                                                              len(NETLINK_INFO[
+        #                                                                                      'r1', 'r2'].items()),
+        #                                                                              len(NETLINK_INFO[
+        #                                                                                      'r2', 'r3'].items()),
+        #                                                                              len(NETLINK_INFO[
+        #                                                                                      'r3', 'r4'].items()),
+        #                                                                                              1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
+        #                                                                                              1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
+        #                                                                                              FiftyG, OneG, TwoG,
+        #                                                                                              UnderUse,
+        #                                                                                              OneG * 100 + TwoG * 200 + FiftyG * 50,
+        #                                                                                          factors['r2'] * MAX_traf['r2'] + factors['r3'] * MAX_traf['r3']))
 
         LIGHTPATH_INFO_copy = LIGHTPATH_INFO.copy()
         hourly_results.write('Number of Lightpaths active: link r1-r2: {}, link r2-r3: {}, '
-                   'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()),
-                                             len(NETLINK_INFO['r2', 'r3'].items()),
-                                             len(NETLINK_INFO['r3', 'r4'].items())
+                   'link r3-r4: {}\n'.format(len(NETLINK_INFO['r2', 'r1'].items()) - 1,
+                                             len(NETLINK_INFO['r2', 'r3'].items()) - 1 ,
+                                             len(NETLINK_INFO['r3', 'r4'].items()) - 1
                                              )
                    )
         hourly_results.write('\t Links between r1-r2: {} \n'.format(NETLINK_INFO['r2', 'r1'].items()))
@@ -885,6 +952,7 @@ def TrafficTest(Mininet_Enable=False):
                                    LIGHTPATH_INFO_copy[light_id].get('traf_set'),
                                    LIGHTPATH_INFO_copy[light_id].get('path')))
 
+
     #
     #
     # print('==traf')
@@ -917,8 +985,21 @@ def TrafficTest(Mininet_Enable=False):
 def testMininet():
     path = ['t1', 'r1', 'r2', 'r3', 'r4', 't4']
     install_Lightpath(path=path, channel=5, up_time=0, Mininet=True)
+def PlotTraf():
+    t = np.linspace(0,24*7,24*7+1)
+    patt = np.zeros(len(t))
 
+    for i in range(0,24*7):
+        if i%(24) < 12:
+            patt[i] = sawtoothTraf('sawtooth', i)
+        else: patt[i] = 0.01
+
+    print(patt)
+    plt.plot(t , patt)
+
+    plt.show()
 if __name__ == '__main__':
     #RoadmPhyTest()
     TrafficTest(Mininet_Enable=True)
+    #PlotTraf()
     #testMininet()
