@@ -1605,13 +1605,15 @@ class SignalTracing:
     @staticmethod
     def get_port(node, signal, in_out='out'):
         if in_out == 'in':
-            for in_port, optical_signal in node.port_to_optical_signal_in.items():
-                if signal is optical_signal:
-                    return in_port
+            for in_port, optical_signals in node.port_to_optical_signal_in.items():
+                for optical_signal in optical_signals:
+                    if signal is optical_signal:
+                        return in_port
         else:
-            for out_port, optical_signal in node.port_to_optical_signal_out.items():
-                if signal is optical_signal:
-                    return out_port
+            for out_port, optical_signals in node.port_to_optical_signal_out.items():
+                for optical_signal in optical_signals:
+                    if signal is optical_signal:
+                        return out_port
         return None
 
     @staticmethod
