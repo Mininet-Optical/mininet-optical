@@ -8,7 +8,7 @@ from topo.helper_funcs import *
 class LinearTopology:
 
     @staticmethod
-    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False):
+    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False, wdg_id=None):
         """
         :param op: operational power in dBm
         :param non: number of nodes (integer)
@@ -33,9 +33,10 @@ class LinearTopology:
                                 insertion_loss_dB=17,
                                 reference_power_dBm=power_dBm,
                                 preamp=add_amp(net, node_name='r%s' % (i + 1),
-                                               type='preamp', gain_dB=span_length_km * 0.22, debugger=debugger),
+                                               type='preamp', gain_dB=span_length_km * 0.22, debugger=debugger,
+                                               wdg_id=wdg_id),
                                 boost=add_amp(net, node_name='r%s' % (i + 1),
-                                              type='boost', gain_dB=17.0, debugger=debugger),
+                                              type='boost', gain_dB=17.0, debugger=debugger, wdg_id=wdg_id),
                                 debugger=debugger)
                   for i in range(hop_no)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
@@ -47,7 +48,8 @@ class LinearTopology:
             net.add_link(tx, first_roadm, src_out_port=tr.id, dst_in_port=port_no, spans=[Span(0 * m)])
         for port_no, tr in enumerate(rx.transceivers, start=1):
             # connect last roadm to rx
-            net, spans = build_spans(net, last_roadm, rx, span_no, span_length_km, port_no, amp=True, last_ok=True)
+            net, spans = build_spans(net, last_roadm, rx, span_no, span_length_km,
+                                     port_no, amp=True, last_ok=True, wdg_id=wdg_id)
             net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=spans)
 
         # connect hops
@@ -56,6 +58,6 @@ class LinearTopology:
                 # Iterate through the number of nodes linearly connected
                 r1 = name_to_roadm['r' + str(i + 1)]
                 r2 = name_to_roadm['r' + str(i + 2)]
-                build_link(net, r1, r2, span_no, span_length_km)
+                build_link(net, r1, r2, span_no, span_length_km, wdg_id=wdg_id)
 
         return net

@@ -179,6 +179,7 @@ class Span(object):
         """
         :param length: optical fiber span length in km - float
         :param fibre_type: optical fiber type - string
+        FIXME: Using a different file for the physical effects
         """
         self.debugger = debugger
         self.span_id = Span.ids
@@ -273,7 +274,7 @@ class Span(object):
             # Compute SRS effects from the fibre
             if self.link.srs_effect:
                 if len(self.optical_signals) > 1:
-                    self.zirngibl_srs()
+                    self.srs_effect_model()
 
             for optical_signal in self.optical_signals:
                 power_out = optical_signal.loc_out_to_state[self]['power'] / self.attenuation()
@@ -314,11 +315,10 @@ class Span(object):
             in_port = self.next_component.link_to_port_in[self.link]
             self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
 
-    def zirngibl_srs(self):
+    def srs_effect_model(self):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
-        :return:
         """
         min_wavelength_index = 90
         max_wavelength_index = 0
