@@ -1603,6 +1603,18 @@ class SignalTracing:
     """Routines for Signal tracing and debugging"""
 
     @staticmethod
+    def get_port(node, signal, in_out='out'):
+        if in_out == 'in':
+            for in_port, optical_signal in node.port_to_optical_signal_in.items():
+                if signal is optical_signal:
+                    return in_port
+        else:
+            for out_port, optical_signal in node.port_to_optical_signal_out.items():
+                if signal is optical_signal:
+                    return out_port
+        return None
+
+    @staticmethod
     def signal_path(node, signal):
         """Return signal path [node, link, node....]
            for signal, starting from node
@@ -1610,16 +1622,16 @@ class SignalTracing:
            signal: OpticalSignal
            missing: value to return for missing state"""
         path = []
-        port = node.optical_signal_to_port_out.get( signal, None )
+        port = SignalTracing.get_port(node, signal)
         while node and port is not None:
             path.append(node)
-            port = node.optical_signal_to_port_out.get(signal)
+            port = SignalTracing.get_port(node, signal)
             link = node.port_to_link_out.get(port)
             if not link or signal not in link.optical_signals:
                 break
             path.append(link)
             node = node.port_to_node_out.get( port, None )
-            port = node.optical_signal_to_port_in.get( signal, None )
+            port = SignalTracing.get_port(node, signal, in_out='in')
         return path
 
     @staticmethod
