@@ -1,0 +1,51 @@
+81a82,85
+>         self.power = None
+>         self.ase_noise = None
+>         self.nli_noise = None
+>         self.carriers = None
+114a119,123
+>             self.carriers = [c.frequency for c in spectral_info.carriers]
+>             self.power = [c.power.signal for c in spectral_info.carriers]
+>             self.ase_noise = [c.power.ase for c in spectral_info.carriers]
+>             self.nli_noise = [c.power.nli for c in spectral_info.carriers]
+> 
+175c184,217
+<     def __call__(self, spectral_info):
+---
+>     def log_data(self, test_no, c):
+>         """
+>         Write data to gnpy_test.csv
+>         """
+>         power_level_dBm = c[0]
+>         fibre_length_km = c[1]
+>         span_no = c[2]
+>         hop_no = c[3]
+>         signal_no = c[4]
+> 
+>         if test_no == 1:
+>             rows = [
+>                 "test no,frequency,launch power,fibre length,spans,hops,signal no,power,ASE noise,NLI noise,OSNR,GSNR\n"
+>             ]
+>         else:
+>             rows = []
+>         for i, carrier_freq in enumerate(self.carriers):
+>             row = str(test_no) + ',' + \
+>                   str(carrier_freq) + ',' + \
+>                   str(power_level_dBm) + ',' + \
+>                   str(fibre_length_km) + ',' + \
+>                   str(span_no) + ',' + \
+>                   str(hop_no) + ',' + \
+>                   str(signal_no) + ',' + \
+>                   str(self.power[i]) + ',' + \
+>                   str(self.ase_noise[i]) + ',' + \
+>                   str(self.nli_noise[i]) + ',' + \
+>                   str(self.osnr_ase[i]) + ',' + \
+>                   str(self.snr[i]) + '\n'
+>             rows.append(row)
+>         with open('gnpy_tests.csv', 'a') as gnpy_tests:
+>             gnpy_tests.writelines(rows)
+> 
+>     def __call__(self, spectral_info, logdata=False, test_no=None, c=None):
+178a221,222
+>         if logdata:
+>             self.log_data(test_no, c)

@@ -143,7 +143,7 @@ lt_1.turn_on()
 
 # rerouting process:
 # reconfigure receiver terminal
-lt_2.disassoc_rx_to_channel(in_port=1)
+lt_2.disassoc_rx_to_channel(in_port=1, channel_id=1)
 
 # configure new receiver terminal
 new_rx_transceiver = lt_2.id_to_transceivers[2]

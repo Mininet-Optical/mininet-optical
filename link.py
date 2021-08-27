@@ -179,6 +179,7 @@ class Span(object):
         """
         :param length: optical fiber span length in km - float
         :param fibre_type: optical fiber type - string
+        FIXME: Using a different file for the physical effects
         """
         self.debugger = debugger
         self.span_id = Span.ids
@@ -188,8 +189,8 @@ class Span(object):
         self.fibre_attenuation = 0.22 / km  # fiber attenuation in decibels/km
         self.alpha = self.fibre_attenuation / (20 * np.log10(np.e))  # linear value fibre attenuation
         self.effective_length = (1 - np.exp(-2 * self.alpha * self.length)) / (2 * self.alpha)
-        self.non_linear_coefficient = 0.78 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
-        self.dispersion = 2.1e-05
+        self.non_linear_coefficient = 1.27 / km  # gamma fiber non-linearity coefficient [W^-1 km^-1]
+        self.dispersion = 1.67e-05
         self.dispersion_coefficient = self.beta2()  # B_2 dispersion coefficient [ps^2 km^-1]
         self.dispersion_slope = 0.1452 * (ps ** 3 / km)  # B_3 dispersion slope in (ps^3 km^-1)
         self.effective_area = 80 * um * um  # Aeff - SMF effective area
@@ -223,7 +224,7 @@ class Span(object):
         :param ref_wavelength: can be a numpy array; default: 1550nm
         """
         D = abs(self.dispersion)
-        b2 = (ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
+        b2 = -(ref_wavelength ** 2) * D / (2 * pi * c)  # 10^21 scales [ps^2/km]
         return b2  # s/Hz/m
 
     def remove_optical_signal(self, optical_signal):
@@ -273,7 +274,7 @@ class Span(object):
             # Compute SRS effects from the fibre
             if self.link.srs_effect:
                 if len(self.optical_signals) > 1:
-                    self.zirngibl_srs()
+                    self.srs_effect_model()
 
             for optical_signal in self.optical_signals:
                 power_out = optical_signal.loc_out_to_state[self]['power'] / self.attenuation()
@@ -314,11 +315,10 @@ class Span(object):
             in_port = self.next_component.link_to_port_in[self.link]
             self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
 
-    def zirngibl_srs(self):
+    def srs_effect_model(self):
         """
         Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
         wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
-        :return:
         """
         min_wavelength_index = 90
         max_wavelength_index = 0
@@ -380,11 +380,10 @@ class Span(object):
             channels_index.append(channel.index)
             index_to_signal[channel.index] = channel
         alpha = self.alpha
-        beta2 = self.dispersion_coefficient
+        beta2 = self.beta2()
         gamma = self.non_linear_coefficient
         effective_length = self.effective_length
         asymptotic_length = 1 / (2 * alpha)
-
         for optical_signal in self.optical_signals:
             channel_under_test = optical_signal.index
             symbol_rate_cut = optical_signal.symbol_rate
