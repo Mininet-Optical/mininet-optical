@@ -535,16 +535,18 @@ class OpticalSignal(object):
         Associate a location to signal performance values
         at the input interface of this point
         :param loc: location (i.e., node, span)
-        :param power: power levels [mW]
-        :param ase_noise: ase levels [mW]
-        :param nli_noise: nli levels [mW]
+        :param power: power levels [mW] (or None for default/launch state)
+        :param ase_noise: ase levels [mW] (or None for default/launch state)
+        :param nli_noise: nli levels [mW] (or None for default/launch state)
         """
-        if not power and power != 0:
+        if power is None:
             power = self.power
-        if not ase_noise and ase_noise != 0:
+        if ase_noise is None:
             ase_noise = self.ase_noise
-        if not nli_noise and nli_noise != 0:
+        if nli_noise is None:
             nli_noise = self.nli_noise
+        # XXX: We probably shouldn't update the default/launch state to
+        # some random input state in the network, should we?
         self.power = power
         self.ase_noise = ase_noise
         self.nli_noise = nli_noise
@@ -555,33 +557,38 @@ class OpticalSignal(object):
         Associate a location to signal performance values
         at the output interface of this point
         :param loc: location (i.e., node, span)
-        :param power: power levels [mW]
-        :param ase_noise: ase levels [mW]
-        :param nli_noise: nli levels [mW]
+        :param power: power levels [mW] (or None for default/launch state)
+        :param ase_noise: ase levels [mW] (or None for default/launch state)
+        :param nli_noise: nli levels [mW] (or None for default/launch state)
         """
-        if not power and power != 0:
+        if power is None:
             power = self.power
-        if not ase_noise and ase_noise != 0:
+        if ase_noise is None:
             ase_noise = self.ase_noise
-        if not nli_noise and nli_noise != 0:
+        if nli_noise  is None:
             nli_noise = self.nli_noise
+        # XXX: We probably shouldn't update the default/launch state to
+        # some random input state in the network, should we?
         self.power = power
         self.ase_noise = ase_noise
         self.nli_noise = nli_noise
         self.loc_out_to_state[loc] = {'power': power, 'ase_noise': ase_noise, 'nli_noise': nli_noise}
 
     def reset(self, component=None):
+        """
+        Reset signal state,
+        optionally preserving output state at originating component
+        """
+        # Reset cached default launch/state to initialization state
         self.power = self.power_start
         self.ase_noise = self.ase_noise_start
         self.nli_noise = self.nli_noise_start
-        # FIXME: is component necessary?
-        if component:
-            if component in self.loc_in_to_state:
-                self.loc_in_to_state = {component: self.loc_in_to_state[component]}
-            if component in self.loc_out_to_state:
-                self.loc_out_to_state = {component: self.loc_out_to_state[component]}
+        # Reset signal state at all components, optionally
+        # presrving state at originating component
+        self.loc_in_to_state = {}
+        if component and component in self.loc_out_to_state:
+            self.loc_out_to_state = {component: self.loc_out_to_state[component]}
         else:
-            self.loc_in_to_state = {}
             self.loc_out_to_state = {}
 
     def set_modulation_format(self, modulation_format):
