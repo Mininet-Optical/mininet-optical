@@ -77,13 +77,7 @@ def monitors():
 @get( '/monitor' )
 def monitor():
     "Return information for monitor"
-    query = request.query
-    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
-    if hasattr( monitor, 'restMonitor' ):
-        result = monitor.restMonitor()
-    else:
-        abort( 404, "Node %s does not appear to be a monitor" % monitor )
-    return result
+    return nodeHandler( 'restMonitor' )
 
 
 def opticalLinks():

@@ -1435,37 +1435,58 @@ class Monitor(Node):
         self.component = component
         self.mode = mode
 
-    def modify_mode(self, mode='out'):
+    def modify_mode(self, mode):
         """Change the monitoring interface;
         options are 'in' and 'out'"""
         self.mode = mode
 
-    def get_optical_signals(self):
+    def get_optical_signals(self, port=None):
         """
         :return power: Returns Optical signals for the required objects
         """
         if self.mode == 'in':
             optical_signal_list = []
-            for value in self.component.port_to_optical_signal_in.values():
-                if value:
-                    for optical_signal in value:
-                        if self.component in optical_signal.loc_in_to_state:
-                            optical_signal_list.append(optical_signal)
-                        else:
-                            print(f'*** ERROR: missing input state for {optical_signal}'
-                                  f' at {self.component}')
+            if port == None:
+                for value in self.component.port_to_optical_signal_in.values():
+                    if value:
+                        for optical_signal in value:
+                            if self.component in optical_signal.loc_in_to_state:
+                                optical_signal_list.append(optical_signal)
+                            else:
+                                print(f'*** ERROR: missing input state for {optical_signal}'
+                                    f' at {self.component}')
+            else:
+                for key in self.component.port_to_optical_signal_in.keys():
+                    if key == port:
+                        if len(self.component.port_to_optical_signal_in[key]) > 0:
+                            for optical_signal in self.component.port_to_optical_signal_in[key]:
+                                if self.component in optical_signal.loc_in_to_state:
+                                    optical_signal_list.append(optical_signal)
+                                else:
+                                    print(f'*** ERROR: missing output state for {optical_signal}'
+                                        f' at {self.component}')
             return optical_signal_list
         else:
             optical_signal_list = []
-            for value in self.component.port_to_optical_signal_out.values():
-                if value:
-                    for optical_signal in value:
-                        if self.component in optical_signal.loc_out_to_state:
-                            optical_signal_list.append(optical_signal)
-                        else:
-                            print(f'*** ERROR: missing output state for {optical_signal}'
-                                  f' at {self.component}')
-
+            if port == None:
+                for value in self.component.port_to_optical_signal_out.values():
+                    if value:
+                        for optical_signal in value:
+                            if self.component in optical_signal.loc_out_to_state:
+                                optical_signal_list.append(optical_signal)
+                            else:
+                                print(f'*** ERROR: missing output state for {optical_signal}'
+                                    f' at {self.component}')
+            else:
+                for key in self.component.port_to_optical_signal_out.keys():
+                    if key == port:
+                        if len(self.component.port_to_optical_signal_out[key]) > 0:
+                            for optical_signal in self.component.port_to_optical_signal_out[key]:
+                                if self.component in optical_signal.loc_out_to_state:
+                                    optical_signal_list.append(optical_signal)
+                                else:
+                                    print(f'*** ERROR: missing output state for {optical_signal}'
+                                        f' at {self.component}')
             return optical_signal_list
 
     def get_list_osnr(self):
