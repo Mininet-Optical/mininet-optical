@@ -104,7 +104,7 @@ for i in range(non):
     # plugging a Transceiver at the first 10 ports of the Terminal
     transceivers = [Transceiver(id, tr, operation_power=operational_power)
                        for id, tr in enumerate(tr_labels, start=1)]
-    lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
+    lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers, monitor_mode='in')
     line_terminals.append(lt)
 
 # If you change the launch power of signals, remember to configure
@@ -176,3 +176,19 @@ for i, (r, lt_tx) in enumerate(zip(roadms, line_terminals)):
     ch = channels[0] + 1
     channels[0] = ch
 
+# Verify that all signals are received properly
+# Note we may wish to lower our threshold of 20 dB in the future
+
+tcount = len(line_terminals)
+for i, lt in enumerate(line_terminals, start=0):
+    mon = lt.monitor
+    osnrs = mon.get_dict_osnr()
+    gosnrs = mon.get_dict_gosnr()
+    ch = (i+1)%tcount + 1
+    assert list(sig.index for sig in osnrs.keys()) == [ch]
+    osnr = list(osnrs.values())[0]
+    gosnr = list(gosnrs.values())[0]
+    assert 0 < osnr < 21, f"{lt} channel {ch} bad OSNR: <{osnr}>"
+    assert 0 < gosnr < 21, f"{lt} channel {ch} bad gOSNR: <{gosnr}>"
+    osnr, gosnr = '%.2f'%osnr, '%.2f'%gosnr
+    print(f'Channel {ch} received at {lt} gOSNR {gosnr} dB OSNR {osnr} dB')
