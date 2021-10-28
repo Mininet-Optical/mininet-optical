@@ -90,7 +90,7 @@ for i in range(non):
     # need to create new Transceivers for the different Terminals
     transceivers = [Transceiver(id, tr, operation_power=operational_power)
                        for id, tr in enumerate(tr_labels, start=1)]
-    lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers)
+    lt = net.add_lt('lt_%s' % (i + 1), transceivers=transceivers, monitor_mode='in')
     line_terminals.append(lt)
 
 roadms = [net.add_roadm('r%s' % (i + 1),
@@ -181,3 +181,17 @@ lt2.assoc_rx_to_channel(lt2.id_to_transceivers[3], 3, in_port=3)
 lt3.turn_on()
 
 
+# Verify that all signals are received properly
+
+for i, lt in enumerate((lt1, lt2, lt3)):
+    mon = lt.monitor
+    osnrs = mon.get_dict_osnr()
+    gosnrs = mon.get_dict_gosnr()
+    ch = (i+1)%3 + 1
+    assert list(sig.index for sig in osnrs.keys()) == [ch]
+    osnr = list(osnrs.values())[0]
+    gosnr = list(gosnrs.values())[0]
+    assert 15 < osnr < 25, f"{lt} channel {ch} bad OSNR: <{osnr}>"
+    assert 15 < gosnr < 25, f"{lt} channel {ch} bad gOSNR: <{gosnr}>"
+    osnr, gosnr = '%.2f'%osnr, '%.2f'%gosnr
+    print(f'Channel {ch} received at {lt} gOSNR {gosnr} dB OSNR {osnr} dB')
