@@ -1019,7 +1019,8 @@ class Roadm(Node):
                             optical_signals_in_preamp.append(optical_signal)
 
                     # need to process signal before switch-based propagation
-                    self.preamp.propagate(optical_signals_in_preamp)
+                    if optical_signals_in_preamp:
+                        self.preamp.propagate(optical_signals_in_preamp)
 
     def compute_carrier_attenuation(self, in_port, amp=None):
         """
