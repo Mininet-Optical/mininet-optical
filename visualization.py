@@ -24,7 +24,7 @@ def plot_power_vs_wavelength(net, monitor_name, port=None, monitor_mode=None):
         power_list=[]
         plt.xlabel('Frequency [THz]')
         plt.ylabel('Power [dBm]')
-        response = net.get( 'monitor', params=dict( node=monitor_name, port=port, mode=monitor_mode ) )
+        response = net.get( 'monitor', params=dict( monitor=monitor_name, port=port, mode=monitor_mode ) )
         monidata = response.json()[ 'osnr' ]
         for channel, data in monidata.items():
             THz = float( data['freq'] )/1e12

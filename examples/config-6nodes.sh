@@ -85,7 +85,7 @@ echo "* Monitoring signals at endpoints"
 for tname in t1 t4; do
     url=${!tname}
     echo "* $tname"
-    curl "$url/monitor?node=$tname-monitor"
+    curl "$url/monitor?monitor=$tname-monitor"
 done
 
 
@@ -93,7 +93,7 @@ echo "* Monitoring signals at ROADMs"
 for rname in r1 r2 r3 r4 r5 r6; do
     url=${!rname}
     echo "* $rname"
-    curl "$url/monitor?node=$rname-monitor"
+    curl "$url/monitor?monitor=$rname-monitor"
 done
 
 echo "* Done."

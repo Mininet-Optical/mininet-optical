@@ -77,7 +77,7 @@ def monitors():
 @get( '/monitor' )
 def monitor():
     "Return information for monitor"
-    return nodeHandler( 'restMonitor' )
+    return monitorHandler( 'restMonitor' )
 
 
 def opticalLinks():
@@ -149,6 +149,15 @@ def nodeHandler( handlerName ):
         abort( 404, "No handler for node %s" % node )
     return result
 
+def monitorHandler( handlerName ):
+    "Handle a node query"
+    query = request.query
+    monitor = lookUpNode( query.monitor )  # pylint: disable=no-member
+    if hasattr( monitor, handlerName ):
+        result = getattr( monitor, handlerName )( query )
+    else:
+        abort( 404, "No handler for monitor %s" % monitor )
+    return result
 
 @get( '/reset' )
 def reset():
