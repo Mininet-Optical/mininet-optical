@@ -198,10 +198,16 @@ class Monitor:
 
     # SDN monitoring support
 
-    def restMonitor( self ):
+    def restMonitor( self, query ):
         "Return OSNR to REST agent"
         monitor = self.model
-        signals = monitor.get_optical_signals()
+        port, mode = None, None
+        if query.port:
+            port = int(query.port)
+        if query.mode:
+            mode = str(query.mode)
+            monitor.modify_mode(mode=mode)
+        signals = monitor.get_optical_signals(port)
         signals = sorted(signals, key=lambda s:s.index)
         osnr = { signal.index:
                  dict(freq=signal.frequency, osnr=monitor.get_osnr( signal ),

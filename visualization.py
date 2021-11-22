@@ -1,4 +1,4 @@
-from node import abs_to_dbm
+from node import abs_to_dbm, Monitor
 from ofcdemo.fakecontroller import (
     RESTProxy, TerminalProxy, ROADMProxy, OFSwitchProxy,
     fetchNodes, fetchLinks, fetchPorts, fetchOSNR, fetchRules )
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 
-def plot_power_vs_wavelength(net, monitor_name):
+def plot_power_vs_wavelength(net, monitor_name, port=None, monitor_mode=None):
     frequency_list=[]
     power_list=[]
     plt.ion()
@@ -24,7 +24,7 @@ def plot_power_vs_wavelength(net, monitor_name):
         power_list=[]
         plt.xlabel('Frequency [THz]')
         plt.ylabel('Power [dBm]')
-        response = net.get( 'monitor', params=dict( monitor=monitor_name ) )
+        response = net.get( 'monitor', params=dict( monitor=monitor_name, port=port, mode=monitor_mode ) )
         monidata = response.json()[ 'osnr' ]
         for channel, data in monidata.items():
             THz = float( data['freq'] )/1e12
@@ -45,7 +45,7 @@ def plot_power_vs_wavelength(net, monitor_name):
         #                textcoords="offset points", # position of the text
         #                xytext=(0,10), # distance from text to points (x,y)
         #                ha='center') # horizontal alignment (left, right or center)
-        plt.ylim([-20, -10])
+        # plt.ylim([-20, -10])
         figure.canvas.draw()
         figure.canvas.flush_events()
         time.sleep(1) # updated each second
@@ -56,4 +56,4 @@ def plot_power_vs_wavelength(net, monitor_name):
 if __name__ == '__main__':
 
     net=RESTProxy()
-    plot_power_vs_wavelength(net, 'r2-monitor')
+    plot_power_vs_wavelength(net, 'r4-monitor', port=None, monitor_mode='out')
