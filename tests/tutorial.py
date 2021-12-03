@@ -11,8 +11,8 @@
     amplifier of the end-to-end link.
 
 """
-from topo.linear import LinearTopology
-from units import *
+from mininet_optical.topo.linear import LinearTopology
+from mininet_optical.units import *
 
 def write_files(osnrs, gosnrs, p):
     """Description:

@@ -4,9 +4,9 @@
 single_link_test.py: test monitoring on a single link
 """
 
-import network
-from link import Span as Fiber, SpanTuple as Segment
-from node import Transceiver
+import mininet_optical.network as network
+from mininet_optical.link import Span as Fiber, SpanTuple as Segment
+from mininet_optical.node import Transceiver
 
 
 km = dB = dBm = 1.0

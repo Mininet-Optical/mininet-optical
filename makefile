@@ -1,4 +1,22 @@
+MODULE = mininet_optical
+SRCS = $(MODULE)/*.py $(MODULE)/*/*.py
+PKG = pyproject.toml setup.cfg setup.py
+
 all:
+
+build: wheel
+
+# Build python package (wheel)
+dist wheel: $(SRCS) $(PKG)
+	pyproject-build --wheel
+
+# Install python package
+install: dist
+	sudo pip3 install dist/mininet-optical*.whl
+
+# Development/editable installation
+develop: $(SRCS) $(PKG)
+	sudo pip3 install --editable .
 
 # Install dependencies
 depend: requirements.txt
@@ -19,6 +37,7 @@ test: simtest emutest
 
 # Clean up non-source files
 clean:
-	find . -name __pycache__ -o -name '*.pyc' \
+	rm -rf build dist __pycache__ *.egg-info dist
+	find . -name -o -name '*.pyc' \
 	-o -name '*~' -o -name '#*' -o -name '*.png' \
 	| xargs rm -rf
