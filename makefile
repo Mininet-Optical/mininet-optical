@@ -12,10 +12,12 @@ dist wheel: $(SRCS) $(PKG)
 
 # Install python package
 install: dist
-	sudo pip3 install dist/mininet-optical*.whl
+	sudo pip3 uninstall mininet_optical
+	sudo pip3 install dist/mininet_optical*.whl
 
 # Development/editable installation
 develop: $(SRCS) $(PKG)
+	sudo pip3 uninstall mininet_optical
 	sudo pip3 install --editable .
 
 # Install dependencies
