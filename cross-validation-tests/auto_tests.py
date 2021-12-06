@@ -27,7 +27,7 @@
     If you want to run the 14400 tests comment or remove the indicate lines of code in main()
 
 """
-from topo.linear_params import LinearTopology
+from mininet_optical.topo.linear_params import LinearTopology
 import itertools
 import time
 

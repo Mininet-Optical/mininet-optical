@@ -16,7 +16,7 @@
 """
 
 
-from topo.linear import LinearTopology
+from mininet_optical.topo.linear import LinearTopology
 
 
 def reset_lt1():
