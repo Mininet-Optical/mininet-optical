@@ -193,7 +193,7 @@ if __name__ == '__main__':
     cleanup()  # Just in case!
     setLogLevel('info')
     if 'clean' in argv: exit(0)
-    topo = UniRingTopo(N=4)
+    topo = UniRingTopo(N=6)
     net = Mininet(topo=topo)
     # restServer = RestServer(net)
     net.start()
