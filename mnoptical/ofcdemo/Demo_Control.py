@@ -5,31 +5,39 @@ single_link_test.py: test monitoring on a single link
 Note this version uses and depends on explicit port assignment!
 """
 
-#from mnoptical.network import Network
-#from mnoptical.link import Span as Fiber, SpanTuple as Segment
-#from mnoptical.node import Transceiver
-#from mnoptical.units import *
+from mnoptical.link import Span as Fiber, SpanTuple as Segment
+
+from mnoptical.ofcdemo.Control_Test_Lum import Lumentum_Control_NETCONF
+from mnoptical.ofcdemo.Control_Test_Mininet_REST import Mininet_Control_REST
+from mnoptical.ofcdemo.fakecontroller import ListenPortBase
+
 from collections import defaultdict
 import random
 from collections import defaultdict
-#import numpy as np
-#from Control_Test_Lum import Lumentum_Control_NETCONF
-from mnoptical.ofcdemo.Control_Test_Mininet_REST import Mininet_Control_REST
-from mnoptical.ofcdemo.fakecontroller import ListenPortBase
+
 
 km = dB = dBm = 1.0
 m = .001
 
-# Parameters
-Controller_Lum = None#Lumentum_Control_NETCONF()
-Controller_Mininet = Mininet_Control_REST()
+# Controller objects
+Controller_Lum = None
+Controller_Mininet = None
+
+def init_Controller(Mininet_Enable=True):
+    "Initialize Lumentum or Mininet controller"
+    global Controller_Lum, Controller_Mininet
+    if not Mininet_Enable and not Controller_Lum:
+        Controller_Lum = Lumentum_Control_NETCONF()
+    if Mininet_Enable and not Controller_Mininet:
+        Controller_Mininet = Mininet_Control_REST()
 
 NUM_WAV = 90
 LINK_CAP = 200
 DOWN_LINK_CAP = 100
 CPRI_CAP = 25
 # ROADM port numbers (input and output)
-LINE_PORT1, LINE_PORT2, LINE_PORT3, LINE_PORT4, LINE_PORT5, LINE_PORT6 = NUM_WAV, NUM_WAV+1, NUM_WAV+2, NUM_WAV+3, NUM_WAV+4, NUM_WAV+5
+LINE_PORT1, LINE_PORT2, LINE_PORT3, LINE_PORT4, LINE_PORT5, LINE_PORT6 = (
+    NUM_WAV, NUM_WAV+1, NUM_WAV+2, NUM_WAV+3, NUM_WAV+4, NUM_WAV+5)
 NETLINKS = []
 GRAPH = defaultdict()
 NODES = defaultdict()
@@ -98,30 +106,24 @@ def RoadmPhyNetwork():
         print('==range=', k)
         # Eastbound link consisting of a boost amplifier going into
         # one or more segments of fiber with compensating amplifiers
-
         NETLINKS.append(('r%d' % k, LINE_PORT2, 'r%d' % (k + 1), LINE_PORT1))
         NETLINK_INFO['r%d' % k, 'r%d' % (k + 1)] = {0: 0}
-
         # Westbound link consisting of a boost amplifier going into
         # one or more segments of fiber with compensating amplifiers
-
         NETLINKS.append(('r%d' % (k + 1), LINE_PORT1, 'r%d' % k, LINE_PORT2))
         NETLINK_INFO['r%d' % (k + 1), 'r%d' % k] = {0: 0}
 
     for k in range(1,NUM_NODE+1):
         # Local add/drop links between terminals/transceivers and ROADMs
         for add_drop_port in range(NUM_WAV):
-
             NETLINKS.append(('t%d' %k, add_drop_port, 'r%d' %k, add_drop_port))
             NETLINKS.append(('r%d' %k, add_drop_port, 't%d' %k, add_drop_port))
-
     return
 
 ############# Mininet Optical############
 
 def Mininet_installPath(lightpath_id, path, channel, power=0):
     "intall switch rules on roadms along a lightpath for some signal channels"
-
     src_id, dst_id = TERMINAL_TO_ID[path[0]], TERMINAL_TO_ID[path[-1]]
     # Install a route
     Controller_Mininet.installPath(path=path, channels=[channel])
@@ -135,15 +137,15 @@ def Mininet_installPath(lightpath_id, path, channel, power=0):
     # Configure routers
     router = Controller_Mininet.net.switches[src_id - 1]
     router2 = Controller_Mininet.net.switches[dst_id - 1]
-    Controller_Mininet.configurePacketSwitch(src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
-    Controller_Mininet.configurePacketSwitch(src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
+    Controller_Mininet.configurePacketSwitch(
+        src=src_id, dst=dst_id, channel=channel, router=router, port=ListenPortBase+src_id)
+    Controller_Mininet.configurePacketSwitch(
+        src=dst_id, dst=src_id, channel=channel, router=router2, port=ListenPortBase+dst_id)
     return lightpath_id
 
 
 def Mininet_uninstallPath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
-
-
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     Controller_Mininet.uninstallPath(path=path, channels=[channel])
@@ -152,19 +154,16 @@ def Mininet_uninstallPath(lightpath_id):
 
 def Mininet_setupLightpath(lightpath_id, path, channel):
     "configure a lightpath "
-
     return Mininet_installPath(lightpath_id, path, channel)
 
 
 def Mininet_teardownLightpath(lightpath_id):
     "remove a lightpath"
-
     return Mininet_uninstallPath(lightpath_id)
 
 
 def Mininet_monitorLightpath(lightpath_id):
     "monitoring a signal along a lightpath"
-
     path = LIGHTPATH_INFO[lightpath_id]['path']
     channel = LIGHTPATH_INFO[lightpath_id]['channel_id']
     osnrs, gosnrs = list(), list()
@@ -187,26 +186,22 @@ def Mininet_monitorLightpath(lightpath_id):
 
 def Lumentum_installPath(lightpath_id, path, channel):
     "intall switch rules on roadms along a lightpath for some signal channels"
-
     return Controller_Lum.installPath(path=path, channel=channel, lightpathID=lightpath_id)
 
 
 def Lumentum_uninstallPath(lightpath_id):
     "delete switch rules on roadms along a lightpath for some signal channels"
-
     path = LIGHTPATH_INFO[lightpath_id]['path']
     return Controller_Lum.uninstallPath(path=path, lightpathID=lightpath_id)
 
 
 def Lumentum_setupLightpath(lightpath_id, path, channel):
     "configure a lightpath "
-
     return Lumentum_installPath(lightpath_id, path, channel)
 
 
 def Lumentum_teardownLightpath(lightpath_id):
     "remove a lightpath"
-
     return Lumentum_uninstallPath(lightpath_id)
 
 
@@ -231,7 +226,6 @@ def linkspec( link ):
 
 
 def getLinks(links):
-
     return dict( links=[ linkspec( link ) for link in links ] )
 
 
@@ -281,8 +275,7 @@ def waveSelection(channels):
 
 
 def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mininet = False):
-    "intall switch rules on roadms along a lightpath for some signal channels, update control database"
-
+    "install switch rules on roadms along a lightpath for some signal channels, update control database"
     ## Install ROADM rules
     global LIGHTPATH_ID
     LIGHTPATH_ID += 1
@@ -302,7 +295,7 @@ def install_Lightpath(path, channel, up_time=0.0, down_time = float('inf'), Mini
     for i in range(len(path) - 1):
         NETLINK_INFO[path[i], path[i + 1]][channel] = LIGHTPATH_ID  # channel with lightpath_id
         NETLINK_INFO[path[i + 1], path[i]][channel] = LIGHTPATH_ID
-    #powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
+    # powers, osnrs, gosnrs, ase, nli = Mininet_monitorLightpath(path, channel, NODES)
     LIGHTPATH_INFO[LIGHTPATH_ID]['path'] = path
     LIGHTPATH_INFO[LIGHTPATH_ID]['channel_id'] = channel
     LIGHTPATH_INFO[LIGHTPATH_ID]['link_cap'] = LINK_CAP
@@ -396,7 +389,8 @@ def install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet = F
             chs = waveAvailibility(path=path)
             if chs:
                 ch = waveSelection(chs)
-                lightpath_id = install_Lightpath(path=path, channel=ch, up_time=cur_time, down_time=down_time, Mininet=Mininet)
+                lightpath_id = install_Lightpath(
+                    path=path, channel=ch, up_time=cur_time, down_time=down_time, Mininet=Mininet)
                 if lightpath_id:
                     TRAFFIC_ID += 1
                     traf_id = traf_to_lightpah_Assignment(TRAFFIC_ID, lightpath_id, down_time=down_time)
@@ -563,7 +557,7 @@ def trafficPattern(pattern, time):
 
 def TrafficTest(Mininet_Enable=False):
 
-    #Mininet_Enable = True
+    init_Controller(Mininet_Enable)
     # ROADM port numbers (input and output)
     random.seed(1000)
     "Create a single link and monitor its OSNR and gOSNR"
@@ -822,18 +816,19 @@ def TrafficTest(Mininet_Enable=False):
             total_wav += len(NETLINK_INFO[key].items())
         avg_wav = (1.0 * total_wav) / (NUM_NODE - 1)
 
-        file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(i,
-                                                                                             factors['r2'] * MAX_traf['r2'],
-                                                                                             factors['r3'] * MAX_traf['r3'],
-                                                                                                     len(LIGHTPATH_INFO.keys()),
-                                                                                                     avg_wav,
-                                                                                                     BBU_traf['t1'],
-                                                                                                     BBU_traf['t%d' % NUM_NODE],
-                                                                                                     1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
-                                                                                                     1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
-                                                                                                     FiftyG, OneG, TwoG,
-                                                                                                     UnderUse,
-                                                                                                     OneG * 100 + TwoG * 200 + FiftyG * 50))
+        file.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+            i,
+            factors['r2'] * MAX_traf['r2'],
+            factors['r3'] * MAX_traf['r3'],
+            len(LIGHTPATH_INFO.keys()),
+            avg_wav,
+            BBU_traf['t1'],
+            BBU_traf['t%d' % NUM_NODE],
+            1.0 * Rej['t2'] / (factors['r2'] *MAX_traf['r2'] / CPRI_CAP),
+            1.0 * Rej['t3'] / (factors['r3'] *MAX_traf['r3'] / CPRI_CAP),
+            FiftyG, OneG, TwoG,
+            UnderUse,
+            OneG * 100 + TwoG * 200 + FiftyG * 50))
     #
     #
     # print('==traf')

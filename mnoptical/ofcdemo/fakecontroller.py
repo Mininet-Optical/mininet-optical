@@ -100,18 +100,21 @@ class TerminalProxy( SwitchProxy ):
         # print('connect', params)
         r = self.get( 'connect', params=params )
         # print( r )
+        return r
 
     def reset(self):
         params = dict(node=self.name)
         # print('reset', params)
         r = self.get('reset', params=params)
         # print(r)
+        return r
 
     def turn_on(self):
         params = dict(node=self.name)
         # print('turn_on', params)
         r = self.get('turn_on', params)
         # print(r)
+        return r
 
 
 class ROADMProxy( SwitchProxy ):
@@ -125,11 +128,13 @@ class ROADMProxy( SwitchProxy ):
         # print('connect', params)
         r = self.get( 'connect', params=params)
         # print( r )
+        return r
 
     def reset(self):
         params = dict(node=self.name)
         # print('reset', params)
         r = self.get('reset', params=params)
+        return r
 
 
 ### Configuration Retrieval

@@ -31,11 +31,15 @@ simtest:
 	tests/RunTests.sh
 
 # Run emulation tests
-emutest:
+emutest: certs
 	sudo examples/runtests.sh
 
 # Run all tests
 test: simtest emutest
+
+# Generate fake certs for netconf client/server
+certs: makecerts.sh
+	./makecerts.sh
 
 # Clean up non-source files
 clean:
@@ -43,3 +47,5 @@ clean:
 	find . -name -o -name '*.pyc' \
 	-o -name '*~' -o -name '#*' -o -name '*.png' \
 	| xargs rm -rf
+	rm -rf testcerts
+	rm -f mnoptical/ofcdemo/*.txt
