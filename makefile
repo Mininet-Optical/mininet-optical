@@ -6,7 +6,8 @@ all:
 
 build: wheel
 
-# Build python package (wheel)
+# Build python package (wheel/.whl file)
+# using pyproject-build (from python 'build' package)
 dist wheel: $(SRCS) $(PKG)
 	pyproject-build --wheel
 
