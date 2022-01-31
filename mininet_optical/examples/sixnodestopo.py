@@ -116,7 +116,7 @@ if __name__ == '__main__':
     net.start()
     restServer.start()
     plotNet(net)
-    if not argv:
+    if len(argv) == 1:
         CLI(net)
     restServer.stop()
     net.stop()
