@@ -2,10 +2,6 @@ MODULE = mininet_optical
 SRCS = $(MODULE)/*.py $(MODULE)/*/*.py
 PKG = pyproject.toml setup.cfg setup.py
 
-all:
-
-build: wheel
-
 # Build python package (wheel/.whl file)
 # using pyproject-build (from python 'build' package)
 dist wheel: $(SRCS) $(PKG)
@@ -22,10 +18,13 @@ develop: $(SRCS) $(PKG)
 	sudo pip3 install --editable .
 
 # Install dependencies
+# In addition to our package dependencies, we install
+# build (for building) and pygraphviz (for examples/)
 depend: requirements.txt
-	sudo apt install python3-pygraphviz
 	python3 -m pip install -r requirements.txt
 	sudo python3 -m pip install -r requirements.txt
+	python3 -m pip install build
+	sudo apt install python3-pygraphviz
 
 # Run simulator tests
 simtest:
