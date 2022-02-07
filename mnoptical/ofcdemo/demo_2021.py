@@ -13,6 +13,10 @@ from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.node import RemoteController
 
+from sys import argv
+from os.path import dirname
+from subprocess import check_call
+
 if __name__ == '__main__':
 
     setLogLevel( 'info' )
@@ -24,6 +28,9 @@ if __name__ == '__main__':
     restServer = RestServer( net )
     net.start()
     restServer.start()
-    CLI( net )
+    if 'test' in argv:
+        check_call("python3 -m mnoptical.ofcdemo.Demo_Control_2".split())
+    else:
+        CLI( net )
     restServer.stop()
     net.stop()

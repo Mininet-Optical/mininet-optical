@@ -34,8 +34,12 @@ simtest:
 emutest:
 	sudo examples/runtests.sh
 
+# Run demo test
+demotest:
+	sudo python3 -m mnoptical.ofcdemo.demo_2021 test
+
 # Run all tests
-test: simtest emutest
+test: simtest emutest demotest
 
 # Clean up non-source files
 clean:
