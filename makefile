@@ -1,20 +1,20 @@
-MODULE = mininet_optical
+MODULE = mnoptical
 SRCS = $(MODULE)/*.py $(MODULE)/*/*.py
 PKG = pyproject.toml setup.cfg setup.py
 
 # Build python package (wheel/.whl file)
 # using pyproject-build (from python 'build' package)
-dist wheel: $(SRCS) $(PKG)
+dist wheel: $(SRCS) $(PKG) makefile
 	pyproject-build --wheel
 
 # Install python package
 install: dist
-	sudo pip3 uninstall mininet_optical
+	sudo pip3 uninstall mininet-optical
 	sudo pip3 install dist/mininet_optical*.whl
 
 # Development/editable installation
 develop: $(SRCS) $(PKG)
-	sudo pip3 uninstall mininet_optical
+	sudo pip3 uninstall mininet-optical
 	sudo pip3 install --editable .
 
 # Install dependencies

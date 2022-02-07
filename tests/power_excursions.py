@@ -14,7 +14,7 @@
     function in the EDFA class.
 """
 
-from mininet_optical.topo.linear_params import LinearTopology
+from mnoptical.topo.linear_params import LinearTopology
 
 
 power_dBm = 0

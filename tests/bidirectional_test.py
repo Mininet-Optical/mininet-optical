@@ -1,4 +1,4 @@
-from mininet_optical.topo.linear import LinearTopology
+from mnoptical.topo.linear import LinearTopology
 
 
 operational_power_dBm = 0
