@@ -327,7 +327,7 @@ class LineTerminal(Node):
         if in_port in self.rx_to_channel:
             if channel_id not in self.rx_to_channel[in_port]['channel_id']:
                 if self.rx_to_channel[in_port]['transceiver'] is not transceiver:
-                    raise Warning("Misconfiguration of receivers!")
+                    raise ValueError("Misconfiguration of receivers!")
                 else:
                     self.rx_to_channel[in_port]['channel_id'].append(channel_id)
         else:
@@ -421,14 +421,14 @@ class LineTerminal(Node):
                     self.receiver_callback(in_port, signalInfoDict)
             else:
                 self.receiver_callback(in_port, signalInfoDict)
-                raise Warning("@%s, optical signal: %s not configured for Rx in LineTerminal.\n"
+                print("warning: @%s, optical signal: %s not configured for Rx in LineTerminal.\n"
                                  "Try calling %s.assoc_rx_to_channel() before launching transmission." %
                                  (self, optical_signal, self))
         else:
             self.receiver_callback(in_port, signalInfoDict)
             if self.debugger:
                 print("*** %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel) )
-            raise Warning("@%s, input port: %s not configured correctly for "
+            print("warning: @%s, input port: %s not configured correctly for "
                              "optical signal: %s in LineTerminal.\n"
                              "You can configure it with %s.assoc_rx_to_channel() before launching transmission." %
                              (self, in_port, optical_signal, self))
@@ -1269,7 +1269,7 @@ class Amplifier(Node):
         elif noise_figure_function is not None:
             return noise_figure_function
         else:
-            raise Warning("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
+            raise ValueError("Amplifier.get_noise_figure: couldn't retrieve noise figure as a function.")
 
     def output_amplified_power(self, optical_signal):
         """
