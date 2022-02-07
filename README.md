@@ -20,14 +20,14 @@ and optical network elements.
 
 #### Directories
 
-- mininet_optical: mininet_optical Python module
+- mnoptical: Mininet-Optical Python package (`mnoptical`)
 - examples: sample emulation scripts for Mininet-Optical
 - tests: tests for simulation mode
 - onos_rest_api: ONOS CLI tool and REST proxy used in OFC20 demo
 - opticalemulator: southbound REST driver for ONOS used in OFC20 demo
 - dist (if present): created by `make dist`
 
-#### Python modules in mininet_optical/
+#### Python modules in mnoptical/
 
 - dataplane.py: dataplane emulation
 - edfa_params.py: EDFA wavelength dependent gain functions
@@ -39,7 +39,7 @@ and optical network elements.
 - terminal_params: parameters for Terminal simulation
 - visualize_topo.py: visualization support
 
-### Subcomponents of mininet_optical/
+### Subcomponents of mnoptical/
 
 - examples/: emulation mode scripts that can also be used as modules
 - ofcdemo/: modules/scripts related to our OFC demo(s)

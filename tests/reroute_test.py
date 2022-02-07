@@ -18,9 +18,9 @@
 """
 
 
-import mininet_optical.network as network
-from mininet_optical.link import Span as Fiber, SpanTuple as Segment
-from mininet_optical.node import Transceiver
+import mnoptical.network as network
+from mnoptical.link import Span as Fiber, SpanTuple as Segment
+from mnoptical.node import Transceiver
 
 
 km = dB = dBm = 1.0

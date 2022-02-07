@@ -1,4 +1,4 @@
-from mininet_optical.topo.linear_multiloc import LinearTopology
+from mnoptical.topo.linear_multiloc import LinearTopology
 
 
 net = LinearTopology.build()

@@ -1,13 +1,3 @@
-"""
-
-    This script models a linear topology between two line terminals
-    with two ROADMs in between:
-        lt1 ---> r1 ---> r2 ----> lt2
-
-    lt1 will transmit 3 channels at 0 dBm launch power
-"""
-
-
 import mnoptical.network as network
 from mnoptical.link import Span as Fiber, SpanTuple as Segment
 import numpy as np
@@ -30,37 +20,56 @@ def build_spans(net, r1, r2):
     # store all spans (sequentially) in a list
     spans = []
     # get number of spans (int)
-    span_no = 3
-    span_length = 25
+    span_no = 2
+    span_length = 80
 
     for i in range(1, span_no + 1):
         # append all spans except last one
-        amp = net.add_amplifier(
-            '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
-        span = Span(span_length, amp=amp)
+        amplifier = None
+        if span_no > 1 and i < span_no:
+            amplifier = net.add_amplifier(
+                '%s-%s-amp%d' % (r1, r2, i), target_gain=span_length * 0.22 * dB, monitor_mode='out')
+        span = Span(span_length, amp=amplifier)
         spans.append(span)
 
     return net, spans
 
 def build_link(net, r1, r2):
-    # boost amplifier object
-    boost_l = '%s-%s-boost' % (r1, r2)  # label boost amp
-    boost_amp = net.add_amplifier(name=boost_l, amplifier_type='EDFA',
-                                  target_gain=17.0, monitor_mode='out')
     net, spans = build_spans(net, r1, r2)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
 
     # link object
-    net.add_link(r1, r2, boost_amp=boost_amp, spans=spans)
+    net.add_link(r1, r2, spans=spans)
+
+def add_amp(net, node_name=None, type=None, gain_dB=None):
+    """
+    Create an Amplifier object to add to a ROADM node
+    :param node_name: string
+    :param type: string ('boost' or 'preamp'
+    :param gain_dB: int or float
+    """
+    label = '%s-%s' % (node_name, type)
+    if type == 'preamp':
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 boost=True,
+                                 monitor_mode='out')
+    else:
+        return net.add_amplifier(name=label,
+                                 target_gain=float(gain_dB),
+                                 preamp=True,
+                                 monitor_mode='out')
+
 
 class LinearTopology:
 
     @staticmethod
-    def build(op=0, non=3):
+    def build(op=0, non=3, bidirectional=False):
         """
-        :param op: operational power in dBm
-        :param non: number of nodes (integer)
+        :param op: int, operational power in dBm
+        :param non: int, number of nodes (integer)
+        :param bidirectional: boolean, bidirectional links
         :return: Network object
         """
         # Create an optical-network object
@@ -77,7 +86,9 @@ class LinearTopology:
 
         roadms = [net.add_roadm('r%s' % (i + 1),
                                 insertion_loss_dB=17,
-                                reference_power_dBm=op)
+                                reference_power_dBm=op,
+                                preamp=add_amp(net, node_name='r%s' % (i + 1), type='preamp', gain_dB=17.6),
+                                boost=add_amp(net, node_name='r%s' % (i + 1), type='boost', gain_dB=17.0))
                   for i in range(non)]
         name_to_roadm = {roadm.name: roadm for roadm in roadms}
 
@@ -100,42 +111,7 @@ class LinearTopology:
             r1 = name_to_roadm['r' + str(i + 1)]
             r2 = name_to_roadm['r' + str(i + 2)]
             build_link(net, r1, r2)
+            if bidirectional:
+                build_link(net, r2, r1)
 
         return net
-
-
-operational_power_dBm = 0
-net = LinearTopology.build(op=operational_power_dBm, non=2)
-
-# Retrieve line terminals (transceivers) from network
-lt_1 = net.name_to_node['lt_1']
-lt_2 = net.name_to_node['lt_2']
-
-num_wavelengths = 3
-ports = channel_indexes = list(range(1, num_wavelengths + 1))
-
-
-for c, p in zip(channel_indexes, ports):
-    # configure transmitter terminal
-    tx_transceiver = lt_1.id_to_transceivers[c]
-    lt_1.assoc_tx_to_channel(tx_transceiver, c, out_port=p)
-
-    # configure receiver terminal
-    rx_transceiver = lt_2.id_to_transceivers[c]
-    lt_2.assoc_rx_to_channel(rx_transceiver, c, in_port=p)
-
-# Configure ROADM 1
-r1 = net.roadms[0]
-for c, p in zip(channel_indexes, ports):
-    in_port = 4100 + p
-    out_port = 5211
-    r1.install_switch_rule(in_port, out_port, [c])
-
-# Configure ROADM 2
-r2 = net.roadms[1]
-for c, p in zip(channel_indexes, ports):
-    in_port = 4111
-    out_port = 5200 + p
-    r2.install_switch_rule(in_port, out_port, [c])
-
-lt_1.turn_on()

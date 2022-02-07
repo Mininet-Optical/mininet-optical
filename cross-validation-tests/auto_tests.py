@@ -27,7 +27,7 @@
     If you want to run the 14400 tests comment or remove the indicate lines of code in main()
 
 """
-from mininet_optical.topo.linear_params import LinearTopology
+from mnoptical.topo.linear_params import LinearTopology
 import itertools
 import time
 
@@ -125,7 +125,7 @@ def log_data(test_no, power_level_dBm, fibre_length_km,
 
 
 
-def mininet_optical_test(test_no, c, logdata=False):
+def mnoptical_test(test_no, c, logdata=False):
     """
     create Mininet-Optical model
     execute Mininet-Optical test
@@ -171,5 +171,5 @@ if __name__ == '__main__':
         if test_no > 2:
             break
         # execute Mininet-Optical tests
-        mininet_optical_test(test_no, combination, logdata=True)
+        mnoptical_test(test_no, combination, logdata=True)
     print("It took %s seconds to run Mininet-Optical tests" % str(time.time() - start_time))
