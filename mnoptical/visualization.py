@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--node', help='add the monitoring node', type=str, required=True) # example: 'r3-monitor'
     parser.add_argument('--port', help='add optional port number', type=int, default=None)
-    parser.add_argument('--mode', help='add optinal minotoring mode (in or out)', type=str, default='in') # example: 'in'
+    parser.add_argument('--mode', help='add optional minotoring mode (in or out)', type=str, default='in') # example: 'in'
 
     args = parser.parse_args()
     plot_power_vs_wavelength(net, args.node, port=args.port, monitor_mode=args.mode)
