@@ -25,6 +25,7 @@
 ###################### Install dependencies - start ######################
 echo "Installing dependencies..."
 pip install pandas
+pip install scikit-learn
 ###################### Install dependencies - start ######################
 
 
@@ -36,7 +37,7 @@ MO_DIR="optical-network-emulator"
 
 # Run Mininet-Optical tests to create datafile
 echo "Running Mininet-Optical tests..."
-PYTHONPATH=.. python auto_tests.py
+PYTHONPATH=.. python3 auto_tests.py
 ###################### Mininet-Optical tests - end ######################
 
 
@@ -122,7 +123,7 @@ fi
 
 cd $TEST_DIR
 echo "Running GNPy tests..."
-PYTHONPATH=../ python auto_tests.py
+PYTHONPATH=.. python3.8 auto_tests.py
 ###################### GNPy tests - end ######################
 
 
@@ -131,7 +132,7 @@ PYTHONPATH=../ python auto_tests.py
 ###################### Cross-validation analysis - start ######################
 cd ../$CROSS_VAL_DIR
 echo "Running cross-validation analysis..."
-python cross_val_test.py
+PYTHONPATH=.. python3.8 cross_val_test.py
 ###################### Cross-validation analysis - end ######################
 
 
