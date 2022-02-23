@@ -5,6 +5,7 @@ from mnoptical.ofcdemo.fakecontroller import (
 
 import matplotlib.pyplot as plt
 import time
+import argparse
 
 
 def plot_power_vs_wavelength(net, monitor_name, port=None, monitor_mode=None):
@@ -56,4 +57,13 @@ def plot_power_vs_wavelength(net, monitor_name, port=None, monitor_mode=None):
 if __name__ == '__main__':
 
     net=RESTProxy()
-    plot_power_vs_wavelength(net, 'r4-monitor', port=None, monitor_mode='out')
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--node', help='add the monitoring node', type=str, required=True) # example: 'r3-monitor'
+    parser.add_argument('--port', help='add optional port number', type=int, default=None)
+    parser.add_argument('--mode', help='add optional minotoring mode (in or out)', type=str, default='in') # example: 'in'
+
+    args = parser.parse_args()
+    plot_power_vs_wavelength(net, args.node, port=args.port, monitor_mode=args.mode)
+    # example:
+    # plot_power_vs_wavelength(net, 'r3-monitor', port=None, monitor_mode='in')
