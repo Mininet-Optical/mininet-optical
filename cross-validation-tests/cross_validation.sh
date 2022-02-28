@@ -90,7 +90,7 @@ EQPT_PATCH="$PATCHES_DIR/eqptpatch.patch"
 
 ###################### Applying patches - start ######################
 # Apply patches
-ELEMENTS_DIFF_COUNT=$(diff $ELEMENTS_FILE $P_ELEMENTS_FILE | wc -l)
+ELEMENTS_DIFF_COUNT=$(diff -w -B $ELEMENTS_FILE $P_ELEMENTS_FILE | wc -l)
 if (( $ELEMENTS_DIFF_COUNT > 0))
 then
     echo "Applying $ELEMENTS_PATCH to $ELEMENTS_FILE"
