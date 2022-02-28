@@ -26,6 +26,7 @@ PIP="$PYTHON -m pip"
 echo "Installing dependencies..."
 $PIP install pandas
 $PIP install scikit-learn
+$PIP install networkx
 ###################### Install dependencies - start ######################
 
 
