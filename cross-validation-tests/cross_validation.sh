@@ -27,6 +27,10 @@ echo "Installing dependencies..."
 $PIP install pandas
 $PIP install scikit-learn
 $PIP install networkx
+$PIP install xlrd
+$PIP install cython
+$PIP install dateutil
+$PIP install scipy
 ###################### Install dependencies - start ######################
 
 
