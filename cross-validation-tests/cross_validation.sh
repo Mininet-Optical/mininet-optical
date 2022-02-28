@@ -51,10 +51,13 @@ GNPY_DIR="../../gnpy-cross-validation"
 if [ -d $GNPY_DIR ]
 then
     echo "Directory $GNPY_DIR already exists."
+    cd $GNPY_DIR
 else
     echo "Creating folder $GNPY_DIR and cloning GNPy project into it."
     mkdir $GNPY_DIR
     git clone https://github.com/Telecominfraproject/oopt-gnpy.git $GNPY_DIR
+    cd $GNPY_DIR
+    git checkout f170574abfffc1e8ce2f030205d7e821f27100c2
 fi
 ###################### Cloning GNPy to subdirectory - end ######################
 
@@ -63,7 +66,7 @@ fi
 
 ###################### Preparation for applying patches - start ######################
 # Files to patch
-cd $GNPY_DIR
+
 ELEMENTS_FILE="gnpy/core/elements.py"
 EQPT_FILE="tests/data/eqpt_config.json"
 
