@@ -18,13 +18,19 @@
 #
 ###################### Description - end ######################
 
-
-
+PYTHON=python3.8
+PIP="$PYTHON -m pip"
 
 
 ###################### Install dependencies - start ######################
 echo "Installing dependencies..."
-pip install pandas
+$PIP install pandas
+$PIP install scikit-learn
+$PIP install networkx
+$PIP install xlrd
+$PIP install cython
+$PIP install dateutil
+$PIP install scipy
 ###################### Install dependencies - start ######################
 
 
@@ -36,7 +42,7 @@ MO_DIR="optical-network-emulator"
 
 # Run Mininet-Optical tests to create datafile
 echo "Running Mininet-Optical tests..."
-PYTHONPATH=.. python auto_tests.py
+PYTHONPATH=.. $PYTHON auto_tests.py
 ###################### Mininet-Optical tests - end ######################
 
 
@@ -50,10 +56,13 @@ GNPY_DIR="../../gnpy-cross-validation"
 if [ -d $GNPY_DIR ]
 then
     echo "Directory $GNPY_DIR already exists."
+    cd $GNPY_DIR
 else
     echo "Creating folder $GNPY_DIR and cloning GNPy project into it."
     mkdir $GNPY_DIR
     git clone https://github.com/Telecominfraproject/oopt-gnpy.git $GNPY_DIR
+    cd $GNPY_DIR
+    git checkout f170574abfffc1e8ce2f030205d7e821f27100c2
 fi
 ###################### Cloning GNPy to subdirectory - end ######################
 
@@ -62,7 +71,7 @@ fi
 
 ###################### Preparation for applying patches - start ######################
 # Files to patch
-cd $GNPY_DIR
+
 ELEMENTS_FILE="gnpy/core/elements.py"
 EQPT_FILE="tests/data/eqpt_config.json"
 
@@ -86,7 +95,7 @@ EQPT_PATCH="$PATCHES_DIR/eqptpatch.patch"
 
 ###################### Applying patches - start ######################
 # Apply patches
-ELEMENTS_DIFF_COUNT=$(diff $ELEMENTS_FILE $P_ELEMENTS_FILE | wc -l)
+ELEMENTS_DIFF_COUNT=$(diff -w -B $ELEMENTS_FILE $P_ELEMENTS_FILE | wc -l)
 if (( $ELEMENTS_DIFF_COUNT > 0))
 then
     echo "Applying $ELEMENTS_PATCH to $ELEMENTS_FILE"
@@ -122,7 +131,7 @@ fi
 
 cd $TEST_DIR
 echo "Running GNPy tests..."
-PYTHONPATH=../ python auto_tests.py
+PYTHONPATH=.. $PYTHON auto_tests.py
 ###################### GNPy tests - end ######################
 
 
@@ -131,7 +140,7 @@ PYTHONPATH=../ python auto_tests.py
 ###################### Cross-validation analysis - start ######################
 cd ../$CROSS_VAL_DIR
 echo "Running cross-validation analysis..."
-python cross_val_test.py
+PYTHONPATH=.. $PYTHON cross_val_test.py
 ###################### Cross-validation analysis - end ######################
 
 

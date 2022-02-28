@@ -4,29 +4,30 @@
 """
 gnpy.core.elements
 ==================
-
 Standard network elements which propagate optical spectrum
-
 A network element is a Python callable. It takes a :class:`.info.SpectralInformation`
 object and returns a copy with appropriate fields affected. This structure
 represents spectral information that is "propogated" by this network element.
 Network elements must have only a local "view" of the network and propogate
 :class:`.info.SpectralInformation` using only this information. They should be independent and
 self-contained.
-
 Network elements MUST implement two attributes :py:attr:`uid` and :py:attr:`name` representing a
 unique identifier and a printable name, and provide the :py:meth:`__call__` method taking a
 :class:`SpectralInformation` as an input and returning another :class:`SpectralInformation`
 instance as a result.
 """
 
-from numpy import abs, arange, array, divide, errstate, ones, interp, mean, pi, polyfit, polyval, sum, sqrt
+from numpy import abs, array, errstate, ones, interp, mean, pi, polyfit, polyval, sum, sqrt, log10, exp, asarray, full, \
+    squeeze, zeros, append, flip, outer
 from scipy.constants import h, c
+from scipy.interpolate import interp1d
 from collections import namedtuple
 
 from gnpy.core.utils import lin2db, db2lin, arrange_frequencies, snr_sum
-from gnpy.core.parameters import FiberParams, PumpParams
-from gnpy.core.science_utils import NliSolver, RamanSolver, propagate_raman_fiber, _psi
+from gnpy.core.parameters import RoadmParams, FusedParams, FiberParams, PumpParams, EdfaParams, EdfaOperational
+from gnpy.core.science_utils import NliSolver, RamanSolver
+from gnpy.core.info import SpectralInformation
+from gnpy.core.exceptions import NetworkTopologyError, SpectrumError
 
 
 class Location(namedtuple('Location', 'latitude longitude city region')):
@@ -36,7 +37,6 @@ class Location(namedtuple('Location', 'latitude longitude city region')):
 
 class _Node:
     '''Convenience class for providing common functionality of all network elements
-
     This class is just an internal implementation detail; do **not** assume that all network elements
     inherit from :class:`_Node`.
     '''
@@ -79,6 +79,9 @@ class Transceiver(_Node):
         self.baud_rate = None
         self.chromatic_dispersion = None
         self.pmd = None
+        self.pdl = None
+        self.penalties = {}
+        self.total_penalty = 0
         self.power = None
         self.ase_noise = None
         self.nli_noise = None
@@ -87,28 +90,40 @@ class Transceiver(_Node):
     def _calc_cd(self, spectral_info):
         """ Updates the Transceiver property with the CD of the received channels. CD in ps/nm.
         """
-        self.chromatic_dispersion = [carrier.chromatic_dispersion * 1e3 for carrier in spectral_info.carriers]
+        self.chromatic_dispersion = spectral_info.chromatic_dispersion * 1e3
 
     def _calc_pmd(self, spectral_info):
         """Updates the Transceiver property with the PMD of the received channels. PMD in ps.
         """
-        self.pmd = [carrier.pmd*1e12 for carrier in spectral_info.carriers]
+        self.pmd = spectral_info.pmd * 1e12
+
+    def _calc_pdl(self, spectral_info):
+        """Updates the Transceiver property with the PDL of the received channels. PDL in dB.
+        """
+        self.pdl = spectral_info.pdl
+
+    def _calc_penalty(self, impairment_value, boundary_list):
+        return interp(impairment_value, boundary_list['up_to_boundary'], boundary_list['penalty_value'],
+                      left=float('inf'), right=float('inf'))
+
+    def calc_penalties(self, penalties):
+        """Updates the Transceiver property with penalties (CD, PMD, etc.) of the received channels in dB.
+           Penalties are linearly interpolated between given points and set to 'inf' outside interval.
+        """
+        self.penalties = {impairment: self._calc_penalty(getattr(self, impairment), boundary_list)
+                          for impairment, boundary_list in penalties.items()}
+        self.total_penalty = sum(list(self.penalties.values()), axis=0)
 
     def _calc_snr(self, spectral_info):
         with errstate(divide='ignore'):
-            self.baud_rate = [c.baud_rate for c in spectral_info.carriers]
-            ratio_01nm = [lin2db(12.5e9 / b_rate) for b_rate in self.baud_rate]
+            self.baud_rate = spectral_info.baud_rate
+            ratio_01nm = lin2db(12.5e9 / self.baud_rate)
             # set raw values to record original calculation, before update_snr()
-            self.raw_osnr_ase = [lin2db(divide(c.power.signal, c.power.ase))
-                                 for c in spectral_info.carriers]
-            self.raw_osnr_ase_01nm = [ase - ratio for ase, ratio
-                                      in zip(self.raw_osnr_ase, ratio_01nm)]
-            self.raw_osnr_nli = [lin2db(divide(c.power.signal, c.power.nli))
-                                 for c in spectral_info.carriers]
-            self.raw_snr = [lin2db(divide(c.power.signal, c.power.nli + c.power.ase))
-                            for c in spectral_info.carriers]
-            self.raw_snr_01nm = [snr - ratio for snr, ratio
-                                 in zip(self.raw_snr, ratio_01nm)]
+            self.raw_osnr_ase = lin2db(spectral_info.signal / spectral_info.ase)
+            self.raw_osnr_ase_01nm = self.raw_osnr_ase - ratio_01nm
+            self.raw_osnr_nli = lin2db(spectral_info.signal / spectral_info.nli)
+            self.raw_snr = lin2db(spectral_info.signal / (spectral_info.ase + spectral_info.nli))
+            self.raw_snr_01nm = self.raw_snr - ratio_01nm
 
             self.osnr_ase = self.raw_osnr_ase
             self.osnr_ase_01nm = self.raw_osnr_ase_01nm
@@ -133,14 +148,10 @@ class Transceiver(_Node):
         for s in args:
             snr_added += db2lin(-s)
         snr_added = -lin2db(snr_added)
-        self.osnr_ase = list(map(lambda x, y: snr_sum(x, y, snr_added),
-                                 self.raw_osnr_ase, self.baud_rate))
-        self.snr = list(map(lambda x, y: snr_sum(x, y, snr_added),
-                            self.raw_snr, self.baud_rate))
-        self.osnr_ase_01nm = list(map(lambda x: snr_sum(x, 12.5e9, snr_added),
-                                      self.raw_osnr_ase_01nm))
-        self.snr_01nm = list(map(lambda x: snr_sum(x, 12.5e9, snr_added),
-                                 self.raw_snr_01nm))
+        self.osnr_ase = snr_sum(self.raw_osnr_ase, self.baud_rate, snr_added)
+        self.snr = snr_sum(self.raw_snr, self.baud_rate, snr_added)
+        self.osnr_ase_01nm = snr_sum(self.raw_osnr_ase_01nm, 12.5e9, snr_added)
+        self.snr_01nm = snr_sum(self.raw_snr_01nm, 12.5e9, snr_added)
 
     @property
     def to_json(self):
@@ -159,7 +170,9 @@ class Transceiver(_Node):
                 f'osnr_nli={self.osnr_nli!r}, '
                 f'snr={self.snr!r}, '
                 f'chromatic_dispersion={self.chromatic_dispersion!r}, '
-                f'pmd={self.pmd!r})')
+                f'pmd={self.pmd!r}, '
+                f'pdl={self.pdl!r}, '
+                f'penalties={self.penalties!r})')
 
     def __str__(self):
         if self.snr is None or self.osnr_ase is None:
@@ -171,15 +184,29 @@ class Transceiver(_Node):
         snr_01nm = round(mean(self.snr_01nm), 2)
         cd = mean(self.chromatic_dispersion)
         pmd = mean(self.pmd)
+        pdl = mean(self.pdl)
 
-        return '\n'.join([f'{type(self).__name__} {self.uid}',
+        result = '\n'.join([f'{type(self).__name__} {self.uid}',
 
-                          f'  GSNR (0.1nm, dB):          {snr_01nm:.2f}',
-                          f'  GSNR (signal bw, dB):      {snr:.2f}',
-                          f'  OSNR ASE (0.1nm, dB):      {osnr_ase_01nm:.2f}',
-                          f'  OSNR ASE (signal bw, dB):  {osnr_ase:.2f}',
-                          f'  CD (ps/nm):                {cd:.2f}',
-                          f'  PMD (ps):                  {pmd:.2f}'])
+                            f'  GSNR (0.1nm, dB):          {snr_01nm:.2f}',
+                            f'  GSNR (signal bw, dB):      {snr:.2f}',
+                            f'  OSNR ASE (0.1nm, dB):      {osnr_ase_01nm:.2f}',
+                            f'  OSNR ASE (signal bw, dB):  {osnr_ase:.2f}',
+                            f'  CD (ps/nm):                {cd:.2f}',
+                            f'  PMD (ps):                  {pmd:.2f}',
+                            f'  PDL (dB):                  {pdl:.2f}'])
+
+        cd_penalty = self.penalties.get('chromatic_dispersion')
+        if cd_penalty is not None:
+            result += f'\n  CD penalty (dB):           {mean(cd_penalty):.2f}'
+        pmd_penalty = self.penalties.get('pmd')
+        if pmd_penalty is not None:
+            result += f'\n  PMD penalty (dB):          {mean(pmd_penalty):.2f}'
+        pdl_penalty = self.penalties.get('pdl')
+        if pdl_penalty is not None:
+            result += f'\n  PDL penalty (dB):          {mean(pdl_penalty):.2f}'
+
+        return result
 
     def log_data(self, test_no, c):
         """
@@ -218,22 +245,20 @@ class Transceiver(_Node):
         self._calc_snr(spectral_info)
         self._calc_cd(spectral_info)
         self._calc_pmd(spectral_info)
+        self._calc_pdl(spectral_info)
         if logdata:
             self.log_data(test_no, c)
         return spectral_info
 
 
-RoadmParams = namedtuple('RoadmParams', 'target_pch_out_db add_drop_osnr pmd restrictions per_degree_pch_out_db')
-
-
 class Roadm(_Node):
-    def __init__(self, *args, params, **kwargs):
-        if 'per_degree_pch_out_db' not in params.keys():
-            params['per_degree_pch_out_db'] = {}
+    def __init__(self, *args, params=None, **kwargs):
+        if not params:
+            params = {}
         super().__init__(*args, params=RoadmParams(**params), **kwargs)
+        self.pch_out_db = self.params.target_pch_out_db
         self.loss = 0  # auto-design interest
         self.effective_loss = None
-        self.effective_pch_out_db = self.params.target_pch_out_db
         self.passive = True
         self.restrictions = self.params.restrictions
         self.per_degree_pch_out_db = self.params.per_degree_pch_out_db
@@ -243,10 +268,10 @@ class Roadm(_Node):
         return {'uid': self.uid,
                 'type': type(self).__name__,
                 'params': {
-                    'target_pch_out_db': self.effective_pch_out_db,
+                    'target_pch_out_db': self.pch_out_db,
                     'restrictions': self.restrictions,
                     'per_degree_pch_out_db': self.per_degree_pch_out_db
-                    },
+                },
                 'metadata': {
                     'location': self.metadata['location']._asdict()
                 }
@@ -261,9 +286,9 @@ class Roadm(_Node):
 
         return '\n'.join([f'{type(self).__name__} {self.uid}',
                           f'  effective loss (dB):  {self.effective_loss:.2f}',
-                          f'  pch out (dBm):        {self.effective_pch_out_db:.2f}'])
+                          f'  pch out (dBm):        {self.pch_out_db:.2f}'])
 
-    def propagate(self, pref, *carriers, degree):
+    def propagate(self, spectral_info, degree):
         # pin_target and loss are read from eqpt_config.json['Roadm']
         # all ingress channels in xpress are set to this power level
         # but add channels are not, so we define an effective loss
@@ -273,38 +298,31 @@ class Roadm(_Node):
         # if the input power is lower than the target one, use the input power instead because
         # a ROADM doesn't amplify, it can only attenuate
         # TODO maybe add a minimum loss for the ROADM
-        per_degree_pch = self.per_degree_pch_out_db[degree] if degree in self.per_degree_pch_out_db.keys() else self.params.target_pch_out_db
-        self.effective_pch_out_db = min(pref.p_spani, per_degree_pch)
-        self.effective_loss = pref.p_spani - self.effective_pch_out_db
-        carriers_power = array([c.power.signal + c.power.nli + c.power.ase for c in carriers])
-        carriers_att = list(map(lambda x: lin2db(x * 1e3) - per_degree_pch, carriers_power))
-        exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att)), default=0)
-        carriers_att = list(map(lambda x: db2lin(x + exceeding_att), carriers_att))
-        for carrier_att, carrier in zip(carriers_att, carriers):
-            pwr = carrier.power
-            pwr = pwr._replace(signal=pwr.signal / carrier_att,
-                               nli=pwr.nli / carrier_att,
-                               ase=pwr.ase / carrier_att)
-            pmd = sqrt(carrier.pmd**2 + self.params.pmd**2)
-            yield carrier._replace(power=pwr, pmd=pmd)
+        per_degree_pch = self.per_degree_pch_out_db[degree] \
+            if degree in self.per_degree_pch_out_db else self.pch_out_db
+        self.pch_out_db = min(spectral_info.pref.p_spani, per_degree_pch)
+        self.effective_loss = spectral_info.pref.p_spani - self.pch_out_db
+        input_power = spectral_info.signal + spectral_info.nli + spectral_info.ase
+        min_power = min(lin2db(input_power * 1e3))
+        per_degree_pch = per_degree_pch if per_degree_pch < min_power else min_power
+        delta_power = lin2db(input_power * 1e3) - per_degree_pch
+        spectral_info.apply_attenuation_db(delta_power)
+        spectral_info.pmd = sqrt(spectral_info.pmd ** 2 + self.params.pmd ** 2)
+        spectral_info.pdl = sqrt(spectral_info.pdl ** 2 + self.params.pdl ** 2)
 
-    def update_pref(self, pref):
-        return pref._replace(p_span0=pref.p_span0, p_spani=self.effective_pch_out_db)
+    def update_pref(self, spectral_info):
+        spectral_info.pref = spectral_info.pref._replace(p_span0=spectral_info.pref.p_span0, p_spani=self.pch_out_db)
 
     def __call__(self, spectral_info, degree):
-        carriers = tuple(self.propagate(spectral_info.pref, *spectral_info.carriers, degree=degree))
-        pref = self.update_pref(spectral_info.pref)
-        return spectral_info._replace(carriers=carriers, pref=pref)
-
-
-FusedParams = namedtuple('FusedParams', 'loss')
+        self.propagate(spectral_info, degree=degree)
+        self.update_pref(spectral_info)
+        return spectral_info
 
 
 class Fused(_Node):
     def __init__(self, *args, params=None, **kwargs):
-        if params is None:
-            # default loss value if not mentioned in loaded network json
-            params = {'loss': 1}
+        if not params:
+            params = {}
         super().__init__(*args, params=FusedParams(**params), **kwargs)
         self.loss = self.params.loss
         self.passive = True
@@ -328,23 +346,17 @@ class Fused(_Node):
         return '\n'.join([f'{type(self).__name__} {self.uid}',
                           f'  loss (dB): {self.loss:.2f}'])
 
-    def propagate(self, *carriers):
-        attenuation = db2lin(self.loss)
+    def propagate(self, spectral_info):
+        spectral_info.apply_attenuation_db(self.loss)
 
-        for carrier in carriers:
-            pwr = carrier.power
-            pwr = pwr._replace(signal=pwr.signal / attenuation,
-                               nli=pwr.nli / attenuation,
-                               ase=pwr.ase / attenuation)
-            yield carrier._replace(power=pwr)
-
-    def update_pref(self, pref):
-        return pref._replace(p_span0=pref.p_span0, p_spani=pref.p_spani - self.loss)
+    def update_pref(self, spectral_info):
+        spectral_info.pref = spectral_info.pref._replace(p_span0=spectral_info.pref.p_span0,
+                                                         p_spani=spectral_info.pref.p_spani - self.loss)
 
     def __call__(self, spectral_info):
-        carriers = tuple(self.propagate(*spectral_info.carriers))
-        pref = self.update_pref(spectral_info.pref)
-        return spectral_info._replace(carriers=carriers, pref=pref)
+        self.propagate(spectral_info)
+        self.update_pref(spectral_info)
+        return spectral_info
 
 
 class Fiber(_Node):
@@ -353,7 +365,28 @@ class Fiber(_Node):
             params = {}
         super().__init__(*args, params=FiberParams(**params), **kwargs)
         self.pch_out_db = None
-        self.nli_solver = NliSolver(self)
+        self.passive = True
+
+        # Raman efficiency matrix function of the delta frequency constructed such that each row is related to a
+        # fixed frequency: positive elements represent a gain (from higher frequency) and negative elements represent
+        # a loss (to lower frequency)
+        if self.params.raman_efficiency:
+            frequency_offset = self.params.raman_efficiency['frequency_offset']
+            frequency_offset = append(-flip(frequency_offset[1:]), frequency_offset)
+            cr = self.params.raman_efficiency['cr']
+            cr = append(- flip(cr[1:]), cr)
+            self._cr_function = lambda frequency: interp(frequency, frequency_offset, cr)
+        else:
+            self._cr_function = lambda frequency: zeros(squeeze(frequency).shape)
+
+        # Lumped losses
+        z_lumped_losses = array([lumped['position'] for lumped in self.params.lumped_losses])  # km
+        lumped_losses_power = array([lumped['loss'] for lumped in self.params.lumped_losses])  # dB
+        if not ((z_lumped_losses > 0) * (z_lumped_losses < 1e-3 * self.params.length)).all():
+            raise NetworkTopologyError("Lumped loss positions must be between 0 and the fiber length "
+                                       f"({1e-3 * self.params.length} km), boundaries excluded.")
+        self.lumped_losses = db2lin(- lumped_losses_power)  # [linear units]
+        self.z_lumped_losses = array(z_lumped_losses) * 1e3  # [m]
 
     @property
     def to_json(self):
@@ -363,7 +396,7 @@ class Fiber(_Node):
                 'params': {
                     # have to specify each because namedtupple cannot be updated :(
                     'length': round(self.params.length * 1e-3, 6),
-                    'loss_coef': self.params.loss_coef * 1e3,
+                    'loss_coef': round(self.params.loss_coef * 1e3, 6),
                     'length_units': 'km',
                     'att_in': self.params.att_in,
                     'con_in': self.params.con_in,
@@ -376,8 +409,8 @@ class Fiber(_Node):
 
     def __repr__(self):
         return f'{type(self).__name__}(uid={self.uid!r}, ' \
-            f'length={round(self.params.length * 1e-3,1)!r}km, ' \
-            f'loss={round(self.loss,1)!r}dB)'
+               f'length={round(self.params.length * 1e-3,1)!r}km, ' \
+               f'loss={round(self.loss,1)!r}dB)'
 
     def __str__(self):
         if self.pch_out_db is None:
@@ -392,43 +425,53 @@ class Fiber(_Node):
                           f'  (conn loss out includes EOL margin defined in eqpt_config.json)',
                           f'  pch out (dBm): {self.pch_out_db:.2f}'])
 
+    def loss_coef_func(self, frequency):
+        frequency = asarray(frequency)
+        if self.params.loss_coef.size > 1:
+            try:
+                loss_coef = interp1d(self.params.f_loss_ref, self.params.loss_coef)(frequency)
+            except ValueError:
+                raise SpectrumError('The spectrum bandwidth exceeds the frequency interval used to define the fiber '
+                                    f'loss coefficient in "{type(self).__name__} {self.uid}".'
+                                    f'\nSpectrum f_min-f_max: {round(frequency[0]*1e-12,2)}-'
+                                    f'{round(frequency[-1]*1e-12,2)}'
+                                    f'\nLoss coefficient f_min-f_max: {round(self.params.f_loss_ref[0]*1e-12,2)}-'
+                                    f'{round(self.params.f_loss_ref[-1]*1e-12,2)}')
+        else:
+            loss_coef = full(frequency.size, self.params.loss_coef)
+        return squeeze(loss_coef)
+
+
     @property
     def loss(self):
         """total loss including padding att_in: useful for polymorphism with roadm loss"""
-        return self.params.loss_coef * self.params.length + self.params.con_in + self.params.con_out + self.params.att_in
+        return self.loss_coef_func(self.params.ref_frequency) * self.params.length + \
+               self.params.con_in + self.params.con_out + self.params.att_in
 
-    @property
-    def passive(self):
-        return True
-
-    def alpha(self, frequencies):
-        """It returns the values of the series expansion of attenuation coefficient alpha(f) for all f in frequencies
-
-        :param frequencies: frequencies of series expansion [Hz]
-        :return: alpha: power attenuation coefficient for f in frequencies [Neper/m]
+    def alpha(self, frequency):
+        """Returns the linear exponent attenuation coefficient such that
+        :math: `lin_attenuation = e^{- alpha length}`
+        :param frequency: the frequency at which alpha is computed [Hz]
+        :return: alpha: power attenuation coefficient for f in frequency [Neper/m]
         """
-        if type(self.params.loss_coef) == dict:
-            alpha = interp(frequencies, self.params.f_loss_ref, self.params.lin_loss_exp)
-        else:
-            alpha = self.params.lin_loss_exp * ones(frequencies.shape)
+        return self.loss_coef_func(frequency) / (10 * log10(exp(1)))
 
-        return alpha
-
-    def alpha0(self, f_ref=193.5e12):
-        """It returns the zero element of the series expansion of attenuation coefficient alpha(f) in the
-        reference frequency f_ref
-
-        :param f_ref: reference frequency of series expansion [Hz]
-        :return: alpha0: power attenuation coefficient in f_ref [Neper/m]
+    def cr(self, frequency):
+        """Returns the raman efficiency matrix including the vibrational loss
+        :param frequency: the frequency at which cr is computed [Hz]
+        :return: cr: raman efficiency matrix [1 / (W m)]
         """
-        return self.alpha(f_ref * ones(1))[0]
+        df = outer(ones(frequency.shape), frequency) - outer(frequency, ones(frequency.shape))
+        cr = self._cr_function(df)
+        vibrational_loss = outer(frequency, ones(frequency.shape)) / outer(ones(frequency.shape), frequency)
+        return cr * (cr >= 0) + cr * (cr < 0) * vibrational_loss  # Raman efficiency [1/(W m)]
 
-    def chromatic_dispersion(self, freq=193.5e12):
+    def chromatic_dispersion(self, freq=None):
         """Returns accumulated chromatic dispersion (CD).
-
         :param freq: the frequency at which the chromatic dispersion is computed
         :return: chromatic dispersion: the accumulated dispersion [s/m]
         """
+        freq = self.params.ref_frequency if freq is None else freq
         beta2 = self.params.beta2
         beta3 = self.params.beta3
         ref_f = self.params.ref_frequency
@@ -442,147 +485,103 @@ class Fiber(_Node):
         """differential group delay (PMD) [s]"""
         return self.params.pmd_coef * sqrt(self.params.length)
 
-    def _gn_analytic(self, carrier, *carriers):
-        r"""Computes the nonlinear interference power on a single carrier.
-        The method uses eq. 120 from `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`__.
-
-        :param carrier: the signal under analysis
-        :param \*carriers: the full WDM comb
-        :return: carrier_nli: the amount of nonlinear interference in W on the under analysis
+    def propagate(self, spectral_info: SpectralInformation):
+        """Modifies the spectral information computing the attenuation, the non-linear interference generation,
+        the CD and PMD accumulation.
         """
+        # apply the attenuation due to the input connector loss
+        attenuation_in_db = self.params.con_in + self.params.att_in
+        spectral_info.apply_attenuation_db(attenuation_in_db)
 
-        g_nli = 0
-        for interfering_carrier in carriers:
-            psi = _psi(carrier, interfering_carrier, beta2=self.params.beta2,
-                       asymptotic_length=self.params.asymptotic_length)
-            g_nli += (interfering_carrier.power.signal / interfering_carrier.baud_rate)**2 \
-                * (carrier.power.signal / carrier.baud_rate) * psi
+        # inter channels Raman effect
+        stimulated_raman_scattering = RamanSolver.calculate_stimulated_raman_scattering(spectral_info, self)
 
-        g_nli *= (16 / 27) * (self.params.gamma * self.params.effective_length)**2 \
-            / (2 * pi * abs(self.params.beta2) * self.params.asymptotic_length)
+        # NLI noise evaluated at the fiber input
+        spectral_info.nli += NliSolver.compute_nli(spectral_info, stimulated_raman_scattering, self)
 
-        carrier_nli = carrier.baud_rate * g_nli
-        return carrier_nli
+        # chromatic dispersion and pmd variations
+        spectral_info.chromatic_dispersion += self.chromatic_dispersion(spectral_info.frequency)
+        spectral_info.pmd = sqrt(spectral_info.pmd ** 2 + self.pmd ** 2)
 
-    def propagate(self, *carriers):
-        r"""Generator that computes the fiber propagation: attenuation, non-linear interference generation, CD
-        accumulation and PMD accumulation.
+        # apply the attenuation due to the fiber losses
+        attenuation_fiber = stimulated_raman_scattering.loss_profile[:, -1]
+        spectral_info.apply_attenuation_lin(attenuation_fiber)
 
-        :param: \*carriers: the channels at the input of the fiber
-        :yield: carrier: the next channel at the output of the fiber
-        """
+        # apply the attenuation due to the output connector loss
+        attenuation_out_db = self.params.con_out
+        spectral_info.apply_attenuation_db(attenuation_out_db)
 
-        # apply connector_att_in on all carriers before computing gn analytics  premiere partie pas bonne
-        attenuation = db2lin(self.params.con_in + self.params.att_in)
-
-        chan = []
-        for carrier in carriers:
-            pwr = carrier.power
-            pwr = pwr._replace(signal=pwr.signal / attenuation,
-                               nli=pwr.nli / attenuation,
-                               ase=pwr.ase / attenuation)
-            carrier = carrier._replace(power=pwr)
-            chan.append(carrier)
-
-        carriers = tuple(f for f in chan)
-
-        # propagate in the fiber and apply attenuation out
-        attenuation = db2lin(self.params.con_out)
-        for carrier in carriers:
-            pwr = carrier.power
-            carrier_nli = self._gn_analytic(carrier, *carriers)
-            pwr = pwr._replace(signal=pwr.signal / self.params.lin_attenuation / attenuation,
-                               nli=(pwr.nli + carrier_nli) / self.params.lin_attenuation / attenuation,
-                               ase=pwr.ase / self.params.lin_attenuation / attenuation)
-            chromatic_dispersion = carrier.chromatic_dispersion + self.chromatic_dispersion(carrier.frequency)
-            pmd = sqrt(carrier.pmd**2 + self.pmd**2)
-            yield carrier._replace(power=pwr, chromatic_dispersion=chromatic_dispersion, pmd=pmd)
-
-    def update_pref(self, pref):
-        self.pch_out_db = round(pref.p_spani - self.loss, 2)
-        return pref._replace(p_span0=pref.p_span0, p_spani=self.pch_out_db)
+    def update_pref(self, spectral_info):
+        # in case of Raman, the resulting loss of the fiber is not equivalent to self.loss
+        # because of Raman gain. In order to correctly update pref, we need the resulting loss:
+        # power_out - power_in. We use the total signal power (sum on all channels) to compute
+        # this loss, because pref is a noiseless reference.
+        loss = round(lin2db(self._psig_in / sum(spectral_info.signal)), 2)
+        self.pch_out_db = spectral_info.pref.p_spani - loss
+        spectral_info.pref = spectral_info.pref._replace(p_span0=spectral_info.pref.p_span0,
+                                                         p_spani=self.pch_out_db)
 
     def __call__(self, spectral_info):
-        carriers = tuple(self.propagate(*spectral_info.carriers))
-        pref = self.update_pref(spectral_info.pref)
-        return spectral_info._replace(carriers=carriers, pref=pref)
+        # _psig_in records the total signal power of the spectral information before propagation.
+        self._psig_in = sum(spectral_info.signal)
+        self.propagate(spectral_info)
+        self.update_pref(spectral_info)
+        return spectral_info
 
 
 class RamanFiber(Fiber):
     def __init__(self, *args, params=None, **kwargs):
         super().__init__(*args, params=params, **kwargs)
-        if self.operational and 'raman_pumps' in self.operational:
-            self.raman_pumps = tuple(PumpParams(p['power'], p['frequency'], p['propagation_direction'])
-                                     for p in self.operational['raman_pumps'])
-        else:
-            self.raman_pumps = None
-        self.raman_solver = RamanSolver(self)
+        if not self.operational:
+            raise NetworkTopologyError(f'Fiber element uid:{self.uid} '
+                                       'defined as RamanFiber without operational parameters')
+
+        if 'raman_pumps' not in self.operational:
+            raise NetworkTopologyError(f'Fiber element uid:{self.uid} '
+                                       'defined as RamanFiber without raman pumps description in operational')
+
+        if 'temperature' not in self.operational:
+            raise NetworkTopologyError(f'Fiber element uid:{self.uid} '
+                                       'defined as RamanFiber without temperature in operational')
+
+        pump_loss = db2lin(self.params.con_out)
+        self.raman_pumps = tuple(PumpParams(p['power'] / pump_loss, p['frequency'], p['propagation_direction'])
+                                 for p in self.operational['raman_pumps'])
+        self.temperature = self.operational['temperature']
 
     @property
     def to_json(self):
         return dict(super().to_json, operational=self.operational)
 
-    def update_pref(self, pref, *carriers):
-        pch_out_db = lin2db(mean([carrier.power.signal for carrier in carriers])) + 30
-        self.pch_out_db = round(pch_out_db, 2)
-        return pref._replace(p_span0=pref.p_span0, p_spani=self.pch_out_db)
+    def propagate(self, spectral_info: SpectralInformation):
+        """Modifies the spectral information computing the attenuation, the non-linear interference generation,
+        the CD and PMD accumulation.
+        """
+        # apply the attenuation due to the input connector loss
+        attenuation_in_db = self.params.con_in + self.params.att_in
+        spectral_info.apply_attenuation_db(attenuation_in_db)
 
-    def __call__(self, spectral_info):
-        carriers = tuple(self.propagate(*spectral_info.carriers))
-        pref = self.update_pref(spectral_info.pref, *carriers)
-        return spectral_info._replace(carriers=carriers, pref=pref)
+        # Raman pumps and inter channel Raman effect
+        stimulated_raman_scattering = RamanSolver.calculate_stimulated_raman_scattering(spectral_info, self)
+        spontaneous_raman_scattering = \
+            RamanSolver.calculate_spontaneous_raman_scattering(spectral_info, stimulated_raman_scattering, self)
 
-    def propagate(self, *carriers):
-        for propagated_carrier in propagate_raman_fiber(self, *carriers):
-            chromatic_dispersion = propagated_carrier.chromatic_dispersion + \
-                                   self.chromatic_dispersion(propagated_carrier.frequency)
-            pmd = sqrt(propagated_carrier.pmd**2 + self.pmd**2)
-            propagated_carrier = propagated_carrier._replace(chromatic_dispersion=chromatic_dispersion, pmd=pmd)
-            yield propagated_carrier
+        # nli and ase noise evaluated at the fiber input
+        spectral_info.nli += NliSolver.compute_nli(spectral_info, stimulated_raman_scattering, self)
+        spectral_info.ase += spontaneous_raman_scattering
 
+        # chromatic dispersion and pmd variations
+        spectral_info.chromatic_dispersion += self.chromatic_dispersion(spectral_info.frequency)
+        spectral_info.pmd = sqrt(spectral_info.pmd ** 2 + self.pmd ** 2)
 
-class EdfaParams:
-    def __init__(self, **params):
-        self.update_params(params)
-        if params == {}:
-            self.type_variety = ''
-            self.type_def = ''
-            # self.gain_flatmax = 0
-            # self.gain_min = 0
-            # self.p_max = 0
-            # self.nf_model = None
-            # self.nf_fit_coeff = None
-            # self.nf_ripple = None
-            # self.dgt = None
-            # self.gain_ripple = None
-            # self.out_voa_auto = False
-            # self.allowed_for_design = None
+        # apply the attenuation due to the fiber losses
+        attenuation_fiber = stimulated_raman_scattering.loss_profile[:spectral_info.number_of_channels, -1]
 
-    def update_params(self, kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, self.update_params(**v) if isinstance(v, dict) else v)
+        spectral_info.apply_attenuation_lin(attenuation_fiber)
 
-
-class EdfaOperational:
-    default_values = {
-        'gain_target': None,
-        'delta_p': None,
-        'out_voa': None,
-        'tilt_target': 0
-    }
-
-    def __init__(self, **operational):
-        self.update_attr(operational)
-
-    def update_attr(self, kwargs):
-        clean_kwargs = {k: v for k, v in kwargs.items() if v != ''}
-        for k, v in self.default_values.items():
-            setattr(self, k, clean_kwargs.get(k, v))
-
-    def __repr__(self):
-        return (f'{type(self).__name__}('
-                f'gain_target={self.gain_target!r}, '
-                f'tilt_target={self.tilt_target!r})')
+        # apply the attenuation due to the output connector loss
+        attenuation_out_db = self.params.con_out
+        spectral_info.apply_attenuation_db(attenuation_out_db)
 
 
 class Edfa(_Node):
@@ -592,12 +591,7 @@ class Edfa(_Node):
         if operational is None:
             operational = {}
         self.variety_list = kwargs.pop('variety_list', None)
-        super().__init__(
-            *args,
-            params=EdfaParams(**params),
-            operational=EdfaOperational(**operational),
-            **kwargs
-        )
+        super().__init__(*args, params=EdfaParams(**params), operational=EdfaOperational(**operational), **kwargs)
         self.interpol_dgt = None  # interpolated dynamic gain tilt
         self.interpol_gain_ripple = None  # gain ripple
         self.interpol_nf_ripple = None  # nf_ripple
@@ -623,7 +617,7 @@ class Edfa(_Node):
                 'type': type(self).__name__,
                 'type_variety': self.params.type_variety,
                 'operational': {
-                    'gain_target': self.effective_gain,
+                    'gain_target': round(self.effective_gain, 6),
                     'delta_p': self.delta_p,
                     'tilt_target': self.tilt_target,
                     'out_voa': self.out_voa
@@ -663,26 +657,33 @@ class Edfa(_Node):
                           f'  effective pch (dBm):    {self.effective_pch_out_db:.2f}',
                           f'  output VOA (dB):        {self.out_voa:.2f}'])
 
-    def interpol_params(self, frequencies, pin, baud_rates, pref):
+    def interpol_params(self, spectral_info):
         """interpolate SI channel frequencies with the edfa dgt and gain_ripple frquencies from JSON
+        :param spectral_info: instance of gnpy.core.info.SpectralInformation
+        :return: None
         """
         # TODO|jla: read amplifier actual frequencies from additional params in json
-        self.channel_freq = frequencies
 
+        self.channel_freq = spectral_info.frequency
         amplifier_freq = arrange_frequencies(len(self.params.dgt), self.params.f_min, self.params.f_max)  # Hz
-        self.interpol_dgt = interp(self.channel_freq, amplifier_freq, self.params.dgt)
+        self.interpol_dgt = interp(spectral_info.frequency, amplifier_freq, self.params.dgt)
 
         amplifier_freq = arrange_frequencies(len(self.params.gain_ripple), self.params.f_min, self.params.f_max)  # Hz
-        self.interpol_gain_ripple = interp(self.channel_freq, amplifier_freq, self.params.gain_ripple)
+        self.interpol_gain_ripple = interp(spectral_info.frequency, amplifier_freq, self.params.gain_ripple)
 
         amplifier_freq = arrange_frequencies(len(self.params.nf_ripple), self.params.f_min, self.params.f_max)  # Hz
-        self.interpol_nf_ripple = interp(self.channel_freq, amplifier_freq, self.params.nf_ripple)
+        self.interpol_nf_ripple = interp(spectral_info.frequency, amplifier_freq, self.params.nf_ripple)
 
-        self.nch = frequencies.size
+        self.nch = spectral_info.number_of_channels
+        pin = spectral_info.signal + spectral_info.ase + spectral_info.nli
         self.pin_db = lin2db(sum(pin * 1e3))
+        # The following should be changed when we have the new spectral information including slot widths.
+        # For now, with homogeneous spectrum, we can calculate it as the difference between neighbouring channels.
+        self.slot_width = self.channel_freq[1] - self.channel_freq[0]
 
         """in power mode: delta_p is defined and can be used to calculate the power target
         This power target is used calculate the amplifier gain"""
+        pref = spectral_info.pref
         if self.delta_p is not None:
             self.target_pch_out_db = round(self.delta_p + pref.p_span0, 2)
             self.effective_gain = self.target_pch_out_db - pref.p_spani
@@ -700,7 +701,7 @@ class Edfa(_Node):
         self.nf = self._calc_nf()
         self.gprofile = self._gain_profile(pin)
 
-        pout = (pin + self.noise_profile(baud_rates)) * db2lin(self.gprofile)
+        pout = (pin + self.noise_profile(spectral_info)) * db2lin(self.gprofile)
         self.pout_db = lin2db(sum(pout * 1e3))
         # ase & nli are only calculated in signal bandwidth
         #    pout_db is not the absolute full output power (negligible if sufficient channels)
@@ -717,13 +718,17 @@ class Edfa(_Node):
         elif type_def == 'fixed_gain':
             nf_avg = nf_model.nf0
         elif type_def == 'openroadm':
-            pin_ch = self.pin_db - lin2db(self.nch)
-            # model OSNR = f(Pin)
-            nf_avg = pin_ch - polyval(nf_model.nf_coef, pin_ch) + 58
+            # OpenROADM specifies OSNR vs. input power per channel for 50 GHz slot width so we
+            # scale it to 50 GHz based on actual slot width.
+            pin_ch_50GHz = self.pin_db - lin2db(self.nch) + lin2db(50e9 / self.slot_width)
+            # model OSNR = f(Pin per 50 GHz channel)
+            nf_avg = pin_ch_50GHz - polyval(nf_model.nf_coef, pin_ch_50GHz) + 58
         elif type_def == 'openroadm_preamp':
-            pin_ch = self.pin_db - lin2db(self.nch)
-            # model OSNR = f(Pin)
-            nf_avg = pin_ch - min((4 * pin_ch + 275) / 7, 33) + 58
+            # OpenROADM specifies OSNR vs. input power per channel for 50 GHz slot width so we
+            # scale it to 50 GHz based on actual slot width.
+            pin_ch_50GHz = self.pin_db - lin2db(self.nch) + lin2db(50e9 / self.slot_width)
+            # model OSNR = f(Pin per 50 GHz channel)
+            nf_avg = pin_ch_50GHz - min((4 * pin_ch_50GHz + 275) / 7, 33) + 58
         elif type_def == 'openroadm_booster':
             # model a zero-noise amp with "infinitely negative" (in dB) NF
             nf_avg = float('-inf')
@@ -769,19 +774,11 @@ class Edfa(_Node):
         else:
             return self.interpol_nf_ripple + nf_avg  # input VOA = 1 for 1 NF degradation
 
-    def noise_profile(self, df):
-        """noise_profile(bw) computes amplifier ASE (W) in signal bandwidth (Hz)
-
-        Noise is calculated at amplifier input
-
-        :bw: signal bandwidth = baud rate in Hz
-        :type bw: float
-
+    def noise_profile(self, spectral_info: SpectralInformation):
+        """Computes amplifier ASE noise integrated over the signal bandwidth. This is calculated at amplifier input.
         :return: the asepower in W in the signal bandwidth bw for 96 channels
         :return type: numpy array of float
-
         ASE power using per channel gain profile inputs:
-
             NF_dB - Noise figure in dB, vector of length number of channels or
                     spectral slices
             G_dB  - Actual gain calculated for the EDFA, vector of length number of
@@ -790,17 +787,12 @@ class Edfa(_Node):
                     THz, vector of length number of channels or spectral slices
             dF    - width of each channel or spectral slice in THz,
                     vector of length number of channels or spectral slices
-
         OUTPUT:
-
             ase_dBm - ase in dBm per channel or spectral slice
-
         NOTE:
-
             The output is the total ASE in the channel or spectral slice. For
             50GHz channels the ASE BW is effectively 0.4nm. To get to noise power
             in 0.1nm, subtract 6dB.
-
         ONSR is usually quoted as channel power divided by
         the ASE power in 0.1nm RBW, regardless of the width of the actual
         channel.  This is a historical convention from the days when optical
@@ -811,13 +803,12 @@ class Edfa(_Node):
         quoting power spectral density in the same BW for both signal and ASE,
         e.g. 12.5GHz."""
 
-        ase = h * df * self.channel_freq * db2lin(self.nf)  # W
+        ase = h * spectral_info.baud_rate * spectral_info.frequency * db2lin(self.nf)  # W
         return ase  # in W at amplifier input
 
     def _gain_profile(self, pin, err_tolerance=1.0e-11, simple_opt=True):
         """
         Pin : input power / channel in W
-
         :param gain_ripple: design flat gain
         :param dgt: design gain tilt
         :param Pin: total input power in W
@@ -830,16 +821,11 @@ class Edfa(_Node):
         :type gtp: float
         :return: gain profile in dBm, per channel or spectral slice
         :rtype: numpy.ndarray
-
         Checking of output power clamping is implemented in interpol_params().
-
-
         Based on:
-
             R. di Muro, "The Er3+ fiber gain coefficient derived from a dynamic
             gain tilt technique", Journal of Lightwave Technology, Vol. 18,
             Iss. 3, Pp. 343-347, 2000.
-
             Ported from Matlab version written by David Boerges at Ciena.
         """
 
@@ -871,7 +857,7 @@ class Edfa(_Node):
 
         # first estimate of Er gain & VOA loss
         g1st = array(self.interpol_gain_ripple) + self.params.gain_flatmax \
-            + array(self.interpol_dgt) * dgts1
+               + array(self.interpol_dgt) * dgts1
         voa = lin2db(mean(db2lin(g1st))) - self.effective_gain
 
         # second estimate of amp ch gain using the channel input profile
@@ -917,30 +903,24 @@ class Edfa(_Node):
 
         return g1st - voa + array(self.interpol_dgt) * dgts3
 
-    def propagate(self, pref, *carriers):
+    def propagate(self, spectral_info):
         """add ASE noise to the propagating carriers of :class:`.info.SpectralInformation`"""
-        pin = array([c.power.signal + c.power.nli + c.power.ase for c in carriers])  # pin in W
-        freq = array([c.frequency for c in carriers])
-        brate = array([c.baud_rate for c in carriers])
         # interpolate the amplifier vectors with the carriers freq, calculate nf & gain profile
-        self.interpol_params(freq, pin, brate, pref)
+        self.interpol_params(spectral_info)
 
-        gains = db2lin(self.gprofile)
-        carrier_ases = self.noise_profile(brate)
-        att = db2lin(self.out_voa)
+        ase = self.noise_profile(spectral_info)
+        spectral_info.ase += ase
 
-        for gain, carrier_ase, carrier in zip(gains, carrier_ases, carriers):
-            pwr = carrier.power
-            pwr = pwr._replace(signal=pwr.signal * gain / att,
-                               nli=pwr.nli * gain / att,
-                               ase=(pwr.ase + carrier_ase) * gain / att)
-            yield carrier._replace(power=pwr)
+        spectral_info.apply_gain_db(self.gprofile - self.out_voa)
+        spectral_info.pmd = sqrt(spectral_info.pmd ** 2 + self.params.pmd ** 2)
+        spectral_info.pdl = sqrt(spectral_info.pdl ** 2 + self.params.pdl ** 2)
 
-    def update_pref(self, pref):
-        return pref._replace(p_span0=pref.p_span0,
-                             p_spani=pref.p_spani + self.effective_gain - self.out_voa)
+    def update_pref(self, spectral_info):
+        spectral_info.pref = \
+            spectral_info.pref._replace(p_span0=spectral_info.pref.p_span0,
+                                        p_spani=spectral_info.pref.p_spani + self.effective_gain - self.out_voa)
 
     def __call__(self, spectral_info):
-        carriers = tuple(self.propagate(spectral_info.pref, *spectral_info.carriers))
-        pref = self.update_pref(spectral_info.pref)
-        return spectral_info._replace(carriers=carriers, pref=pref)
+        self.propagate(spectral_info)
+        self.update_pref(spectral_info)
+        return spectral_info

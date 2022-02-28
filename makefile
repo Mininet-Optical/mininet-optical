@@ -38,8 +38,12 @@ emutest:
 demotest:
 	sudo python3 -m mnoptical.ofcdemo.demo_2021 test
 
+# Run cross validation sanity check
+crossvalsanity:
+	(cd cross-validation-tests && ./cross_validation.sh)
+
 # Run all tests
-test: simtest emutest demotest
+test: simtest emutest demotest crossvalsanity
 
 # Clean up non-source files
 clean:

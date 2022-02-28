@@ -52,7 +52,7 @@ def analysis_all():
     mo_tests = mo_tests_dataset
     gnpy_tests = gnpy_tests_dataset
     for metric in metrics_of_interest:
-        if metric is 'power':
+        if metric == 'power':
             # convert power to dBm
             m_metric_dBm = 10 * np.log10(mo_tests[metric] * 1e3)
             g_metric_dBm = 10 * np.log10(gnpy_tests[metric] * 1e3)
