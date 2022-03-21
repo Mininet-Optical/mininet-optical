@@ -18,59 +18,56 @@ class Network(object):
 
         self.name_to_node = {}
 
-    def add_lt(self, name, transceivers=None, **params):
+    def add_node(self, name, cls, *args, nodes=None, **params):
+        """
+        Add node to network
+        :param name: name of node
+        :param cls: node class/constructor
+        :param nodes: list that node will be appended to
+        """
+        if nodes is None: nodes = []
+        if name in self.name_to_node:
+            raise ValueError(f"Network.add_node: node {name} already exists!")
+        node = cls(name, *args, **params)
+        self.name_to_node[name] = node
+        nodes.append(node)
+        self.topology[node] = []
+        return node
+
+    def add_lt(self, name, *args, cls=LineTerminal, **params):
         """
         Add lt node
         :param name: name of lt
         :param transceivers: transceivers of LT for automated instantiation
+        :param cls: optional LineTerminal class/constructor
         :return: added lt
         """
-        if name in self.name_to_node:
-            raise ValueError("Network.add_lt: lt with this name already exist!")
-        configs = {'name': name,
-                   'transceivers': transceivers}
-        configs.update(params)
-        lt = LineTerminal(**configs)
-        self.name_to_node[name] = lt
-        self.line_terminals.append(lt)
-        self.topology[lt] = []
-        return lt
+        return self.add_node(name, cls, *args, nodes=self.line_terminals,
+                             **params)
 
-    def add_roadm(self, name, **params):
+    def add_roadm(self, name, *args, cls=Roadm, **params):
         """
         Add a ROADM node.
         :param name: name of ROADM
+        :cls: optional Roadm class/constructor
         :return: added ROADM
         """
-        if name in self.name_to_node:
-            raise ValueError("Network.add_roadm: ROADM with this name already exist!!")
-        configs = {'name': name}
-        configs.update(params)
-        roadm = Roadm(**configs)
-        self.name_to_node[name] = roadm
-        self.roadms.append(roadm)
-        self.topology[roadm] = []
-        return roadm
+        return self.add_node(name, cls, *args, nodes=self.roadms,
+                             **params)
 
-    def add_amplifier(self, name, amplifier_type='EDFA', **params):
+    def add_amplifier(self, name, *args, cls=Amplifier, **params):
         """
         Add an Amplifier node.
         :param name: name of Amplifier
         :param amplifier_type: amplifier type (currently supporting only EDFA)
+        :param cls: optional Amplifier class/constructor
         :return: added Amplifier
         """
-        if name in self.name_to_node:
-            raise ValueError("Network.add_amplifier: Amplifier with this name already exist!! %s" % str(name))
-        configs = {'name': name,
-                   'amplifier_type': amplifier_type}
-        configs.update(params)
-        amplifier = Amplifier(**configs)
-        self.name_to_node[name] = amplifier
-        self.amplifiers.append(amplifier)
-        return amplifier
+        return self.add_node(name, cls, *args, nodes=self.amplifiers,
+                             **params)
 
     def add_link(self, src_node, dst_node, src_out_port=-1,
-                 dst_in_port=-1, boost_amp=None, spans=None):
+                 dst_in_port=-1, boost_amp=None, spans=None, cls=Link):
         """
         Add a uni-directional link
         :param src_node: source node in link
@@ -79,14 +76,14 @@ class Network(object):
         :param dst_in_port: dst_node input port
         :param boost_amp: optional amplifier object for boost_amplification
         :param spans:
+        :param cls: optional Link class/constructor
         :return: created and added link
         """
-        link = Link(src_node, dst_node,
-                    src_out_port=src_out_port,
-                    dst_in_port=dst_in_port,
-                    boost_amp=boost_amp,
-                    spans=spans)
-
+        link = cls(src_node, dst_node,
+                   src_out_port=src_out_port,
+                   dst_in_port=dst_in_port,
+                   boost_amp=boost_amp,
+                   spans=spans)
         self.links.append(link)
         self.topology[src_node].append((dst_node, link))
         return link

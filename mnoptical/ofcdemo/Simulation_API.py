@@ -27,14 +27,14 @@ class Mininet_Optical_Simu_API(object):
         "Power control for a signal channel at a roadm using VOA leveling"
 
         #print('leveling power, port, channel:', power, outport, channel)
+        # FIXME: this seems to be missing from the code and the units are suspect
         node.configure_voa(channel_id=channel, output_port=outport, operational_power_dB=power)
 
 
-    def Terminal_configChannelPower(self, terminal, channel, power):
-        "Congifure Terminal Launch power for a channel"
-
-        terminal.transceivers[channel-1].operation_power = db_to_abs(power)
-        #terminal.name_to_transceivers['tx%d' % channel].operation_power = db_to_abs(power)
+    def Terminal_configChannelPower(self, terminal, channel, power_dBm):
+        "Configure Terminal Launch power (in dBm) for a channel"
+        terminal.tx_config(transceivers[channel-1], operational_power_dBm=power_dBm)
+        #terminal.name_to_transceivers['tx%d' % channel].operation_power = db_to_abs(power_dBm)*1e-3
 
 
     def Terminal_configChannel(self, terminal, channel):

@@ -13,7 +13,7 @@ from mininet.log import setLogLevel, info
 from mininet.clean import cleanup
 from mininet.node import RemoteController
 
-from sys import argv
+from sys import argv, stdout
 from os.path import dirname
 from subprocess import check_call
 
@@ -32,5 +32,7 @@ if __name__ == '__main__':
         check_call("python3 -m mnoptical.ofcdemo.Demo_Control_2".split())
     else:
         CLI( net )
+    stdout.flush()
     restServer.stop()
+    stdout.flush()    
     net.stop()

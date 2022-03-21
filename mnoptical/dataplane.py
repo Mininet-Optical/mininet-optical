@@ -338,7 +338,7 @@ class Terminal( SwitchBase ):
         if channel is not None:
             self.txChannel[ txNum ] = channel
         if power is not None:
-            transceiver.operation_power = db_to_abs(power)
+            self.model.tx_config(transceiver, operational_power_dBm=power)
 
     def txnum( self, wdmPort ):
         "Return a tx number for wdmPort number"
