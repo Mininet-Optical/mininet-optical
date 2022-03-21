@@ -91,6 +91,8 @@ class Link(object):
 
     def __repr__(self):
         """String representation"""
+        dport = self.dst_node.link_to_port_in[self]        
+        was: "(%s->%s:%s)" % (self.src_node, self.dst_node, dport)
         return "(%s->%s)" % (self.src_node, self.dst_node)
 
     def reset(self):
@@ -159,15 +161,17 @@ class Link(object):
         if self.boost_amp:
             for optical_signal in self.optical_signals:
                 # associate boost_amp to optical signal at input interface
-                self.boost_amp.include_optical_signal_in(optical_signal,
-                                                         in_port=0)
+                state = optical_signal.loc_in_to_state[self]
+                self.boost_amp.include_optical_signal_in(
+                    optical_signal, **state, in_port=0)
             self.boost_amp.propagate(self.optical_signals,
                                      is_last_port=is_last_port,
                                      safe_switch=safe_switch)
         else:
             first_span = self.spans[0][0]
             for optical_signal in self.optical_signals:
-                first_span.include_optical_signal_in(optical_signal)
+                state = optical_signal.loc_in_to_state[self]                
+                first_span.include_optical_signal_in(optical_signal, **state)
             first_span.propagate(is_last_port=is_last_port,
                                  safe_switch=safe_switch)
 
@@ -294,7 +298,7 @@ class Span(object):
                     nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
                     in_port=in_port)
                 self.next_component.receiver(optical_signal, in_port)
-            elif isinstance(self.next_component, Roadm):
+            elif hasattr(self.next_component, 'include_optical_signal_in_roadm'):
                 self.next_component.include_optical_signal_in_roadm(
                     optical_signal,
                     power=optical_signal.loc_out_to_state[self]['power'],
@@ -311,7 +315,7 @@ class Span(object):
 
         if isinstance(self.next_component, Amplifier):
             self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
-        elif isinstance(self.next_component, Roadm) and is_last_port:
+        elif hasattr(self.next_component, 'switch') and is_last_port:
             in_port = self.next_component.link_to_port_in[self.link]
             self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
 
