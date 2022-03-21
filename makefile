@@ -31,7 +31,7 @@ simtest:
 	tests/RunTests.sh
 
 # Run emulation tests
-emutest:
+emutest: certs
 	sudo examples/runtests.sh
 
 # Run demo test
@@ -45,9 +45,15 @@ crossvalsanity:
 # Run all tests
 test: simtest emutest demotest crossvalsanity
 
+# Generate fake certs for netconf client/server
+certs: makecerts.sh
+	./makecerts.sh
+
 # Clean up non-source files
 clean:
 	rm -rf build dist __pycache__ *.egg-info dist
 	find . -name -o -name '*.pyc' \
 	-o -name '*~' -o -name '#*' -o -name '*.png' \
 	| xargs rm -rf
+	rm -rf testcerts
+	rm -f mnoptical/ofcdemo/*.txt

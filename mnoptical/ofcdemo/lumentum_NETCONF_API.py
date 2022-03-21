@@ -1,97 +1,113 @@
-""" Lumemtum ROADM 20 Control
+""" Lumentum ROADM 20 Control API
 
 Author:   Jiakai Yu (jiakaiyu@email.arizona.edu)
 Created:  2019/03/09
-Version:  2.0
+Version:  2.1
 
 Last modified by Jiakai: 2020/08/11
+Cleaned up slightly by BL: 2022
 """
 
-
-
-
-import xmltodict
+import atexit
+import xmltodict as x2d
 import ncclient
 from ncclient import manager
 from ncclient.xml_ import to_ele
 
+from traceback import print_exception, print_tb, print_exc
+from pprint import pprint
+
+class xmltodict:
+    @staticmethod
+    def parse( xml, **kwargs):
+        kwargs.update(process_namespaces=True, namespaces={
+            'urn:ietf:params:xml:ns:netconf:base:1.0': None,
+            'http://www.lumentum.com/lumentum-ote-connection': None} )
+        return x2d.parse( xml, **kwargs)
 
 USERNAME = "superuser"
 PASSWORD = "Sup%9User"
 
-class Lumentum(object):
+class Lumentum:
 
-    def __init__(self, IP_addr, usrname=USERNAME, psswd=PASSWORD):
-        self.m = None
+    connections = {}
+
+    def __init__(self, IP_addr, username=USERNAME, password=PASSWORD):
+        self.IP_addr = IP_addr
+        self.m = Lumentum.connections.get(IP_addr)
+        if self.m:
+            return
+        port = 830
+        if ':' in IP_addr:
+            ip, port = IP_addr.split(':')
+            port = int(port)
         try:
-            self.m = manager.connect(host=IP_addr, port=830, username=usrname, password=psswd, hostkey_verify=False)
+            print("CONNECTING TO", ip, port)
+            self.m = manager.connect(
+                host=ip, port=port, username=username, password=password,
+                hostkey_verify=False)
+            self.connections[IP_addr] = self.m
         except Exception as e:
             print('connection failed')
+        atexit.register(self.cleanup)
 
-    def __del__(self):
+    def cleanup(self):
         if self.m:
             self.m.close_session()
+        if self.IP_addr in Lumentum.connections:
+            del Lumentum.connections[self.IP_addr]
 
+    @staticmethod
+    def lookup(node, path):
+        """Look up path in a dict tree and return the result
+           note for /some/0/path '0' is looked up as an int"""
+        print("LOOKING UP", node, path)
+        for entry in path.split('/'):
+            if entry[0] in '0123455789':
+                try:
+                    entry = int(entry)
+                except:
+                    pass
+                node = node[entry]
+        return node
+
+    @staticmethod
+    def lookupstr(node, path):
+        "Look up path and node and return it as a string"
+        return str(Lumentum.lookup(node, path))
 
     def edfa_status(self):
-
+        "Return status of Boost and Preamp EDFAs"
         filter_edfa = '''
         <filter>
-          <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa" xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
+          <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa"
+                 xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
           </edfas>
         </filter>
         '''
-
         try:
-            edfa= self.m.get(filter_edfa)
-            edfa_details=xmltodict.parse(edfa.data_xml)
-
-            control_mode1 = str(edfa_details['data']['edfas']['edfa'][0]['config']['lotee:control-mode'])
-            gain_mode1 = str(edfa_details['data']['edfas']['edfa'][0]['config']['lotee:gain-switch-mode'])
-            target_gain1 = str(edfa_details['data']['edfas']['edfa'][0]['config']['lotee:target-gain'])
-            target_power1 = str(edfa_details['data']['edfas']['edfa'][0]['config']['lotee:target-power'])
-            input_power1 = str(edfa_details['data']['edfas']['edfa'][0]['state']['input-power'])
-            output_power1 =str( edfa_details['data']['edfas']['edfa'][0]['state']['output-power'])
-            voa_input_power1 = str(edfa_details['data']['edfas']['edfa'][0]['state']['voas']['voa']['voa-input-power'])
-            voa_output_power1 = str(edfa_details['data']['edfas']['edfa'][0]['state']['voas']['voa']['voa-input-power'])
-            voa_attenuation1 = str(edfa_details['data']['edfas']['edfa'][0]['state']['voas']['voa']['voa-attentuation'])
-            status1 = str(edfa_details['data']['edfas']['edfa'][0]['config']['lotee:maintenance-state'])
-
-            control_mode2 =str(edfa_details['data']['edfas']['edfa'][1]['config']['lotee:control-mode'])
-            gain_mode2 = str(edfa_details['data']['edfas']['edfa'][1]['config']['lotee:gain-switch-mode'])
-            target_gain2 = str(edfa_details['data']['edfas']['edfa'][1]['config']['lotee:target-gain'])
-            target_power2 = str(edfa_details['data']['edfas']['edfa'][1]['config']['lotee:target-power'])
-            input_power2 = str(edfa_details['data']['edfas']['edfa'][1]['state']['input-power'])
-            output_power2 = str(edfa_details['data']['edfas']['edfa'][1]['state']['output-power'])
-            voa_input_power2 = str(edfa_details['data']['edfas']['edfa'][1]['state']['voas']['voa']['voa-input-power'])
-            voa_output_power2 = str(edfa_details['data']['edfas']['edfa'][1]['state']['voas']['voa']['voa-input-power'])
-            voa_attenuation2 = str(edfa_details['data']['edfas']['edfa'][1]['state']['voas']['voa']['voa-attentuation'])
-            status2 = str(edfa_details['data']['edfas']['edfa'][1]['config']['lotee:maintenance-state'])
-
-            return {'PRE-AMP':
-                        {'control mode': control_mode1,
-                         'gain mode': gain_mode1,
-                         'target gain': target_gain1,
-                         'target power': target_power1,
-                         'input power': input_power1,
-                         'output power': output_power1,
-                         'voa input power': voa_input_power1,
-                         'voa output power': voa_output_power1,
-                         'voa attenuation': voa_attenuation1,
-                         'status': status1},
-
-                    'BOOSTER':
-                        {'control mode': control_mode2,
-                         'gain mode': gain_mode2,
-                         'target gain': target_gain2,
-                         'target power': target_power2,
-                         'input power': input_power2,
-                         'output power': output_power2,
-                         'voa input power': voa_input_power2,
-                         'voa output power': voa_output_power2,
-                         'voa attenuation': voa_attenuation2,
-                         'status': status2},
-                    }
+            edfa = self.m.get(filter_edfa)
+            edfa_details = xmltodict.parse(edfa.data_xml)
+            result = {}
+            for field, num in (('PRE-AMP', 0), ('BOOSTER'), 1):
+                edfa = self.lookup(edfa, f'data/edfas/edfa/{num}')
+                def E(path): return self.lookupstr(edfa, path)
+                entry = {
+                    'control mode': E(f'config/lotee:control-mode'),
+                    'gain mode':  E(f'config/lotee:gain-switch-mode'),
+                    'target gain': E(f'config/lotee:target-gain'),
+                    'target power': E(f'config/lotee:target-power'),
+                    'input power': E(f'state/input-power'),
+                    'output': E(f'state/output-power'),
+                    'status': E(f'config/lotee:maintenance-state')}
+                # Add VOA info for booster amp
+                if num == 1:
+                    entry.update({
+                        'voa input power': E(f'state/voas/voa/voa-input-power'),
+                        'voa output power': E(f'state/voas/voa/voa-input-power'),
+                        'voa attenuation': E(f'state/voas/voa/voa-attentuation')})
+                result[field] = entry
+            return result
 
         except Exception as e:
             print("Encountered the following RPC error!")
@@ -101,7 +117,9 @@ class Lumentum(object):
 
     def ALS_disable(self, module):
 
-        service = '''<disable-alsxmlns="http://www.lumentum.com/lumentum-ote-edfa"><dn>ne=1;chassis=1;card=1;edfa=%sdn><timeout-period>600</timeout-period></disable-als>'''%(module)
+        service = ('<disable-als>xmlns="http://www.lumentum.com/lumentum-ote-edfa">'
+                   f'<dn>ne=1;chassis=1;card=1;edfa={module}</dn><timeout-period>600'
+                   '</timeout-period></disable-als>')
         try:
             reply = self.m.dispatch(to_ele(service))
             return reply
@@ -121,82 +139,73 @@ class Lumentum(object):
                      tilt,
                      ALS
                      ):
-        #self.module = module
-        #self.ctrl_mode = ctrl_mode
-        #self.status = status
-        #self.gain_mode = gain_mode
-        #self.target_power = target_power
-        #self.target_gain = target_gain
-        #self.tilt = tilt
-        #self.ALS = ALS
-
         rpc_reply = 0
         self.edfa_data = self.edfa_status()
-        print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-        print(self.edfa_data)
+        # print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+        # print(self.edfa_data)
 
-        #######out-of-service#######
-        service0 = '''
+        ####### out-of-service #######
+        service0 = f'''
           <xc:config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa" xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
+            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa"
+                   xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
               <edfa>
-                <dn>ne=1;chassis=1;card=1;edfa=%s</dn>
+                <dn>ne=1;chassis=1;card=1;edfa={module}</dn>
                 <config>
                   <maintenance-state>out-of-service</maintenance-state>
                 </config>
               </edfa>
             </edfas>
-          </xc:config>
-              '''%(module)
+          </xc:config>'''
 
-        #######configure#######
-        service1 = '''
+        ####### configure #######
+        service1 = f'''
           <xc:config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa" 
-            xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
+            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa"
               <edfa>
-                <dn>ne=1;chassis=1;card=1;edfa=%s</dn>
+                <dn>ne=1;chassis=1;card=1;edfa={module}</dn>
                 <config>
-                  <maintenance-state>%s</maintenance-state>
-                  <control-mode>%s</control-mode>
-                  <gain-switch-mode>%s</gain-switch-mode>
-                  <target-gain>%s</target-gain>
-                  <target-power>%s</target-power>
-                  <target-gain-tilt>%s</target-gain-tilt>
+                  <maintenance-state>{status}</maintenance-state>
+                  <control-mode>{ctrl_mode}</control-mode>
+                  <gain-switch-mode>{gain_mode}</gain-switch-mode>
+                  <target-gain>{target_gain}</target-gain>
+                  <target-power>{target_power}</target-power>
+                  <target-gain-tilt>{tilt}</target-gain-tilt>
                 </config>
               </edfa>
             </edfas>
           </xc:config>
-              '''%(module, status, ctrl_mode, gain_mode, target_gain, target_power, tilt)
+        '''
 
-        #######in-service#######
-        service2 = '''
+        ####### in-service #######
+        service2 = f'''
           <xc:config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa" xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
+            <edfas xmlns="http://www.lumentum.com/lumentum-ote-edfa"
+                   xmlns:lotee="http://www.lumentum.com/lumentum-ote-edfa">
               <edfa>
-                <dn>ne=1;chassis=1;card=1;edfa=%s</dn>
+                <dn>ne=1;chassis=1;card=1;edfa={module}</dn>
                 <config>
                   <maintenance-state>in-service</maintenance-state>
                 </config>
               </edfa>
             </edfas>
           </xc:config>
-              '''%(module)
+        '''
 
-        edfa_module = 'pre-amp' if int(module)==0 else 'booster'
-        if status=='out-of-service':
+        edfa_module = 'pre-amp' if int(module) == 0 else 'booster'
+        if status == 'out-of-service':
             rpc_reply = self.m.edit_config(target='running', config=service0)
 
         elif self.edfa_data[edfa_module]['status'] == 'out-of-service':
             rpc_reply = self.m.edit_config(target='running', config=service1)
 
         elif status=='in-service':
-            if ctrl_mode == self.edfa_data[edfa_module]['control mode'] and gain_mode == self.edfa_data[edfa_module]['gain mode']:
+            if (ctrl_mode == self.edfa_data[edfa_module]['control mode']
+                and gain_mode == self.edfa_data[edfa_module]['gain mode']):
                 rpc_reply = self.m.edit_config(target='running', config=service1)
             else:
                 rpc_reply0 = self.m.edit_config(target='running', config=service0)
                 rpc_reply1 = self.m.edit_config(target='running', config=service1)
-
                 rpc_reply_als = None
                 if ALS:
                     rpc_reply_als = self.ALS_disable(module)
@@ -205,8 +214,7 @@ class Lumentum(object):
         return rpc_reply
 
 
-    class WSSConnection(object):
-
+    class WSSConnection:
         def __init__(self,
                      module,
                      connection_id,
@@ -274,8 +282,10 @@ class Lumentum(object):
                     connection_detail['dn'].split(';')[4].split('=')[1],
                     connection_detail['config']['maintenance-state'],
                     connection_detail['config']['blocked'],
-                    connection_detail['config']['input-port-reference'].split('port=')[1],
-                    connection_detail['config']['output-port-reference'].split('port=')[1],
+                    connection_detail['config']['input-port-reference'].split(
+                        'port=')[1],
+                    connection_detail['config']['output-port-reference'].split(
+                        'port=')[1],
                     connection_detail['config']['start-freq'],
                     connection_detail['config']['end-freq'],
                     connection_detail['config']['attenuation'],
@@ -285,45 +295,37 @@ class Lumentum(object):
                     connection_detail['dn'].split(';')[0].split('=')[1],
                     connection_detail['dn'].split(';')[1].split('=')[1],
                     connection_detail['dn'].split(';')[2].split('=')[1]
-                ) for connection_detail in connection_details['data']['connections']['connection'] if connection_detail
+                )
+                for connection_detail in connection_details['data']['connections']['connection']
+                if connection_detail
             ]
 
 
     def wss_add_connections(self, connections):
 
         def gen_connection_xml(wss_connection):
-            return '''<connection>
-              <dn>ne=1;chassis=1;card=1;module=%s;connection=%s</dn>
+            w = wss_connection
+            return f'''<connection>
+              <dn>ne=1;chassis=1;card=1;module={w.module};connection={w.connection_id}</dn>
               <config>
-                <maintenance-state>%s</maintenance-state>
-                <blocked>%s</blocked>
-                <start-freq>%s</start-freq>
-                <end-freq>%s</end-freq>
-                <attenuation>%s</attenuation>
-                <input-port-reference>ne=1;chassis=1;card=1;port=%s</input-port-reference>
-                <output-port-reference>ne=1;chassis=1;card=1;port=%s</output-port-reference>
-                <custom-name>%s</custom-name>
-              </config> 
-            </connection>''' % (
-                wss_connection.module,
-                wss_connection.connection_id,
-                wss_connection.operation,
-                wss_connection.blocked,
-                wss_connection.start_freq,
-                wss_connection.end_freq,
-                wss_connection.attenuation,
-                wss_connection.input_port,
-                wss_connection.output_port,
-                wss_connection.name
-            )
+                <maintenance-state>{w.operation}</maintenance-state>
+                <blocked>{w.blocked}</blocked>
+                <start-freq>{w.start_freq}</start-freq>
+                <end-freq>{w.end_freq}</end-freq>
+                <attenuation>{w.attenuation}</attenuation>
+                <input-port-reference>ne=1;chassis=1;card=1;port={w.input_port}</input-port-reference>
+                <output-port-reference>ne=1;chassis=1;card=1;port={w.output_port}</output-port-reference>
+                <custom-name>{w.name}</custom-name>
+              </config>
+            </connection>'''
 
-        new_line = '\n'
-        services = '''<xc:config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
-        <connections xmlns="http://www.lumentum.com/lumentum-ote-connection" 
+        conn_xml = '\n'.join(gen_connection_xml(c) for c in connections)
+        services = f'''<xc:config xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        <connections xmlns="http://www.lumentum.com/lumentum-ote-connection"
         xmlns:lotet="http://www.lumentum.com/lumentum-ote-connection">
-            %s
+            {conn_xml}
         </connections>
-        </xc:config>''' % new_line.join([gen_connection_xml(connection) for connection in connections])
+        </xc:config>'''
 
         try:
             reply = self.m.edit_config(target='running', config=services)
@@ -340,18 +342,18 @@ class Lumentum(object):
     def wss_delete_connection(self, module_id, connection_id):
         try:
             if connection_id == 'all':
-                reply = self.m.dispatch(to_ele('''
+                reply = self.m.dispatch(to_ele(f'''
                 <remove-all-connections
                 xmlns="http://www.lumentum.com/lumentum-ote-connection">
-                <dn>ne=1;chassis=1;card=1;module=%s</dn>
+                <dn>ne=1;chassis=1;card=1;module={module_id}</dn>
                 </remove-all-connections>
-                ''' % module_id))
+                '''))
             else:
                 reply = self.m.dispatch(to_ele('''
                 <delete-connection xmlns="http://www.lumentum.com/lumentum-ote-connection">
-                <dn>ne=1;chassis=1;card=1;module=%s;connection=%s</dn>
+                <dn>ne=1;chassis=1;card=1;module={module_id};connection={connection_id}</dn>
                 </delete-connection>
-                ''' % (module_id, connection_id)))
+                '''))
             if '<ok/>' in str(reply):
                 print('Successfully Deleted Connection')
                 return 1
@@ -378,12 +380,25 @@ class Lumentum(object):
             print("Encountered the following RPC error!")
             print(e)
         connections = None
-        connections = Lumentum.WSSConnectionStatus.from_connection_details(connection_details) if connection_details else None
+        connections = (
+            Lumentum.WSSConnectionStatus.from_connection_details(connection_details)
+            if connection_details else None)
         return connections
 
 
     @staticmethod
-    def gen_dwdm_connections(module, input_port, output_port, loss=0.0, channel_spacing=50.0, channel_width=50.0):
+    def freqRangeGHz(channel):
+        "Return frequency range (startGHz, endGHz) for channel"
+        half_channel_width = 25  # in GHz
+        start_center_frequency = 191350.0  # in GHz
+        center_frequency = start_center_frequency + channel * 50
+        start_freq = str(center_frequency - half_channel_width)
+        end_freq = str(center_frequency + half_channel_width)
+        return start_freq, end_freq
+
+    @staticmethod
+    def gen_dwdm_connections(module, input_port, output_port, loss=0.0,
+                             channel_spacing=50.0, channel_width=50.0):
         """
         :param module:
         :param input_port:
@@ -393,10 +408,9 @@ class Lumentum(object):
         :return:
         """
         connections = []
-        half_channel_width = channel_width / 2.0  # in GHz
-        start_center_frequency = 191350.0  # in GHz
         for i in range(96):
             center_frequency = start_center_frequency + i * channel_spacing
+            start_freq, end_freq = Lumentum.freqRangeGHz(channel)
             connection = Lumentum.WSSConnection(
                 module,
                 str(i + 1),
@@ -404,8 +418,8 @@ class Lumentum(object):
                 'false',
                 input_port,
                 output_port,
-                str(center_frequency - half_channel_width),
-                str(center_frequency + half_channel_width),
+                str(start_freq),
+                str(end_freq),
                 loss,
                 'CH' + str(i + 1)
             )
@@ -415,22 +429,28 @@ class Lumentum(object):
 
 #####################################################################################
 
-class Lumentum_NETCONF(object):
+class Lumentum_NETCONF:
 
-    def _ConfigWSS(self, node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None):
-        print ('============ConfigWSS_Setup_Start==============')
-        
+
+    def _ConfigWSS(self, node_ip, status, conn_id, module_id, input_port=None,
+                   output_port=None, start_freq=None, end_freq=None,
+                   attenuation=None, block=None, name=None):
+        print ('============ConfigWSS_Setup_Start==============', node_ip)
+
         try:
-            node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
+            node = Lumentum(node_ip,  str(USERNAME), str(PASSWORD))
             if status=='del':
                 rpc_reply = node.wss_delete_connection(str(module_id), str(conn_id))
             elif conn_id == 'all':
-                connections = node.gen_dwdm_connections(str(module_id), str(input_port),str(output_port), loss= float(attenuation))
+                connections = node.gen_dwdm_connections(
+                    str(module_id), str(input_port),str(output_port),
+                    loss = float(attenuation))
                 rpc_reply = node.wss_add_connections(connections)
             else:
-                connection = Lumentum.WSSConnection(str(module_id), str(conn_id), str(status), str(block),
-                                                    str(input_port), str(output_port), str(start_freq),
-                                                    str(end_freq), str(attenuation), str(name))
+                connection = Lumentum.WSSConnection(
+                    str(module_id), str(conn_id), str(status), str(block),
+                    str(input_port), str(output_port), str(start_freq),
+                    str(end_freq), str(attenuation), str(name))
 
                 rpc_reply = node.wss_add_connections([connection])
             return rpc_reply
@@ -439,44 +459,35 @@ class Lumentum_NETCONF(object):
             print(e)
             return False
 
-
-    def _WSSMonitor(self,node_ip):
-        
+    @staticmethod
+    def parseConnections(connections):
+        "Return wss_info"
         mux_info = {}
         demux_info = {}
-        try:
-            node = Lumentum(str(node_ip), str(USERNAME), str(PASSWORD))
-            connections = node.wss_get_connections()
-            if connections:
-                l = len(connections)
-                for i in range(0,l):
-                    id = connections[i].connection_id
-                    module = connections[i].module
-                    name = connections[i].name
-                    status = connections[i].operation
-                    start_freq = connections[i].start_freq
-                    end_freq = connections[i].end_freq
-                    attenuation = connections[i].attenuation
-                    block = connections[i].blocked
-                    input_port = connections[i].input_port
-                    output_port = connections[i].output_port
-                    input_power = connections[i].input_power
-                    output_power = connections[i].output_power
-                    if module == '1':
-                        mux_info[id] = {'name':name, 'blocked':block, 'status':status,
-                                             'start frequency':start_freq, 'end frequency': end_freq,
-                                             'input port': input_port, 'output port': output_port,
-                                             'input power': input_power, 'output power': output_power,
-                                             'attenuation':attenuation }
-                    if module == '2':
-                        demux_info[id] = {'name':name, 'blocked':block, 'status':status,
-                                             'start frequency':start_freq, 'end frequency': end_freq,
-                                             'input port': input_port, 'output port': output_port,
-                                             'input power': input_power, 'output power': output_power,
-                                             'attenuation':attenuation }
+        if connections:
+            l = len(connections)
+            for i in range(0,l):
+                c = connections[i]
+                id, module = c.connection_id, c.module
+                entry = {
+                    'name':c.name, 'blocked':c.blocked, 'status':c.operation,
+                    'start frequency':c.start_freq, 'end frequency':c.end_freq,
+                    'input port':c.input_port, 'output port': c.output_port,
+                    'input power':c.input_power, 'output power': c.output_power,
+                    'attenuation':c.attenuation }
+                if module == '1':
+                    mux_info[id] = entry
+                if module == '2':
+                    demux_info[id] = entry
+        wss_info = {'MUX': mux_info, 'DEMUX': demux_info}
+        return wss_info
 
-            wss_info = {'MUX': mux_info, 'DEMUX': demux_info}
-            return  wss_info
+    def _WSSMonitor(self,node_ip):
+
+        try:
+            node = Lumentum(node_ip, USERNAME, PASSWORD)
+            connections = node.wss_get_connections()
+            return self.parseConnections(connections)
 
         except Exception as e:
             print("Encountered the following RPC error!")

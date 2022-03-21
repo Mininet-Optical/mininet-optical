@@ -22,6 +22,11 @@ Config scripts (using REST API) for above:
 - unilinear2.py:    unidirectional linear network with 2-degree ROADMs
 - uniring.py:       unidirectional ring network
 - uniroadmchain.py: simple unidirectional ROADM chain(s) for testing
+- lroadmring.py:    unidirectional linear network with LROADM roadms
 
-The unidirectional examples currently use the internal control API
-and implement a 'config' CLI command to configure the network.
+Config script (using NETCONF API):
+
+- config_lroadmring.py: configure lroadmring.py for mesh connectivity
+
+The other unidirectional examples uni*.py currently use the internal
+control API, and implement a 'config' CLI command to configure the network.
