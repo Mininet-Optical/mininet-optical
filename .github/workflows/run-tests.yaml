@@ -31,4 +31,4 @@ jobs:
              mininet/util/install.sh -nv
 
       - name: Run Tests
-        run: make test
+        run: make test doc

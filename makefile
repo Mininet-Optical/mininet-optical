@@ -49,11 +49,25 @@ test: simtest emutest demotest crossvalsanity
 certs: makecerts.sh
 	./makecerts.sh
 
+# Generate html documentation
+doc:
+	make -C docs html
+
+docclean:
+	make -C docs clean
+
+# Generate and serve local html documentation
+docserve: doc
+	python3 -m http.server -d docs/build/html
+
 # Clean up non-source files
-clean:
+fileclean:
 	rm -rf build dist __pycache__ *.egg-info dist
 	find . -name -o -name '*.pyc' \
 	-o -name '*~' -o -name '#*' -o -name '*.png' \
 	| xargs rm -rf
 	rm -rf testcerts
 	rm -f mnoptical/ofcdemo/*.txt
+
+# Clean up everything
+clean: fileclean docclean
