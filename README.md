@@ -2,6 +2,8 @@
 
 [![tests][1]](https://github.com/UA-Agile-Cloud/optical-network-emulator/actions)
 
+#### Overview
+
 This is a prototype implementation of an emulator for packet optical software-defined networks.
 
 It includes:
@@ -39,7 +41,7 @@ and optical network elements.
 - terminal_params: parameters for Terminal simulation
 - visualize_topo.py: visualization support
 
-### Subcomponents of mnoptical/
+#### Subcomponents of mnoptical/
 
 - examples/: emulation mode scripts that can also be used as modules
 - ofcdemo/: modules/scripts related to our OFC demo(s)
