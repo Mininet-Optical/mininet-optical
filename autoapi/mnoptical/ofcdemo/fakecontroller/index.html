@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.fakecontroller &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.fakecontroller">
+<span id="mnoptical-ofcdemo-fakecontroller"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.fakecontroller" title="mnoptical.ofcdemo.fakecontroller"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.fakecontroller</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.fakecontroller" title="Permalink to this headline">¶</a></h1>
+<p>fakecontroller.py: script to test REST API</p>
+<p>This is not intended to be a ‘real’ controller -
+it is an extremely simple set of proxy objects
+that make it easy to exercise the prototype
+SDN control REST API via python.</p>
+<p>The real controller will be ONOS, and it may use
+GNMI or Netconf rather than REST.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.Proxy" title="mnoptical.ofcdemo.fakecontroller.Proxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Proxy</span></code></a></p></td>
+<td><p>Base proxy class</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.OFSwitchProxy" title="mnoptical.ofcdemo.fakecontroller.OFSwitchProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OFSwitchProxy</span></code></a></p></td>
+<td><p>Local proxy for OpenFlow switch configuration using ovs-ofctl</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.RESTProxy" title="mnoptical.ofcdemo.fakecontroller.RESTProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESTProxy</span></code></a></p></td>
+<td><p>Proxy for REST API objects/calls</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.NodeProxy" title="mnoptical.ofcdemo.fakecontroller.NodeProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeProxy</span></code></a></p></td>
+<td><p>Base class for switching node proxies</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.SwitchProxy" title="mnoptical.ofcdemo.fakecontroller.SwitchProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchProxy</span></code></a></p></td>
+<td><p>Base class for switching node proxies</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.TerminalProxy" title="mnoptical.ofcdemo.fakecontroller.TerminalProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TerminalProxy</span></code></a></p></td>
+<td><p>Local proxy for Terminal/transceiver configuration via REST</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.ROADMProxy" title="mnoptical.ofcdemo.fakecontroller.ROADMProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADMProxy</span></code></a></p></td>
+<td><p>Local proxy for ROADM configuration via REST</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.fetchNodes" title="mnoptical.ofcdemo.fakecontroller.fetchNodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetchNodes</span></code></a>(net)</p></td>
+<td><p>Fetch node list using REST</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.fetchLinks" title="mnoptical.ofcdemo.fakecontroller.fetchLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetchLinks</span></code></a>(net)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.fetchRules" title="mnoptical.ofcdemo.fakecontroller.fetchRules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetchRules</span></code></a>(roadms)</p></td>
+<td><p>Fetch ROADM rules using REST</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.fetchPorts" title="mnoptical.ofcdemo.fakecontroller.fetchPorts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetchPorts</span></code></a>(net, nodes)</p></td>
+<td><p>Fetch ports for all nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.fetchOSNR" title="mnoptical.ofcdemo.fakecontroller.fetchOSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetchOSNR</span></code></a>(net)</p></td>
+<td><p>Fetch OSNR values</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.ListenPortBase" title="mnoptical.ofcdemo.fakecontroller.ListenPortBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListenPortBase</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.Proxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">Proxy</span></span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.Proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base proxy class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.Proxy.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.Proxy.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return repr(self).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.ListenPortBase">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">ListenPortBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">6653</span></em><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.ListenPortBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.OFSwitchProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">OFSwitchProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'127.0.0.1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.OFSwitchProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.Proxy" title="mnoptical.ofcdemo.fakecontroller.Proxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Proxy</span></code></a></p>
+<p>Local proxy for OpenFlow switch configuration using ovs-ofctl</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.OFSwitchProxy.listenPort">
+<span class="sig-name descname"><span class="pre">listenPort</span></span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.OFSwitchProxy.listenPort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.OFSwitchProxy.dpctl">
+<span class="sig-name descname"><span class="pre">dpctl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.OFSwitchProxy.dpctl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invoke ovs-ofctl to program remote switch</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.RESTProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">RESTProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseURL</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost:8080/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.RESTProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.Proxy" title="mnoptical.ofcdemo.fakecontroller.Proxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Proxy</span></code></a></p>
+<p>Proxy for REST API objects/calls</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.RESTProxy.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.RESTProxy.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a REST request</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.NodeProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">NodeProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseURL</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost:8080/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.NodeProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.RESTProxy" title="mnoptical.ofcdemo.fakecontroller.RESTProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESTProxy</span></code></a></p>
+<p>Base class for switching node proxies</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.NodeProxy.ports">
+<span class="sig-name descname"><span class="pre">ports</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.NodeProxy.ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch node’s switching rules if any</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.SwitchProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">SwitchProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseURL</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost:8080/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.SwitchProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.NodeProxy" title="mnoptical.ofcdemo.fakecontroller.NodeProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeProxy</span></code></a></p>
+<p>Base class for switching node proxies</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.SwitchProxy.rules">
+<span class="sig-name descname"><span class="pre">rules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.SwitchProxy.rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch node’s switching rules if any</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.TerminalProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">TerminalProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseURL</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost:8080/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.TerminalProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.SwitchProxy" title="mnoptical.ofcdemo.fakecontroller.SwitchProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchProxy</span></code></a></p>
+<p>Local proxy for Terminal/transceiver configuration via REST</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.TerminalProxy.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ethPort</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdmPort</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.TerminalProxy.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure terminal/transceiver</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.TerminalProxy.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.TerminalProxy.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.TerminalProxy.turn_on">
+<span class="sig-name descname"><span class="pre">turn_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.TerminalProxy.turn_on" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.ROADMProxy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">ROADMProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseURL</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'http://localhost:8080/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.ROADMProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.fakecontroller.SwitchProxy" title="mnoptical.ofcdemo.fakecontroller.SwitchProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchProxy</span></code></a></p>
+<p>Local proxy for ROADM configuration via REST</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.ROADMProxy.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'install'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.ROADMProxy.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure ROADM</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.ROADMProxy.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.ROADMProxy.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.fetchNodes">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">fetchNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.fetchNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch node list using REST</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.fetchLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">fetchLinks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.fetchLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.fetchRules">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">fetchRules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roadms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.fetchRules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch ROADM rules using REST</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.fetchPorts">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">fetchPorts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.fetchPorts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch ports for all nodes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.fakecontroller.fetchOSNR">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.fakecontroller.</span></span><span class="sig-name descname"><span class="pre">fetchOSNR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.fakecontroller.fetchOSNR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetch OSNR values</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/fakecontroller/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,31 @@
+:py:mod:`mnoptical.terminal_params`
+===================================
+
+.. py:module:: mnoptical.terminal_params
+
+.. autoapi-nested-parse::
+
+   gOSNR threshold sensitivity defined in decibles (dB)
+
+
+
+Module Contents
+---------------
+
+.. py:data:: rx_thresholds
+   
+
+   bits per symbol
+
+
+.. py:data:: bps
+   
+
+   symbol rate
+
+
+.. py:data:: sr
+   
+
+   
+

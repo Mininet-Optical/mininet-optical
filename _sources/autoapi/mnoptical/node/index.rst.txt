@@ -1,0 +1,718 @@
+:py:mod:`mnoptical.node`
+========================
+
+.. py:module:: mnoptical.node
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.node.Node
+   mnoptical.node.LineTerminal
+   mnoptical.node.Transceiver
+   mnoptical.node.OpticalSignal
+   mnoptical.node.Roadm
+   mnoptical.node.Amplifier
+   mnoptical.node.Monitor
+   mnoptical.node.SignalTracing
+   mnoptical.node.NodeAuditing
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.node.SwitchRule
+
+
+.. py:class:: Node(name, debugger=True)
+
+   Bases: :py:obj:`object`
+
+   .. py:attribute:: input_port_base
+      :annotation: = 0
+
+      
+
+   .. py:attribute:: output_port_base
+      :annotation: = 0
+
+      
+
+   .. py:method:: set_output_port(self, dst_node, link, output_port=-1)
+
+
+   .. py:method:: set_input_port(self, src_node, link, input_port=-1)
+
+
+   .. py:method:: include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=0)
+
+      :param optical_signal: OpticalSignal object, OpticalSignal uid
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+      :param in_port: input port of node (optional)
+
+
+   .. py:method:: include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None, out_port=None)
+
+      :param optical_signal: OpticalSignal object
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+      :param out_port: output port of node (optional)
+
+
+   .. py:method:: remove_optical_signal(self, optical_signal)
+
+
+   .. py:method:: remove_signal_from_out_port(self, port_out, optical_signal)
+
+
+   .. py:method:: reset_component(self)
+
+      reset the dynamic attributes from node
+
+
+   .. py:method:: describe(self)
+
+
+   .. py:method:: __repr__(self)
+
+      Human-readable representation
+
+
+
+.. py:class:: LineTerminal(name, transceivers=None, monitor_mode='out', debugger=False)
+
+   Bases: :py:obj:`Node`
+
+   .. py:method:: monitor_query(self)
+
+
+   .. py:method:: get_optical_signals(self)
+
+      Get all optical signals by looking into
+      the Transceiver objects
+
+
+   .. py:method:: reset_transceivers(self)
+
+      Disassociate signals from all transceivers
+
+
+   .. py:method:: reset(self)
+
+      Remove all optical signals from the LineTerminal,
+      and reset dynamic data structures
+
+
+   .. py:method:: add_transceivers(self, transceivers)
+
+      For-loop for adding transceivers to LT
+      :param transceivers: list of tuples (t_name, operational_power, spectrum band)
+      :return:
+
+
+   .. py:method:: existing_transceiver(self, transceiver)
+
+
+   .. py:method:: add_transceiver(self, transceiver)
+
+      Add a new transceiver to the Terminal
+      :return: added transceiver
+
+
+   .. py:method:: set_modulation_format(self, transceiver, modulation_format, tx=False)
+
+      Update the modulation format of a transceiver
+      :param transceiver: transmit transceiver object to configure
+      :param modulation_format: string, i.e., '16_QAM' (see units.py)
+      :return:
+
+
+   .. py:method:: tx_config(self, transceiver, operational_power_dBm)
+
+      Configure the operational power of the transceiver 
+
+
+   .. py:method:: assoc_tx_to_channel(self, transceiver, channel, out_port=-1)
+
+      Configures a Terminal by
+      associating a transmission (tx) transceiver to a channel (int);
+      the out_port is previously defined at Network creation
+      :param transceiver: transceiver to use for transmission
+      :param channel: the channel to be transmitted
+      :param out_port: input port to terminal, -1 if none.
+      :return: associate a transceiver to an optical signal
+
+
+   .. py:method:: assoc_channel(self, transceiver, channel, out_port)
+
+
+   .. py:method:: disassoc_tx_to_channel(self, out_port)
+
+      Disassociate a transmitter transceiver (tx) to an output port
+
+
+   .. py:method:: assoc_rx_to_channel(self, transceiver, channel_id, in_port)
+
+      Associate a receiver transceiver (rx) to a signal at an input port
+      :param transceiver: Transceiver object
+      :param channel_id: int of channel index
+      :param in_port: int, input port
+
+
+   .. py:method:: disassoc_rx_to_channel(self, in_port, channel_id)
+
+      Disassociate a receiver transceiver (rx) to an input port
+      :param in_port: int, input port
+
+
+   .. py:method:: turn_on(self, safe_switch=False)
+
+      Propagate signals to the link that the transceivers point to
+      Note: This configuration does not support connecting LT to multiple ROADMs
+
+
+   .. py:method:: turn_off(self, ports_out)
+
+
+   .. py:method:: osnr(power, ase_noise)
+      :staticmethod:
+
+
+   .. py:method:: gosnr(power, ase_noise, nli_noise, baud_rate)
+      :staticmethod:
+
+
+   .. py:method:: receiver(self, optical_signal, in_port)
+
+      Will verify that the signal can be received, then compute
+      the OSNR and gOSNR levels of the signal, and will do a
+      callback to dataplane (if run in emulation mode).
+      :param optical_signal: OpticalSignal object
+      :param in_port: int, input port
+
+
+   .. py:method:: receiver_callback(self, in_port, signalDictInfo)
+
+
+
+.. py:class:: Transceiver(tr_id, name, operation_power=0, channel_spacing_nm=0.4 * 1e-09, channel_spacing_H=50000000000.0, bandwidth=2.99792458 * 1000000000.0, modulation_format='16QAM', bits_per_symbol=4.0, symbol_rate=32000000000.0, rx_threshold_dB=20.0)
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: assoc_optical_signal(self, optical_signal)
+
+
+   .. py:method:: remove_optical_signal(self)
+
+
+   .. py:method:: set_modulation_format(self, modulation_format, tx)
+
+      Update modulation format, bits per symbol, symbol rate and
+      rx-threshold based on a modulation format label (i.e., 16QAM).
+      :param modulation_format: string i.e., '16QAM' (see units.py)
+      :param tx: boolean; True if transceiver is a transmitter
+
+
+   .. py:method:: describe(self)
+
+
+
+.. py:class:: OpticalSignal(index, channel_spacing_H, channel_spacing_nm, modulation_format, symbol_rate, bits_per_symbol, power=0, ase_noise=0, nli_noise=0)
+
+   Bases: :py:obj:`object`
+
+   .. py:attribute:: spectrum_band_init_nm
+      :annotation: = 1567.132556194459
+
+      
+
+   .. py:attribute:: spectrum_band_init_H
+      :annotation: = 191300000000000.0
+
+      
+
+   .. py:method:: describe(self)
+
+
+   .. py:method:: __repr__(self)
+
+      Return repr(self).
+
+
+   .. py:method:: assoc_loc_in(self, loc, power=None, ase_noise=None, nli_noise=None)
+
+      Associate a location to signal performance values
+      at the input interface of this point
+      :param loc: location (i.e., node, span)
+      :param power: power levels [mW] (or None for default/launch state)
+      :param ase_noise: ase levels [mW] (or None for default/launch state)
+      :param nli_noise: nli levels [mW] (or None for default/launch state)
+
+
+   .. py:method:: assoc_loc_out(self, loc, power=None, ase_noise=None, nli_noise=None)
+
+      Associate a location to signal performance values
+      at the output interface of this point
+      :param loc: location (i.e., node, span)
+      :param power: power levels [mW] (or None for default/launch state)
+      :param ase_noise: ase levels [mW] (or None for default/launch state)
+      :param nli_noise: nli levels [mW] (or None for default/launch state)
+
+
+   .. py:method:: reset(self, component=None)
+
+      Reset signal state,
+      optionally preserving output state at originating component
+
+
+   .. py:method:: set_modulation_format(self, modulation_format)
+
+
+
+.. py:data:: SwitchRule
+   
+
+   
+
+.. py:class:: Roadm(name, insertion_loss_dB=17, reference_power_dBm=0, preamp=None, boost=None, monitor_mode=None, debugger=False)
+
+   Bases: :py:obj:`Node`
+
+   This implementation of Reconfigurable Optical Add/Drop Multiplexing nodes considers
+   only common ports. That is, not including the internal connections between reconfiguration
+   components (i.e., WSSs).
+
+   .. py:method:: get_optical_signals(self)
+
+
+   .. py:method:: reset(self)
+
+
+   .. py:method:: monitor_query(self)
+
+
+   .. py:method:: include_optical_signal_in_roadm(self, optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=0)
+
+      Include optical signals in preamp if object exists, and include
+      input signals at a Node level
+      :param optical_signal: OpticalSignal object
+      :param in_port: int, input port
+
+
+   .. py:method:: remove_switch_rule(self, rule_in_port, rule_signal_index, rule_out_port)
+
+      Removes a switch rule from switch_table and removes the signal object
+      from the output port to model blocking
+
+
+   .. py:method:: check_switch_rule(self, in_port, out_port, signal_indices)
+
+      Check if there are conflicting rules switching signals with equal
+      frequencies on the same output port. If so, delete the previously
+      allocated rule, and remove the signal from the output port and
+      propagate this removal (modeling blocking that signal and cleaning
+      the data structures).
+      :param in_port: int, input port
+      :param out_port: int, output port
+      :param signal_indices: int or list, signal indices
+
+
+   .. py:method:: install_switch_rule(self, in_port, out_port, signal_indices, src_node=None)
+
+      Switching rule installation, accessible from a Control System
+      :param in_port: input port for incoming signals
+      :param out_port: switching/output port for incoming signals
+      :param signal_indices: int or list, signal index or indices
+      :param src_node: source node
+      :return:
+
+
+   .. py:method:: update_switch_rule(self, in_port, signal_index, new_port_out, switch=False)
+
+      Update/create a new rule for switching
+      :param in_port: int, input port of existing rule
+      :param signal_index: int, signal index of existing rule
+      :param new_port_out: int, new output port
+      :param switch: boolean, specify if we want to switch
+                      to avoid unecessary switching checkups
+                      in self.can_switch()
+
+
+   .. py:method:: delete_switch_rule(self, in_port, signal_index, switch=False)
+
+      Delete a switch rule from switch_table and remove the signal(s)
+      associated with that rule at a Node level. Then switch.
+      Switch rules are identified by in_port and signal_index
+      :param in_port: int, input port associated with switch rule
+      :param signal_index: int, signal index associated with switch rule
+      :param switch: boolean, , specify if we want to switch
+                      to avoid unecessary switching checkups
+                      in self.can_switch()
+
+
+   .. py:method:: delete_switch_rules(self)
+
+      Delete all switching rules
+
+
+   .. py:method:: power_divergence(self, optical_signals, in_port)
+
+      Check if the power state of the incoming signals to be switched
+      are different from the previous power state at the same input port
+
+
+   .. py:method:: get_in_port(self, optical_signal, out_port)
+
+
+   .. py:method:: can_switch(self, in_port, safe_switch)
+
+      Check if switching is possible (i.e., no loops)
+      :param in_port: int, input port triggering switching
+      :param safe_switch: boolean, indicates whether it needs
+                          to check for switch feasibility.
+
+
+   .. py:method:: can_switch_from_lt(self, src_node, safe_switch)
+
+      Check all input ports for signals coming from a LineTerminal.
+      :param src_node: LineTerminal object
+      :param safe_switch: boolean, indicates whether it needs
+                          to check for switch feasibility.
+
+
+   .. py:method:: switch(self, in_port, src_node, safe_switch=False)
+
+      Check for switch feasibility
+      Prepare switch internal configuration (i.e., preamp)
+      Propagate (physical layer simulation)
+      Route (relay signals to next Link)
+      :param in_port: int, input port triggering switching
+      :param src_node: LineTerminal, ROADM or Amplifier object
+      :param safe_switch: boolean, indicates whether it needs
+                          to check for switch feasibility.
+      Note: check for switch feasibility unless performing tasks
+          independent of switching (i.e., EDFA gain configuration).
+
+
+   .. py:method:: prepropagation(self, port_out_to_port_in_signals, src_node)
+
+      Preparing structures for propagation
+      :param port_out_to_port_in_signals: dict, hash of switch rules
+      :param src_node: LineTerminal, ROADM or Amplifier object
+
+
+   .. py:method:: compute_carrier_attenuation(self, in_port, amp=None)
+
+      Compute the total power at an input port, and
+      use it to compute the carriers attenuation
+      :param in_port: int, input port for total power calculation
+      :param amp: Amplifier object, if there are boost and preamp
+                  the signals are contained within these objects
+
+
+   .. py:method:: process_att(self, out_port, in_port, optical_signals, src_node, dst_node, link, amp=None)
+
+      Compute the attenuation effects at the ROADM
+      :param out_port: int, output port (direction of signals)
+      :param in_port: int, input port (direction of signals)
+      :param optical_signals: list of optical signals
+      :param src_node: LineTerminal or Amplifier object
+      :param dst_node: LineTerminal or Amplifier object
+      :param link: Link object (direction of signals)
+      :param amp: Amplifier object, if there are boost and preamp
+                  the signals are contained within these objects
+
+
+   .. py:method:: propagate(self, out_port, in_port, optical_signals)
+
+      Compute physical layer simulation for one direction given by the out_port
+      :param out_port: int, output port (direction of signals)
+      :param in_port: int, input port (direction of signals)
+      :param optical_signals: list of optical signals
+
+
+   .. py:method:: route(self, out_port, safe_switch)
+
+      Calling route will continue to propagate the signals in this link
+      :param out_port: int, output port indicating direction
+      :param safe_switch: boolean, indicates whether it needs
+                          to check for switch feasibility.
+
+
+   .. py:method:: set_boost_gain(self, gain_dB)
+
+      Configure the gain of the boost amplifier
+      and call fast_switch()
+      :param gain_dB: int or float, gain to set
+
+
+   .. py:method:: set_preamp_gain(self, gain_dB)
+
+      Configure the gain of the preamp amplifier
+      and call fast_switch()
+      :param gain_dB: int or float, gain to set
+
+
+   .. py:method:: set_reference_power(self, ref_power_dBm, ch_index=None)
+
+      Configure the reference power for ROADM to act upon,
+      similar to setting a VOA reference power.
+      and call fast_switch()
+      :param gain_dB: int or float, gain to set
+
+
+   .. py:method:: fast_switch(self)
+
+      Call switch for all switching rules with safe_switch=True
+
+
+
+.. py:class:: Amplifier(name, amplifier_type='EDFA', target_gain=17.6, noise_figure=(5.5, 91), noise_figure_function=None, bandwidth=32000000000.0, wdg_id=None, preamp=False, boost=False, monitor_mode=None, debugger=False)
+
+   Bases: :py:obj:`Node`
+
+   .. py:method:: reset(self)
+
+
+   .. py:method:: monitor_query(self)
+
+
+   .. py:method:: reset_gain(self)
+
+
+   .. py:method:: power_excursions_flags_off(self)
+
+
+   .. py:method:: load_wavelength_dependent_gain(self, wdg_id)
+
+      :param wdg_id: file name id (see top of script) - string
+      :return: Return wavelength dependent gain array
+
+
+   .. py:method:: set_ripple_function(self, wdg_id)
+
+      Update attribute self.wavelength_dependent_gain with
+      wdg_id
+
+
+   .. py:method:: get_wavelength_dependent_gain(self, signal_index)
+
+      Retrieve WDG by signal index
+      :param signal_index:
+      :return: WDG of signal
+
+
+   .. py:method:: get_noise_figure(noise_figure, noise_figure_function)
+      :staticmethod:
+
+      If noise figure is not passed as a function, create one
+      with constant values from established NF (default value is 6 dB)
+      :param noise_figure: tuple with NF value in dB and number of channels (def. 90)
+      :param noise_figure_function: custom NF function with values in dB
+      :return:
+
+
+   .. py:method:: output_amplified_power(self, optical_signal)
+
+      Compute the output power levels of each signal after amplification
+      :param optical_signal: signal object
+
+
+   .. py:method:: nli_compensation(self, optical_signal)
+
+      Apply the amplification effects to the NLI noise and
+      update EDFA and OpticalSignal state date structures
+
+
+   .. py:method:: stage_amplified_spontaneous_emission_noise(self, optical_signal)
+
+      :return:
+      Ch.5 Eqs. 4-16,18 in: Gumaste A, Antony T. DWDM network designs and engineering solutions. Cisco Press; 2003.
+
+
+   .. py:method:: compute_power_excursions(self, optical_signals)
+
+      Balance system gain with respect with the mean
+      gain of the signals in the amplifier: power excursions
+      :return:
+
+
+   .. py:method:: propagate(self, optical_signals, is_last_port=False, safe_switch=False)
+
+      Compute the amplification process
+      :param optical_signals: list
+
+
+   .. py:method:: set_gain(self, gain_dB)
+
+      Configure the gain attributes
+
+
+   .. py:method:: __repr__(self)
+
+      String representation
+
+
+   .. py:method:: mock_amp_gain_adjust(self, new_gain)
+
+
+
+.. py:class:: Monitor(name, component, mode='out')
+
+   Bases: :py:obj:`Node`
+
+   This implementation of Monitors could be used for ROADMs and Amplifiers.
+   FIXME: implementation of ports for Monitors
+
+   .. py:method:: modify_mode(self, mode)
+
+      Change the monitoring interface;
+      options are 'in' and 'out'
+
+
+   .. py:method:: get_optical_signals(self, port=None)
+
+      :return power: Returns Optical signals for the required objects
+
+
+   .. py:method:: get_list_osnr(self)
+
+      Get the OSNR values at this OPM as a list of tuples (optical signal, OSNR)
+
+
+   .. py:method:: get_dict_osnr(self)
+
+      Get the OSNR values at this OPM as a dictionary {optical signal: OSNR}
+
+
+   .. py:method:: get_list_gosnr(self)
+
+      Get the gOSNR values at this OPM as a list of tuples (optical signal, gOSNR)
+
+
+   .. py:method:: get_dict_gosnr(self)
+
+      Get the gOSNR values at this OPM as a dictionary {optical signal: gOSNR}
+
+
+   .. py:method:: get_ber(self, ber_method=None)
+
+      AD: We need to check this function
+      Get's the bit error rate based on gOSNR
+      :return: BitErrorRate at this OPM
+      Calculates Bit Error Rate based on equations from F. Forghieri
+      doi: 10.1109/JLT.1012.2.2189198
+
+
+   .. py:method:: get_dict_power(self)
+
+      Get the power values at this OPM as a dict
+
+
+   .. py:method:: get_power(self, optical_signal)
+
+
+   .. py:method:: get_dict_ase_noise(self)
+
+      Get the ASE noise values at this OPM as a dict
+
+
+   .. py:method:: get_ase_noise(self, optical_signal)
+
+
+   .. py:method:: get_dict_nli_noise(self)
+
+      Get the NLI noise values at this OPM as a dict
+
+
+   .. py:method:: get_nli_noise(self, optical_signal)
+
+
+   .. py:method:: get_osnr(self, optical_signal)
+
+      Compute OSNR levels of the signal
+      :param optical_signal: OpticalSignal object
+      :return: OSNR (linear)
+
+
+   .. py:method:: get_gosnr(self, optical_signal)
+
+      Compute gOSNR levels of the signal
+      :param optical_signal: OpticalSignal object
+      :return: gOSNR (linear)
+
+
+   .. py:method:: __repr__(self)
+
+      Human-readable representation
+
+
+
+.. py:class:: SignalTracing
+
+   Routines for Signal tracing and debugging
+
+   .. py:attribute:: pathEntry
+      
+
+      
+
+   .. py:method:: get_port(node, signal, in_out='out')
+      :staticmethod:
+
+
+   .. py:method:: signal_path(node, signal)
+      :staticmethod:
+
+      Return signal path [node, link, node....]
+      for signal, starting from node
+      node: starting Node
+      signal: OpticalSignal
+      missing: value to return for missing state
+
+
+   .. py:method:: channel_paths(node, channel=None)
+      :staticmethod:
+
+      Return signal paths for channel
+      node: starting Node
+      channel: signal index to match (or None to match all)
+      returns: [path,...]
+
+
+   .. py:method:: path_state(signal, path, missing=None)
+      :staticmethod:
+
+      Return signal's state along a path
+
+
+
+.. py:class:: NodeAuditing
+
+   WIP: Auditing class with propagation checks
+
+   .. py:method:: check_roadm_propagation(roadm)
+      :staticmethod:
+
+      Check ROADM propagation and report errors
+
+
+   .. py:method:: check_link_propagation(link)
+      :staticmethod:
+
+      Check link propagation and report errors
+
+
+

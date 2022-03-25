@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.lumentum_NETCONF_API &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.lumentum_NETCONF_API">
+<span id="mnoptical-ofcdemo-lumentum-netconf-api"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="mnoptical.ofcdemo.lumentum_NETCONF_API"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="Permalink to this headline">¶</a></h1>
+<p>Lumentum ROADM 20 Control API</p>
+<p>Author:   Jiakai Yu (<a class="reference external" href="mailto:jiakaiyu&#37;&#52;&#48;email&#46;arizona&#46;edu">jiakaiyu<span>&#64;</span>email<span>&#46;</span>arizona<span>&#46;</span>edu</a>)
+Created:  2019/03/09
+Version:  2.1</p>
+<p>Last modified by Jiakai: 2020/08/11
+Cleaned up slightly by BL: 2022</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict" title="mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xmltodict</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum" title="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF" title="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_NETCONF</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME" title="mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">USERNAME</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.PASSWORD" title="mnoptical.ofcdemo.lumentum_NETCONF_API.PASSWORD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PASSWORD</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API.</span></span><span class="sig-name descname"><span class="pre">xmltodict</span></span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict.parse">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xml</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict.parse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API.</span></span><span class="sig-name descname"><span class="pre">USERNAME</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">superuser</span></em><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.PASSWORD">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API.</span></span><span class="sig-name descname"><span class="pre">PASSWORD</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">Sup%9User</span></em><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.PASSWORD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API.</span></span><span class="sig-name descname"><span class="pre">Lumentum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP_addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">USERNAME</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PASSWORD</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WSSConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnectionStatus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WSSConnectionStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ne</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chassis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">card</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnectionStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnection" title="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum.WSSConnection</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnectionStatus.from_connection_details">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_connection_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_details</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.WSSConnectionStatus.from_connection_details" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.connections">
+<span class="sig-name descname"><span class="pre">connections</span></span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.connections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.cleanup">
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.lookup">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up path in a dict tree and return the result
+note for /some/0/path ‘0’ is looked up as an int</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.lookupstr">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lookupstr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.lookupstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up path and node and return it as a string</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.edfa_status">
+<span class="sig-name descname"><span class="pre">edfa_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.edfa_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return status of Boost and Preamp EDFAs</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.ALS_disable">
+<span class="sig-name descname"><span class="pre">ALS_disable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.ALS_disable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.edfa_config">
+<span class="sig-name descname"><span class="pre">edfa_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctrl_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_gain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tilt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ALS</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.edfa_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_add_connections">
+<span class="sig-name descname"><span class="pre">wss_add_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connections</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_add_connections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_delete_connection">
+<span class="sig-name descname"><span class="pre">wss_delete_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_delete_connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_get_connections">
+<span class="sig-name descname"><span class="pre">wss_get_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.wss_get_connections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.freqRangeGHz">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">freqRangeGHz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.freqRangeGHz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return frequency range (startGHz, endGHz) for channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.gen_dwdm_connections">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gen_dwdm_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.gen_dwdm_connections" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>module</strong> – </p></li>
+<li><p><strong>input_port</strong> – </p></li>
+<li><p><strong>output_port</strong> – </p></li>
+<li><p><strong>channel_spacing</strong> – in GHz</p></li>
+<li><p><strong>channel_width</strong> – in GHz</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API.</span></span><span class="sig-name descname"><span class="pre">Lumentum_NETCONF</span></span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF._ConfigWSS">
+<span class="sig-name descname"><span class="pre">_ConfigWSS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attenuation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF._ConfigWSS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF.parseConnections">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parseConnections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connections</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF.parseConnections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return wss_info</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF._WSSMonitor">
+<span class="sig-name descname"><span class="pre">_WSSMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ip</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF._WSSMonitor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/lumentum_NETCONF_API/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

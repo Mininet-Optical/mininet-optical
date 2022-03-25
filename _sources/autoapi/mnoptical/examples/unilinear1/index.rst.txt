@@ -1,0 +1,154 @@
+:py:mod:`mnoptical.examples.unilinear1`
+=======================================
+
+.. py:module:: mnoptical.examples.unilinear1
+
+.. autoapi-nested-parse::
+
+   unilinear1.py: unidirectional linear network with
+                  1-degree ROADMs and split Terminal uplink/downlink.
+
+   This may be more complicated than what we
+   actually want. We are using the base unidirectional
+   ROADMs without any interconnection between them,
+   in order to avoid the looping bug in the simulator.
+
+   This does have the nice feature of minimizing ports at
+   the expense of cabling complexity.
+
+   An alternate design, simpler in some ways, is to
+   interconnect the ROADMs vertically to create real
+   2-degree, bi-directional ROADMs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.unilinear1.OpticalTopo
+   mnoptical.examples.unilinear1.UniLinearTopo
+   mnoptical.examples.unilinear1.CLI
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.unilinear1.config
+   mnoptical.examples.unilinear1.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.unilinear1.topo
+
+
+.. py:class:: OpticalTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Topo with convenience methods for optical networks
+
+   .. py:method:: wdmLink(self, node1, node2, port1, port2, **kwargs)
+
+      Convenience function to add a unidirectional link
+
+
+   .. py:method:: ethLink(self, *args, **kwargs)
+
+      Clarifying alias for addLink
+
+
+   .. py:method:: addTerminal(self, *args, **kwargs)
+
+      Convenience alias for addSwitch( ... cls=Terminal )
+
+
+   .. py:method:: addROADM(self, *args, **kwargs)
+
+      Convenience alias for addSwitch( ... cls=ROADM )
+
+
+
+.. py:class:: UniLinearTopo
+
+   Bases: :py:obj:`OpticalTopo`
+
+   A linear network connected by two strings of
+   unidirectional ROADMs in opposite directions.
+
+   .. py:attribute:: linein
+      :annotation: = 1
+
+      
+
+   .. py:attribute:: lineout
+      :annotation: = 2
+
+      
+
+   .. py:method:: addport(self, dst)
+
+
+   .. py:method:: dropport(self, src)
+
+
+   .. py:method:: ethport(self, dst)
+
+
+   .. py:method:: uplink(self, dst)
+
+
+   .. py:method:: downlink(self, src)
+
+
+   .. py:method:: build(self, power=0 * dBm, nodecount=3)
+
+      Create a unidirectional linear network with the specified
+      operational power and node and transceiver counts
+
+
+
+.. py:function:: config(net, mesh=False, root=1)
+
+   Configure linear, unidirectional network
+   mesh: configure full mesh? False
+   root: root node of star topology if not mesh
+   Routing strategy:
+   - We assign a channel to each (src, dst) pair to avoid conflicts.
+   - For the star topology, we root everything at root.
+   - For the full mesh, we route signals eastbound or westbound
+     as needed.
+
+
+.. py:class:: CLI
+
+   Bases: :py:obj:`mnoptical.ofcdemo.demolib.OpticalCLI`
+
+   CLI with config command
+
+   .. py:method:: do_config(self, _line)
+
+
+
+.. py:function:: test(net)
+
+   Configure and test network
+
+
+.. py:data:: topo
+   
+
+   
+

@@ -1,0 +1,26 @@
+:py:mod:`mnoptical.topo.ofc_demo`
+=================================
+
+.. py:module:: mnoptical.topo.ofc_demo
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.ofc_demo.build
+
+
+
+.. py:function:: build(op=0, n=6)
+
+   :param op: operational power in dBm
+   :param n: number of nodes (integer)
+   :return: Network object
+
+

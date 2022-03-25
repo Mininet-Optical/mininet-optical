@@ -1,0 +1,35 @@
+:py:mod:`mnoptical`
+===================
+
+.. py:module:: mnoptical
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   examples/index.rst
+   ofcdemo/index.rst
+   topo/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   dataplane/index.rst
+   edfa_params/index.rst
+   link/index.rst
+   network/index.rst
+   node/index.rst
+   rest/index.rst
+   terminal_params/index.rst
+   units/index.rst
+   visualization/index.rst
+   visualize_topo/index.rst
+
+

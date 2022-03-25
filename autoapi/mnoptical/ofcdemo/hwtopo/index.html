@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.hwtopo &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.hwtopo">
+<span id="mnoptical-ofcdemo-hwtopo"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.hwtopo" title="mnoptical.ofcdemo.hwtopo"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.hwtopo</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.hwtopo" title="Permalink to this headline">¶</a></h1>
+<p>hwtopo.py: hardware-like topology for OFC 2021 demo</p>
+<p>Implements LumentumLinear, a topology intended to
+mimic the hardware testbed topology for the OFC 2021
+demo.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.Lumentum" title="mnoptical.ofcdemo.hwtopo.Lumentum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum</span></code></a></p></td>
+<td><p>Add default netconf username and password</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.MUX" title="mnoptical.ofcdemo.hwtopo.MUX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MUX</span></code></a></p></td>
+<td><p>A MUX is just the mux part of a roadm</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear" title="mnoptical.ofcdemo.hwtopo.LumentumLinear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LumentumLinear</span></code></a></p></td>
+<td><p>Demo-like topology of lumentum-like ROADMs:</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.configComb" title="mnoptical.ofcdemo.hwtopo.configComb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configComb</span></code></a>(net, chbase=1)</p></td>
+<td><p>Statically configure Terminal + mux into 'comb source'</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.netconfPortBase" title="mnoptical.ofcdemo.hwtopo.netconfPortBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">netconfPortBase</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.topo" title="mnoptical.ofcdemo.hwtopo.topo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">topo</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.netconfPortBase">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">netconfPortBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">1830</span></em><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.netconfPortBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.Lumentum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">Lumentum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">netconfPort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.Lumentum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../lroadm/index.html#mnoptical.ofcdemo.lroadm.LROADM" title="mnoptical.ofcdemo.lroadm.LROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.lroadm.LROADM</span></code></a></p>
+<p>Add default netconf username and password</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.Lumentum.username">
+<span class="sig-name descname"><span class="pre">username</span></span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.Lumentum.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.Lumentum.password">
+<span class="sig-name descname"><span class="pre">password</span></span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.Lumentum.password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.MUX">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">MUX</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.MUX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../dataplane/index.html#mnoptical.dataplane.ROADM" title="mnoptical.dataplane.ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mnoptical.dataplane.ROADM</span></code></a></p>
+<p>A MUX is just the mux part of a roadm</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">LumentumLinear</span></span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.topo.Topo</span></code></p>
+<dl class="simple">
+<dt>Demo-like topology of lumentum-like ROADMs:</dt><dd><p>L1 === L2-L3 === L4-L5 ==== L6</p>
+</dd>
+</dl>
+<p>Also multiplexes transceivers into single add/drop
+ports to mirror comb source in COSMOS testbed.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.addport">
+<span class="sig-name descname"><span class="pre">addport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.addport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.dropport">
+<span class="sig-name descname"><span class="pre">dropport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.dropport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.wdmLink">
+<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.wdmLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a (default unidirectional) WDM link</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.hostname">
+<span class="sig-name descname"><span class="pre">hostname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.hostname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optionally return alternate hostname for host i</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodecount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txcount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build demo-like topology</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.configComb">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">configComb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chbase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.configComb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Statically configure Terminal + mux into ‘comb source’
+to model testbed hardware</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.topo">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.hwtopo.</span></span><span class="sig-name descname"><span class="pre">topo</span></span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.topo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/hwtopo/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

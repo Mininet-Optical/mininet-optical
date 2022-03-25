@@ -1,0 +1,114 @@
+:py:mod:`mnoptical.ofcdemo.Control_Test_Lum`
+============================================
+
+.. py:module:: mnoptical.ofcdemo.Control_Test_Lum
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Control_Test_Lum.Lumentum_Control_NETCONF
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Control_Test_Lum.Control_Test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Control_Test_Lum.m
+   mnoptical.ofcdemo.Control_Test_Lum.NUM_WAV
+   mnoptical.ofcdemo.Control_Test_Lum.NUM_NODE
+   mnoptical.ofcdemo.Control_Test_Lum.THRUPORT
+   mnoptical.ofcdemo.Control_Test_Lum.ADD_DROP
+   mnoptical.ofcdemo.Control_Test_Lum.Lumentum_NETCONF_Agent
+   mnoptical.ofcdemo.Control_Test_Lum.AllLumName
+   mnoptical.ofcdemo.Control_Test_Lum.NodeLink_to_LumentumLink
+   mnoptical.ofcdemo.Control_Test_Lum.LumentumName_to_IP
+
+
+.. py:data:: m
+   :annotation: = 0.001
+
+   
+
+.. py:data:: NUM_WAV
+   :annotation: = 40
+
+   
+
+.. py:data:: NUM_NODE
+   :annotation: = 5
+
+   
+
+.. py:data:: THRUPORT
+   :annotation: = 4
+
+   
+
+.. py:data:: ADD_DROP
+   :annotation: = 1
+
+   
+
+.. py:data:: Lumentum_NETCONF_Agent
+   
+
+   
+
+.. py:data:: AllLumName
+   :annotation: = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6']
+
+   
+
+.. py:data:: NodeLink_to_LumentumLink
+   
+
+   
+
+.. py:data:: LumentumName_to_IP
+   
+
+   
+
+.. py:class:: Lumentum_Control_NETCONF
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: installPath(self, path, lightpathID, channel)
+
+      Install switch rules on roadms along a lightpath with a signal channel
+
+
+   .. py:method:: uninstallPath(self, path, lightpathID)
+
+      delete switch rules on roadms along a lightpath for some signal channels
+
+
+   .. py:method:: cleanAllROADMs(self)
+
+
+   .. py:method:: channel_monitor(self, path, lightpathID)
+
+
+
+.. py:function:: Control_Test()
+
+   Set up a lightpath from r4 to r1 bidirectionally with channel 5
+
+

@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.visualize_topo &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.visualize_topo">
+<span id="mnoptical-visualize-topo"></span><h1><a class="reference internal" href="#module-mnoptical.visualize_topo" title="mnoptical.visualize_topo"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.visualize_topo</span></code></a><a class="headerlink" href="#module-mnoptical.visualize_topo" title="Permalink to this headline">¶</a></h1>
+<p>This File creates a Topology visualization using the Network object using Dash which builts upon react.js and flask</p>
+<p>Requirements:</p>
+<p>pip install dash
+pip install dash-cytoscape</p>
+<p>Use the import statement</p>
+<p>from mnoptical.visualize_topo import visualize_topology</p>
+<p>Call the function visualize_topology(&lt;Network class&gt;)</p>
+<p>Open <a class="reference external" href="http://127.0.0.1:8050">http://127.0.0.1:8050</a> in the browser after calling the function</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.visualize_topo.extract_power" title="mnoptical.visualize_topo.extract_power"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_power</span></code></a>(component, mode='in')</p></td>
+<td><p>:param component : Component (Amplifiers, ROADM) for which power needs to be extracted</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.visualize_topo.visualize_topology" title="mnoptical.visualize_topo.visualize_topology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize_topology</span></code></a>(net)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param net</dt>
+<dd class="field-odd"><p>Network Object</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.visualize_topo.visualize" title="mnoptical.visualize_topo.visualize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visualize</span></code></a>(net)</p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">param net</dt>
+<dd class="field-odd"><p>Network Object</p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.visualize_topo.extract_power">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.visualize_topo.</span></span><span class="sig-name descname"><span class="pre">extract_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.visualize_topo.extract_power" title="Permalink to this definition">¶</a></dt>
+<dd><p>:param component : Component (Amplifiers, ROADM) for which power needs to be extracted
+:param mode: The power values to extracted from input or output mode
+:return signal_index: Returns signal_index (channel index used for transmission)
+:return power: Returns power (power values at the port in transmission)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.visualize_topo.visualize_topology">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.visualize_topo.</span></span><span class="sig-name descname"><span class="pre">visualize_topology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.visualize_topo.visualize_topology" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>net</strong> – Network Object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Calls the Network Visualization function in a separate thread</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.visualize_topo.visualize">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.visualize_topo.</span></span><span class="sig-name descname"><span class="pre">visualize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.visualize_topo.visualize" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>net</strong> – Network Object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Creates a server accessible at <a class="reference external" href="http://127.0.0.1:8050">http://127.0.0.1:8050</a> with Network Topology</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../_sources/autoapi/mnoptical/visualize_topo/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Mininet-Optical Installation and Walkthrough &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Mininet-Optical Prototype and Demo" href="README.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mininet-optical-installation-and-walkthrough">
+<h1>Mininet-Optical Installation and Walkthrough<a class="headerlink" href="#mininet-optical-installation-and-walkthrough" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the Mininet-Optical walkthrough. After finishing this walkthrough, you should be able
+to use the basic Mininet-Optical commands and execute a basic Mininet-Optical topology
+python script. You will also get acquainted with control plane configuration using <code class="docutils literal notranslate"><span class="pre">curl(1)</span></code>
+commands to create forwarding rules and launch your signals.</p>
+<section id="setting-up-mininet-optical">
+<h2>Setting up Mininet-Optical<a class="headerlink" href="#setting-up-mininet-optical" title="Permalink to this headline">¶</a></h2>
+<p>Since Mininet-Optical is built on top of Mininet, you need to install and successfully test
+Mininet before proceeding to work with Mininet-Optical. In this section, you will find the
+procedure to install the base Mininet network emulator as well as Mininet-Optical.</p>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<p>This walkthrough is designed for Ubuntu/Debian, but may be adjusted for other Linux distributions.</p>
+<p>On Ubuntu/Debian, run the following commands before installing Mininet and Mininet-Optical:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo apt-get update
+$ sudo apt-get install python3 python3-pip git
+</pre></div>
+</div>
+</section>
+<section id="installing-mininet">
+<h3>Installing Mininet<a class="headerlink" href="#installing-mininet" title="Permalink to this headline">¶</a></h3>
+<p>To install natively from source, clone the source code repository:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone git://github.com/mininet/mininet
+</pre></div>
+</div>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">git</span></code> command above will check out the latest and greatest Mininet (which we
+recommend!) If you want to run the last tagged/released version of Mininet - or any other
+version - you may check that version out explicitly:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd mininet
+$ git tag  # list available versions
+$ git checkout -b mininet-2.3.0 2.3.0  # Mininet-Optical requires Mininet 2.3.0 or later
+$ cd ..
+</pre></div>
+</div>
+<p>Once you have the source tree, the command to install Mininet is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./mininet/util/install.sh -nfv
+</pre></div>
+</div>
+<p>To test the Mininet functionality, run:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mn --switch ovsbr --test pingall
+</pre></div>
+</div>
+<p>For any issue encountered during the Mininet installation, or to check
+the other installation option and commands, we suggest consulting the
+<a class="reference external" href="http://mininet.org/">Mininet documentation</a>.</p>
+</section>
+<section id="installing-mininet-optical">
+<h3>Installing Mininet-Optical<a class="headerlink" href="#installing-mininet-optical" title="Permalink to this headline">¶</a></h3>
+<p>Once Mininet is up and running, you will need to clone the
+Mininet-Optical repository using the following commands:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/UA-Agile-Cloud/optical-network-emulator
+$ cd optical-network-emulator
+$ make depend
+$ make install
+</pre></div>
+</div>
+</section>
+</section>
+<section id="running-a-simple-mininet-optical-script">
+<h2>Running a simple Mininet-Optical script<a class="headerlink" href="#running-a-simple-mininet-optical-script" title="Permalink to this headline">¶</a></h2>
+<p>In this section, you will learn to create, configure and run a
+topology in Mininet-Optical representing the simplest fully emulated
+packet-optical network that we can create. The topology used here is
+called <code class="docutils literal notranslate"><span class="pre">SingleLinkTopo</span></code> and consists of 2 hosts, 2 switches, 2
+terminals separated by 2x25km spans with an EDFA in the middle:</p>
+<p>h1 - s1 - t1 - (boost-&gt;,amp2&lt;-) –25km– amp1 –25km– (-&gt;amp2,&lt;-boost) - t1 - s2 - h2</p>
+<p>To run this topology:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/optical-network-emulator
+$ sudo python3 examples/singlelink.py
+</pre></div>
+</div>
+<p>If the execution is successful, you should see the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>*** Creating network
+*** Adding controller
+*** Adding hosts:
+h1 h2
+*** Adding switches:
+s1 s2 t1 t2
+*** Adding links:
+(h1, s1) (h2, s2) (s1, t1) (s2, t2)
+*** Configuring hosts
+h1 h2
+*** Starting controller
+
+*** Starting 4 switches
+s1 s2 t1 t2 .........
+
+single-link.py: single link between two terminals
+
+This is a slightly more complicated single-link topology.
+
+Some complexity is added by a span consisting of two 25km
+fiber segments with boost amplifiers and compensating amplifiers,
+as well as monitors for the terminals.
+
+Also the hosts are now connected to an Ethernet switch rather
+than directly to the terminals/transceivers.
+
+To configure the optical network using the REST API:
+
+mn=localhost:8080; t1=$mn; t2=$mn
+curl &quot;$t1/connect?node=t1&amp;ethPort=1&amp;wdmPort=2&amp;channel=1&#39;
+curl &quot;$t2/connect?node=t2&amp;ethPort=1&amp;wdmPort=2&amp;channel=1&#39;
+curl &quot;$t1/turn_on?node=t1&#39;
+curl &quot;$t2/turn_on?node=t2&#39;
+*** Starting CLI:
+mininet-optical&gt;
+</pre></div>
+</div>
+<p>At this point the topology is created, but routing from Host <code class="docutils literal notranslate"><span class="pre">h1</span></code>
+to Host <code class="docutils literal notranslate"><span class="pre">h2</span></code> is still not possible since no rules have been given to the
+devices and no signals have been launched.  However, it is still
+possible to run several commands to check the topology and components.</p>
+<section id="mininet-optical-commands">
+<h3>Mininet-Optical commands<a class="headerlink" href="#mininet-optical-commands" title="Permalink to this headline">¶</a></h3>
+<p>Nodes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">nodes</span>
+<span class="n">available</span> <span class="n">nodes</span> <span class="n">are</span><span class="p">:</span>
+<span class="n">h1</span> <span class="n">h2</span> <span class="n">s1</span> <span class="n">s2</span> <span class="n">t1</span> <span class="n">t1</span><span class="o">-</span><span class="n">monitor</span> <span class="n">t2</span> <span class="n">t2</span><span class="o">-</span><span class="n">monitor</span>
+</pre></div>
+</div>
+<p>Network:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">net</span>
+<span class="n">h1</span> <span class="n">h1</span><span class="o">-</span><span class="n">eth0</span><span class="p">:</span><span class="n">s1</span><span class="o">-</span><span class="n">eth1</span>
+<span class="n">h2</span> <span class="n">h2</span><span class="o">-</span><span class="n">eth0</span><span class="p">:</span><span class="n">s2</span><span class="o">-</span><span class="n">eth1</span>
+<span class="n">s1</span> <span class="n">lo</span><span class="p">:</span>  <span class="n">s1</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="n">h1</span><span class="o">-</span><span class="n">eth0</span> <span class="n">s1</span><span class="o">-</span><span class="n">eth2</span><span class="p">:</span><span class="n">t1</span><span class="o">-</span><span class="n">eth1</span>
+<span class="n">s2</span> <span class="n">lo</span><span class="p">:</span>  <span class="n">s2</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="n">h2</span><span class="o">-</span><span class="n">eth0</span> <span class="n">s2</span><span class="o">-</span><span class="n">eth2</span><span class="p">:</span><span class="n">t2</span><span class="o">-</span><span class="n">eth1</span>
+<span class="n">t1</span> <span class="n">lo</span><span class="p">:</span>  <span class="n">t1</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="n">s1</span><span class="o">-</span><span class="n">eth2</span> <span class="n">t1</span><span class="o">-</span><span class="n">wdm2</span><span class="p">:</span><span class="n">t2</span><span class="o">-</span><span class="n">wdm2</span>
+<span class="n">t2</span> <span class="n">lo</span><span class="p">:</span>  <span class="n">t2</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="n">s2</span><span class="o">-</span><span class="n">eth2</span> <span class="n">t2</span><span class="o">-</span><span class="n">wdm2</span><span class="p">:</span><span class="n">t1</span><span class="o">-</span><span class="n">wdm2</span>
+<span class="n">t1</span><span class="o">-</span><span class="n">monitor</span>
+<span class="n">t2</span><span class="o">-</span><span class="n">monitor</span>
+</pre></div>
+</div>
+<p>Node information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">dump</span>
+<span class="o">&lt;</span><span class="n">Host</span> <span class="n">h1</span><span class="p">:</span> <span class="n">h1</span><span class="o">-</span><span class="n">eth0</span><span class="p">:</span><span class="mf">10.0</span><span class="o">.</span><span class="mf">0.1</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3422</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">Host</span> <span class="n">h2</span><span class="p">:</span> <span class="n">h2</span><span class="o">-</span><span class="n">eth0</span><span class="p">:</span><span class="mf">10.0</span><span class="o">.</span><span class="mf">0.2</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3424</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">OVSBridge</span> <span class="n">s1</span><span class="p">:</span> <span class="n">lo</span><span class="p">:</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">,</span><span class="n">s1</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="n">s1</span><span class="o">-</span><span class="n">eth2</span><span class="p">:</span><span class="kc">None</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3429</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">OVSBridge</span> <span class="n">s2</span><span class="p">:</span> <span class="n">lo</span><span class="p">:</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">,</span><span class="n">s2</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="n">s2</span><span class="o">-</span><span class="n">eth2</span><span class="p">:</span><span class="kc">None</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3432</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">Terminal</span> <span class="n">t1</span><span class="p">:</span> <span class="n">lo</span><span class="p">:</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">,</span><span class="n">t1</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="n">t1</span><span class="o">-</span><span class="n">wdm2</span><span class="p">:</span><span class="kc">None</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3438</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">Terminal</span> <span class="n">t2</span><span class="p">:</span> <span class="n">lo</span><span class="p">:</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">,</span><span class="n">t2</span><span class="o">-</span><span class="n">eth1</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span><span class="n">t2</span><span class="o">-</span><span class="n">wdm2</span><span class="p">:</span><span class="kc">None</span> <span class="n">pid</span><span class="o">=</span><span class="mi">3442</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">dataplane</span><span class="o">.</span><span class="n">Monitor</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x7efe3c561e20</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">dataplane</span><span class="o">.</span><span class="n">Monitor</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x7efe3c577370</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>OSNR:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">osnr</span>
+<span class="o">&lt;</span><span class="n">name</span><span class="p">:</span> <span class="n">t1</span><span class="o">-</span><span class="n">monitor</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="n">t1</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="ow">in</span><span class="o">&gt;</span><span class="p">:</span>
+<span class="o">&lt;</span><span class="n">name</span><span class="p">:</span> <span class="n">t2</span><span class="o">-</span><span class="n">monitor</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="n">t2</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="ow">in</span><span class="o">&gt;</span><span class="p">:</span>
+</pre></div>
+</div>
+<p>Since no signals have been launched and no configuration has been set, the OSNR command doesn’t display
+anything.</p>
+<p>We can try to ping the hosts, but this will not succeed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">pingall</span>
+<span class="o">***</span> <span class="n">Ping</span><span class="p">:</span> <span class="n">testing</span> <span class="n">ping</span> <span class="n">reachability</span>
+<span class="n">h1</span> <span class="o">-&gt;</span> <span class="n">X</span>
+<span class="n">h2</span> <span class="o">-&gt;</span> <span class="n">X</span>
+<span class="o">***</span> <span class="n">Results</span><span class="p">:</span> <span class="mi">100</span><span class="o">%</span> <span class="n">dropped</span> <span class="p">(</span><span class="mi">0</span><span class="o">/</span><span class="mi">2</span> <span class="n">received</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All the Mininet-Optical commands can be found in the <a class="reference external" href="https://github.com/UA-Agile-Cloud/optical-network-emulator/tree/master/mnoptical/ofcdemo/demolib.py#L35"><code class="docutils literal notranslate"><span class="pre">OpticalCLI</span></code> class</a>.</p>
+<p>Mininet’s regular CLI commands are also supported.</p>
+</section>
+<section id="setting-up-routes">
+<h3>Setting up routes<a class="headerlink" href="#setting-up-routes" title="Permalink to this headline">¶</a></h3>
+<p>To create the routes and activate the hosts, open another terminal window, and run the following
+script:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/optical-network-emulator/examples
+$ ./config-singlelink.sh
+</pre></div>
+</div>
+<p>This script will configure the optial <code class="docutils literal notranslate"><span class="pre">Terminal</span></code>s and launch signals at their transceiver.
+The result on the Mininet-Optical window should look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>*** t1.turn_on &lt;ch1:191.35THz&gt; on port 2
+*** t2 receiving &lt;ch1:191.35THz&gt; at port 2: Success! gOSNR: 22.708129 dB OSNR: 45.402202 dB
+*** t2.turn_on &lt;ch1:191.35THz&gt; on port 2
+*** t1 receiving &lt;ch1:191.35THz&gt; at port 2: Success! gOSNR: 22.708129 dB OSNR: 45.402202 dB
+</pre></div>
+</div>
+<p>Now, you can run the <code class="docutils literal notranslate"><span class="pre">osnr</span></code> command again and see:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">osnr</span>
+<span class="o">&lt;</span><span class="n">name</span><span class="p">:</span> <span class="n">t1</span><span class="o">-</span><span class="n">monitor</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="n">t1</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="ow">in</span><span class="o">&gt;</span><span class="p">:</span>
+<span class="o">&lt;</span><span class="n">ch1</span><span class="p">:</span><span class="mf">191.35</span><span class="n">THz</span><span class="o">&gt;</span> <span class="n">OSNR</span><span class="p">:</span> <span class="mf">45.40</span> <span class="n">dB</span> <span class="n">gOSNR</span><span class="p">:</span> <span class="mf">22.71</span> <span class="n">dB</span>
+<span class="o">&lt;</span><span class="n">name</span><span class="p">:</span> <span class="n">t2</span><span class="o">-</span><span class="n">monitor</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="n">t2</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="ow">in</span><span class="o">&gt;</span><span class="p">:</span>
+<span class="o">&lt;</span><span class="n">ch1</span><span class="p">:</span><span class="mf">191.35</span><span class="n">THz</span><span class="o">&gt;</span> <span class="n">OSNR</span><span class="p">:</span> <span class="mf">45.40</span> <span class="n">dB</span> <span class="n">gOSNR</span><span class="p">:</span> <span class="mf">22.71</span> <span class="n">dB</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ping</span></code> command should give you:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">pingall</span>
+<span class="o">***</span> <span class="n">Ping</span><span class="p">:</span> <span class="n">testing</span> <span class="n">ping</span> <span class="n">reachability</span>
+<span class="n">h1</span> <span class="o">-&gt;</span> <span class="n">h2</span>
+<span class="n">h2</span> <span class="o">-&gt;</span> <span class="n">h1</span>
+<span class="o">***</span> <span class="n">Results</span><span class="p">:</span> <span class="mi">0</span><span class="o">%</span> <span class="n">dropped</span> <span class="p">(</span><span class="mi">2</span><span class="o">/</span><span class="mi">2</span> <span class="n">received</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point, the topology is created and configured.</p>
+<p>To reset the configuration of your devices in order to run a different controller or change rules, run:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; reset
+</pre></div>
+</div>
+<p>To exit the Mininet-Optical CLI, use the command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; exit
+</pre></div>
+</div>
+</section>
+</section>
+<section id="congratulations">
+<h2>Congratulations!<a class="headerlink" href="#congratulations" title="Permalink to this headline">¶</a></h2>
+<p>You have completed the Mininet-Optical walkthrough.</p>
+<p>This example has shown a very simple link configuration with two
+terminals. Check out the <a class="reference external" href="https://github.com/UA-Agile-Cloud/optical-network-emulator/tree/master/mnoptical/examples"><code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory</a> for other
+examples, including how to create and configure ROADMs and how to
+emulate larger topologies using Mininet-Optical.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mininet-Optical Installation and Walkthrough</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up-mininet-optical">Setting up Mininet-Optical</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-a-simple-mininet-optical-script">Running a simple Mininet-Optical script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#congratulations">Congratulations!</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="README.html" title="previous chapter">Mininet-Optical Prototype and Demo</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/walkthrough.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

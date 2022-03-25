@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.examples.lroadmring &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.examples.lroadmring">
+<span id="mnoptical-examples-lroadmring"></span><h1><a class="reference internal" href="#module-mnoptical.examples.lroadmring" title="mnoptical.examples.lroadmring"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.examples.lroadmring</span></code></a><a class="headerlink" href="#module-mnoptical.examples.lroadmring" title="Permalink to this headline">¶</a></h1>
+<p>lroadmring.py: ring test topology for LROADM</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.LumentumBase" title="mnoptical.examples.lroadmring.LumentumBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LumentumBase</span></code></a></p></td>
+<td><p>Simple ring topology using Lumentum-link ROADM model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.LumentumRing" title="mnoptical.examples.lroadmring.LumentumRing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LumentumRing</span></code></a></p></td>
+<td><p>Unidrectional ring topology using Lumentum-like ROADM model</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.test" title="mnoptical.examples.lroadmring.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test</span></code></a>(net)</p></td>
+<td><p>Run config script and simple test</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.username" title="mnoptical.examples.lroadmring.username"><code class="xref py py-obj docutils literal notranslate"><span class="pre">username</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.password" title="mnoptical.examples.lroadmring.password"><code class="xref py py-obj docutils literal notranslate"><span class="pre">password</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.lroadmring.topo" title="mnoptical.examples.lroadmring.topo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">topo</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.username">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">username</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">admin</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.password">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">password</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">admin</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.password" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">LumentumBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.topo.Topo</span></code></p>
+<p>Simple ring topology using Lumentum-link ROADM model
+nodes: hN&lt;-&gt;sN&lt;-&gt;tN&lt;-&gt;rN (host/switch/terminal/roadm)
+Note WDM links are unidirectional and ethernet
+links are bidirectional.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.ethbase">
+<span class="sig-name descname"><span class="pre">ethbase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.ethbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.hostport">
+<span class="sig-name descname"><span class="pre">hostport</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">200</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.hostport" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.txbase">
+<span class="sig-name descname"><span class="pre">txbase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">100</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.txbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.rxbase">
+<span class="sig-name descname"><span class="pre">rxbase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">200</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.rxbase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.listenPortBase">
+<span class="sig-name descname"><span class="pre">listenPortBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">6653</span></em><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.listenPortBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.wdmLink">
+<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1</span> <span class="pre">*</span> <span class="pre">m,)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.wdmLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a (default unidirectional) WDM link</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.nodeNames">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nodeNames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.nodeNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return host, switch, terminal, roadm names for node i</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.addNetworkNodes">
+<span class="sig-name descname"><span class="pre">addNetworkNodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.addNetworkNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a host-switch-terminal-ROADM nodes,
+named hN, sN, tN, rN</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumBase.addNodeLinks">
+<span class="sig-name descname"><span class="pre">addNodeLinks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumBase.addNodeLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add internal links for network node i</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumRing">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">LumentumRing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumRing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.examples.lroadmring.LumentumBase" title="mnoptical.examples.lroadmring.LumentumBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LumentumBase</span></code></a></p>
+<p>Unidrectional ring topology using Lumentum-like ROADM model
+nodes: hN&lt;-&gt;sN&lt;-&gt;tN&lt;-&gt;rN… (host/switch/terminal/roadm)
+Note WDM links are unidirectional and ethernet
+links are bidirectional.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.LumentumRing.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txcount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.LumentumRing.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build lumentum ring</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.test">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.lroadmring.test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run config script and simple test</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.examples.lroadmring.topo">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.lroadmring.</span></span><span class="sig-name descname"><span class="pre">topo</span></span><a class="headerlink" href="#mnoptical.examples.lroadmring.topo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/examples/lroadmring/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

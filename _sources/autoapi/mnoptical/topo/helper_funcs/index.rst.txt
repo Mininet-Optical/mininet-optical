@@ -1,0 +1,54 @@
+:py:mod:`mnoptical.topo.helper_funcs`
+=====================================
+
+.. py:module:: mnoptical.topo.helper_funcs
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.helper_funcs.Span
+   mnoptical.topo.helper_funcs.build_spans
+   mnoptical.topo.helper_funcs.build_link
+   mnoptical.topo.helper_funcs.add_amp
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.helper_funcs.m
+
+
+.. py:data:: m
+   :annotation: = 0.001
+
+   
+
+.. py:function:: Span(km, amp=None)
+
+   Return a fiber segment of length km with a compensating amp
+
+
+.. py:function:: build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_ok=False, debugger=True, wdg_id=None)
+
+
+.. py:function:: build_link(net, r1, r2, span_no, span_length, debugger=True, wdg_id=None)
+
+
+.. py:function:: add_amp(net, node_name=None, type=None, gain_dB=None, debugger=True, wdg_id=None)
+
+   Create an Amplifier object to add to a ROADM node
+   :param node_name: string
+   :param type: string ('boost' or 'preamp'
+   :param gain_dB: int or float
+
+

@@ -1,0 +1,318 @@
+:py:mod:`mnoptical.ofcdemo.demolib`
+===================================
+
+.. py:module:: mnoptical.ofcdemo.demolib
+
+.. autoapi-nested-parse::
+
+   demolib.py: OFC Demo Topology and CLI
+
+   Our demo topology is a cross-connected mesh of 6 POPs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib.OpticalCLI
+   mnoptical.ofcdemo.demolib.OpticalTopo
+   mnoptical.ofcdemo.demolib.LinearRoadmTopo
+   mnoptical.ofcdemo.demolib.DemoTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib.spanSpec
+   mnoptical.ofcdemo.demolib.configureLinearNet
+   mnoptical.ofcdemo.demolib.linearRoadmTest
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib.ListenPortBase
+   mnoptical.ofcdemo.demolib.CLI
+   mnoptical.ofcdemo.demolib.SpanSpec
+   mnoptical.ofcdemo.demolib.AmpSpec
+   mnoptical.ofcdemo.demolib.net
+
+
+.. py:data:: ListenPortBase
+   :annotation: = 6653
+
+   
+
+.. py:class:: OpticalCLI
+
+   Bases: :py:obj:`mininet.cli.CLI`
+
+   Extended CLI with optical network commands
+
+   .. py:attribute:: prompt
+      :annotation: = mininet-optical> 
+
+      
+
+   .. py:method:: do_signals(self, nodename)
+
+      Print node signals 
+
+
+   .. py:method:: formatSigState(state)
+      :staticmethod:
+
+      Return formatted signal state string
+
+
+   .. py:method:: printSignals(self, model)
+
+      Print signals from a node's model
+
+
+   .. py:method:: opticalLinks(self)
+
+      Return optical links
+
+
+   .. py:method:: printNodeSignals(node)
+      :staticmethod:
+
+      print a node's signals
+
+
+   .. py:method:: do_linksignals(self, line='')
+
+      linksignals {pattern}: Print signals for links between ROADMs
+
+
+   .. py:method:: _fmtSigState(self, state)
+
+      Return formatted signal state
+
+
+   .. py:method:: _fmtPathEntry(self, entry)
+
+      Format path entry
+
+
+   .. py:method:: do_sigtrace(self, line)
+
+      sigtrace node [ch]: trace signal(s) originating at node
+
+
+   .. py:method:: _printPathState(self, paths)
+
+      Print out path state for each signal:path in paths
+
+
+   .. py:method:: do_sigpath(self, line)
+
+      sigpath node [ch]: return path of signal(s)
+      starting at node
+
+
+   .. py:method:: do_monitors(self, _line)
+
+      List monitors on optical links and nodes
+
+
+   .. py:method:: printOsnr(monitor)
+      :staticmethod:
+
+
+   .. py:method:: do_osnr(self, _line)
+
+      List osnr for monitors
+
+
+   .. py:method:: spans(self, minlength=100)
+
+      Span iterator
+
+
+   .. py:method:: do_spans(self, _line)
+
+      List spans between nodes
+
+
+   .. py:method:: do_plot(self, line)
+
+      plot ROADM topology; 'plot save' to save to plot.png
+
+
+   .. py:method:: do_propagate(self, _line)
+
+      Obsolete: propagate signals manually
+
+
+   .. py:method:: do_amppowers(self, _line)
+
+      Print out power for all amps on links
+
+
+   .. py:method:: do_arp(self, _line)
+
+      Send gratuitous arps from every host
+
+
+   .. py:method:: do_checkroadms(self, line)
+
+      checkroadms {roadm...}: Check signals going through one or more ROADMs
+
+
+   .. py:method:: do_checklinks(self, line='')
+
+      checklinks {pattern}: Check signals going through links
+
+
+   .. py:method:: do_reset(self, line)
+
+      reset {node...}: reset one or all optical nodes
+
+
+   .. py:method:: do_setgain(self, line)
+
+      Set amplifier gain for demo/testing purposes
+      usage: setgain src dst amp gain
+
+
+
+.. py:data:: CLI
+   
+
+   
+
+.. py:class:: OpticalTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Topo with convenience methods for optical links
+
+   .. py:method:: wdmLink(self, *args, **kwargs)
+
+      Convenience function to add an OpticalLink
+
+
+   .. py:method:: ethLink(self, *args, **kwargs)
+
+      Clarifying alias for addLink
+
+
+
+.. py:data:: SpanSpec
+   
+
+   
+
+.. py:data:: AmpSpec
+   
+
+   
+
+.. py:function:: spanSpec(length, amp, **ampParams)
+
+   Return span specifier [length, (ampName, params)]
+
+
+.. py:class:: LinearRoadmTopo
+
+   Bases: :py:obj:`OpticalTopo`
+
+   A linear network with a single ROADM and three POPs
+
+   h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
+                         ||
+                         t2 - s2 - h2
+   h1-h3: hosts
+   s1-s3: routers (downlink: eth0, uplink: eth1, eth2)
+   t1-t3: terminals (downlink: eth1, eth2, uplink: wdm3, wdm4)
+   r1-r3: ROADMs (add/drop: wdm1, wdm2, line: wdm3, wdm4)
+
+   .. py:method:: ip(pop, intfnum=0, template='10.%d.0.%d', subnet='/24')
+      :staticmethod:
+
+      Return a local IP address or subnet for the given POP
+
+
+   .. py:method:: buildPop(self, p, txCount=2)
+
+      Build a POP; returns: ROADM
+
+
+   .. py:method:: spans(self, spanLength=50 * km, spanCount=4)
+
+      Return a list of span specifiers (length, (amp, params))
+      the compensation amplifiers are named prefix-ampN
+
+
+   .. py:method:: build(self, n=3, txCount=2)
+
+      Add POPs and connect them in a line
+
+
+
+.. py:function:: configureLinearNet(net, packetOnly=False)
+
+   Configure linear network locally
+   Channel usage:
+   r1<->r2: 1
+   r1<->r3: 2
+   r2<->r3: 1
+
+
+.. py:function:: linearRoadmTest()
+
+   Test Linear ROADM topology
+
+
+.. py:class:: DemoTopo
+
+   Bases: :py:obj:`LinearRoadmTopo`
+
+   OFC Demo Topology
+
+    This network consists of a ring of six POPs
+    with two cross-connections.
+
+          POP2 -- POP4
+         /  |      |             /   |      |          POP1    |      |    POP6
+        \   |      |   /
+         \  |      |  /
+          POP3 -- POP5
+
+    All of the links are bidirectional.
+
+   Each POP consists of a host, router, optical terminal, and ROADM:
+
+    h1 - s1 - t1 - r1
+    h2 - s2 - t2 - r2
+    etc.
+
+   .. py:method:: addPopLink(self, src, dst)
+
+      Construct a link of four 50km fiber spans
+
+
+   .. py:method:: build(self, n=6, txCount=5)
+
+      Add POPs and connect them in a ring with some cross-connects
+
+
+
+.. py:data:: net
+   
+
+   
+

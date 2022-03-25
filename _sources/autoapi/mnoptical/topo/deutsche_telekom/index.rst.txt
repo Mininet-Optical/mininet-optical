@@ -1,0 +1,36 @@
+:py:mod:`mnoptical.topo.deutsche_telekom`
+=========================================
+
+.. py:module:: mnoptical.topo.deutsche_telekom
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.deutsche_telekom.DeutscheTelekom
+
+
+
+
+.. py:class:: DeutscheTelekom
+
+   .. py:method:: build(op=-2)
+      :staticmethod:
+
+      TOPOLOGY CREATION
+
+      Nomenclature conventions:
+      lt_: Line Terminal
+      roadm_: ROADM node
+      l_: Link between two nodes
+      s_: Span in a Link
+      boost_: Boost amplifier
+      amp: inline amplifier
+
+
+

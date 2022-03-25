@@ -1,0 +1,21 @@
+:py:mod:`mnoptical.ofcdemo.simpledemo`
+======================================
+
+.. py:module:: mnoptical.ofcdemo.simpledemo
+
+.. autoapi-nested-parse::
+
+   simpledemo.py: demonstrate physical/dataplane/control plane emulation
+
+   This demo uses the simpler 3-node linear ROADM topology
+
+
+
+Module Contents
+---------------
+
+.. py:data:: net
+   
+
+   
+

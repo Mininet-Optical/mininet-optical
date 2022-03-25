@@ -1,0 +1,120 @@
+:py:mod:`mnoptical.examples.uniring`
+====================================
+
+.. py:module:: mnoptical.examples.uniring
+
+.. autoapi-nested-parse::
+
+   uniring.py: unidirectional ring network with 1-degree ROADMs
+               and bidirectional Terminal<->ROADM links
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.uniring.UniRingTopo
+   mnoptical.examples.uniring.CLI
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.uniring.fwd
+   mnoptical.examples.uniring.drop
+   mnoptical.examples.uniring.add
+   mnoptical.examples.uniring.configOpticalNet
+   mnoptical.examples.uniring.configPacketNet
+   mnoptical.examples.uniring.config
+   mnoptical.examples.uniring.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.uniring.topo
+
+
+.. py:class:: UniRingTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Parametrized unidirectional ROADM ring network
+   ROADM r{i} port numbering:
+   - 1: line in
+   - 2: line out
+   - 3..N+2: add/drop ports from/to terminal
+   Terminal t{i} port numbering:
+   - 1..N: transceiver uplink/downlink ports (bidirectional)
+           to/from ROADM
+   - N+1..2*N ethernet ports (bidirectional) to/from router
+   Router s{i} port numbering (N==nodecount==txcount):
+   - 1..N: uplinks/downlinks to/from terminal
+   - N+1: local port, connected to host
+
+   .. py:method:: build(self, power=0 * dBm, N=3)
+
+      Create a 1-degree ROADM ring network, with the specified
+      operational power and N ROADM/Terminal/Router/Host nodes
+
+
+
+.. py:function:: fwd(roadm, channels)
+
+
+.. py:function:: drop(roadm, dst, channel)
+
+
+.. py:function:: add(roadm, src, channel)
+
+
+.. py:function:: configOpticalNet(net)
+
+   Configure ring of ROADMS and Terminals.
+   We connect a full mesh of t{1..N}<->t{1..N}
+
+
+.. py:function:: configPacketNet(net)
+
+   Configure mesh of LinuxRouters and attached hosts.
+   This is somewhat complicated because we are connecting
+   a full mesh of IP routers connected with point-to-point links.
+   The "subnets" are basically /32, i.e. single IP addresses.
+
+
+.. py:function:: config(net)
+
+   Configure optical and packet network
+
+
+.. py:class:: CLI
+
+   Bases: :py:obj:`mnoptical.ofcdemo.demolib.OpticalCLI`
+
+   CLI with config command
+
+   .. py:method:: do_config(self, _line)
+
+
+
+.. py:function:: test(net)
+
+   Run script in test mode
+
+
+.. py:data:: topo
+   
+
+   
+

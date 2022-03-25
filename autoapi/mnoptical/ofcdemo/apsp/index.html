@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.apsp &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.apsp">
+<span id="mnoptical-ofcdemo-apsp"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.apsp" title="mnoptical.ofcdemo.apsp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.apsp</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.apsp" title="Permalink to this headline">¶</a></h1>
+<p>apsp.py: all-pairs-shortest-paths routing for ofc demo</p>
+<p>The goal is <em>not</em> to demonstrate an elaborate routing and
+rebalancing algorithm, but to demonstrate how
+mininet-optical enables packet-optical SDN controller
+development and experimentation!!</p>
+<p>So our routing is extremely simple:</p>
+<ol class="arabic simple">
+<li><p>Every pair of nodes gets a unique channel</p></li>
+<li><p>Routes are shortest paths</p></li>
+</ol>
+<p>Since all the links are the same length, we don’t even
+have to use Dijkstra’s algorithm - BFS works just fine!</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.run" title="mnoptical.ofcdemo.apsp.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(net, N=3)</p></td>
+<td><p>Configure and monitor network with N=3 channels for each path</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.canonical" title="mnoptical.ofcdemo.apsp.canonical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical</span></code></a>(link)</p></td>
+<td><p>Return link in canonical (sorted) format</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.monitorKey" title="mnoptical.ofcdemo.apsp.monitorKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorKey</span></code></a>(monitor)</p></td>
+<td><p>Key for sorting monitor names</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.monitorOSNR" title="mnoptical.ofcdemo.apsp.monitorOSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorOSNR</span></code></a>(net, gosnrThreshold=18.0)</p></td>
+<td><p>Monitor gOSNR continuously; if any monitored gOSNR drops</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.adjacencyDict" title="mnoptical.ofcdemo.apsp.adjacencyDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjacencyDict</span></code></a>(links)</p></td>
+<td><p>Return an adjacency dict for links</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.allocateChannels" title="mnoptical.ofcdemo.apsp.allocateChannels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allocateChannels</span></code></a>(terminals, N)</p></td>
+<td><p>Allocate N channels per endpoint pair</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.route" title="mnoptical.ofcdemo.apsp.route"><code class="xref py py-obj docutils literal notranslate"><span class="pre">route</span></code></a>(src, neighbors, destinations)</p></td>
+<td><p>Route from src to destinations</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.entriesToReroute" title="mnoptical.ofcdemo.apsp.entriesToReroute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">entriesToReroute</span></code></a>(paths, badlink)</p></td>
+<td><p>Return list of entries in paths containing badlink</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.reroute" title="mnoptical.ofcdemo.apsp.reroute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reroute</span></code></a>(net, failures)</p></td>
+<td><p>Reroute failures</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.configureTerminals" title="mnoptical.ofcdemo.apsp.configureTerminals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configureTerminals</span></code></a>(net, power=0.0)</p></td>
+<td><p>Configure terminals statically: ethN &lt;-&gt; wdmM:channel</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.configurePacketSwitches" title="mnoptical.ofcdemo.apsp.configurePacketSwitches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configurePacketSwitches</span></code></a>(net)</p></td>
+<td><p>Configure Open vSwitch 'routers' using OpenFlow</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.installPath" title="mnoptical.ofcdemo.apsp.installPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">installPath</span></code></a>(path, channels, net)</p></td>
+<td><p>Program a lightpath into the network</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.channelPorts" title="mnoptical.ofcdemo.apsp.channelPorts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">channelPorts</span></code></a>(node, net)</p></td>
+<td><p>Return the {router, terminal, roadm} ports for node/channels</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.installRoutes" title="mnoptical.ofcdemo.apsp.installRoutes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">installRoutes</span></code></a>(net)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.countSignals" title="mnoptical.ofcdemo.apsp.countSignals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">countSignals</span></code></a>(channelPairs, routes)</p></td>
+<td><p>Calculate average channel count per link</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.net" title="mnoptical.ofcdemo.apsp.net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">net</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.run">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure and monitor network with N=3 channels for each path</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.canonical">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.canonical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return link in canonical (sorted) format</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.monitorKey">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">monitorKey</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.monitorKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Key for sorting monitor names</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.monitorOSNR">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">monitorOSNR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gosnrThreshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.monitorOSNR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Monitor gOSNR continuously; if any monitored gOSNR drops
+below threshold, return list of (monitor, channel, link)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.adjacencyDict">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">adjacencyDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">links</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.adjacencyDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an adjacency dict for links</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.allocateChannels">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">allocateChannels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">terminals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.allocateChannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocate N channels per endpoint pair</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.route">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">route</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destinations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Route from src to destinations
+neighbors: adjacency list
+returns: routes dict</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.entriesToReroute">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">entriesToReroute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">badlink</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.entriesToReroute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of entries in paths containing badlink</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.reroute">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">reroute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failures</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.reroute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reroute failures</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.configureTerminals">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">configureTerminals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.configureTerminals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure terminals statically: ethN &lt;-&gt; wdmM:channel</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.configurePacketSwitches">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">configurePacketSwitches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.configurePacketSwitches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure Open vSwitch ‘routers’ using OpenFlow</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.installPath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">installPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.installPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Program a lightpath into the network</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.channelPorts">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">channelPorts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.channelPorts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the {router, terminal, roadm} ports for node/channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.installRoutes">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">installRoutes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.installRoutes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.countSignals">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">countSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channelPairs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.countSignals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate average channel count per link</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.apsp.net">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.apsp.</span></span><span class="sig-name descname"><span class="pre">net</span></span><a class="headerlink" href="#mnoptical.ofcdemo.apsp.net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/apsp/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

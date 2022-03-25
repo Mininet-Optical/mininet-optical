@@ -1,0 +1,48 @@
+:py:mod:`mnoptical.ofcdemo.demo_hwtopo`
+=======================================
+
+.. py:module:: mnoptical.ofcdemo.demo_hwtopo
+
+.. autoapi-nested-parse::
+
+   lroadmtest.py: simple netconf control test for lroadm.py
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demo_hwtopo.fixIPMap
+   mnoptical.ofcdemo.demo_hwtopo.Control_Test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demo_hwtopo.NetconfPortBase
+
+
+.. py:data:: NetconfPortBase
+   :annotation: = 1830
+
+   
+
+.. py:function:: fixIPMap(nameToIP)
+
+   Fix name-to-IP map for Mininet
+
+
+.. py:function:: Control_Test()
+
+   set up a lightpath from r4 to r1 bidirectionally with channel 5
+
+

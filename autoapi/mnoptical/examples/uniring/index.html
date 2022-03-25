@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.examples.uniring &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.examples.uniring">
+<span id="mnoptical-examples-uniring"></span><h1><a class="reference internal" href="#module-mnoptical.examples.uniring" title="mnoptical.examples.uniring"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.examples.uniring</span></code></a><a class="headerlink" href="#module-mnoptical.examples.uniring" title="Permalink to this headline">¶</a></h1>
+<dl class="simple">
+<dt>uniring.py: unidirectional ring network with 1-degree ROADMs</dt><dd><p>and bidirectional Terminal&lt;-&gt;ROADM links</p>
+</dd>
+</dl>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.UniRingTopo" title="mnoptical.examples.uniring.UniRingTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UniRingTopo</span></code></a></p></td>
+<td><p>Parametrized unidirectional ROADM ring network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.CLI" title="mnoptical.examples.uniring.CLI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLI</span></code></a></p></td>
+<td><p>CLI with config command</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.fwd" title="mnoptical.examples.uniring.fwd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fwd</span></code></a>(roadm, channels)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.drop" title="mnoptical.examples.uniring.drop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop</span></code></a>(roadm, dst, channel)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.add" title="mnoptical.examples.uniring.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a>(roadm, src, channel)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.configOpticalNet" title="mnoptical.examples.uniring.configOpticalNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configOpticalNet</span></code></a>(net)</p></td>
+<td><p>Configure ring of ROADMS and Terminals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.configPacketNet" title="mnoptical.examples.uniring.configPacketNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configPacketNet</span></code></a>(net)</p></td>
+<td><p>Configure mesh of LinuxRouters and attached hosts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.config" title="mnoptical.examples.uniring.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a>(net)</p></td>
+<td><p>Configure optical and packet network</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.test" title="mnoptical.examples.uniring.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test</span></code></a>(net)</p></td>
+<td><p>Run script in test mode</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.uniring.topo" title="mnoptical.examples.uniring.topo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">topo</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.UniRingTopo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">UniRingTopo</span></span><a class="headerlink" href="#mnoptical.examples.uniring.UniRingTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.topo.Topo</span></code></p>
+<p>Parametrized unidirectional ROADM ring network
+ROADM r{i} port numbering:
+- 1: line in
+- 2: line out
+- 3..N+2: add/drop ports from/to terminal
+Terminal t{i} port numbering:
+- 1..N: transceiver uplink/downlink ports (bidirectional)</p>
+<blockquote>
+<div><p>to/from ROADM</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>N+1..2*N ethernet ports (bidirectional) to/from router</p></li>
+</ul>
+<p>Router s{i} port numbering (N==nodecount==txcount):
+- 1..N: uplinks/downlinks to/from terminal
+- N+1: local port, connected to host</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.UniRingTopo.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.UniRingTopo.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a 1-degree ROADM ring network, with the specified
+operational power and N ROADM/Terminal/Router/Host nodes</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.fwd">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">fwd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roadm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.fwd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.drop">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">drop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roadm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.drop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.add">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roadm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.configOpticalNet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">configOpticalNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.configOpticalNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure ring of ROADMS and Terminals.
+We connect a full mesh of t{1..N}&lt;-&gt;t{1..N}</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.configPacketNet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">configPacketNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.configPacketNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure mesh of LinuxRouters and attached hosts.
+This is somewhat complicated because we are connecting
+a full mesh of IP routers connected with point-to-point links.
+The “subnets” are basically /32, i.e. single IP addresses.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.config">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure optical and packet network</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.CLI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">CLI</span></span><a class="headerlink" href="#mnoptical.examples.uniring.CLI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../ofcdemo/demolib/index.html#mnoptical.ofcdemo.demolib.OpticalCLI" title="mnoptical.ofcdemo.demolib.OpticalCLI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.demolib.OpticalCLI</span></code></a></p>
+<p>CLI with config command</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.CLI.do_config">
+<span class="sig-name descname"><span class="pre">do_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.CLI.do_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.test">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.uniring.test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run script in test mode</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.examples.uniring.topo">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.examples.uniring.</span></span><span class="sig-name descname"><span class="pre">topo</span></span><a class="headerlink" href="#mnoptical.examples.uniring.topo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/examples/uniring/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

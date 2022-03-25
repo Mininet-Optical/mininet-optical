@@ -1,0 +1,386 @@
+:py:mod:`mnoptical.ofcdemo.Demo_Control_2`
+==========================================
+
+.. py:module:: mnoptical.ofcdemo.Demo_Control_2
+
+.. autoapi-nested-parse::
+
+   single_link_test.py: test monitoring on a single link
+   Note this version uses and depends on explicit port assignment!
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Demo_Control_2.Span
+   mnoptical.ofcdemo.Demo_Control_2.RoadmPhyNetwork
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_installPath
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_uninstallPath
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_setupLightpath
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_teardownLightpath
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_monitorLightpath
+   mnoptical.ofcdemo.Demo_Control_2.Mininet_monitorDifference
+   mnoptical.ofcdemo.Demo_Control_2.Lumentum_installPath
+   mnoptical.ofcdemo.Demo_Control_2.Lumentum_uninstallPath
+   mnoptical.ofcdemo.Demo_Control_2.Lumentum_setupLightpath
+   mnoptical.ofcdemo.Demo_Control_2.Lumentum_teardownLightpath
+   mnoptical.ofcdemo.Demo_Control_2.Lumentum_MonitorLightpath
+   mnoptical.ofcdemo.Demo_Control_2.linkspec
+   mnoptical.ofcdemo.Demo_Control_2.getLinks
+   mnoptical.ofcdemo.Demo_Control_2.netGraph
+   mnoptical.ofcdemo.Demo_Control_2.FindRoute
+   mnoptical.ofcdemo.Demo_Control_2.waveAvailibility
+   mnoptical.ofcdemo.Demo_Control_2.waveSelection
+   mnoptical.ofcdemo.Demo_Control_2.install_Lightpath
+   mnoptical.ofcdemo.Demo_Control_2.check_lightpath_for_traf
+   mnoptical.ofcdemo.Demo_Control_2.update_lightpath_down_time
+   mnoptical.ofcdemo.Demo_Control_2.traf_to_lightpah_Assignment
+   mnoptical.ofcdemo.Demo_Control_2.install_Traf
+   mnoptical.ofcdemo.Demo_Control_2.uninstall_Lightpath
+   mnoptical.ofcdemo.Demo_Control_2.traf_to_lightpath_Release
+   mnoptical.ofcdemo.Demo_Control_2.testMininet
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Demo_Control_2.m
+   mnoptical.ofcdemo.Demo_Control_2.Controller_Lum
+   mnoptical.ofcdemo.Demo_Control_2.Controller_Mininet
+   mnoptical.ofcdemo.Demo_Control_2.NUM_WAV
+   mnoptical.ofcdemo.Demo_Control_2.LINK_CAP
+   mnoptical.ofcdemo.Demo_Control_2.DOWN_LINK_CAP
+   mnoptical.ofcdemo.Demo_Control_2.CPRI_CAP
+   mnoptical.ofcdemo.Demo_Control_2.NETLINKS
+   mnoptical.ofcdemo.Demo_Control_2.GRAPH
+   mnoptical.ofcdemo.Demo_Control_2.NODES
+   mnoptical.ofcdemo.Demo_Control_2.NETLINK_INFO
+   mnoptical.ofcdemo.Demo_Control_2.TRAFFIC_INFO
+   mnoptical.ofcdemo.Demo_Control_2.LIGHTPATH_INFO
+   mnoptical.ofcdemo.Demo_Control_2.SRC_DST_TO_LIGHTPATH
+   mnoptical.ofcdemo.Demo_Control_2.PATH_CH_TO_LIGHTPATH
+   mnoptical.ofcdemo.Demo_Control_2.TRAFFIC_ID
+   mnoptical.ofcdemo.Demo_Control_2.LIGHTPATH_ID
+   mnoptical.ofcdemo.Demo_Control_2.NUM_NODE
+   mnoptical.ofcdemo.Demo_Control_2.NAME_ROADM
+   mnoptical.ofcdemo.Demo_Control_2.UP_TRAF_TIME_LIST
+   mnoptical.ofcdemo.Demo_Control_2.UP_TRAF_ID_SET
+   mnoptical.ofcdemo.Demo_Control_2.UP_LIGHTPATH_TIME_LIST
+   mnoptical.ofcdemo.Demo_Control_2.UP_LIGHTPATH_ID_SET
+   mnoptical.ofcdemo.Demo_Control_2.ALL_CHANNELS
+   mnoptical.ofcdemo.Demo_Control_2.RU_ROADMS
+   mnoptical.ofcdemo.Demo_Control_2.DU_ROADMS
+   mnoptical.ofcdemo.Demo_Control_2.ROADM_TRAF
+   mnoptical.ofcdemo.Demo_Control_2.name_roadms
+   mnoptical.ofcdemo.Demo_Control_2.name_terminals
+   mnoptical.ofcdemo.Demo_Control_2.ROADM_TO_TERMINAL
+   mnoptical.ofcdemo.Demo_Control_2.TERMINAL_TO_ROADM
+   mnoptical.ofcdemo.Demo_Control_2.ROADM_TO_ID
+   mnoptical.ofcdemo.Demo_Control_2.TERMINAL_TO_ID
+   mnoptical.ofcdemo.Demo_Control_2.node
+
+
+.. py:data:: m
+   :annotation: = 0.001
+
+   
+
+.. py:data:: Controller_Lum
+   
+
+   
+
+.. py:data:: Controller_Mininet
+   
+
+   
+
+.. py:data:: NUM_WAV
+   :annotation: = 90
+
+   
+
+.. py:data:: LINK_CAP
+   :annotation: = 200
+
+   
+
+.. py:data:: DOWN_LINK_CAP
+   :annotation: = 100
+
+   
+
+.. py:data:: CPRI_CAP
+   :annotation: = 25
+
+   
+
+.. py:data:: NETLINKS
+   :annotation: = []
+
+   
+
+.. py:data:: GRAPH
+   
+
+   
+
+.. py:data:: NODES
+   
+
+   
+
+.. py:data:: NETLINK_INFO
+   
+
+   
+
+.. py:data:: TRAFFIC_INFO
+   
+
+   
+
+.. py:data:: LIGHTPATH_INFO
+   
+
+   
+
+.. py:data:: SRC_DST_TO_LIGHTPATH
+   
+
+   
+
+.. py:data:: PATH_CH_TO_LIGHTPATH
+   
+
+   
+
+.. py:data:: TRAFFIC_ID
+   :annotation: = 0
+
+   
+
+.. py:data:: LIGHTPATH_ID
+   :annotation: = 0
+
+   
+
+.. py:data:: NUM_NODE
+   :annotation: = 4
+
+   
+
+.. py:data:: NAME_ROADM
+   :annotation: = []
+
+   
+
+.. py:data:: UP_TRAF_TIME_LIST
+   :annotation: = []
+
+   
+
+.. py:data:: UP_TRAF_ID_SET
+   
+
+   
+
+.. py:data:: UP_LIGHTPATH_TIME_LIST
+   :annotation: = []
+
+   
+
+.. py:data:: UP_LIGHTPATH_ID_SET
+   
+
+   
+
+.. py:data:: ALL_CHANNELS
+   
+
+   
+
+.. py:data:: RU_ROADMS
+   :annotation: = []
+
+   
+
+.. py:data:: DU_ROADMS
+   
+
+   
+
+.. py:data:: ROADM_TRAF
+   
+
+   
+
+.. py:data:: name_roadms
+   :annotation: = []
+
+   
+
+.. py:data:: name_terminals
+   :annotation: = []
+
+   
+
+.. py:data:: ROADM_TO_TERMINAL
+   
+
+   
+
+.. py:data:: TERMINAL_TO_ROADM
+   
+
+   
+
+.. py:data:: ROADM_TO_ID
+   
+
+   
+
+.. py:data:: TERMINAL_TO_ID
+   
+
+   
+
+.. py:data:: node
+   
+
+   
+
+.. py:function:: Span(km, amp=None)
+
+   Return a fiber segment of length km with a compensating amp
+
+
+.. py:function:: RoadmPhyNetwork()
+
+   ROADM network topo
+       
+
+
+.. py:function:: Mininet_installPath(lightpath_id, path, channel, power=0)
+
+   intall switch rules on roadms along a lightpath for some signal channels
+
+
+.. py:function:: Mininet_uninstallPath(lightpath_id)
+
+   delete switch rules on roadms along a lightpath for some signal channels
+
+
+.. py:function:: Mininet_setupLightpath(lightpath_id, path, channel)
+
+   configure a lightpath 
+
+
+.. py:function:: Mininet_teardownLightpath(lightpath_id)
+
+   remove a lightpath
+
+
+.. py:function:: Mininet_monitorLightpath(lightpath_id)
+
+   monitoring a signal along a lightpath
+
+
+.. py:function:: Mininet_monitorDifference(file=None)
+
+
+.. py:function:: Lumentum_installPath(lightpath_id, path, channel)
+
+   intall switch rules on roadms along a lightpath for some signal channels
+
+
+.. py:function:: Lumentum_uninstallPath(lightpath_id)
+
+   delete switch rules on roadms along a lightpath for some signal channels
+
+
+.. py:function:: Lumentum_setupLightpath(lightpath_id, path, channel)
+
+   configure a lightpath 
+
+
+.. py:function:: Lumentum_teardownLightpath(lightpath_id)
+
+   remove a lightpath
+
+
+.. py:function:: Lumentum_MonitorLightpath(lightpath_id)
+
+
+.. py:function:: linkspec(link)
+
+   Return specifier dict(node1, port1, node2, port2) for link
+
+
+.. py:function:: getLinks(links)
+
+
+.. py:function:: netGraph(links)
+
+   Return an adjacency dict for links
+
+
+.. py:function:: FindRoute(src, graph, destinations, k=1)
+
+   Route from src to destinations
+   neighbors: adjacency list
+   returns: routes dict
+
+
+.. py:function:: waveAvailibility(path)
+
+
+.. py:function:: waveSelection(channels)
+
+
+.. py:function:: install_Lightpath(path, channel, up_time=0.0, down_time=float('inf'), Mininet=False)
+
+   intall switch rules on roadms along a lightpath for some signal channels, update control database
+
+
+.. py:function:: check_lightpath_for_traf(src, dst)
+
+   check if there are some provisioned lighpaths for CPRI traf
+
+
+.. py:function:: update_lightpath_down_time(lightpath_id, down_time)
+
+   if there is a traf, update lightpath teardown time
+
+
+.. py:function:: traf_to_lightpah_Assignment(traf_id, lightpath_id, down_time=float('inf'))
+
+   assign a traffic to a lightpath, update control database
+
+
+.. py:function:: install_Traf(src, dst, routes, cur_time, down_time=float('inf'), Mininet=False)
+
+   source RRH node to destination BBU node
+
+
+.. py:function:: uninstall_Lightpath(lightpath_id, Mininet=False)
+
+   delete switch rules on roadms along a lightpath for some signal channels
+
+
+.. py:function:: traf_to_lightpath_Release(traf_id)
+
+
+.. py:function:: testMininet(Mininet_Enable=False)
+
+

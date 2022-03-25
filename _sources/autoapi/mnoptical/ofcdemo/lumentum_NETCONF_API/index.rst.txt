@@ -1,0 +1,147 @@
+:py:mod:`mnoptical.ofcdemo.lumentum_NETCONF_API`
+================================================
+
+.. py:module:: mnoptical.ofcdemo.lumentum_NETCONF_API
+
+.. autoapi-nested-parse::
+
+   Lumentum ROADM 20 Control API
+
+   Author:   Jiakai Yu (jiakaiyu@email.arizona.edu)
+   Created:  2019/03/09
+   Version:  2.1
+
+   Last modified by Jiakai: 2020/08/11
+   Cleaned up slightly by BL: 2022
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict
+   mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum
+   mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum_NETCONF
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME
+   mnoptical.ofcdemo.lumentum_NETCONF_API.PASSWORD
+
+
+.. py:class:: xmltodict
+
+   .. py:method:: parse(xml, **kwargs)
+      :staticmethod:
+
+
+
+.. py:data:: USERNAME
+   :annotation: = superuser
+
+   
+
+.. py:data:: PASSWORD
+   :annotation: = Sup%9User
+
+   
+
+.. py:class:: Lumentum(IP_addr, username=USERNAME, password=PASSWORD)
+
+   .. py:class:: WSSConnection(module, connection_id, operation, blocked, input_port, output_port, start_freq, end_freq, attenuation, name)
+
+
+   .. py:class:: WSSConnectionStatus(module, connection_id, operation, blocked, input_port, output_port, start_freq, end_freq, attenuation, name, input_power, output_power, ne, chassis, card)
+
+      Bases: :py:obj:`Lumentum.WSSConnection`
+
+      .. py:method:: from_connection_details(cls, connection_details)
+         :classmethod:
+
+
+
+   .. py:attribute:: connections
+      
+
+      
+
+   .. py:method:: cleanup(self)
+
+
+   .. py:method:: lookup(node, path)
+      :staticmethod:
+
+      Look up path in a dict tree and return the result
+      note for /some/0/path '0' is looked up as an int
+
+
+   .. py:method:: lookupstr(node, path)
+      :staticmethod:
+
+      Look up path and node and return it as a string
+
+
+   .. py:method:: edfa_status(self)
+
+      Return status of Boost and Preamp EDFAs
+
+
+   .. py:method:: ALS_disable(self, module)
+
+
+   .. py:method:: edfa_config(self, module, ctrl_mode, status, gain_mode, target_power, target_gain, tilt, ALS)
+
+
+   .. py:method:: wss_add_connections(self, connections)
+
+
+   .. py:method:: wss_delete_connection(self, module_id, connection_id)
+
+
+   .. py:method:: wss_get_connections(self)
+
+
+   .. py:method:: freqRangeGHz(channel)
+      :staticmethod:
+
+      Return frequency range (startGHz, endGHz) for channel
+
+
+   .. py:method:: gen_dwdm_connections(module, input_port, output_port, loss=0.0, channel_spacing=50.0, channel_width=50.0)
+      :staticmethod:
+
+      :param module:
+      :param input_port:
+      :param output_port:
+      :param channel_spacing: in GHz
+      :param channel_width: in GHz
+      :return:
+
+
+
+.. py:class:: Lumentum_NETCONF
+
+   .. py:method:: _ConfigWSS(self, node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None)
+
+
+   .. py:method:: parseConnections(connections)
+      :staticmethod:
+
+      Return wss_info
+
+
+   .. py:method:: _WSSMonitor(self, node_ip)
+
+
+

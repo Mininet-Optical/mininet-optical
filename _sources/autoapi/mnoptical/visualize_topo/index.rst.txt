@@ -1,0 +1,59 @@
+:py:mod:`mnoptical.visualize_topo`
+==================================
+
+.. py:module:: mnoptical.visualize_topo
+
+.. autoapi-nested-parse::
+
+   This File creates a Topology visualization using the Network object using Dash which builts upon react.js and flask
+
+   Requirements:
+
+   pip install dash
+   pip install dash-cytoscape
+
+   Use the import statement
+
+   from mnoptical.visualize_topo import visualize_topology
+
+   Call the function visualize_topology(<Network class>)
+
+   Open http://127.0.0.1:8050 in the browser after calling the function
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.visualize_topo.extract_power
+   mnoptical.visualize_topo.visualize_topology
+   mnoptical.visualize_topo.visualize
+
+
+
+.. py:function:: extract_power(component, mode='in')
+
+   :param component : Component (Amplifiers, ROADM) for which power needs to be extracted
+   :param mode: The power values to extracted from input or output mode
+   :return signal_index: Returns signal_index (channel index used for transmission)
+   :return power: Returns power (power values at the port in transmission)
+
+
+.. py:function:: visualize_topology(net)
+
+   :param net: Network Object
+   :return: Calls the Network Visualization function in a separate thread
+
+
+.. py:function:: visualize(net)
+
+   :param net: Network Object
+   :return: Creates a server accessible at http://127.0.0.1:8050 with Network Topology
+
+

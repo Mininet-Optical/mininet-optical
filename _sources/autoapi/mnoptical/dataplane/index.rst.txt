@@ -1,0 +1,603 @@
+:py:mod:`mnoptical.dataplane`
+=============================
+
+.. py:module:: mnoptical.dataplane
+
+.. autoapi-nested-parse::
+
+   dataplane.py: Simple dataplane emulation for mininet-optical
+
+   We repurpose OvS to emulate optical line terminals and ROADMs,
+   and we use TCLink to emulate delay on optical fiber spans.
+
+   For simplicity, we assume that the links and connections are
+   full-duplex, and that transponders use thes ame tx and rx channels.
+
+   Provides the following Mininet classes:
+
+   Terminal:  A set of transceivers that can be connected to Ethernet
+             downlink ports.
+
+   ROADM: A colorless, directionless ROADM.
+
+   SimpleROADM: A 2-degree ROADM with two add/drop ports
+
+   OpticalLink: a bidirectional optical link consisting of fiber
+                spans and amplifiers.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.dataplane.OpticalNet
+   mnoptical.dataplane.Monitor
+   mnoptical.dataplane.SwitchBase
+   mnoptical.dataplane.Terminal
+   mnoptical.dataplane.ROADM
+   mnoptical.dataplane.SimpleROADM
+   mnoptical.dataplane.OpticalIntf
+   mnoptical.dataplane.OpticalIn
+   mnoptical.dataplane.OpticalOut
+   mnoptical.dataplane.OpticalLink
+   mnoptical.dataplane.AmplifierPair
+   mnoptical.dataplane.TwoTransceiverTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.dataplane.PhySpan
+   mnoptical.dataplane.UnidirectionalOpticalLink
+   mnoptical.dataplane.cleanOptLinks
+   mnoptical.dataplane.disableIPv6
+   mnoptical.dataplane.dumpNet
+   mnoptical.dataplane.formatSignals
+   mnoptical.dataplane.dumpLinkPower
+   mnoptical.dataplane.twoTransceiverTest
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.dataplane.km
+   mnoptical.dataplane.m
+   mnoptical.dataplane.dBm
+   mnoptical.dataplane.dB
+   mnoptical.dataplane.Mininet
+   mnoptical.dataplane.UniLink
+
+
+.. py:data:: km
+   :annotation: = 1.0
+
+   
+
+.. py:data:: m
+   :annotation: = 0.001
+
+   
+
+.. py:data:: dBm
+   :annotation: = 1.0
+
+   
+
+.. py:data:: dB
+   :annotation: = 1.0
+
+   
+
+.. py:class:: OpticalNet
+
+   Bases: :py:obj:`mininet.net.Mininet`
+
+   Add monitors to network
+
+   .. py:attribute:: monitors
+      :annotation: = []
+
+      
+
+   .. py:method:: __iter__(self)
+
+      return iterator over node names
+
+
+   .. py:method:: addMonitor(self, monitor)
+
+
+   .. py:method:: addLinkComponents(self, link)
+
+
+   .. py:method:: addLink(self, *args, **kwargs)
+
+
+   .. py:method:: addSwitch(self, *args, **kwargs)
+
+
+   .. py:method:: restSetrippleHandler(self, query)
+
+      Demo/debugging: Support for REST setgain call
+
+
+   .. py:method:: set_ripple(self, amp_name, ripple)
+
+
+   .. py:method:: restSetgainHandler(self, query)
+
+      Demo/debugging: Support for REST setgain call
+
+
+   .. py:method:: setgainCmd(self, ampName, gain)
+
+      Demo/debugging: Support for demo CLI setgain command
+
+
+
+.. py:data:: Mininet
+   
+
+   
+
+.. py:class:: Monitor(name, monitor)
+
+   A hacked PhyMonitor that can stand in for a node
+
+   .. py:attribute:: waiting
+      :annotation: = False
+
+      
+
+   .. py:attribute:: execed
+      :annotation: = True
+
+      
+
+   .. py:attribute:: intfs
+      
+
+      
+
+   .. py:method:: intfList(self)
+
+
+   .. py:method:: intfNames(self)
+
+
+   .. py:method:: pexec(self, *args, **kwargs)
+
+
+   .. py:method:: restMonitor(self, query)
+
+      Return OSNR to REST agent
+
+
+   .. py:method:: __str__(self)
+
+      Return str(self).
+
+
+
+.. py:function:: PhySpan(length, amp=None)
+
+   Return a usable span of length km with amplifer amp
+
+
+.. py:class:: SwitchBase(name, dpid=None, listenPort=None, inNamespace=False, isSwitch=True, batch=False, **phyParams)
+
+   Bases: :py:obj:`mininet.node.OVSSwitch`
+
+   Base class for optical devices
+
+   .. py:attribute:: modelClass
+      
+
+      
+
+   .. py:attribute:: dpidBase
+      :annotation: = 4096
+
+      
+
+   .. py:method:: cmd(self, *args, **kwargs)
+
+
+   .. py:method:: defaultDpid(self, dpid=None)
+
+      Return a default DPID
+
+
+   .. py:method:: restPortsDict(node)
+      :staticmethod:
+
+      Construct a ports dict for a node
+
+
+   .. py:method:: restResetHandler(self, query)
+
+      REST reset handler
+
+
+   .. py:method:: reset(self)
+      :abstractmethod:
+
+      Reset function - override this!
+
+
+
+.. py:class:: Terminal(*args, transceivers=None, **kwargs)
+
+   Bases: :py:obj:`SwitchBase`
+
+   Simple terminal which is just a bank of transceivers
+   and some ethernet ports that can connect to them.
+
+   .. py:attribute:: model
+      
+
+      
+
+   .. py:attribute:: modelClass
+      
+
+      
+
+   .. py:attribute:: blockCookie
+      :annotation: = 195952365
+
+      
+
+   .. py:method:: makeTransceiver(txid, args)
+      :staticmethod:
+
+      Helper constructor for node.Transceiver
+
+
+   .. py:method:: start(self, _controllers)
+
+      Override to start without controller
+
+
+   .. py:method:: reset(self)
+
+      Reset/clear routes
+
+
+   .. py:method:: configTx(self, txNum, channel=None, power=None)
+
+      Configure transceiver txNum
+      channels: [channel index...]
+      power: power in dBm
+
+
+   .. py:method:: txnum(self, wdmPort)
+
+      Return a tx number for wdmPort number
+
+
+   .. py:method:: restTurnonHandler(self)
+
+
+   .. py:method:: turn_on(self)
+
+
+   .. py:method:: restConnectHandler(self, query)
+
+      REST connect handler
+
+
+   .. py:method:: connect(self, ethPort, wdmPort, channel=None, power=None, wdmInPort=None)
+
+      Connect an ethPort to transceiver tx on port wdmPort
+      ethPort: ethernet port number
+      wdmPort: WDM port number
+
+
+   .. py:method:: receiverCallback(self, inport, signalInfoDict)
+
+      Callback from PHY when signal is received
+
+
+   .. py:method:: block(self, inport, channel)
+
+      Block channel at inport
+
+
+   .. py:method:: unblock(self, inport, channel)
+
+      Unblock signal at inport
+
+
+
+.. py:class:: ROADM(name, **kwargs)
+
+   Bases: :py:obj:`SwitchBase`
+
+   A simple ROADM emulation based on OVSSwitch
+
+   Emulates a colorless, directionless ROADM.
+
+   Currently uses VLAN field for channel/lambda index.
+
+   .. py:attribute:: model
+      
+
+      
+
+   .. py:attribute:: modelClass
+      
+
+      
+
+   .. py:method:: start(self, _controllers)
+
+      Override to start without controller
+
+
+   .. py:method:: ruleTuple(inport, outport, channels)
+      :staticmethod:
+
+      Return hashable tuple for rule
+
+
+   .. py:method:: phyReset(self)
+
+      Reset physical model
+
+
+   .. py:method:: phyInstall(self, inport, outport, channels)
+
+      Install switching rules into the physical model
+
+
+   .. py:method:: phyRemove(self, inport, outport, channels)
+
+
+   .. py:method:: restRulesHandler(self, query)
+
+      Handle REST rules request
+
+
+   .. py:method:: restCleanmeHandler(self, query)
+
+      Handle REST clean request - same as reset for now
+
+
+   .. py:method:: dpReset(self)
+
+      Reset/initialize dataplane
+
+
+   .. py:method:: dpFlow(self, inport, outport, channel, action='add-flow')
+
+      Return a switching rule for the dataplane
+
+
+   .. py:method:: dpInstall(self, inport, outport, channels, cmd='add-flow')
+
+      Install a switching rule into the dataplane
+
+
+   .. py:method:: dpRemove(self, inport, outport, channels)
+
+      Remove a switching rule from the dataplane
+
+
+   .. py:method:: reset(self)
+
+      Reset dataplane and physical model
+
+
+   .. py:method:: install(self, inport, outport, channels, action='install')
+
+      Install rules into dataplane and physical model
+
+
+   .. py:method:: remove(self, inport, outport, channels)
+
+      Remove rules from dataplane and physical model
+
+
+   .. py:method:: restConnectHandler(self, query, action='install')
+
+      REST connect handler
+
+
+   .. py:method:: connect(self, port1, port2, channels, action='install')
+
+      Install rule connecting port1 -> port2.
+      If interfaces are bidirectional, connect port2<->port1
+      action: 'install' | 'remove' to install or remove rule
+
+
+
+.. py:class:: SimpleROADM(name, **kwargs)
+
+   Bases: :py:obj:`ROADM`
+
+   2-degree ROADM with simplified API.
+
+   We assume a 2-degree ROADM with full-duplex
+   links and connections. For simplicity, we assume
+   the same channel is used in both directions.
+
+   Local channels are bidirectionally added and
+   dropped, while other channels are passed through.
+
+   Port 1 is east transit
+   Port 2 is west transit
+   Port 3 is southeast add/drop
+   Port 4 is southwest add/drop
+
+   .. py:method:: update(self, localChannels, passChannels=None)
+
+      Update flow table to add/drop localChannels
+      and pass passChannels
+
+
+
+.. py:class:: OpticalIntf
+
+   Bases: :py:obj:`mininet.link.TCIntf`
+
+   A bidirectional Optical Interface
+
+   .. py:method:: isInput(self)
+
+      Is this interface a WDM input?
+
+
+   .. py:method:: isOutput(self)
+
+      Is this interface a WDM output?
+
+
+
+.. py:class:: OpticalIn
+
+   Bases: :py:obj:`OpticalIntf`
+
+   A unidirectional optical input interface
+
+   .. py:method:: isInput(self)
+
+      Is this interface a WDM input?
+
+
+   .. py:method:: isOutput(self)
+
+      Is this interface a WDM output?
+
+
+
+.. py:class:: OpticalOut
+
+   Bases: :py:obj:`OpticalIntf`
+
+   A unidirectional  optical output interface
+
+   .. py:method:: isInput(self)
+
+      Is this interface a WDM input?
+
+
+   .. py:method:: isOutput(self)
+
+      Is this interface a WDM output?
+
+
+
+.. py:class:: OpticalLink(src, dst, port1=None, port2=None, boost=None, boost1=None, boost2=None, spans=None, bidirectional=True, **kwargs)
+
+   Bases: :py:obj:`mininet.link.Link`
+
+   "An emulation of an optical link, bidirectional by default but
+   optionally unidirectional.
+
+   The dataplane emulation is naturally bidirectional (veth pairs.)
+
+   By default, the Optical link is also a bidirectional fiber pair
+   in both directions.
+
+   For the physical model(s), we create two unidirectional links,
+   which are the reverse of each other in terms
+   of fiber spans and amplfiers.
+
+   .. py:attribute:: phyLink1
+      
+
+      
+
+   .. py:attribute:: phyLink2
+      
+
+      
+
+   .. py:method:: parseSpans(spans=None)
+      :staticmethod:
+
+      Parse list of spans and amplifiers into (length, amp) tuples
+
+
+   .. py:method:: intfName(self, node, n)
+
+      Construct a canonical interface name node-wdmN for interface N
+
+
+
+.. py:function:: UnidirectionalOpticalLink(*args, **kwargs)
+
+   Unidirectional OpticalLink constructor
+
+
+.. py:data:: UniLink
+   
+
+   
+
+.. py:class:: AmplifierPair(name, *args, **kwargs)
+
+   Bases: :py:obj:`object`
+
+   A bidirectional PhyAmplifier pair.
+
+   .. py:attribute:: phyAmp1
+      
+
+      
+
+   .. py:attribute:: phyAmp2
+      
+
+      
+
+
+.. py:function:: cleanOptLinks()
+
+
+.. py:function:: disableIPv6(net)
+
+   Disable IPv6 to avoid annoying router solicitations
+
+
+.. py:function:: dumpNet(net)
+
+   dump out network information
+
+
+.. py:function:: formatSignals(signalPowers)
+
+
+.. py:function:: dumpLinkPower(link)
+
+   Print out power for all spans in a Link
+
+
+.. py:class:: TwoTransceiverTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Two hosts/transceivers connected by a 2-way fiber span, which may
+   consist of links and 2-way amplifiers
+
+   .. py:method:: build(self, spans=[25 * km, 'amp1', 50 * km, 'amp2', 25 * km])
+
+
+
+.. py:function:: twoTransceiverTest(cli=False)
+
+   Test two transponders connected over a link
+
+

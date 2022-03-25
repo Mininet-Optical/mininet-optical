@@ -1,0 +1,14 @@
+:py:mod:`mnoptical.edfa_params`
+===============================
+
+.. py:module:: mnoptical.edfa_params
+
+
+Module Contents
+---------------
+
+.. py:data:: ripple_functions
+   
+
+   
+

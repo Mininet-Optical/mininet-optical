@@ -1,0 +1,30 @@
+:py:mod:`mnoptical.topo.cian_small_linear`
+==========================================
+
+.. py:module:: mnoptical.topo.cian_small_linear
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.cian_small_linear.CIANSmallLinear
+
+
+
+
+.. py:class:: CIANSmallLinear
+
+   .. py:method:: build(op=-2, non=5)
+      :staticmethod:
+
+      :param op: operational power in dBm
+      :param non: number of nodes (integer)
+      :return: Network object
+
+
+

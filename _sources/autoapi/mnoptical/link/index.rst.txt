@@ -1,0 +1,173 @@
+:py:mod:`mnoptical.link`
+========================
+
+.. py:module:: mnoptical.link
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.link.Link
+   mnoptical.link.Span
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.link.SpanTuple
+
+
+.. py:data:: SpanTuple
+   
+
+   
+
+.. py:class:: Link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, srs_effect=False, spans=None, debugger=False)
+
+   Bases: :py:obj:`object`
+
+   A Link refers to the connection between two network nodes (i.e., transceiver-ROADM or
+   ROADM-ROADM). In the future we must enable network-element-node to controller-node
+   connectivity.
+
+   .. py:method:: length(self)
+
+      :return: link length adding up span lengths in spans attribute
+
+
+   .. py:method:: describe(self)
+
+
+   .. py:method:: __repr__(self)
+
+      String representation
+
+
+   .. py:method:: reset(self)
+
+      Remove all optical signals from Link
+
+
+   .. py:method:: remove_optical_signal(self, optical_signal)
+
+
+   .. py:method:: include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, tup_key=None)
+
+      Include optical signal in optical_signals
+      :param optical_signal: OpticalSignal object
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+      :param tup_key: tuple key composed of (Link, Span)
+
+
+   .. py:method:: include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+
+      Include optical signal in optical_signals_out
+      :param optical_signal: OpticalSignal object
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+      :param tup_key: tuple key composed of (Link, Span)
+
+
+   .. py:method:: propagate(self, is_last_port=False, safe_switch=False)
+
+      Propagate the signals across the link
+      :param is_last_port: boolean, needed for propagation algorithm
+      :param safe_switch: boolean, needed for propagation algorithm
+      :return:
+
+
+
+.. py:class:: Span(fibre_type='SMF', length=20.0, debugger=False)
+
+   Bases: :py:obj:`object`
+
+   .. py:attribute:: ids
+      :annotation: = 1
+
+      
+
+   .. py:method:: describe(self)
+
+
+   .. py:method:: __repr__(self)
+
+      String representation
+
+
+   .. py:method:: reset(self)
+
+
+   .. py:method:: attenuation(self)
+
+
+   .. py:method:: beta2(self, ref_wavelength=1.55e-06)
+
+      Returns beta2 from dispersion parameter.
+      Dispersion is entered in ps/nm/km.
+      Translated from the GNPy project source code
+      :param ref_wavelength: can be a numpy array; default: 1550nm
+
+
+   .. py:method:: remove_optical_signal(self, optical_signal)
+
+
+   .. py:method:: include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+
+      Include optical signal in optical_signals
+      :param optical_signal: OpticalSignal object
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+
+
+   .. py:method:: include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+
+      Include optical signal in optical_signals_out
+      :param optical_signal: OpticalSignal object
+      :param power: power level of OpticalSignal
+      :param ase_noise: ase noise level of OpticalSignal
+      :param nli_noise: nli noise  level of OpticalSignal
+
+
+   .. py:method:: propagate(self, is_last_port=False, safe_switch=False)
+
+
+   .. py:method:: srs_effect_model(self)
+
+      Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
+      wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
+
+
+   .. py:method:: output_nonlinear_noise(self)
+
+      Compute GN model and updates state data structures
+
+
+   .. py:method:: gn_model(self)
+
+      Computes the nonlinear interference power on a single carrier.
+      Translated from the GNPy project source code
+      The method uses eq. 120 from arXiv:1209.0394.
+      :return: carrier_nli: the amount of nonlinear interference in W on the carrier under analysis
+
+
+   .. py:method:: psi_factor(carrier, interfering_carrier, beta2, asymptotic_length)
+      :staticmethod:
+
+      Calculates eq. 123 from `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`__
+      Translated from the GNPy project source code
+
+
+

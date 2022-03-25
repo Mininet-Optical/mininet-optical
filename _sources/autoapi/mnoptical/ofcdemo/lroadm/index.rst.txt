@@ -1,0 +1,78 @@
+:py:mod:`mnoptical.ofcdemo.lroadm`
+==================================
+
+.. py:module:: mnoptical.ofcdemo.lroadm
+
+.. autoapi-nested-parse::
+
+   lroadm.py:
+
+   A simple Lumentum-like ROADM (LROADM) with a (somewhat) compatible NETCONF API
+   This 1-degree ROADM corresponds to half of a hardware ROADM.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.lroadm.LROADM
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.lroadm.username
+   mnoptical.ofcdemo.lroadm.password
+   mnoptical.ofcdemo.lroadm.NetconfPortBase
+
+
+.. py:data:: username
+   :annotation: = admin
+
+   
+
+.. py:data:: password
+   :annotation: = admin
+
+   
+
+.. py:data:: NetconfPortBase
+   :annotation: = 1830
+
+   
+
+.. py:class:: LROADM(*args, netconfPort=None, **kwargs)
+
+   Bases: :py:obj:`mnoptical.dataplane.ROADM`
+
+   Lumentum-like ROADM with a netconf port
+
+   .. py:attribute:: username
+      :annotation: = admin
+
+      
+
+   .. py:attribute:: password
+      :annotation: = admin
+
+      
+
+   .. py:method:: addport(self, i)
+
+
+   .. py:method:: dropport(self, i)
+
+
+   .. py:method:: __str__(self)
+
+
+

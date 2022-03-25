@@ -1,0 +1,117 @@
+:py:mod:`mnoptical.ofcdemo.Control_Test_Mininet_REST`
+=====================================================
+
+.. py:module:: mnoptical.ofcdemo.Control_Test_Mininet_REST
+
+.. autoapi-nested-parse::
+
+   apsp.py: all-pairs-shortest-paths routing for ofc demo
+
+   The goal is *not* to demonstrate an elaborate routing and
+   rebalancing algorithm, but to demonstrate how
+   mininet-optical enables packet-optical SDN controller
+   development and experimentation!!
+
+   So our routing is extremely simple:
+
+   1. Every pair of nodes gets a unique channel
+   2. Routes are shortest paths
+
+   Since all the links are the same length, we don't even
+   have to use Dijkstra's algorithm - BFS works just fine!
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Control_Test_Mininet_REST.Mininet_Control_REST
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Control_Test_Mininet_REST.Test
+
+
+
+.. py:class:: Mininet_Control_REST
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: getOSNR(self)
+
+      Return fetchOSNR 
+
+
+   .. py:method:: monitorKeyAndLightpaths(self)
+
+
+   .. py:method:: monitorKey(self, monitor)
+
+      Key for sorting monitor names
+
+
+   .. py:method:: getMonitorKey(self, src_id, dst_id, spanID=1)
+
+
+   .. py:method:: monitorOSNRbyKey(self, key, channel)
+
+
+   .. py:method:: monitorOSNR(self, channel, gosnrThreshold=18.0)
+
+      Monitor gOSNR continuously; if any monitored gOSNR drops
+      below threshold, return list of (monitor, channel, link)
+
+
+   .. py:method:: buildGraph(self, links)
+
+      Return an adjacency dict for links
+
+
+   .. py:method:: route(self, src, graph, destinations)
+
+      Route from src to destinations
+      neighbors: adjacency list
+      returns: routes dict
+
+
+   .. py:method:: configureTerminal(self, terminal, channel, power=0.0)
+
+      Configure terminals statically: ethN <-> wdmM:channel
+
+
+   .. py:method:: turnonTerminal(self, terminal)
+
+      turn on terminal
+
+
+   .. py:method:: configurePacketSwitch(self, src, dst, channel, router, port)
+
+      Configure Open vSwitch 'routers' using OpenFlow
+
+
+   .. py:method:: installPath(self, path, channels)
+
+      Program a lightpath into the network
+
+
+   .. py:method:: uninstallPath(self, path, channels)
+
+      Program a lightpath into the network
+
+
+
+.. py:function:: Test()
+
+   Configure and monitor network with N=3 channels for each path
+
+

@@ -1,0 +1,82 @@
+:py:mod:`mnoptical.ofcdemo.Simulation_API`
+==========================================
+
+.. py:module:: mnoptical.ofcdemo.Simulation_API
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API
+
+
+
+
+.. py:class:: Mininet_Optical_Simu_API
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: ROADM_installSwitchRule(self, node, ruleID, inport, outport, channelID)
+
+      install a switch rule in a ROADM
+
+
+   .. py:method:: ROADM_deleteSwitchRule(self, node, ruleID)
+
+      delete a switch rule in a ROADM using rule ID
+
+
+   .. py:method:: ROADM_voaPowerLeveling(self, node, outport, power, channel)
+
+      Power control for a signal channel at a roadm using VOA leveling
+
+
+   .. py:method:: Terminal_configChannelPower(self, terminal, channel, power)
+
+      Congifure Terminal Launch power for a channel
+
+
+   .. py:method:: Terminal_configChannel(self, terminal, channel)
+
+      configure a Terminal with a given channel
+
+
+   .. py:method:: Terminal_turnonChannel(self, terminal)
+
+      Turn on a Terminal
+
+
+   .. py:method:: Terminal_turnoffChannel(self, terminal, channel)
+
+      Turn off a Terminal with a given channel
+
+
+   .. py:method:: Terminal_Reset_Threshold(self, terminal, threshold)
+
+
+   .. py:method:: ROADM_monitor_all_power(self, node)
+
+      monitoring all power data at a node
+
+
+   .. py:method:: ROADM_monitor_all_osnr(self, node)
+
+      monitoring all osnr data at a node
+
+
+   .. py:method:: ROADM_monitor_all_gosnr(self, node)
+
+      monitoring all gosnr data at a node
+
+
+   .. py:method:: ROADM_monitor_channel_data(self, node, channel)
+
+      monitoring a signal channel in a ROADM node
+
+
+

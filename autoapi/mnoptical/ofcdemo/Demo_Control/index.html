@@ -1,0 +1,671 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.Demo_Control &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.Demo_Control">
+<span id="mnoptical-ofcdemo-demo-control"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.Demo_Control" title="mnoptical.ofcdemo.Demo_Control"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.Demo_Control</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.Demo_Control" title="Permalink to this headline">¶</a></h1>
+<p>single_link_test.py: test monitoring on a single link</p>
+<p>Note this version uses and depends on explicit port assignment!</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.init_Controller" title="mnoptical.ofcdemo.Demo_Control.init_Controller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_Controller</span></code></a>(Mininet_Enable=True)</p></td>
+<td><p>Initialize Lumentum or Mininet controller</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Span" title="mnoptical.ofcdemo.Demo_Control.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a>(km, amp=None)</p></td>
+<td><p>Return a fiber segment of length km with a compensating amp</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork" title="mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RoadmPhyNetwork</span></code></a>()</p></td>
+<td><p>ROADM network topo</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_installPath" title="mnoptical.ofcdemo.Demo_Control.Mininet_installPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_installPath</span></code></a>(lightpath_id, path, channel, power=0)</p></td>
+<td><p>intall switch rules on roadms along a lightpath for some signal channels</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath" title="mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_uninstallPath</span></code></a>(lightpath_id)</p></td>
+<td><p>delete switch rules on roadms along a lightpath for some signal channels</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_setupLightpath" title="mnoptical.ofcdemo.Demo_Control.Mininet_setupLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_setupLightpath</span></code></a>(lightpath_id, path, channel)</p></td>
+<td><p>configure a lightpath</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_teardownLightpath" title="mnoptical.ofcdemo.Demo_Control.Mininet_teardownLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_teardownLightpath</span></code></a>(lightpath_id)</p></td>
+<td><p>remove a lightpath</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_monitorLightpath" title="mnoptical.ofcdemo.Demo_Control.Mininet_monitorLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_monitorLightpath</span></code></a>(lightpath_id)</p></td>
+<td><p>monitoring a signal along a lightpath</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_installPath" title="mnoptical.ofcdemo.Demo_Control.Lumentum_installPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_installPath</span></code></a>(lightpath_id, path, channel)</p></td>
+<td><p>intall switch rules on roadms along a lightpath for some signal channels</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_uninstallPath" title="mnoptical.ofcdemo.Demo_Control.Lumentum_uninstallPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_uninstallPath</span></code></a>(lightpath_id)</p></td>
+<td><p>delete switch rules on roadms along a lightpath for some signal channels</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_setupLightpath" title="mnoptical.ofcdemo.Demo_Control.Lumentum_setupLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_setupLightpath</span></code></a>(lightpath_id, path, channel)</p></td>
+<td><p>configure a lightpath</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_teardownLightpath" title="mnoptical.ofcdemo.Demo_Control.Lumentum_teardownLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_teardownLightpath</span></code></a>(lightpath_id)</p></td>
+<td><p>remove a lightpath</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_MonitorLightpath" title="mnoptical.ofcdemo.Demo_Control.Lumentum_MonitorLightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lumentum_MonitorLightpath</span></code></a>(lightpath_id)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.linkspec" title="mnoptical.ofcdemo.Demo_Control.linkspec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linkspec</span></code></a>(link)</p></td>
+<td><p>Return specifier dict(node1, port1, node2, port2) for link</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.getLinks" title="mnoptical.ofcdemo.Demo_Control.getLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getLinks</span></code></a>(links)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.netGraph" title="mnoptical.ofcdemo.Demo_Control.netGraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">netGraph</span></code></a>(links)</p></td>
+<td><p>Return an adjacency dict for links</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.FindRoute" title="mnoptical.ofcdemo.Demo_Control.FindRoute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FindRoute</span></code></a>(src, graph, destinations, k=1)</p></td>
+<td><p>Route from src to destinations</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.waveAvailibility" title="mnoptical.ofcdemo.Demo_Control.waveAvailibility"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waveAvailibility</span></code></a>(path)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.waveSelection" title="mnoptical.ofcdemo.Demo_Control.waveSelection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waveSelection</span></code></a>(channels)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Lightpath" title="mnoptical.ofcdemo.Demo_Control.install_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Lightpath</span></code></a>(path, channel, up_time=0.0, down_time=float('inf'), Mininet=False)</p></td>
+<td><p>install switch rules on roadms along a lightpath for some signal channels, update control database</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf" title="mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_lightpath_for_traf</span></code></a>(src, dst)</p></td>
+<td><p>check if there are some provisioned lighpaths for CPRI traf</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time" title="mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_lightpath_down_time</span></code></a>(lightpath_id, down_time)</p></td>
+<td><p>if there is a traf, update lightpath teardown time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment" title="mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traf_to_lightpah_Assignment</span></code></a>(traf_id, lightpath_id, down_time=float('inf'))</p></td>
+<td><p>assign a traffic to a lightpath, update control database</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Traf" title="mnoptical.ofcdemo.Demo_Control.install_Traf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Traf</span></code></a>(src, dst, routes, cur_time, down_time=float('inf'), Mininet=False)</p></td>
+<td><p>source RRH node to destination BBU node</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath" title="mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uninstall_Lightpath</span></code></a>(lightpath_id, Mininet=False)</p></td>
+<td><p>delete switch rules on roadms along a lightpath for some signal channels</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release" title="mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traf_to_lightpath_Release</span></code></a>(traf_id)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.trafficPattern" title="mnoptical.ofcdemo.Demo_Control.trafficPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trafficPattern</span></code></a>(pattern, time)</p></td>
+<td><p>24 hour normalized traffic</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TrafficTest" title="mnoptical.ofcdemo.Demo_Control.TrafficTest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrafficTest</span></code></a>(Mininet_Enable=False)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.testMininet" title="mnoptical.ofcdemo.Demo_Control.testMininet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testMininet</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.m" title="mnoptical.ofcdemo.Demo_Control.m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">m</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Controller_Lum" title="mnoptical.ofcdemo.Demo_Control.Controller_Lum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Controller_Lum</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Controller_Mininet" title="mnoptical.ofcdemo.Demo_Control.Controller_Mininet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Controller_Mininet</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NUM_WAV" title="mnoptical.ofcdemo.Demo_Control.NUM_WAV"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NUM_WAV</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.LINK_CAP" title="mnoptical.ofcdemo.Demo_Control.LINK_CAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LINK_CAP</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.DOWN_LINK_CAP" title="mnoptical.ofcdemo.Demo_Control.DOWN_LINK_CAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DOWN_LINK_CAP</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.CPRI_CAP" title="mnoptical.ofcdemo.Demo_Control.CPRI_CAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPRI_CAP</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NETLINKS" title="mnoptical.ofcdemo.Demo_Control.NETLINKS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NETLINKS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.GRAPH" title="mnoptical.ofcdemo.Demo_Control.GRAPH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GRAPH</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NODES" title="mnoptical.ofcdemo.Demo_Control.NODES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NODES</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NETLINK_INFO" title="mnoptical.ofcdemo.Demo_Control.NETLINK_INFO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NETLINK_INFO</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TRAFFIC_INFO" title="mnoptical.ofcdemo.Demo_Control.TRAFFIC_INFO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRAFFIC_INFO</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.LIGHTPATH_INFO" title="mnoptical.ofcdemo.Demo_Control.LIGHTPATH_INFO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LIGHTPATH_INFO</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.SRC_DST_TO_LIGHTPATH" title="mnoptical.ofcdemo.Demo_Control.SRC_DST_TO_LIGHTPATH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SRC_DST_TO_LIGHTPATH</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.PATH_CH_TO_LIGHTPATH" title="mnoptical.ofcdemo.Demo_Control.PATH_CH_TO_LIGHTPATH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PATH_CH_TO_LIGHTPATH</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TRAFFIC_ID" title="mnoptical.ofcdemo.Demo_Control.TRAFFIC_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRAFFIC_ID</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.LIGHTPATH_ID" title="mnoptical.ofcdemo.Demo_Control.LIGHTPATH_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LIGHTPATH_ID</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NUM_NODE" title="mnoptical.ofcdemo.Demo_Control.NUM_NODE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NUM_NODE</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.NAME_ROADM" title="mnoptical.ofcdemo.Demo_Control.NAME_ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NAME_ROADM</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.UP_TRAF_TIME_LIST" title="mnoptical.ofcdemo.Demo_Control.UP_TRAF_TIME_LIST"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UP_TRAF_TIME_LIST</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.UP_TRAF_ID_SET" title="mnoptical.ofcdemo.Demo_Control.UP_TRAF_ID_SET"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UP_TRAF_ID_SET</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_TIME_LIST" title="mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_TIME_LIST"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UP_LIGHTPATH_TIME_LIST</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_ID_SET" title="mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_ID_SET"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UP_LIGHTPATH_ID_SET</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.ALL_CHANNELS" title="mnoptical.ofcdemo.Demo_Control.ALL_CHANNELS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ALL_CHANNELS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.RU_ROADMS" title="mnoptical.ofcdemo.Demo_Control.RU_ROADMS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RU_ROADMS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.DU_ROADMS" title="mnoptical.ofcdemo.Demo_Control.DU_ROADMS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DU_ROADMS</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TRAF" title="mnoptical.ofcdemo.Demo_Control.ROADM_TRAF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM_TRAF</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.name_roadms" title="mnoptical.ofcdemo.Demo_Control.name_roadms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name_roadms</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.name_terminals" title="mnoptical.ofcdemo.Demo_Control.name_terminals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name_terminals</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TO_TERMINAL" title="mnoptical.ofcdemo.Demo_Control.ROADM_TO_TERMINAL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM_TO_TERMINAL</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ROADM" title="mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TERMINAL_TO_ROADM</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TO_ID" title="mnoptical.ofcdemo.Demo_Control.ROADM_TO_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM_TO_ID</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ID" title="mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ID"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TERMINAL_TO_ID</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.node" title="mnoptical.ofcdemo.Demo_Control.node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.m">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">m</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">0.001</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.m" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Controller_Lum">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Controller_Lum</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Controller_Lum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Controller_Mininet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Controller_Mininet</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Controller_Mininet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.init_Controller">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">init_Controller</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mininet_Enable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.init_Controller" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize Lumentum or Mininet controller</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NUM_WAV">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NUM_WAV</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">90</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NUM_WAV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.LINK_CAP">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">LINK_CAP</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">200</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.LINK_CAP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.DOWN_LINK_CAP">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">DOWN_LINK_CAP</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">100</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.DOWN_LINK_CAP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.CPRI_CAP">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">CPRI_CAP</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">25</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.CPRI_CAP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NETLINKS">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NETLINKS</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NETLINKS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.GRAPH">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">GRAPH</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.GRAPH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NODES">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NODES</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NODES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NETLINK_INFO">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NETLINK_INFO</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NETLINK_INFO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.TRAFFIC_INFO">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">TRAFFIC_INFO</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.TRAFFIC_INFO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.LIGHTPATH_INFO">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">LIGHTPATH_INFO</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.LIGHTPATH_INFO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.SRC_DST_TO_LIGHTPATH">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">SRC_DST_TO_LIGHTPATH</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.SRC_DST_TO_LIGHTPATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.PATH_CH_TO_LIGHTPATH">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">PATH_CH_TO_LIGHTPATH</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.PATH_CH_TO_LIGHTPATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.TRAFFIC_ID">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">TRAFFIC_ID</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.TRAFFIC_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.LIGHTPATH_ID">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">LIGHTPATH_ID</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.LIGHTPATH_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NUM_NODE">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NUM_NODE</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">4</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NUM_NODE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.NAME_ROADM">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">NAME_ROADM</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.NAME_ROADM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.UP_TRAF_TIME_LIST">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">UP_TRAF_TIME_LIST</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.UP_TRAF_TIME_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.UP_TRAF_ID_SET">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">UP_TRAF_ID_SET</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.UP_TRAF_ID_SET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_TIME_LIST">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">UP_LIGHTPATH_TIME_LIST</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_TIME_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_ID_SET">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">UP_LIGHTPATH_ID_SET</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.UP_LIGHTPATH_ID_SET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.ALL_CHANNELS">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">ALL_CHANNELS</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.ALL_CHANNELS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.RU_ROADMS">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">RU_ROADMS</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.RU_ROADMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.DU_ROADMS">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">DU_ROADMS</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.DU_ROADMS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.ROADM_TRAF">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">ROADM_TRAF</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TRAF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.name_roadms">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">name_roadms</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.name_roadms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.name_terminals">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">name_terminals</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.name_terminals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.ROADM_TO_TERMINAL">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">ROADM_TO_TERMINAL</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TO_TERMINAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ROADM">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">TERMINAL_TO_ROADM</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ROADM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.ROADM_TO_ID">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">ROADM_TO_ID</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.ROADM_TO_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ID">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">TERMINAL_TO_ID</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.TERMINAL_TO_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.node">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">node</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Span">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">km</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Span" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a fiber segment of length km with a compensating amp</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">RoadmPhyNetwork</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROADM network topo</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Mininet_installPath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Mininet_installPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Mininet_installPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>intall switch rules on roadms along a lightpath for some signal channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Mininet_uninstallPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete switch rules on roadms along a lightpath for some signal channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Mininet_setupLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Mininet_setupLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Mininet_setupLightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>configure a lightpath</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Mininet_teardownLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Mininet_teardownLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Mininet_teardownLightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove a lightpath</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Mininet_monitorLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Mininet_monitorLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Mininet_monitorLightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>monitoring a signal along a lightpath</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Lumentum_installPath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Lumentum_installPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_installPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>intall switch rules on roadms along a lightpath for some signal channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Lumentum_uninstallPath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Lumentum_uninstallPath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_uninstallPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete switch rules on roadms along a lightpath for some signal channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Lumentum_setupLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Lumentum_setupLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_setupLightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>configure a lightpath</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Lumentum_teardownLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Lumentum_teardownLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_teardownLightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove a lightpath</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.Lumentum_MonitorLightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">Lumentum_MonitorLightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.Lumentum_MonitorLightpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.linkspec">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">linkspec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.linkspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return specifier dict(node1, port1, node2, port2) for link</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.getLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">getLinks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">links</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.getLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.netGraph">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">netGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">links</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.netGraph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an adjacency dict for links</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.FindRoute">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">FindRoute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destinations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.FindRoute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Route from src to destinations
+neighbors: adjacency list
+returns: routes dict</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.waveAvailibility">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">waveAvailibility</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.waveAvailibility" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.waveSelection">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">waveSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.waveSelection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.install_Lightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">install_Lightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">float('inf')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mininet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.install_Lightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>install switch rules on roadms along a lightpath for some signal channels, update control database</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">check_lightpath_for_traf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf" title="Permalink to this definition">¶</a></dt>
+<dd><p>check if there are some provisioned lighpaths for CPRI traf</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">update_lightpath_down_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>if there is a traf, update lightpath teardown time</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">traf_to_lightpah_Assignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traf_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">float('inf')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment" title="Permalink to this definition">¶</a></dt>
+<dd><p>assign a traffic to a lightpath, update control database</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.install_Traf">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">install_Traf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">routes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cur_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">float('inf')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mininet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.install_Traf" title="Permalink to this definition">¶</a></dt>
+<dd><p>source RRH node to destination BBU node</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">uninstall_Lightpath</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lightpath_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mininet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete switch rules on roadms along a lightpath for some signal channels</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">traf_to_lightpath_Release</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traf_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.trafficPattern">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">trafficPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.trafficPattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>24 hour normalized traffic
+resident area: 40% resident, 20% entertainment, 18% office, 22% transport
+office area: 37% office, 18% entertainment, 16% resident, 29% transport
+entertainment area: 39% entertainment, 23% office, 11% resident, 28% transport</p>
+<ol class="arabic simple">
+<li><p>24.33 Gbps CPRI OPTION 10 -&gt; 1.5 Gbps</p></li>
+</ol>
+<p>(2) 9600 towers, Maximum wireless traffic is 8.5 * 10**11 bytes/ 10 mins -&gt; 6.8*10**12 bit -&gt; 6800 G/ 10 min = 11.3 Gbps
+-&gt; 183.8 Gbps CPRI OPTION 10
+(3) Max traffic: 8 requests per second for CPRI OPTION 8</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.TrafficTest">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">TrafficTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Mininet_Enable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.TrafficTest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Demo_Control.testMininet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Demo_Control.</span></span><span class="sig-name descname"><span class="pre">testMininet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Demo_Control.testMininet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/Demo_Control/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

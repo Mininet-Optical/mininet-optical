@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.demolib_2021 &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.demolib_2021">
+<span id="mnoptical-ofcdemo-demolib-2021"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.demolib_2021" title="mnoptical.ofcdemo.demolib_2021"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.demolib_2021</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.demolib_2021" title="Permalink to this headline">¶</a></h1>
+<p>demolib.py: OFC Demo Topology and CLI</p>
+<p>Our demo topology is a cross-connected mesh of 6 POPs.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.OpticalTopo" title="mnoptical.ofcdemo.demolib_2021.OpticalTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalTopo</span></code></a></p></td>
+<td><p>Topo with convenience methods for optical links</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo" title="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearRoadmTopo</span></code></a></p></td>
+<td><p>A linear network with a single ROADM and three POPs</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.DemoTopo" title="mnoptical.ofcdemo.demolib_2021.DemoTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DemoTopo</span></code></a></p></td>
+<td><p>OFC Demo Topology</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.spanSpec" title="mnoptical.ofcdemo.demolib_2021.spanSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spanSpec</span></code></a>(length, amp, **ampParams)</p></td>
+<td><p>Return span specifier [length, (ampName, params)]</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.configureLinearNet" title="mnoptical.ofcdemo.demolib_2021.configureLinearNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configureLinearNet</span></code></a>(net, packetOnly=False)</p></td>
+<td><p>Configure linear network locally</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.linearRoadmTest" title="mnoptical.ofcdemo.demolib_2021.linearRoadmTest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linearRoadmTest</span></code></a>()</p></td>
+<td><p>Test Linear ROADM topology</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.ListenPortBase" title="mnoptical.ofcdemo.demolib_2021.ListenPortBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListenPortBase</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.CLI" title="mnoptical.ofcdemo.demolib_2021.CLI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CLI</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.SpanSpec" title="mnoptical.ofcdemo.demolib_2021.SpanSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpanSpec</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.AmpSpec" title="mnoptical.ofcdemo.demolib_2021.AmpSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AmpSpec</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.net" title="mnoptical.ofcdemo.demolib_2021.net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">net</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.ListenPortBase">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">ListenPortBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">6653</span></em><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.ListenPortBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.CLI">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">CLI</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.CLI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.OpticalTopo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">OpticalTopo</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.OpticalTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.topo.Topo</span></code></p>
+<p>Topo with convenience methods for optical links</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.OpticalTopo.wdmLink">
+<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.OpticalTopo.wdmLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function to add an OpticalLink</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.OpticalTopo.ethLink">
+<span class="sig-name descname"><span class="pre">ethLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.OpticalTopo.ethLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clarifying alias for addLink</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.SpanSpec">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">SpanSpec</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.SpanSpec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.AmpSpec">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">AmpSpec</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.AmpSpec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.spanSpec">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">spanSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">ampParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.spanSpec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return span specifier [length, (ampName, params)]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">LinearRoadmTopo</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.OpticalTopo" title="mnoptical.ofcdemo.demolib_2021.OpticalTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalTopo</span></code></a></p>
+<p>A linear network with a single ROADM and three POPs</p>
+<dl class="simple">
+<dt>h1 - s1 - t1 = r1 — r2 — r3 = t3 - s3 - h3</dt><dd><p>||
+t2 - s2 - h2</p>
+</dd>
+</dl>
+<p>h1-h3: hosts
+s1-s3: routers (downlink: eth0, uplink: eth1, eth2)
+t1-t3: terminals (downlink: eth1, eth2, uplink: wdm3, wdm4)
+r1-r3: ROADMs (add/drop: wdm1, wdm2, line: wdm3, wdm4)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.ip">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intfnum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10.%d.0.%d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subnet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/24'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.ip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a local IP address or subnet for the given POP</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.buildPop">
+<span class="sig-name descname"><span class="pre">buildPop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txCount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.buildPop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a POP; returns: ROADM</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.spans">
+<span class="sig-name descname"><span class="pre">spans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spanLength</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span> <span class="pre">*</span> <span class="pre">km</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spanCount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.spans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of span specifiers (length, (amp, params))
+the compensation amplifiers are named prefix-ampN</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txCount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add POPs and connect them in a line</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.configureLinearNet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">configureLinearNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">packetOnly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.configureLinearNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure linear network locally
+Channel usage:
+r1&lt;-&gt;r2: 1
+r1&lt;-&gt;r3: 2
+r2&lt;-&gt;r3: 1</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.linearRoadmTest">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">linearRoadmTest</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.linearRoadmTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test Linear ROADM topology</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.DemoTopo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">DemoTopo</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.DemoTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo" title="mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearRoadmTopo</span></code></a></p>
+<p>OFC Demo Topology</p>
+<blockquote>
+<div><blockquote>
+<div><p>————-Linear Topo—————-
+POP1 – POP2 – POP3 – POP4</p>
+</div></blockquote>
+<p>All of the links are bidirectional.</p>
+</div></blockquote>
+<p>Each POP consists of a host, router, optical terminal, and ROADM:</p>
+<blockquote>
+<div><p>h1 - s1 - t1 - r1
+h2 - s2 - t2 - r2
+etc.</p>
+</div></blockquote>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.DemoTopo.addPopLink">
+<span class="sig-name descname"><span class="pre">addPopLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.DemoTopo.addPopLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a link of four 50km fiber spans</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.DemoTopo.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txCount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.DemoTopo.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add POPs and connect them in a ring with some cross-connects</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.demolib_2021.net">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.demolib_2021.</span></span><span class="sig-name descname"><span class="pre">net</span></span><a class="headerlink" href="#mnoptical.ofcdemo.demolib_2021.net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/demolib_2021/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,77 @@
+:py:mod:`mnoptical.examples.singleroadm`
+========================================
+
+.. py:module:: mnoptical.examples.singleroadm
+
+.. autoapi-nested-parse::
+
+   singleroadm.py:
+
+   Simple optical network with three terminals connected to a
+   single ROADM in a "Y" topology. H1 can talk to either H2
+   or H3, depending on how the ROADM is configured.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.singleroadm.SingleROADMTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.singleroadm.plotNet
+   mnoptical.examples.singleroadm.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.singleroadm.topo
+
+
+.. py:class:: SingleROADMTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   h1 - s1 - t1 -- r1 -- t2 - s2 - h2
+                   |
+                   t3 - s3 - h3
+
+   Note that t1--r1 and r2--t2 are 50km spans:
+   (boost->,amp2<-) --25km-- amp1 --25km-- (amp2->,boost<-)
+
+   .. py:method:: build(self)
+
+      Build single ROADM topology
+
+
+
+.. py:function:: plotNet(net, outfile='singleroadm.png', directed=False, layout='circo', colorMap=None)
+
+   Plot network graph to outfile
+
+
+.. py:function:: test(net)
+
+   Run config script and simple test
+
+
+.. py:data:: topo
+   
+
+   
+

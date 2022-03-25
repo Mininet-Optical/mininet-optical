@@ -1,0 +1,202 @@
+:py:mod:`mnoptical.ofcdemo.netconfserver`
+=========================================
+
+.. py:module:: mnoptical.ofcdemo.netconfserver
+
+.. autoapi-nested-parse::
+
+   netconfserver.py: simple netconf server for mininet-optical
+
+   TODO:
+
+   - implement boost/preamp configuration for new simulator version
+   - improve configuration report
+   - implement configuration updates
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.netconfserver.NetconfAgent
+   mnoptical.ofcdemo.netconfserver.NetconfServer
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.netconfserver.debug
+   mnoptical.ofcdemo.netconfserver.xmlstring
+   mnoptical.ofcdemo.netconfserver.parseconn
+   mnoptical.ofcdemo.netconfserver.runTestServer
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.netconfserver.linein
+   mnoptical.ofcdemo.netconfserver.lineout
+   mnoptical.ofcdemo.netconfserver.EdfaNsmap
+   mnoptical.ofcdemo.netconfserver.ConnNsmap
+   mnoptical.ofcdemo.netconfserver.nsmap
+   mnoptical.ofcdemo.netconfserver.SSLKeyFile
+   mnoptical.ofcdemo.netconfserver.NetconfPortBase
+   mnoptical.ofcdemo.netconfserver.Debug
+   mnoptical.ofcdemo.netconfserver.configNs
+
+
+.. py:data:: linein
+   :annotation: = 5101
+
+   
+
+.. py:data:: lineout
+   :annotation: = 4201
+
+   
+
+.. py:data:: EdfaNsmap
+   
+
+   
+
+.. py:data:: ConnNsmap
+   
+
+   
+
+.. py:data:: nsmap
+   
+
+   
+
+.. py:data:: SSLKeyFile
+   
+
+   
+
+.. py:data:: NetconfPortBase
+   :annotation: = 1830
+
+   
+
+.. py:data:: Debug
+   :annotation: = False
+
+   
+
+.. py:function:: debug(*args, **kwargs)
+
+   debug print
+
+
+.. py:function:: xmlstring(atree)
+
+   Return lxml element as a string
+
+
+.. py:data:: configNs
+   
+
+   
+
+.. py:function:: parseconn(conn)
+
+   Parse config connection and return <dn>,<config> as dicts
+
+
+.. py:class:: NetconfAgent(roadm, port=None, username=None, password=None)
+
+   Netconf agent for single (Lumentum-like) ROADM
+
+   .. py:method:: nc_append_capabilities(self, caps)
+
+      Add our base netconf capability
+
+
+   .. py:method:: rpc_get(self, session, rpc, filter_or_none)
+
+      Get some config data
+
+
+   .. py:method:: rpc_get_config(self, session, rpc, source_elm, filter_or_none)
+
+      Passed the source element
+
+
+   .. py:method:: rpc_edit_config(self, session, rpc, source_elm, filter_or_none)
+
+
+   .. py:method:: updateConnections(self, inport, outport, channels, conn)
+
+
+   .. py:method:: rpc_disable_als(self, session, rpc, *params)
+
+
+   .. py:method:: rpc_remove_all_connections(self, session, rpc, *params)
+
+
+   .. py:method:: rpc_delete_connection(self, session, rpc, *params)
+
+
+   .. py:method:: delete_connection_dn(self, dn)
+
+
+   .. py:method:: stop(self)
+
+      Shut down Netconf server
+
+
+   .. py:method:: add_config(self, data)
+
+      Add config entries to rpc return data
+
+
+   .. py:method:: add_edfas(self, data)
+
+      Add EDFA config to data
+
+
+   .. py:method:: findInputPower(self, ch)
+
+      Return first signal power at ROADM's line input for channel
+
+
+   .. py:method:: findOutputPower(self, ch)
+
+      Return first signal power at ROADM's line output for channel
+
+
+   .. py:method:: add_connections(self, data)
+
+
+
+.. py:class:: NetconfServer(net, **params)
+
+   Collection of Netconf agents for Mininet-Optical network
+
+   .. py:method:: start(self)
+
+      Start up netconf agents
+
+
+   .. py:method:: stop(self)
+
+
+
+.. py:function:: runTestServer()
+
+   Run netconf server in test mode
+
+

@@ -1,0 +1,26 @@
+:py:mod:`mnoptical.topo.ring_topology`
+======================================
+
+.. py:module:: mnoptical.topo.ring_topology
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.ring_topology.RingTopology
+
+
+
+
+.. py:class:: RingTopology
+
+   .. py:method:: build()
+      :staticmethod:
+
+
+

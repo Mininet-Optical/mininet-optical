@@ -1,0 +1,78 @@
+:py:mod:`mnoptical.topo.linear`
+===============================
+
+.. py:module:: mnoptical.topo.linear
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.linear.LinearTopology
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.linear.Span
+   mnoptical.topo.linear.build_spans
+   mnoptical.topo.linear.build_link
+   mnoptical.topo.linear.add_amp
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.linear.m
+
+
+.. py:data:: m
+   :annotation: = 0.001
+
+   
+
+.. py:function:: Span(km, amp=None)
+
+   Return a fiber segment of length km with a compensating amp
+
+
+.. py:function:: build_spans(net, r1, r2)
+
+   Helper function for building spans of
+   fixed length of 50km and handling those
+   that require different lengths
+
+
+.. py:function:: build_link(net, r1, r2)
+
+
+.. py:function:: add_amp(net, node_name=None, type=None, gain_dB=None)
+
+   Create an Amplifier object to add to a ROADM node
+   :param node_name: string
+   :param type: string ('boost' or 'preamp'
+   :param gain_dB: int or float
+
+
+.. py:class:: LinearTopology
+
+   .. py:method:: build(op=0, non=3, bidirectional=False)
+      :staticmethod:
+
+      :param op: int, operational power in dBm
+      :param non: int, number of nodes (integer)
+      :param bidirectional: boolean, bidirectional links
+      :return: Network object
+
+
+

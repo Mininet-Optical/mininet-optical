@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.Simulation_API &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.Simulation_API">
+<span id="mnoptical-ofcdemo-simulation-api"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.Simulation_API" title="mnoptical.ofcdemo.Simulation_API"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.Simulation_API</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.Simulation_API" title="Permalink to this headline">¶</a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API" title="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_Optical_Simu_API</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.Simulation_API.</span></span><span class="sig-name descname"><span class="pre">Mininet_Optical_Simu_API</span></span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_installSwitchRule">
+<span class="sig-name descname"><span class="pre">ROADM_installSwitchRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ruleID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channelID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_installSwitchRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>install a switch rule in a ROADM</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_deleteSwitchRule">
+<span class="sig-name descname"><span class="pre">ROADM_deleteSwitchRule</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ruleID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_deleteSwitchRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete a switch rule in a ROADM using rule ID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_voaPowerLeveling">
+<span class="sig-name descname"><span class="pre">ROADM_voaPowerLeveling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_voaPowerLeveling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Power control for a signal channel at a roadm using VOA leveling</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_configChannelPower">
+<span class="sig-name descname"><span class="pre">Terminal_configChannelPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_configChannelPower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Congifure Terminal Launch power for a channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_configChannel">
+<span class="sig-name descname"><span class="pre">Terminal_configChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_configChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>configure a Terminal with a given channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_turnonChannel">
+<span class="sig-name descname"><span class="pre">Terminal_turnonChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_turnonChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn on a Terminal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_turnoffChannel">
+<span class="sig-name descname"><span class="pre">Terminal_turnoffChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_turnoffChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn off a Terminal with a given channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_Reset_Threshold">
+<span class="sig-name descname"><span class="pre">Terminal_Reset_Threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.Terminal_Reset_Threshold" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_power">
+<span class="sig-name descname"><span class="pre">ROADM_monitor_all_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_power" title="Permalink to this definition">¶</a></dt>
+<dd><p>monitoring all power data at a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_osnr">
+<span class="sig-name descname"><span class="pre">ROADM_monitor_all_osnr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_osnr" title="Permalink to this definition">¶</a></dt>
+<dd><p>monitoring all osnr data at a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_gosnr">
+<span class="sig-name descname"><span class="pre">ROADM_monitor_all_gosnr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_all_gosnr" title="Permalink to this definition">¶</a></dt>
+<dd><p>monitoring all gosnr data at a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_channel_data">
+<span class="sig-name descname"><span class="pre">ROADM_monitor_channel_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.Simulation_API.Mininet_Optical_Simu_API.ROADM_monitor_channel_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>monitoring a signal channel in a ROADM node</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/Simulation_API/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,119 @@
+:py:mod:`mnoptical.ofcdemo.hwtopo`
+==================================
+
+.. py:module:: mnoptical.ofcdemo.hwtopo
+
+.. autoapi-nested-parse::
+
+   hwtopo.py: hardware-like topology for OFC 2021 demo
+
+   Implements LumentumLinear, a topology intended to
+   mimic the hardware testbed topology for the OFC 2021
+   demo.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.hwtopo.Lumentum
+   mnoptical.ofcdemo.hwtopo.MUX
+   mnoptical.ofcdemo.hwtopo.LumentumLinear
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.hwtopo.configComb
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.hwtopo.netconfPortBase
+   mnoptical.ofcdemo.hwtopo.topo
+
+
+.. py:data:: netconfPortBase
+   :annotation: = 1830
+
+   
+
+.. py:class:: Lumentum(*args, netconfPort=None, **kwargs)
+
+   Bases: :py:obj:`mnoptical.ofcdemo.lroadm.LROADM`
+
+   Add default netconf username and password
+
+   .. py:attribute:: username
+      
+
+      
+
+   .. py:attribute:: password
+      
+
+      
+
+
+.. py:class:: MUX(name, **kwargs)
+
+   Bases: :py:obj:`mnoptical.dataplane.ROADM`
+
+   A MUX is just the mux part of a roadm
+
+
+.. py:class:: LumentumLinear
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Demo-like topology of lumentum-like ROADMs:
+       L1 === L2-L3 === L4-L5 ==== L6
+
+   Also multiplexes transceivers into single add/drop
+   ports to mirror comb source in COSMOS testbed.
+
+   .. py:method:: addport(self, i)
+
+
+   .. py:method:: dropport(self, i)
+
+
+   .. py:method:: wdmLink(self, src, dst, port1, port2, **params)
+
+      Add a (default unidirectional) WDM link
+
+
+   .. py:method:: hostname(self, i, adjust=False)
+
+      Optionally return alternate hostname for host i
+
+
+   .. py:method:: build(self, nodecount=4, power=0 * dBm, txcount=10)
+
+      Build demo-like topology
+
+
+
+.. py:function:: configComb(net, chbase=1)
+
+   Statically configure Terminal + mux into 'comb source'
+   to model testbed hardware
+
+
+.. py:data:: topo
+   
+
+   
+

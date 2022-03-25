@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.ofcdemo.netconfserver &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.ofcdemo.netconfserver">
+<span id="mnoptical-ofcdemo-netconfserver"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.netconfserver" title="mnoptical.ofcdemo.netconfserver"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.netconfserver</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.netconfserver" title="Permalink to this headline">¶</a></h1>
+<p>netconfserver.py: simple netconf server for mininet-optical</p>
+<p>TODO:</p>
+<ul class="simple">
+<li><p>implement boost/preamp configuration for new simulator version</p></li>
+<li><p>improve configuration report</p></li>
+<li><p>implement configuration updates</p></li>
+</ul>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent" title="mnoptical.ofcdemo.netconfserver.NetconfAgent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetconfAgent</span></code></a></p></td>
+<td><p>Netconf agent for single (Lumentum-like) ROADM</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.NetconfServer" title="mnoptical.ofcdemo.netconfserver.NetconfServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetconfServer</span></code></a></p></td>
+<td><p>Collection of Netconf agents for Mininet-Optical network</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.debug" title="mnoptical.ofcdemo.netconfserver.debug"><code class="xref py py-obj docutils literal notranslate"><span class="pre">debug</span></code></a>(*args, **kwargs)</p></td>
+<td><p>debug print</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.xmlstring" title="mnoptical.ofcdemo.netconfserver.xmlstring"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xmlstring</span></code></a>(atree)</p></td>
+<td><p>Return lxml element as a string</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.parseconn" title="mnoptical.ofcdemo.netconfserver.parseconn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parseconn</span></code></a>(conn)</p></td>
+<td><p>Parse config connection and return &lt;dn&gt;,&lt;config&gt; as dicts</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.runTestServer" title="mnoptical.ofcdemo.netconfserver.runTestServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runTestServer</span></code></a>()</p></td>
+<td><p>Run netconf server in test mode</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.linein" title="mnoptical.ofcdemo.netconfserver.linein"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linein</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.lineout" title="mnoptical.ofcdemo.netconfserver.lineout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lineout</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.EdfaNsmap" title="mnoptical.ofcdemo.netconfserver.EdfaNsmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EdfaNsmap</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.ConnNsmap" title="mnoptical.ofcdemo.netconfserver.ConnNsmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConnNsmap</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.nsmap" title="mnoptical.ofcdemo.netconfserver.nsmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nsmap</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.SSLKeyFile" title="mnoptical.ofcdemo.netconfserver.SSLKeyFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSLKeyFile</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.NetconfPortBase" title="mnoptical.ofcdemo.netconfserver.NetconfPortBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetconfPortBase</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.Debug" title="mnoptical.ofcdemo.netconfserver.Debug"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Debug</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.netconfserver.configNs" title="mnoptical.ofcdemo.netconfserver.configNs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configNs</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.linein">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">linein</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">5101</span></em><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.linein" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.lineout">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">lineout</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">4201</span></em><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.lineout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.EdfaNsmap">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">EdfaNsmap</span></span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.EdfaNsmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.ConnNsmap">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">ConnNsmap</span></span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.ConnNsmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.nsmap">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">nsmap</span></span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.nsmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.SSLKeyFile">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">SSLKeyFile</span></span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.SSLKeyFile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfPortBase">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">NetconfPortBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">1830</span></em><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfPortBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.Debug">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">Debug</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.Debug" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.debug">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>debug print</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.xmlstring">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">xmlstring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atree</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.xmlstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return lxml element as a string</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.configNs">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">configNs</span></span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.configNs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.parseconn">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">parseconn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.parseconn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse config connection and return &lt;dn&gt;,&lt;config&gt; as dicts</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">NetconfAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roadm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Netconf agent for single (Lumentum-like) ROADM</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.nc_append_capabilities">
+<span class="sig-name descname"><span class="pre">nc_append_capabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.nc_append_capabilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add our base netconf capability</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_get">
+<span class="sig-name descname"><span class="pre">rpc_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_or_none</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get some config data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_get_config">
+<span class="sig-name descname"><span class="pre">rpc_get_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_elm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_or_none</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passed the source element</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_edit_config">
+<span class="sig-name descname"><span class="pre">rpc_edit_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_elm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_or_none</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_edit_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.updateConnections">
+<span class="sig-name descname"><span class="pre">updateConnections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.updateConnections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_disable_als">
+<span class="sig-name descname"><span class="pre">rpc_disable_als</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_disable_als" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_remove_all_connections">
+<span class="sig-name descname"><span class="pre">rpc_remove_all_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_remove_all_connections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_delete_connection">
+<span class="sig-name descname"><span class="pre">rpc_delete_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rpc</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.rpc_delete_connection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.delete_connection_dn">
+<span class="sig-name descname"><span class="pre">delete_connection_dn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.delete_connection_dn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shut down Netconf server</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.add_config">
+<span class="sig-name descname"><span class="pre">add_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.add_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add config entries to rpc return data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.add_edfas">
+<span class="sig-name descname"><span class="pre">add_edfas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.add_edfas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add EDFA config to data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.findInputPower">
+<span class="sig-name descname"><span class="pre">findInputPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.findInputPower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return first signal power at ROADM’s line input for channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.findOutputPower">
+<span class="sig-name descname"><span class="pre">findOutputPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.findOutputPower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return first signal power at ROADM’s line output for channel</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfAgent.add_connections">
+<span class="sig-name descname"><span class="pre">add_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfAgent.add_connections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfServer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">NetconfServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of Netconf agents for Mininet-Optical network</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfServer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfServer.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start up netconf agents</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.NetconfServer.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.NetconfServer.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.ofcdemo.netconfserver.runTestServer">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.ofcdemo.netconfserver.</span></span><span class="sig-name descname"><span class="pre">runTestServer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.netconfserver.runTestServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run netconf server in test mode</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../../_sources/autoapi/mnoptical/ofcdemo/netconfserver/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

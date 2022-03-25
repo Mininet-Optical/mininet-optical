@@ -1,0 +1,52 @@
+:py:mod:`mnoptical.topo.cost239`
+================================
+
+.. py:module:: mnoptical.topo.cost239
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.cost239.Cost239Topology
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.cost239.build_spans
+   mnoptical.topo.cost239.build_link
+   mnoptical.topo.cost239.build_links
+
+
+
+.. py:function:: build_spans(total_len)
+
+   Helper function for building spans of
+   fixed length of 50km and handling those
+   that require different lengths
+
+
+.. py:function:: build_link(net, r1, r2, total_len)
+
+
+.. py:function:: build_links(net, r1, r2, total_len)
+
+
+.. py:class:: Cost239Topology
+
+   .. py:method:: build(op=0)
+      :staticmethod:
+
+      :param op: operational power in dBm
+      :return: Network object
+
+
+

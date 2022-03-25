@@ -1,0 +1,135 @@
+:py:mod:`mnoptical.examples.lroadmring`
+=======================================
+
+.. py:module:: mnoptical.examples.lroadmring
+
+.. autoapi-nested-parse::
+
+   lroadmring.py: ring test topology for LROADM
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.lroadmring.LumentumBase
+   mnoptical.examples.lroadmring.LumentumRing
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.lroadmring.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.lroadmring.username
+   mnoptical.examples.lroadmring.password
+   mnoptical.examples.lroadmring.topo
+
+
+.. py:data:: username
+   :annotation: = admin
+
+   
+
+.. py:data:: password
+   :annotation: = admin
+
+   
+
+.. py:class:: LumentumBase(*args, **kwargs)
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Simple ring topology using Lumentum-link ROADM model
+   nodes: hN<->sN<->tN<->rN (host/switch/terminal/roadm)
+   Note WDM links are unidirectional and ethernet
+   links are bidirectional.
+
+   .. py:attribute:: ethbase
+      :annotation: = 0
+
+      
+
+   .. py:attribute:: hostport
+      :annotation: = 200
+
+      
+
+   .. py:attribute:: txbase
+      :annotation: = 100
+
+      
+
+   .. py:attribute:: rxbase
+      :annotation: = 200
+
+      
+
+   .. py:attribute:: listenPortBase
+      :annotation: = 6653
+
+      
+
+   .. py:method:: wdmLink(self, src, dst, port1, port2, spans=(1 * m, ), **params)
+
+      Add a (default unidirectional) WDM link
+
+
+   .. py:method:: nodeNames(i)
+      :staticmethod:
+
+      Return host, switch, terminal, roadm names for node i
+
+
+   .. py:method:: addNetworkNodes(self, i, power=0 * dBm)
+
+      Add a host-switch-terminal-ROADM nodes,
+      named hN, sN, tN, rN
+
+
+   .. py:method:: addNodeLinks(self, i)
+
+      Add internal links for network node i
+
+
+
+.. py:class:: LumentumRing(*args, **kwargs)
+
+   Bases: :py:obj:`LumentumBase`
+
+   Unidrectional ring topology using Lumentum-like ROADM model
+   nodes: hN<->sN<->tN<->rN... (host/switch/terminal/roadm)
+   Note WDM links are unidirectional and ethernet
+   links are bidirectional.
+
+   .. py:method:: build(self, N=4, txcount=16)
+
+      Build lumentum ring
+
+
+
+.. py:function:: test(net)
+
+   Run config script and simple test
+
+
+.. py:data:: topo
+   
+
+   
+

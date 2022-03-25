@@ -1,0 +1,140 @@
+:py:mod:`mnoptical.ofcdemo.apsp`
+================================
+
+.. py:module:: mnoptical.ofcdemo.apsp
+
+.. autoapi-nested-parse::
+
+   apsp.py: all-pairs-shortest-paths routing for ofc demo
+
+   The goal is *not* to demonstrate an elaborate routing and
+   rebalancing algorithm, but to demonstrate how
+   mininet-optical enables packet-optical SDN controller
+   development and experimentation!!
+
+   So our routing is extremely simple:
+
+   1. Every pair of nodes gets a unique channel
+   2. Routes are shortest paths
+
+   Since all the links are the same length, we don't even
+   have to use Dijkstra's algorithm - BFS works just fine!
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.apsp.run
+   mnoptical.ofcdemo.apsp.canonical
+   mnoptical.ofcdemo.apsp.monitorKey
+   mnoptical.ofcdemo.apsp.monitorOSNR
+   mnoptical.ofcdemo.apsp.adjacencyDict
+   mnoptical.ofcdemo.apsp.allocateChannels
+   mnoptical.ofcdemo.apsp.route
+   mnoptical.ofcdemo.apsp.entriesToReroute
+   mnoptical.ofcdemo.apsp.reroute
+   mnoptical.ofcdemo.apsp.configureTerminals
+   mnoptical.ofcdemo.apsp.configurePacketSwitches
+   mnoptical.ofcdemo.apsp.installPath
+   mnoptical.ofcdemo.apsp.channelPorts
+   mnoptical.ofcdemo.apsp.installRoutes
+   mnoptical.ofcdemo.apsp.countSignals
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.apsp.net
+
+
+.. py:function:: run(net, N=3)
+
+   Configure and monitor network with N=3 channels for each path
+
+
+.. py:function:: canonical(link)
+
+   Return link in canonical (sorted) format
+
+
+.. py:function:: monitorKey(monitor)
+
+   Key for sorting monitor names
+
+
+.. py:function:: monitorOSNR(net, gosnrThreshold=18.0)
+
+   Monitor gOSNR continuously; if any monitored gOSNR drops
+   below threshold, return list of (monitor, channel, link)
+
+
+.. py:function:: adjacencyDict(links)
+
+   Return an adjacency dict for links
+
+
+.. py:function:: allocateChannels(terminals, N)
+
+   Allocate N channels per endpoint pair
+
+
+.. py:function:: route(src, neighbors, destinations)
+
+   Route from src to destinations
+   neighbors: adjacency list
+   returns: routes dict
+
+
+.. py:function:: entriesToReroute(paths, badlink)
+
+   Return list of entries in paths containing badlink
+
+
+.. py:function:: reroute(net, failures)
+
+   Reroute failures
+
+
+.. py:function:: configureTerminals(net, power=0.0)
+
+   Configure terminals statically: ethN <-> wdmM:channel
+
+
+.. py:function:: configurePacketSwitches(net)
+
+   Configure Open vSwitch 'routers' using OpenFlow
+
+
+.. py:function:: installPath(path, channels, net)
+
+   Program a lightpath into the network
+
+
+.. py:function:: channelPorts(node, net)
+
+   Return the {router, terminal, roadm} ports for node/channels
+
+
+.. py:function:: installRoutes(net)
+
+
+.. py:function:: countSignals(channelPairs, routes)
+
+   Calculate average channel count per link
+
+
+.. py:data:: net
+   
+
+   
+

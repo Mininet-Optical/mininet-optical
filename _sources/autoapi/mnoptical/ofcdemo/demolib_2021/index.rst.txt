@@ -1,0 +1,176 @@
+:py:mod:`mnoptical.ofcdemo.demolib_2021`
+========================================
+
+.. py:module:: mnoptical.ofcdemo.demolib_2021
+
+.. autoapi-nested-parse::
+
+   demolib.py: OFC Demo Topology and CLI
+
+   Our demo topology is a cross-connected mesh of 6 POPs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib_2021.OpticalTopo
+   mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo
+   mnoptical.ofcdemo.demolib_2021.DemoTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib_2021.spanSpec
+   mnoptical.ofcdemo.demolib_2021.configureLinearNet
+   mnoptical.ofcdemo.demolib_2021.linearRoadmTest
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.ofcdemo.demolib_2021.ListenPortBase
+   mnoptical.ofcdemo.demolib_2021.CLI
+   mnoptical.ofcdemo.demolib_2021.SpanSpec
+   mnoptical.ofcdemo.demolib_2021.AmpSpec
+   mnoptical.ofcdemo.demolib_2021.net
+
+
+.. py:data:: ListenPortBase
+   :annotation: = 6653
+
+   
+
+.. py:data:: CLI
+   
+
+   
+
+.. py:class:: OpticalTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Topo with convenience methods for optical links
+
+   .. py:method:: wdmLink(self, *args, **kwargs)
+
+      Convenience function to add an OpticalLink
+
+
+   .. py:method:: ethLink(self, *args, **kwargs)
+
+      Clarifying alias for addLink
+
+
+
+.. py:data:: SpanSpec
+   
+
+   
+
+.. py:data:: AmpSpec
+   
+
+   
+
+.. py:function:: spanSpec(length, amp, **ampParams)
+
+   Return span specifier [length, (ampName, params)]
+
+
+.. py:class:: LinearRoadmTopo
+
+   Bases: :py:obj:`OpticalTopo`
+
+   A linear network with a single ROADM and three POPs
+
+   h1 - s1 - t1 = r1 --- r2 --- r3 = t3 - s3 - h3
+                         ||
+                         t2 - s2 - h2
+   h1-h3: hosts
+   s1-s3: routers (downlink: eth0, uplink: eth1, eth2)
+   t1-t3: terminals (downlink: eth1, eth2, uplink: wdm3, wdm4)
+   r1-r3: ROADMs (add/drop: wdm1, wdm2, line: wdm3, wdm4)
+
+   .. py:method:: ip(pop, intfnum=0, template='10.%d.0.%d', subnet='/24')
+      :staticmethod:
+
+      Return a local IP address or subnet for the given POP
+
+
+   .. py:method:: buildPop(self, p, txCount=2)
+
+      Build a POP; returns: ROADM
+
+
+   .. py:method:: spans(self, spanLength=50 * km, spanCount=4)
+
+      Return a list of span specifiers (length, (amp, params))
+      the compensation amplifiers are named prefix-ampN
+
+
+   .. py:method:: build(self, n=3, txCount=2)
+
+      Add POPs and connect them in a line
+
+
+
+.. py:function:: configureLinearNet(net, packetOnly=False)
+
+   Configure linear network locally
+   Channel usage:
+   r1<->r2: 1
+   r1<->r3: 2
+   r2<->r3: 1
+
+
+.. py:function:: linearRoadmTest()
+
+   Test Linear ROADM topology
+
+
+.. py:class:: DemoTopo
+
+   Bases: :py:obj:`LinearRoadmTopo`
+
+   OFC Demo Topology
+
+     -------------Linear Topo----------------
+     POP1 -- POP2 -- POP3 -- POP4
+
+    All of the links are bidirectional.
+
+   Each POP consists of a host, router, optical terminal, and ROADM:
+
+    h1 - s1 - t1 - r1
+    h2 - s2 - t2 - r2
+    etc.
+
+   .. py:method:: addPopLink(self, src, dst)
+
+      Construct a link of four 50km fiber spans
+
+
+   .. py:method:: build(self, n=4, txCount=10)
+
+      Add POPs and connect them in a ring with some cross-connects
+
+
+
+.. py:data:: net
+   
+
+   
+

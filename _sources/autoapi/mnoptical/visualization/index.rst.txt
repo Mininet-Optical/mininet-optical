@@ -1,0 +1,35 @@
+:py:mod:`mnoptical.visualization`
+=================================
+
+.. py:module:: mnoptical.visualization
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.visualization.plot_power_vs_wavelength
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.visualization.net
+
+
+.. py:function:: plot_power_vs_wavelength(net, monitor_name, port=None, monitor_mode=None)
+
+
+.. py:data:: net
+   
+
+   
+

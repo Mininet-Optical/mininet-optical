@@ -1,0 +1,79 @@
+:py:mod:`mnoptical.examples.roadm_with_amps`
+============================================
+
+.. py:module:: mnoptical.examples.roadm_with_amps
+
+.. autoapi-nested-parse::
+
+   This script shows how to create Terminals by passing Transceiver
+   objects to their constructor method (lines 64-67); it also shows
+   how to create ROADMs by passing boost and preamp Amplifier objects
+   to their constructor method (lines 72-74)
+
+   Simple linear topology:
+   h1 - s1 - t1 -- r1 -- t2 - s2 - h2
+
+   Transmitting 1 channel from t1 to t2
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.roadm_with_amps.SingleROADMTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.roadm_with_amps.add_amp
+   mnoptical.examples.roadm_with_amps.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.roadm_with_amps.topo
+
+
+.. py:function:: add_amp(node_name=None, type=None, gain_dB=None)
+
+   Create an Amplifier object to add to a ROADM node
+   :param node_name: string
+   :param type: string ('boost' or 'preamp'
+   :param gain_dB: int or float
+
+
+.. py:class:: SingleROADMTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   h1 - s1 - t1 -- r1 -- t2 - s2 - h2
+
+   .. py:method:: build(self)
+
+      Build single ROADM topology
+
+
+
+.. py:function:: test(net)
+
+   Run config script and simple test
+
+
+.. py:data:: topo
+   
+
+   
+

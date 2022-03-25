@@ -1,0 +1,42 @@
+:py:mod:`mnoptical.examples.dbgtest`
+====================================
+
+.. py:module:: mnoptical.examples.dbgtest
+
+.. autoapi-nested-parse::
+
+   dbgtest.py: test debugging support
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.dbgtest.dbgtest
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.dbgtest.topo
+
+
+.. py:function:: dbgtest(net)
+
+   Test debugging support
+
+
+.. py:data:: topo
+   
+
+   
+

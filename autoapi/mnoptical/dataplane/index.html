@@ -1,0 +1,827 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.dataplane &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.dataplane">
+<span id="mnoptical-dataplane"></span><h1><a class="reference internal" href="#module-mnoptical.dataplane" title="mnoptical.dataplane"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.dataplane</span></code></a><a class="headerlink" href="#module-mnoptical.dataplane" title="Permalink to this headline">¶</a></h1>
+<p>dataplane.py: Simple dataplane emulation for mininet-optical</p>
+<p>We repurpose OvS to emulate optical line terminals and ROADMs,
+and we use TCLink to emulate delay on optical fiber spans.</p>
+<p>For simplicity, we assume that the links and connections are
+full-duplex, and that transponders use thes ame tx and rx channels.</p>
+<p>Provides the following Mininet classes:</p>
+<dl class="simple">
+<dt>Terminal:  A set of transceivers that can be connected to Ethernet</dt><dd><p>downlink ports.</p>
+</dd>
+</dl>
+<p>ROADM: A colorless, directionless ROADM.</p>
+<p>SimpleROADM: A 2-degree ROADM with two add/drop ports</p>
+<dl class="simple">
+<dt>OpticalLink: a bidirectional optical link consisting of fiber</dt><dd><p>spans and amplifiers.</p>
+</dd>
+</dl>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.OpticalNet" title="mnoptical.dataplane.OpticalNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalNet</span></code></a></p></td>
+<td><p>Add monitors to network</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.Monitor" title="mnoptical.dataplane.Monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Monitor</span></code></a></p></td>
+<td><p>A hacked PhyMonitor that can stand in for a node</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.SwitchBase" title="mnoptical.dataplane.SwitchBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchBase</span></code></a></p></td>
+<td><p>Base class for optical devices</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.Terminal" title="mnoptical.dataplane.Terminal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Terminal</span></code></a></p></td>
+<td><p>Simple terminal which is just a bank of transceivers</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.ROADM" title="mnoptical.dataplane.ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM</span></code></a></p></td>
+<td><p>A simple ROADM emulation based on OVSSwitch</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.SimpleROADM" title="mnoptical.dataplane.SimpleROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleROADM</span></code></a></p></td>
+<td><p>2-degree ROADM with simplified API.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.OpticalIntf" title="mnoptical.dataplane.OpticalIntf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalIntf</span></code></a></p></td>
+<td><p>A bidirectional Optical Interface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.OpticalIn" title="mnoptical.dataplane.OpticalIn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalIn</span></code></a></p></td>
+<td><p>A unidirectional optical input interface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.OpticalOut" title="mnoptical.dataplane.OpticalOut"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalOut</span></code></a></p></td>
+<td><p>A unidirectional  optical output interface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.OpticalLink" title="mnoptical.dataplane.OpticalLink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalLink</span></code></a></p></td>
+<td><p>&quot;An emulation of an optical link, bidirectional by default but</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.AmplifierPair" title="mnoptical.dataplane.AmplifierPair"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AmplifierPair</span></code></a></p></td>
+<td><p>A bidirectional PhyAmplifier pair.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.TwoTransceiverTopo" title="mnoptical.dataplane.TwoTransceiverTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwoTransceiverTopo</span></code></a></p></td>
+<td><p>Two hosts/transceivers connected by a 2-way fiber span, which may</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.PhySpan" title="mnoptical.dataplane.PhySpan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PhySpan</span></code></a>(length, amp=None)</p></td>
+<td><p>Return a usable span of length km with amplifer amp</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.UnidirectionalOpticalLink" title="mnoptical.dataplane.UnidirectionalOpticalLink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnidirectionalOpticalLink</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Unidirectional OpticalLink constructor</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.cleanOptLinks" title="mnoptical.dataplane.cleanOptLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanOptLinks</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.disableIPv6" title="mnoptical.dataplane.disableIPv6"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disableIPv6</span></code></a>(net)</p></td>
+<td><p>Disable IPv6 to avoid annoying router solicitations</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.dumpNet" title="mnoptical.dataplane.dumpNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dumpNet</span></code></a>(net)</p></td>
+<td><p>dump out network information</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.formatSignals" title="mnoptical.dataplane.formatSignals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">formatSignals</span></code></a>(signalPowers)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.dumpLinkPower" title="mnoptical.dataplane.dumpLinkPower"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dumpLinkPower</span></code></a>(link)</p></td>
+<td><p>Print out power for all spans in a Link</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.twoTransceiverTest" title="mnoptical.dataplane.twoTransceiverTest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">twoTransceiverTest</span></code></a>(cli=False)</p></td>
+<td><p>Test two transponders connected over a link</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.km" title="mnoptical.dataplane.km"><code class="xref py py-obj docutils literal notranslate"><span class="pre">km</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.m" title="mnoptical.dataplane.m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">m</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.dBm" title="mnoptical.dataplane.dBm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dBm</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.dB" title="mnoptical.dataplane.dB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dB</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.Mininet" title="mnoptical.dataplane.Mininet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.UniLink" title="mnoptical.dataplane.UniLink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UniLink</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.km">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">km</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">1.0</span></em><a class="headerlink" href="#mnoptical.dataplane.km" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.m">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">m</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">0.001</span></em><a class="headerlink" href="#mnoptical.dataplane.m" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.dBm">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">dBm</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">1.0</span></em><a class="headerlink" href="#mnoptical.dataplane.dBm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.dB">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">dB</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">1.0</span></em><a class="headerlink" href="#mnoptical.dataplane.dB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">OpticalNet</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.net.Mininet</span></code></p>
+<p>Add monitors to network</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.monitors">
+<span class="sig-name descname"><span class="pre">monitors</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.monitors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.__iter__">
+<span class="sig-name descname"><span class="pre">__iter__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>return iterator over node names</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.addMonitor">
+<span class="sig-name descname"><span class="pre">addMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.addMonitor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.addLinkComponents">
+<span class="sig-name descname"><span class="pre">addLinkComponents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.addLinkComponents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.addLink">
+<span class="sig-name descname"><span class="pre">addLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.addLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.addSwitch">
+<span class="sig-name descname"><span class="pre">addSwitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.addSwitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.restSetrippleHandler">
+<span class="sig-name descname"><span class="pre">restSetrippleHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.restSetrippleHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo/debugging: Support for REST setgain call</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.set_ripple">
+<span class="sig-name descname"><span class="pre">set_ripple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ripple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.set_ripple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.restSetgainHandler">
+<span class="sig-name descname"><span class="pre">restSetgainHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.restSetgainHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo/debugging: Support for REST setgain call</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalNet.setgainCmd">
+<span class="sig-name descname"><span class="pre">setgainCmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ampName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalNet.setgainCmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo/debugging: Support for demo CLI setgain command</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Mininet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">Mininet</span></span><a class="headerlink" href="#mnoptical.dataplane.Mininet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">Monitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A hacked PhyMonitor that can stand in for a node</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.waiting">
+<span class="sig-name descname"><span class="pre">waiting</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#mnoptical.dataplane.Monitor.waiting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.execed">
+<span class="sig-name descname"><span class="pre">execed</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#mnoptical.dataplane.Monitor.execed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.intfs">
+<span class="sig-name descname"><span class="pre">intfs</span></span><a class="headerlink" href="#mnoptical.dataplane.Monitor.intfs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.intfList">
+<span class="sig-name descname"><span class="pre">intfList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor.intfList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.intfNames">
+<span class="sig-name descname"><span class="pre">intfNames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor.intfNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.pexec">
+<span class="sig-name descname"><span class="pre">pexec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor.pexec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.restMonitor">
+<span class="sig-name descname"><span class="pre">restMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor.restMonitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return OSNR to REST agent</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Monitor.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Monitor.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return str(self).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.PhySpan">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">PhySpan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.PhySpan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a usable span of length km with amplifer amp</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">SwitchBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">listenPort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inNamespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isSwitch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">phyParams</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.node.OVSSwitch</span></code></p>
+<p>Base class for optical devices</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.modelClass">
+<span class="sig-name descname"><span class="pre">modelClass</span></span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.modelClass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.dpidBase">
+<span class="sig-name descname"><span class="pre">dpidBase</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">4096</span></em><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.dpidBase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.cmd">
+<span class="sig-name descname"><span class="pre">cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.cmd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.defaultDpid">
+<span class="sig-name descname"><span class="pre">defaultDpid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.defaultDpid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a default DPID</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.restPortsDict">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">restPortsDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.restPortsDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a ports dict for a node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.restResetHandler">
+<span class="sig-name descname"><span class="pre">restResetHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.restResetHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>REST reset handler</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SwitchBase.reset">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SwitchBase.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset function - override this!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">Terminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transceivers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.SwitchBase" title="mnoptical.dataplane.SwitchBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchBase</span></code></a></p>
+<p>Simple terminal which is just a bank of transceivers
+and some ethernet ports that can connect to them.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#mnoptical.dataplane.Terminal.model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.modelClass">
+<span class="sig-name descname"><span class="pre">modelClass</span></span><a class="headerlink" href="#mnoptical.dataplane.Terminal.modelClass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.blockCookie">
+<span class="sig-name descname"><span class="pre">blockCookie</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">195952365</span></em><a class="headerlink" href="#mnoptical.dataplane.Terminal.blockCookie" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.makeTransceiver">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">makeTransceiver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">txid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.makeTransceiver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper constructor for node.Transceiver</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_controllers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override to start without controller</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset/clear routes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.configTx">
+<span class="sig-name descname"><span class="pre">configTx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txNum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.configTx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure transceiver txNum
+channels: [channel index…]
+power: power in dBm</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.txnum">
+<span class="sig-name descname"><span class="pre">txnum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdmPort</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.txnum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tx number for wdmPort number</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.restTurnonHandler">
+<span class="sig-name descname"><span class="pre">restTurnonHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.restTurnonHandler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.turn_on">
+<span class="sig-name descname"><span class="pre">turn_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.turn_on" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.restConnectHandler">
+<span class="sig-name descname"><span class="pre">restConnectHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.restConnectHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>REST connect handler</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ethPort</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdmPort</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdmInPort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect an ethPort to transceiver tx on port wdmPort
+ethPort: ethernet port number
+wdmPort: WDM port number</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.receiverCallback">
+<span class="sig-name descname"><span class="pre">receiverCallback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signalInfoDict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.receiverCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Callback from PHY when signal is received</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Block channel at inport</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.Terminal.unblock">
+<span class="sig-name descname"><span class="pre">unblock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.Terminal.unblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unblock signal at inport</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">ROADM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.SwitchBase" title="mnoptical.dataplane.SwitchBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchBase</span></code></a></p>
+<p>A simple ROADM emulation based on OVSSwitch</p>
+<p>Emulates a colorless, directionless ROADM.</p>
+<p>Currently uses VLAN field for channel/lambda index.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#mnoptical.dataplane.ROADM.model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.modelClass">
+<span class="sig-name descname"><span class="pre">modelClass</span></span><a class="headerlink" href="#mnoptical.dataplane.ROADM.modelClass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_controllers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override to start without controller</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.ruleTuple">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ruleTuple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.ruleTuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return hashable tuple for rule</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.phyReset">
+<span class="sig-name descname"><span class="pre">phyReset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.phyReset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset physical model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.phyInstall">
+<span class="sig-name descname"><span class="pre">phyInstall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.phyInstall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install switching rules into the physical model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.phyRemove">
+<span class="sig-name descname"><span class="pre">phyRemove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.phyRemove" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.restRulesHandler">
+<span class="sig-name descname"><span class="pre">restRulesHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.restRulesHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle REST rules request</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.restCleanmeHandler">
+<span class="sig-name descname"><span class="pre">restCleanmeHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.restCleanmeHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle REST clean request - same as reset for now</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.dpReset">
+<span class="sig-name descname"><span class="pre">dpReset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.dpReset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset/initialize dataplane</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.dpFlow">
+<span class="sig-name descname"><span class="pre">dpFlow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'add-flow'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.dpFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a switching rule for the dataplane</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.dpInstall">
+<span class="sig-name descname"><span class="pre">dpInstall</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'add-flow'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.dpInstall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install a switching rule into the dataplane</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.dpRemove">
+<span class="sig-name descname"><span class="pre">dpRemove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.dpRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a switching rule from the dataplane</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset dataplane and physical model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.install">
+<span class="sig-name descname"><span class="pre">install</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'install'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install rules into dataplane and physical model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outport</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove rules from dataplane and physical model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.restConnectHandler">
+<span class="sig-name descname"><span class="pre">restConnectHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'install'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.restConnectHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>REST connect handler</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.ROADM.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'install'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.ROADM.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install rule connecting port1 -&gt; port2.
+If interfaces are bidirectional, connect port2&lt;-&gt;port1
+action: ‘install’ | ‘remove’ to install or remove rule</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SimpleROADM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">SimpleROADM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SimpleROADM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.ROADM" title="mnoptical.dataplane.ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM</span></code></a></p>
+<p>2-degree ROADM with simplified API.</p>
+<p>We assume a 2-degree ROADM with full-duplex
+links and connections. For simplicity, we assume
+the same channel is used in both directions.</p>
+<p>Local channels are bidirectionally added and
+dropped, while other channels are passed through.</p>
+<p>Port 1 is east transit
+Port 2 is west transit
+Port 3 is southeast add/drop
+Port 4 is southwest add/drop</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.SimpleROADM.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">localChannels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">passChannels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.SimpleROADM.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update flow table to add/drop localChannels
+and pass passChannels</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIntf">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">OpticalIntf</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalIntf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.link.TCIntf</span></code></p>
+<p>A bidirectional Optical Interface</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIntf.isInput">
+<span class="sig-name descname"><span class="pre">isInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalIntf.isInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM input?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIntf.isOutput">
+<span class="sig-name descname"><span class="pre">isOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalIntf.isOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM output?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">OpticalIn</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.OpticalIntf" title="mnoptical.dataplane.OpticalIntf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalIntf</span></code></a></p>
+<p>A unidirectional optical input interface</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIn.isInput">
+<span class="sig-name descname"><span class="pre">isInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalIn.isInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM input?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalIn.isOutput">
+<span class="sig-name descname"><span class="pre">isOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalIn.isOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM output?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalOut">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">OpticalOut</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalOut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.OpticalIntf" title="mnoptical.dataplane.OpticalIntf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OpticalIntf</span></code></a></p>
+<p>A unidirectional  optical output interface</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalOut.isInput">
+<span class="sig-name descname"><span class="pre">isInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalOut.isInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM input?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalOut.isOutput">
+<span class="sig-name descname"><span class="pre">isOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalOut.isOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this interface a WDM output?</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalLink">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">OpticalLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bidirectional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.link.Link</span></code></p>
+<p>“An emulation of an optical link, bidirectional by default but
+optionally unidirectional.</p>
+<p>The dataplane emulation is naturally bidirectional (veth pairs.)</p>
+<p>By default, the Optical link is also a bidirectional fiber pair
+in both directions.</p>
+<p>For the physical model(s), we create two unidirectional links,
+which are the reverse of each other in terms
+of fiber spans and amplfiers.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalLink.phyLink1">
+<span class="sig-name descname"><span class="pre">phyLink1</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalLink.phyLink1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalLink.phyLink2">
+<span class="sig-name descname"><span class="pre">phyLink2</span></span><a class="headerlink" href="#mnoptical.dataplane.OpticalLink.phyLink2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalLink.parseSpans">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parseSpans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalLink.parseSpans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse list of spans and amplifiers into (length, amp) tuples</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.OpticalLink.intfName">
+<span class="sig-name descname"><span class="pre">intfName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.OpticalLink.intfName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a canonical interface name node-wdmN for interface N</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.UnidirectionalOpticalLink">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">UnidirectionalOpticalLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.UnidirectionalOpticalLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unidirectional OpticalLink constructor</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="mnoptical.dataplane.UniLink">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">UniLink</span></span><a class="headerlink" href="#mnoptical.dataplane.UniLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.AmplifierPair">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">AmplifierPair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.AmplifierPair" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A bidirectional PhyAmplifier pair.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.AmplifierPair.phyAmp1">
+<span class="sig-name descname"><span class="pre">phyAmp1</span></span><a class="headerlink" href="#mnoptical.dataplane.AmplifierPair.phyAmp1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.AmplifierPair.phyAmp2">
+<span class="sig-name descname"><span class="pre">phyAmp2</span></span><a class="headerlink" href="#mnoptical.dataplane.AmplifierPair.phyAmp2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.cleanOptLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">cleanOptLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.cleanOptLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.disableIPv6">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">disableIPv6</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.disableIPv6" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disable IPv6 to avoid annoying router solicitations</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.dumpNet">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">dumpNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.dumpNet" title="Permalink to this definition">¶</a></dt>
+<dd><p>dump out network information</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.formatSignals">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">formatSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signalPowers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.formatSignals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.dumpLinkPower">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">dumpLinkPower</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.dumpLinkPower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out power for all spans in a Link</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.TwoTransceiverTopo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">TwoTransceiverTopo</span></span><a class="headerlink" href="#mnoptical.dataplane.TwoTransceiverTopo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">mininet.topo.Topo</span></code></p>
+<p>Two hosts/transceivers connected by a 2-way fiber span, which may
+consist of links and 2-way amplifiers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.TwoTransceiverTopo.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[25</span> <span class="pre">*</span> <span class="pre">km,</span> <span class="pre">'amp1',</span> <span class="pre">50</span> <span class="pre">*</span> <span class="pre">km,</span> <span class="pre">'amp2',</span> <span class="pre">25</span> <span class="pre">*</span> <span class="pre">km]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.TwoTransceiverTopo.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.dataplane.twoTransceiverTest">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">twoTransceiverTest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cli</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.twoTransceiverTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test two transponders connected over a link</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../_sources/autoapi/mnoptical/dataplane/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

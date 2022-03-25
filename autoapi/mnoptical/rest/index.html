@@ -1,0 +1,396 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>mnoptical.rest &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-mnoptical.rest">
+<span id="mnoptical-rest"></span><h1><a class="reference internal" href="#module-mnoptical.rest" title="mnoptical.rest"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.rest</span></code></a><a class="headerlink" href="#module-mnoptical.rest" title="Permalink to this headline">¶</a></h1>
+<p>rest.py: Simple REST-based SDN control plane for mininet-optical</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.QuietHandler" title="mnoptical.rest.QuietHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QuietHandler</span></code></a></p></td>
+<td><p>Handler with quiet logging</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.RestServer" title="mnoptical.rest.RestServer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RestServer</span></code></a></p></td>
+<td><p>Simple REST server</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h3>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.net" title="mnoptical.rest.net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">net</span></code></a>()</p></td>
+<td><p>Return current network object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.nodes" title="mnoptical.rest.nodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nodes</span></code></a>()</p></td>
+<td><p>Return list of nodes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.monitors" title="mnoptical.rest.monitors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitors</span></code></a>()</p></td>
+<td><p>Return list of monitors</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.monitor" title="mnoptical.rest.monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitor</span></code></a>()</p></td>
+<td><p>Return information for monitor</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.opticalLinks" title="mnoptical.rest.opticalLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">opticalLinks</span></code></a>()</p></td>
+<td><p>Return optical links</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.links" title="mnoptical.rest.links"><code class="xref py py-obj docutils literal notranslate"><span class="pre">links</span></code></a>()</p></td>
+<td><p>Return list of links</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.linkspec" title="mnoptical.rest.linkspec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linkspec</span></code></a>(link)</p></td>
+<td><p>Return specifier dict(node1, port1, node2, port2) for link</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.interRoadmLinks" title="mnoptical.rest.interRoadmLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interRoadmLinks</span></code></a>()</p></td>
+<td><p>Return links between ROADMs (only)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.terminalLinks" title="mnoptical.rest.terminalLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">terminalLinks</span></code></a>()</p></td>
+<td><p>Return links from terminals to ROADMs (only)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.routerLinks" title="mnoptical.rest.routerLinks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">routerLinks</span></code></a>()</p></td>
+<td><p>Return links to/from packet switches/routers</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.lookUpNode" title="mnoptical.rest.lookUpNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookUpNode</span></code></a>(node)</p></td>
+<td><p>Look up node from query</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.nodeHandler" title="mnoptical.rest.nodeHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nodeHandler</span></code></a>(handlerName)</p></td>
+<td><p>Handle a node query</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.monitorHandler" title="mnoptical.rest.monitorHandler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorHandler</span></code></a>(handlerName)</p></td>
+<td><p>Handle a node query</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.reset" title="mnoptical.rest.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p>Reset/clear a node's flow rules</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.connect" title="mnoptical.rest.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect</span></code></a>()</p></td>
+<td><p>Configure (or install/remove) connection in optical node</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.disconnect" title="mnoptical.rest.disconnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">disconnect</span></code></a>()</p></td>
+<td><p>Configure (or install/remove) connection in optical node</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.ports" title="mnoptical.rest.ports"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ports</span></code></a>()</p></td>
+<td><p>Return a node's ports</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.info" title="mnoptical.rest.info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">info</span></code></a>()</p></td>
+<td><p>Return an object's configuration and other information</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.config" title="mnoptical.rest.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a>()</p></td>
+<td><p>Set an object's configuration</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.rules" title="mnoptical.rest.rules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rules</span></code></a>()</p></td>
+<td><p>Return rules for node</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.cleanme" title="mnoptical.rest.cleanme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanme</span></code></a>()</p></td>
+<td><p>Return cleanme for node</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.turn_on" title="mnoptical.rest.turn_on"><code class="xref py py-obj docutils literal notranslate"><span class="pre">turn_on</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.rest.setgain" title="mnoptical.rest.setgain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setgain</span></code></a>()</p></td>
+<td><p>Demo support: tell Mininet to adjust the gain for am amplifier</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.rest.set_ripple" title="mnoptical.rest.set_ripple"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ripple</span></code></a>()</p></td>
+<td><p>Demo support: tell Mininet to adjust the ripple function for am amplifier</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.net">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">net</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return current network object</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.nodes">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">nodes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of nodes</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.monitors">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">monitors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.monitors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of monitors</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.monitor">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">monitor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information for monitor</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.opticalLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">opticalLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.opticalLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return optical links</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.links">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">links</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of links</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.linkspec">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">linkspec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.linkspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return specifier dict(node1, port1, node2, port2) for link</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.interRoadmLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">interRoadmLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.interRoadmLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return links between ROADMs (only)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.terminalLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">terminalLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.terminalLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return links from terminals to ROADMs (only)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.routerLinks">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">routerLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.routerLinks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return links to/from packet switches/routers</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.lookUpNode">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">lookUpNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.lookUpNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Look up node from query</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.nodeHandler">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">nodeHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">handlerName</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.nodeHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle a node query</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.monitorHandler">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">monitorHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">handlerName</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.monitorHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle a node query</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.reset">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset/clear a node’s flow rules</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.connect">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure (or install/remove) connection in optical node</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.disconnect">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure (or install/remove) connection in optical node</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.ports">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">ports</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a node’s ports</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.info">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an object’s configuration and other information</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.config">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set an object’s configuration</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.rules">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">rules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return rules for node</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.cleanme">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">cleanme</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.cleanme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return cleanme for node</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.turn_on">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">turn_on</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.turn_on" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.setgain">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">setgain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.setgain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo support: tell Mininet to adjust the gain for am amplifier</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mnoptical.rest.set_ripple">
+<span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">set_ripple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.set_ripple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo support: tell Mininet to adjust the ripple function for am amplifier</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.rest.QuietHandler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">QuietHandler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.QuietHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">wsgiref.simple_server.WSGIRequestHandler</span></code></p>
+<p>Handler with quiet logging</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.rest.QuietHandler.quiet">
+<span class="sig-name descname"><span class="pre">quiet</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#mnoptical.rest.QuietHandler.quiet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.rest.QuietHandler.log_request">
+<span class="sig-name descname"><span class="pre">log_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.QuietHandler.log_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log an accepted request.</p>
+<p>This is called by send_response().</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.rest.RestServer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.rest.</span></span><span class="sig-name descname"><span class="pre">RestServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.RestServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simple REST server</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.rest.RestServer.net">
+<span class="sig-name descname"><span class="pre">net</span></span><a class="headerlink" href="#mnoptical.rest.RestServer.net" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.rest.RestServer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.RestServer.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start REST server</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.rest.RestServer.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.rest.RestServer.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../../_sources/autoapi/mnoptical/rest/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,214 @@
+:py:mod:`mnoptical.rest`
+========================
+
+.. py:module:: mnoptical.rest
+
+.. autoapi-nested-parse::
+
+   rest.py: Simple REST-based SDN control plane for mininet-optical
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.rest.QuietHandler
+   mnoptical.rest.RestServer
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.rest.net
+   mnoptical.rest.nodes
+   mnoptical.rest.monitors
+   mnoptical.rest.monitor
+   mnoptical.rest.opticalLinks
+   mnoptical.rest.links
+   mnoptical.rest.linkspec
+   mnoptical.rest.interRoadmLinks
+   mnoptical.rest.terminalLinks
+   mnoptical.rest.routerLinks
+   mnoptical.rest.lookUpNode
+   mnoptical.rest.nodeHandler
+   mnoptical.rest.monitorHandler
+   mnoptical.rest.reset
+   mnoptical.rest.connect
+   mnoptical.rest.disconnect
+   mnoptical.rest.ports
+   mnoptical.rest.info
+   mnoptical.rest.config
+   mnoptical.rest.rules
+   mnoptical.rest.cleanme
+   mnoptical.rest.turn_on
+   mnoptical.rest.setgain
+   mnoptical.rest.set_ripple
+
+
+
+.. py:function:: net()
+
+   Return current network object
+
+
+.. py:function:: nodes()
+
+   Return list of nodes
+
+
+.. py:function:: monitors()
+
+   Return list of monitors
+
+
+.. py:function:: monitor()
+
+   Return information for monitor
+
+
+.. py:function:: opticalLinks()
+
+   Return optical links
+
+
+.. py:function:: links()
+
+   Return list of links
+
+
+.. py:function:: linkspec(link)
+
+   Return specifier dict(node1, port1, node2, port2) for link
+
+
+.. py:function:: interRoadmLinks()
+
+   Return links between ROADMs (only)
+
+
+.. py:function:: terminalLinks()
+
+   Return links from terminals to ROADMs (only)
+
+
+.. py:function:: routerLinks()
+
+   Return links to/from packet switches/routers
+
+
+.. py:function:: lookUpNode(node)
+
+   Look up node from query
+
+
+.. py:function:: nodeHandler(handlerName)
+
+   Handle a node query
+
+
+.. py:function:: monitorHandler(handlerName)
+
+   Handle a node query
+
+
+.. py:function:: reset()
+
+   Reset/clear a node's flow rules
+
+
+.. py:function:: connect()
+
+   Configure (or install/remove) connection in optical node
+
+
+.. py:function:: disconnect()
+
+   Configure (or install/remove) connection in optical node
+
+
+.. py:function:: ports()
+
+   Return a node's ports
+
+
+.. py:function:: info()
+
+   Return an object's configuration and other information
+
+
+.. py:function:: config()
+
+   Set an object's configuration
+
+
+.. py:function:: rules()
+
+   Return rules for node
+
+
+.. py:function:: cleanme()
+
+   Return cleanme for node
+
+
+.. py:function:: turn_on()
+
+
+.. py:function:: setgain()
+
+   Demo support: tell Mininet to adjust the gain for am amplifier
+
+
+.. py:function:: set_ripple()
+
+   Demo support: tell Mininet to adjust the ripple function for am amplifier
+
+
+.. py:class:: QuietHandler(request, client_address, server)
+
+   Bases: :py:obj:`wsgiref.simple_server.WSGIRequestHandler`
+
+   Handler with quiet logging
+
+   .. py:attribute:: quiet
+      :annotation: = True
+
+      
+
+   .. py:method:: log_request(self, *args, **kwargs)
+
+      Log an accepted request.
+
+      This is called by send_response().
+
+
+
+
+.. py:class:: RestServer(net, quiet=True)
+
+   Bases: :py:obj:`object`
+
+   Simple REST server
+
+   .. py:attribute:: net
+      
+
+      
+
+   .. py:method:: start(self)
+
+      Start REST server
+
+
+   .. py:method:: stop(self)
+
+
+

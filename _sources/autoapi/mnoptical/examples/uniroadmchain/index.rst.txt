@@ -1,0 +1,61 @@
+:py:mod:`mnoptical.examples.uniroadmchain`
+==========================================
+
+.. py:module:: mnoptical.examples.uniroadmchain
+
+.. autoapi-nested-parse::
+
+   uniroadmchain.py: chain of unidirectional ROADMS without
+                     intermediate terminals
+
+   This is mainly a test case rather than something that
+   is actually useful, although signals can be monitored at
+   the intermediate ROADMs.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.uniroadmchain.UniRoadmChain
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.uniroadmchain.topo
+
+
+.. py:class:: UniRoadmChain
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Two chains of unidirectional ROADMs linking two terminals
+   h1 <-> t1 -> re1 ... reN -> t2 <-> h2
+             <- rwN ... rw1 <- t2
+
+   .. py:method:: build(self, power=0 * dBm, roadmCount=3)
+
+      Build simple unidirectional ROADM chain
+
+
+   .. py:method:: configNet(self, net)
+
+      Configure unidirectional ROADM chain
+
+
+
+.. py:data:: topo
+   
+
+   
+

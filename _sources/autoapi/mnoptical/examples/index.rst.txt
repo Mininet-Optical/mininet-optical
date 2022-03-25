@@ -1,0 +1,26 @@
+:py:mod:`mnoptical.examples`
+============================
+
+.. py:module:: mnoptical.examples
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   config_lroadmring/index.rst
+   dbgtest/index.rst
+   lroadmring/index.rst
+   roadm_with_amps/index.rst
+   simplelink/index.rst
+   singlelink/index.rst
+   singleroadm/index.rst
+   sixnodestopo/index.rst
+   unilinear1/index.rst
+   unilinear2/index.rst
+   uniring/index.rst
+   uniroadmchain/index.rst
+
+

@@ -1,0 +1,77 @@
+:py:mod:`mnoptical.examples.simplelink`
+=======================================
+
+.. py:module:: mnoptical.examples.simplelink
+
+.. autoapi-nested-parse::
+
+   simplelink.py: simple link between two terminals
+
+   This is very close to the simplest fully emulated packet-optical
+   network that we can create.
+
+   To configure the optical network using the REST API, *open another
+   window* and use the following commands at the bash prompt (replacing
+   localhost with the IP address of this system as needed):
+
+   mn=localhost:8080; t1=$mn; t2=$mn
+
+   curl "$t1/connect?node=t1&ethPort=1&wdmPort=2&channel=1"
+   curl "$t2/connect?node=t2&ethPort=1&wdmPort=2&channel=1"
+   curl "$t1/turn_on?node=t1"
+   curl "$t2/turn_on?node=t2"
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.simplelink.SimpleLinkTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.simplelink.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.simplelink.topo
+
+
+.. py:class:: SimpleLinkTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Simple link topology:
+   h1 - t1 - (boost->) --25km-- (<-boost) - t2 - h2
+
+   .. py:method:: build(self)
+
+      Build single link topology
+
+
+
+.. py:function:: test(net)
+
+   Run config script and simple test
+
+
+.. py:data:: topo
+   
+
+   
+

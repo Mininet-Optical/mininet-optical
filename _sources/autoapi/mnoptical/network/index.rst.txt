@@ -1,0 +1,80 @@
+:py:mod:`mnoptical.network`
+===========================
+
+.. py:module:: mnoptical.network
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.network.Network
+
+
+
+
+.. py:class:: Network
+
+   Bases: :py:obj:`object`
+
+   .. py:method:: add_lt(self, name, transceivers=None, **params)
+
+      Add lt node
+      :param name: name of lt
+      :param transceivers: transceivers of LT for automated instantiation
+      :return: added lt
+
+
+   .. py:method:: add_roadm(self, name, **params)
+
+      Add a ROADM node.
+      :param name: name of ROADM
+      :return: added ROADM
+
+
+   .. py:method:: add_amplifier(self, name, amplifier_type='EDFA', **params)
+
+      Add an Amplifier node.
+      :param name: name of Amplifier
+      :param amplifier_type: amplifier type (currently supporting only EDFA)
+      :return: added Amplifier
+
+
+   .. py:method:: add_link(self, src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None)
+
+      Add a uni-directional link
+      :param src_node: source node in link
+      :param dst_node: destination node in link
+      :param src_out_port: src_node output port
+      :param dst_in_port: dst_node input port
+      :param boost_amp: optional amplifier object for boost_amplification
+      :param spans:
+      :return: created and added link
+
+
+   .. py:method:: find_link_and_out_port_from_nodes(self, src_node, dst_node)
+
+      This does not consider if there are multiple output ports
+      to the dst_node, as it is the case of the LTs and ROADMs
+
+
+   .. py:method:: find_link_and_in_port_from_nodes(self, src_node, dst_node)
+
+      This checks
+
+
+   .. py:method:: find_link_from_nodes(self, src_node, dst_node)
+
+
+   .. py:method:: find_out_port_from_link(link)
+      :staticmethod:
+
+
+   .. py:method:: describe(self)
+
+
+

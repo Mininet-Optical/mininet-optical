@@ -1,0 +1,88 @@
+:py:mod:`mnoptical.examples.config_lroadmring`
+==============================================
+
+.. py:module:: mnoptical.examples.config_lroadmring
+
+.. autoapi-nested-parse::
+
+   config_lroadrming.py: simple LumentumRing control script
+                         using ofcdemo.lumentum_NETCONF_API
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.config_lroadmring.allocChannels
+   mnoptical.examples.config_lroadmring.genConnection
+   mnoptical.examples.config_lroadmring.genConnections
+   mnoptical.examples.config_lroadmring.configRoadms
+   mnoptical.examples.config_lroadmring.configTerminals
+   mnoptical.examples.config_lroadmring.configSwitches
+   mnoptical.examples.config_lroadmring.config
+   mnoptical.examples.config_lroadmring.dumpChmap
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.config_lroadmring.N
+
+
+.. py:function:: allocChannels(N)
+
+   Return channel map (src,dst)->ch for N-node mesh
+
+
+.. py:function:: genConnection(module, inport, outport, channel, loss=0.0)
+
+   Return a netconf connection configuration string
+
+
+.. py:function:: genConnections(i, N, chmap)
+
+   Return netconf connection list connecting
+   roadm i to the other roadms in 1..N, each
+   via a dedicated channel. This enables full mesh
+   connectivity without channel collisions.
+
+
+.. py:function:: configRoadms(N, chmap)
+
+   Configure LumentumRing ROADMs as a full mesh (NETCONF)
+
+
+.. py:function:: configTerminals(N, chmap)
+
+   Connect each transceiver to a dedicated ethernet port (REST)
+
+
+.. py:function:: configSwitches(N)
+
+   Program OpenFlow switches with inbound and outbound rules
+
+
+.. py:function:: config(N)
+
+   Configure LumentumRing
+
+
+.. py:function:: dumpChmap(N, chmap)
+
+   Dump channel map
+
+
+.. py:data:: N
+   :annotation: = 4
+
+   
+

@@ -1,0 +1,66 @@
+:py:mod:`mnoptical.examples.sixnodestopo`
+=========================================
+
+.. py:module:: mnoptical.examples.sixnodestopo
+
+.. autoapi-nested-parse::
+
+   singleroadm.py:
+
+   Simple optical network with three terminals connected to a
+   single ROADM in a "Y" topology. H1 can talk to either H2
+   or H3, depending on how the ROADM is configured.
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.sixnodestopo.SixROADMTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.sixnodestopo.plotNet
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.sixnodestopo.topo
+
+
+.. py:class:: SixROADMTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   Six ROADMs ring topology with 6 transceivers at each Terminal.
+
+   .. py:method:: build(self)
+
+      Build single ROADM topology
+
+
+
+.. py:function:: plotNet(net, outfile='singleroadm.png')
+
+   Plot network graph to outfile
+
+
+.. py:data:: topo
+   
+
+   
+

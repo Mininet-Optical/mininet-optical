@@ -1,0 +1,112 @@
+:py:mod:`mnoptical.units`
+=========================
+
+.. py:module:: mnoptical.units
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.units.db_to_abs
+   mnoptical.units.abs_to_db
+   mnoptical.units.abs_to_dbm
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.units.c
+   mnoptical.units.nm
+   mnoptical.units.cm
+   mnoptical.units.um
+   mnoptical.units.km
+   mnoptical.units.THz
+   mnoptical.units.mW
+   mnoptical.units.W
+   mnoptical.units.ps
+   mnoptical.units.pi
+   mnoptical.units.h
+
+
+.. py:function:: db_to_abs(db_value)
+
+   :param db_value: list or float
+   :return: Convert dB to absolute value
+
+
+.. py:function:: abs_to_db(absolute_value)
+
+   :param absolute_value: list or float
+   :return: Convert absolute value to dB
+
+
+.. py:function:: abs_to_dbm(absolute_value)
+
+   :param absolute_value: list or float
+   :return: Convert absolute value to dBm
+
+
+.. py:data:: c
+   :annotation: = 299792458.0
+
+   
+
+.. py:data:: nm
+   :annotation: = 1e-09
+
+   
+
+.. py:data:: cm
+   :annotation: = 0.01
+
+   
+
+.. py:data:: um
+   :annotation: = 1e-06
+
+   
+
+.. py:data:: km
+   :annotation: = 1000.0
+
+   
+
+.. py:data:: THz
+   :annotation: = 1000000000000.0
+
+   
+
+.. py:data:: mW
+   :annotation: = 0.001
+
+   
+
+.. py:data:: W
+   :annotation: = 1.0
+
+   
+
+.. py:data:: ps
+   :annotation: = 1e-12
+
+   
+
+.. py:data:: pi
+   
+
+   
+
+.. py:data:: h
+   
+
+   
+

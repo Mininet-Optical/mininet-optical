@@ -1,0 +1,30 @@
+:py:mod:`mnoptical.topo.linear_multiloc`
+========================================
+
+.. py:module:: mnoptical.topo.linear_multiloc
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.topo.linear_multiloc.LinearTopology
+
+
+
+
+.. py:class:: LinearTopology
+
+   .. py:method:: build(power_dBm=0, span_length_km=50, span_no=1, hop_no=4, signal_no=3, debugger=False)
+      :staticmethod:
+
+      :param op: operational power in dBm
+      :param non: number of nodes (integer)
+      :return: Network object
+
+
+
