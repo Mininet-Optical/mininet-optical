@@ -63,7 +63,7 @@ In this section, you will learn to create, configure and run a
 topology in Mininet-Optical representing the simplest fully emulated
 packet-optical network that we can create. The topology used here is
 called `SingleLinkTopo` and consists of 2 hosts, 2 switches, 2
-terminals separated by 2x25km spans with an EDAF in the middle:
+terminals separated by 2x25km spans with an EDFA in the middle:
 
 h1 - s1 - t1 - (boost->,amp2<-) --25km-- amp1 --25km-- (->amp2,<-boost) - t1 - s2 - h2
 
@@ -158,10 +158,12 @@ mininet-optical> osnr
 <name: t1-monitor, component: t1, mode: in>:
 <name: t2-monitor, component: t2, mode: in>:
 ```
-As no signals have been launched and no configuration has been set, the OSNR command doesn't display
+
+Since no signals have been launched and no configuration has been set, the OSNR command doesn't display
 anything.
 
 We can try to ping the hosts, but this will not succeed:
+
 ```
 mininet-optical> pingall
 *** Ping: testing ping reachability
