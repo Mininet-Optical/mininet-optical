@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Mininet-Optical'
-copyright = '2022, Mininet-Optical Contributors'
-author = 'Mininet-Optical Contributors'
+copyright = '2022, Mininet-Optical Project Contributors'
+author = 'Mininet-Optical Project Contributors'
 autoapi_type = 'python'
 autoapi_dirs = ['../../mnoptical']
 
