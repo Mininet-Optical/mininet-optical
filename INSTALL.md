@@ -52,7 +52,7 @@ the other installation option and commands, we suggest consulting the
 Once Mininet is up and running, you will need to clone the
 Mininet-Optical repository using the following commands:
 
-    $ git clone https://github.com/UA-Agile-Cloud/optical-network-emulator
+    $ git clone https://github.com/mininet-optical/mininet-optical
     $ cd optical-network-emulator
     $ make depend
     $ make install
@@ -232,5 +232,5 @@ examples, including how to create and configure ROADMs and how to
 emulate larger topologies using Mininet-Optical.
 
 
-[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/tree/master/mnoptical/ofcdemo/demolib.py#L35
-[2]: https://github.com/UA-Agile-Cloud/optical-network-emulator/tree/master/mnoptical/examples
+[1]: https://github.com/mininet-optical/mininet-optical/tree/master/mnoptical/ofcdemo/demolib.py#L35
+[2]: https://github.com/mininet-optical/mininet-optical/tree/master/mnoptical/examples
