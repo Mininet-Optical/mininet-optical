@@ -1,0 +1,22 @@
+name: Build Sphinx Documentation
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out source code
+      uses: actions/checkout@v2
+    - name: Build Sphinx docs
+      run: make doc
+    - name: Upload html-docs artifact
+      with:
+        name: html-docs
+        path: docs/build/html
+    - name: Deploy to github pages
+      uses: peaceiris/actions/gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build/html
