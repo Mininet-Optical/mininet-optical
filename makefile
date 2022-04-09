@@ -62,12 +62,12 @@ docserve: doc
 
 # Clean up non-source files
 fileclean:
-	rm -rf build dist __pycache__ *.egg-info dist
-	find . -name -o -name '*.pyc' \
+	rm -rf build dist *.egg-info
+	find . -name '*.pyc' -o -name __pycache__ \
 	-o -name '*~' -o -name '#*' -o -name '*.png' \
 	| xargs rm -rf
-	rm -rf testcerts
-	rm -f mnoptical/ofcdemo/*.txt
+	rm -rf testcerts mnoptical/demo/*txt Monitor_Lightpath.txt
+
 
 # Clean up everything
 clean: fileclean docclean
