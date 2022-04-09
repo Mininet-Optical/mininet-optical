@@ -69,7 +69,7 @@ $ cd ..
 </pre></div>
 </div>
 <p>Once you have the source tree, the command to install Mininet is:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./mininet/util/install.sh -nfv
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./mininet/util/install.sh -nv
 </pre></div>
 </div>
 <p>To test the Mininet functionality, run:</p>
@@ -85,7 +85,7 @@ the other installation option and commands, we suggest consulting the
 <p>Once Mininet is up and running, you will need to clone the
 Mininet-Optical repository using the following commands:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/mininet-optical/mininet-optical
-$ cd optical-network-emulator
+$ cd mininet-optical
 $ make depend
 $ make install
 </pre></div>
@@ -101,7 +101,7 @@ called <code class="docutils literal notranslate"><span class="pre">SingleLinkTo
 terminals separated by 2x25km spans with an EDFA in the middle:</p>
 <p>h1 - s1 - t1 - (boost-&gt;,amp2&lt;-) –25km– amp1 –25km– (-&gt;amp2,&lt;-boost) - t1 - s2 - h2</p>
 <p>To run this topology:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/optical-network-emulator
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical
 $ sudo python3 examples/singlelink.py
 </pre></div>
 </div>
@@ -202,7 +202,7 @@ anything.</p>
 <h3>Setting up routes<a class="headerlink" href="#setting-up-routes" title="Permalink to this headline">¶</a></h3>
 <p>To create the routes and activate the hosts, open another terminal window, and run the following
 script:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/optical-network-emulator/examples
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical/examples
 $ ./config-singlelink.sh
 </pre></div>
 </div>
@@ -313,7 +313,7 @@ emulate larger topologies using Mininet-Optical.</p>
       &copy;2022, Mininet-Optical Project Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -37,7 +37,7 @@ version - you may check that version out explicitly:
 
 Once you have the source tree, the command to install Mininet is:
 
-    $ ./mininet/util/install.sh -nfv
+    $ ./mininet/util/install.sh -nv
 
 To test the Mininet functionality, run:
 
@@ -53,7 +53,7 @@ Once Mininet is up and running, you will need to clone the
 Mininet-Optical repository using the following commands:
 
     $ git clone https://github.com/mininet-optical/mininet-optical
-    $ cd optical-network-emulator
+    $ cd mininet-optical
     $ make depend
     $ make install
 
@@ -69,7 +69,7 @@ h1 - s1 - t1 - (boost->,amp2<-) --25km-- amp1 --25km-- (->amp2,<-boost) - t1 - s
 
 To run this topology:
 
-    $ cd ~/optical-network-emulator
+    $ cd ~/mininet-optical
     $ sudo python3 examples/singlelink.py
 
 If the execution is successful, you should see the following:
@@ -181,7 +181,7 @@ Mininet's regular CLI commands are also supported.
 To create the routes and activate the hosts, open another terminal window, and run the following
 script:
 
-    $ cd ~/optical-network-emulator/examples
+    $ cd ~/mininet-optical/examples
     $ ./config-singlelink.sh
 
 This script will configure the optial `Terminal`s and launch signals at their transceiver.
