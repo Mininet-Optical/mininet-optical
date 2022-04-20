@@ -43,13 +43,16 @@ class Link(object):
         if boost_amp:
             self.boost_amp.set_input_port(self.src_node, self, input_port=0)
             self.boost_amp.set_output_port(spans[0][0], self, output_port=0)
+            if self.boost_amp.prev_component:
+                raise Exception(f"{self.boost_amp} already connected to "
+                                f"{self.boost_amp.prev_component}")
             self.boost_amp.prev_component = src_node
             self.boost_amp.next_component = spans[0][0]
 
         prev_amp = None
         for i, span in enumerate(spans):
             prev_span = span[0]
-            if prev_span.link:
+            if getattr(prev_span, 'link', None) is not None:
                 raise Exception(f"span {prev_span} is already used in {prev_span.link}")
             prev_span.link = self
             amplifier = span[1]
