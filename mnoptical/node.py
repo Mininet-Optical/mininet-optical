@@ -1435,11 +1435,12 @@ class Splitter(Node):
     We use the same ingress API/protocol as Roadm.
     """
     
-    def __init__(self, name, split=None, **params):
+    def __init__(self, name, split=None, monitor_mode='out'):
         "split: {port:percent...}"
-        super().__init__(name, **params)
+        super().__init__(name)
         self.split = split or {}
-
+        self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+        
     def switch(self, in_port, src_node, safe_switch=False):
         """Propagate splitter's signals to its output ports.
            This is part of the Roadm protocol that we conform to."""
