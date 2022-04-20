@@ -1435,9 +1435,9 @@ class Splitter(Node):
     We use the same ingress API/protocol as Roadm.
     """
     
-    def __init__(self, name, split=None):
+    def __init__(self, name, split=None, **params):
         "split: {port:percent...}"
-        super().__init__(name)
+        super().__init__(name, **params)
         self.split = split or {}
 
     def switch(self, in_port, src_node, safe_switch=False):
