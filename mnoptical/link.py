@@ -49,6 +49,8 @@ class Link(object):
         prev_amp = None
         for i, span in enumerate(spans):
             prev_span = span[0]
+            if prev_span.link:
+                raise Exception(f"span {prev_span} is already used in {prev_span.link}")
             prev_span.link = self
             amplifier = span[1]
 
@@ -58,6 +60,10 @@ class Link(object):
                 prev_span.prev_component = prev_amp
 
             if amplifier:
+                if amplifier.link:
+                    raise Exception(
+                        f"{amplifier} is already used in {amplifier.link}")
+                
                 amplifier.link = self
                 amplifier.set_input_port(prev_span, self, input_port=0)
 
@@ -312,6 +318,8 @@ class Span(object):
                     ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
                     nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
                     in_port=0)
+            else:
+                print(f"{self} NOT PROPAGATING SIGNAL")
 
         if isinstance(self.next_component, Amplifier):
             self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
