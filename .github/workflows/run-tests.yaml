@@ -18,17 +18,18 @@ jobs:
 
       - name: Check out source code
         uses: actions/checkout@v2
-
-      - name: Build and install Mininet-Optical
-        run:  pip install build && make install
-
-      - name: Test "make depend"
-        run:  make depend
-
+        
       - name: Install Mininet (master)
         run: |
              git clone https://github.com/mininet/mininet
              mininet/util/install.sh -nv
+             
+      - name: Install other Mininet-Optical dependencies
+        run:  make depend
+
+      - name: Build and install Mininet-Optical
+        run:  make install
 
       - name: Run Tests
-        run: make test doc
+        run: make test
+        
