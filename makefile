@@ -1,6 +1,8 @@
 MODULE = mnoptical
 SRCS = $(MODULE)/*.py $(MODULE)/*/*.py
 PKG = pyproject.toml setup.cfg setup.py
+PIP = python3 -m pip
+APT = apt
 
 # Build python package (wheel/.whl file)
 # using pyproject-build (from python 'build' package)
@@ -8,23 +10,26 @@ dist wheel: $(SRCS) $(PKG) makefile
 	pyproject-build --wheel
 
 # Install python package
+# XXX Using --force for now since sometimes
+# pip fails to uninstall/upgrade but still returns 0
 install: dist
-	sudo pip3 uninstall mininet-optical
-	sudo pip3 install dist/mininet_optical*.whl
+	sudo $(PIP) uninstall mininet-optical
+	sudo $(PIP) install dist/mininet_optical*.whl --upgrade --force
 
 # Development/editable installation
+# FIXME: This doesn't seem to work properly
 develop: $(SRCS) $(PKG)
-	sudo pip3 uninstall mininet-optical
-	sudo pip3 install --editable .
+	sudo $(PIP) uninstall mininet-optical
+	sudo $(PIP) install --editable .
 
 # Install dependencies
 # In addition to our package dependencies, we install
-# build (for building) and pygraphviz (for examples/)
+# build and wheel (for building) and pygraphviz (for examples/)
 depend: requirements.txt
-	python3 -m pip install -r requirements.txt
-	sudo python3 -m pip install -r requirements.txt
-	python3 -m pip install build
-	sudo apt install python3-pygraphviz
+	$(PIP) install -r requirements.txt
+	sudo $(PIP) install -r requirements.txt
+	$(PIP) install build wheel
+	sudo $(APT) install python3-pygraphviz
 
 # Run simulator tests
 simtest:
