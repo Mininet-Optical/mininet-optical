@@ -6,15 +6,12 @@ APT = apt
 
 # Build python package (wheel/.whl file)
 # using pyproject-build (from python 'build' package)
-dist wheel: $(SRCS) $(PKG) makefile
+dist wheel: $(SRCS) $(PKG) makefile clean
 	pyproject-build --wheel
 
 # Install python package
-# XXX Using --force for now since sometimes
-# pip fails to uninstall/upgrade but still returns 0
 install: dist
-	sudo $(PIP) uninstall mininet-optical
-	sudo $(PIP) install dist/mininet_optical*.whl --upgrade --force
+	sudo $(PIP) install --upgrade dist/mininet_optical*.whl
 
 # Development/editable installation
 # FIXME: This doesn't seem to work properly
