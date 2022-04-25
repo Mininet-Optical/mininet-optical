@@ -1183,7 +1183,7 @@ class Amplifier(Node):
 
     def __init__(self, name, amplifier_type='EDFA', target_gain=17.6,
                  noise_figure=(5.5, 91), noise_figure_function=None,
-                 bandwidth=32.0e9, wdg_id=None,
+                 bandwidth=32.0e9, wdg_id='linear',
                  preamp=False, boost=False, monitor_mode=None, debugger=False):
         """
         :param amplifier_type: OBSOLETE; kept for backwards compatibility
@@ -1200,7 +1200,6 @@ class Amplifier(Node):
         self.system_gain = target_gain
         self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
         self.bandwidth = bandwidth
-        wdg_id = 'linear'  # disabling EDFA WDG
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wdg_id))
 
