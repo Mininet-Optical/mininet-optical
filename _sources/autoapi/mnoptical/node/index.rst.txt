@@ -479,7 +479,7 @@ Attributes
 
 
 
-.. py:class:: Amplifier(name, amplifier_type='EDFA', target_gain=17.6, noise_figure=(5.5, 91), noise_figure_function=None, bandwidth=32000000000.0, wdg_id=None, preamp=False, boost=False, monitor_mode=None, debugger=False)
+.. py:class:: Amplifier(name, amplifier_type='EDFA', target_gain=17.6, noise_figure=(5.5, 91), noise_figure_function=None, bandwidth=32000000000.0, wdg_id='linear', preamp=False, boost=False, monitor_mode=None, debugger=False)
 
    Bases: :py:obj:`Node`
 
