@@ -18,18 +18,27 @@ jobs:
 
       - name: Check out source code
         uses: actions/checkout@v2
-        
+            
+      - name: Install Mininet-Optical dependencies (besides Mininet)
+        run:  make depend
+
+      - name: Build and install Mininet-Optical
+        run: |
+             make install
+             pip3 show -f mininet-optical | grep examples
+
+      # We pass empty PYTHONPATH in order to test the installed packages
+      - name: Run Simulation Tests
+        run: PYTHONPATH= make simtest
+
       - name: Install Mininet (master)
         run: |
              git clone https://github.com/mininet/mininet
              mininet/util/install.sh -nv
-             
-      - name: Install other Mininet-Optical dependencies
-        run:  make depend
 
-      - name: Build and install Mininet-Optical
-        run:  make install
+      - name: Run Emulation Tests
+        run: PYTHONPATH= make emutest
 
-      - name: Run Tests
-        run: make test
+      - name: Run OFC Demo Tests
+        run: PYTHONPATH= make demotest
         

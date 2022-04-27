@@ -3,10 +3,15 @@
 # Exit on non-handled error
 set -e
 
-# Set necessary python path for execution
+# By default, test the version in this repo
 testdir=$(dirname $0)
+if [ ! -v PYTHONPATH ]; then
+    PYTHONPATH=$testdir/..
+    echo "**** PYTHONPATH set to $PYTHONPATH"
+fi
+
 timeout=60  # Fail test if it takes over 60s
-run="env PYTHONPATH=$testdir/.. timeout $timeout python3"
+run="sudo PYTHONPATH=$PYTHONPATH timeout $timeout python3"
 
 # Accumulate passed and failed tests
 tests=($testdir/*.py)

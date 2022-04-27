@@ -3,9 +3,12 @@
 # Exit on non-handled error
 set -e
 
-# Set necessary python path for execution
+# By default, test the version in this repo
 testdir=$(dirname $0)
-export PYTHONPATH=$testdir/..
+if [ ! -v PYTHONPATH ]; then
+    export PYTHONPATH=$testdir/..
+    echo "**** PYTHONPATH set to $PYTHONPATH"
+fi
 
 # Accumulate passed and failed tests
 tests=($testdir/*.py)
