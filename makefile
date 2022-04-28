@@ -11,7 +11,8 @@ dist wheel: $(SRCS) $(PKG) makefile clean
 
 # Install python package
 install: dist
-	sudo $(PIP) install --upgrade dist/mininet_optical*.whl
+	$(PIP) install --upgrade --verbose dist/*.whl
+	sudo $(PIP) install --upgrade --verbose dist/*.whl
 
 # Development/editable installation
 # FIXME: This doesn't seem to work properly
@@ -23,9 +24,8 @@ develop: $(SRCS) $(PKG)
 # In addition to our package dependencies, we install
 # build and wheel (for building) and pygraphviz (for examples/)
 depend: requirements.txt
-	$(PIP) install -r requirements.txt
 	sudo $(PIP) install -r requirements.txt
-	$(PIP) install build wheel
+	sudo $(PIP) install build wheel
 	sudo $(APT) install python3-pygraphviz
 
 # Run simulator tests
@@ -34,7 +34,7 @@ simtest:
 
 # Run emulation tests
 emutest: certs
-	sudo examples/runtests.sh
+	examples/runtests.sh
 
 # Run demo test
 demotest:

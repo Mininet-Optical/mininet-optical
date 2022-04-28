@@ -19,7 +19,7 @@ from netconf.server import SSHUserPassController, NetconfSSHServer
 from netconf.util import (elm, subelm, leaf_elm, filter_results,
                           xpath_filter_result, filter_to_xpath)
 
-from os.path import dirname
+from os.path import dirname, exists
 from threading import Thread
 from time import sleep
 
@@ -43,7 +43,7 @@ for m in EdfaNsmap, ConnNsmap:
 nsmap_update(nsmap)
 
 ### Netconf connection parameters
-SSLKeyFile = f"{dirname(__file__)}/../../testcerts/fakeserver.key"
+SSLKeyFileDefault = "fakeserver.key"
 NetconfPortBase = 1830  # default is 830 but we use 1831+
 
 
@@ -130,7 +130,8 @@ class NetconfAgent:
 
     "Netconf agent for single (Lumentum-like) ROADM"
 
-    def __init__( self, roadm, port=None, username=None, password=None):
+    def __init__( self, roadm, port=None, username=None, password=None,
+                  sslkeyfile=SSLKeyFileDefault):
         "Create netconf agent for roadm"
 
         port = port or roadm.netconfPort
@@ -140,6 +141,8 @@ class NetconfAgent:
         self.roadm = roadm
         self.connections = {}
 
+        assert exists(sslkeyfile), f"NetconfAgent: missing {sslkeyfile}"
+
         info( f'*** Starting Netconf Agent for {roadm} on port {port}\n' )
 
         controller = SSHUserPassController(
@@ -147,7 +150,7 @@ class NetconfAgent:
 
         self.server = NetconfSSHServer(
             server_ctl=controller, server_methods=self,
-            port=port, host_key=SSLKeyFile, debug=True)
+            port=port, host_key=sslkeyfile, debug=True)
         assert self.server
 
     def nc_append_capabilities( self, caps ):

@@ -27,6 +27,7 @@ from sys import argv
 ### Default netconf username and password for testing
 username = 'admin'
 password = 'admin'
+sslkeyfile = 'testcerts/fakeserver.key'
 
 ### Simple LROADM() topologies
 
@@ -139,7 +140,8 @@ if __name__ == '__main__':
     topo = LumentumRing(N=4, txcount=4)
     net = Mininet(topo=topo, controller=None)
     restServer = RestServer(net)
-    netconfServer = NetconfServer(net, username=username, password=password)
+    netconfServer = NetconfServer(net, username=username, password=password,
+                                  sslkeyfile=sslkeyfile)
     plotNet(net, outfile='lumentumring.png', directed=True,
             colorMap={LROADM: 'red', OVSSwitch: 'darkgreen'})
     net.start()
