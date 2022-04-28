@@ -38,6 +38,7 @@ Attributes
 
    mnoptical.examples.lroadmring.username
    mnoptical.examples.lroadmring.password
+   mnoptical.examples.lroadmring.sslkeyfile
    mnoptical.examples.lroadmring.topo
 
 
@@ -48,6 +49,11 @@ Attributes
 
 .. py:data:: password
    :annotation: = admin
+
+   
+
+.. py:data:: sslkeyfile
+   :annotation: = testcerts/fakeserver.key
 
    
 

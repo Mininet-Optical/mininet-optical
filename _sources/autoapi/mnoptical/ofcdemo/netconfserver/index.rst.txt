@@ -50,7 +50,7 @@ Attributes
    mnoptical.ofcdemo.netconfserver.EdfaNsmap
    mnoptical.ofcdemo.netconfserver.ConnNsmap
    mnoptical.ofcdemo.netconfserver.nsmap
-   mnoptical.ofcdemo.netconfserver.SSLKeyFile
+   mnoptical.ofcdemo.netconfserver.SSLKeyFileDefault
    mnoptical.ofcdemo.netconfserver.NetconfPortBase
    mnoptical.ofcdemo.netconfserver.Debug
    mnoptical.ofcdemo.netconfserver.configNs
@@ -81,8 +81,8 @@ Attributes
 
    
 
-.. py:data:: SSLKeyFile
-   
+.. py:data:: SSLKeyFileDefault
+   :annotation: = fakeserver.key
 
    
 
@@ -116,7 +116,7 @@ Attributes
    Parse config connection and return <dn>,<config> as dicts
 
 
-.. py:class:: NetconfAgent(roadm, port=None, username=None, password=None)
+.. py:class:: NetconfAgent(roadm, port=None, username=None, password=None, sslkeyfile=SSLKeyFileDefault)
 
    Netconf agent for single (Lumentum-like) ROADM
 
