@@ -1,6 +1,6 @@
 ### Mininet-Optical Prototype and Demo
 
-[![tests][1]](https://github.com/UA-Agile-Cloud/optical-network-emulator/actions)
+[![tests][1]](https://github.com/mininet-optical/mininet-optical/actions)
 
 #### Overview
 
@@ -52,4 +52,4 @@ and optical network elements.
 - makefile: has make clean|depend|install|devel targets
 - requirements.txt: Python requirements file (for `pip3 install -r`)
 
-[1]: https://github.com/UA-Agile-Cloud/optical-network-emulator/workflows/tests/badge.svg
+[1]: https://github.com/mininet-optical/mininet-optical/workflows/tests/badge.svg
