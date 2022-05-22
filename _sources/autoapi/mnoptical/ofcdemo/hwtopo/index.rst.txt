@@ -50,7 +50,7 @@ Attributes
 
    
 
-.. py:class:: Lumentum(*args, netconfPort=None, **kwargs)
+.. py:class:: Lumentum
 
    Bases: :py:obj:`mnoptical.ofcdemo.lroadm.LROADM`
 
