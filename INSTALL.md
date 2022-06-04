@@ -37,7 +37,7 @@ version - you may check that version out explicitly:
 
 Once you have the source tree, the command to install Mininet is:
 
-    $ ./mininet/util/install.sh -nv
+    $ ./mininet/util/install.sh -nfv
 
 To test the Mininet functionality, run:
 

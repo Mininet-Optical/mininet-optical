@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="3312" height="1868" overflow="hidden" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <clipPath id="clip0">
+   <rect x="-16" y="461" width="3312" height="1868"/>
+  </clipPath>
+ </defs>
+ <g transform="translate(16 -461)" clip-path="url(#clip0)">
+  <rect x="282.5" y="464.5" width="1188" height="1026" fill="#ccc" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <rect x="324.5" y="517.5" width="1110" height="927" fill="#fff" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m339.5 938.67c0-52.56 42.609-95.169 95.169-95.169h884.66c52.56 0 95.17 42.609 95.17 95.169v380.66c0 52.56-42.61 95.17-95.17 95.17h-884.66c-52.56 0-95.169-42.61-95.169-95.17z" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="13.75 10.3125" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="3.4375"/>
+  <rect x="364.5" y="906.5" width="124" height="119" fill="#E6B8AF" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m543.5 966c0-39.488 27.758-71.5 62-71.5s62 32.012 62 71.5c0 39.49-27.758 71.5-62 71.5s-62-32.01-62-71.5z" fill="#F4CCCC" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m822.5 966c0-39.488 27.758-71.5 62-71.5s62 32.012 62 71.5c0 39.49-27.758 71.5-62 71.5s-62-32.01-62-71.5z" fill="#F4CCCC" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m681.5 1147c0-39.49 27.758-71.5 62-71.5s62 32.01 62 71.5-27.758 71.5-62 71.5-62-32.01-62-71.5z" fill="#F4CCCC" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m649.5 1016.5 50.128 79.9" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(-1 0 0 1 840.09 1016.5)" d="m0 0 53.592 79.902" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m667.5 965.5h155.04" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <rect x="1761.5" y="987.75" width="273.75" height="156.75" fill="#E6B8AF"/>
+  <path d="m2035.2 987.75 52.25-52.25v156.75l-52.25 52.25z" fill="#B9948D" fill-rule="evenodd"/>
+  <path d="m1761.5 987.75 52.25-52.25h273.75l-52.25 52.25z" fill="#EBC6BF" fill-rule="evenodd"/>
+  <path d="m1761.5 987.75 52.25-52.25h273.75v156.75l-52.25 52.25h-273.75zh273.75l52.25-52.25m-52.25 52.25v156.75" fill="none" fill-rule="evenodd" stroke="#000" stroke-miterlimit="8" stroke-width="6.875"/>
+  <text transform="translate(1794.2 1086)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">TX/RX</text>
+  <path d="m2120.5 973.12c0 13.048 69.17 23.625 154.5 23.625s154.5-10.577 154.5-23.625v141.74c0 13.05-69.17 23.63-154.5 23.63s-154.5-10.58-154.5-23.63z" fill="#F4CCCC" fill-rule="evenodd"/>
+  <path d="m2120.5 973.12c0-13.048 69.17-23.625 154.5-23.625s154.5 10.577 154.5 23.625-69.17 23.625-154.5 23.625-154.5-10.577-154.5-23.625z" fill="#F8E0E0" fill-rule="evenodd"/>
+  <path d="m2429.5 973.12c0 13.048-69.17 23.625-154.5 23.625s-154.5-10.577-154.5-23.625 69.17-23.625 154.5-23.625 154.5 10.577 154.5 23.625v141.74c0 13.05-69.17 23.63-154.5 23.63s-154.5-10.58-154.5-23.63v-141.74" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <text transform="translate(2172 1075)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">ROADM</text>
+  <rect x="2250.5" y="632" width="533.5" height="142.5" fill="#D9D2E9"/>
+  <path d="m2784 632 47.5-47.5v142.5l-47.5 47.5z" fill="#AEA9BB" fill-rule="evenodd"/>
+  <path d="m2250.5 632 47.5-47.5h533.5l-47.5 47.5z" fill="#E0DBED" fill-rule="evenodd"/>
+  <path d="m2250.5 632 47.5-47.5h533.5v142.5l-47.5 47.5h-533.5zh533.5l47.5-47.5m-47.5 47.5v142.5" fill="none" fill-rule="evenodd" stroke="#000" stroke-miterlimit="8" stroke-width="6.875"/>
+  <text transform="translate(2283.2 723)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">SDN Controller</text>
+  <path d="m2087.5 1014.5 32.81 29.67" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(-1 0 0 1 2517.3 774.5)" d="m0 0 242.84 174.85" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m-12.5 2094.5 296.6-604h1186.4l-296.6 604z" fill="#ccc" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m2366.5 1337.1c0 13.04 69.17 23.62 154.5 23.62s154.5-10.58 154.5-23.62v141.75c0 13.04-69.17 23.62-154.5 23.62s-154.5-10.58-154.5-23.62z" fill="#F4CCCC" fill-rule="evenodd"/>
+  <path d="m2366.5 1337.1c0-13.05 69.17-23.63 154.5-23.63s154.5 10.58 154.5 23.63c0 13.04-69.17 23.62-154.5 23.62s-154.5-10.58-154.5-23.62z" fill="#F8E0E0" fill-rule="evenodd"/>
+  <path d="m2675.5 1337.1c0 13.04-69.17 23.62-154.5 23.62s-154.5-10.58-154.5-23.62c0-13.05 69.17-23.63 154.5-23.63s154.5 10.58 154.5 23.63v141.75c0 13.04-69.17 23.62-154.5 23.62s-154.5-10.58-154.5-23.62v-141.75" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <text transform="translate(2418.4 1439)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">ROADM</text>
+  <path d="m2575.5 973.12c0 13.048 69.17 23.625 154.5 23.625s154.5-10.577 154.5-23.625v141.74c0 13.05-69.17 23.63-154.5 23.63s-154.5-10.58-154.5-23.63z" fill="#F4CCCC" fill-rule="evenodd"/>
+  <path d="m2575.5 973.12c0-13.048 69.17-23.625 154.5-23.625s154.5 10.577 154.5 23.625-69.17 23.625-154.5 23.625-154.5-10.577-154.5-23.625z" fill="#F8E0E0" fill-rule="evenodd"/>
+  <path d="m2884.5 973.12c0 13.048-69.17 23.625-154.5 23.625s-154.5-10.577-154.5-23.625 69.17-23.625 154.5-23.625 154.5 10.577 154.5 23.625v141.74c0 13.05-69.17 23.63-154.5 23.63s-154.5-10.58-154.5-23.63v-141.74" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <text transform="translate(2627 1075)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">ROADM</text>
+  <path d="m2517.5 774.5 3.57 539.06" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m349.5 1549.5h1007.5" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m2517.5 774.5 212.1 174.85" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m226.5 1789.5h1007.5" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 230.5 1790.5)" d="m0 0 119.2 241.98" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 1234.5 1791.5)" d="m0 0 119.2 241.98" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 464.5 1823.6)" d="m0 0 441.3 0.10827" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m337.5 2063.5 447.69 0.76" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 339.5 2064.6)" d="m0 0 123.86 241.11" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 785.5 2067.9)" d="m0 0 118.44 244.36" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m2274.5 1138.5 167.81 181.46" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(-1 0 0 1 2730.2 1138.5)" d="m0 0 116.71 179.83" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m2429.5 1043.5h145.51" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <rect x="2966.5" y="958.75" width="273.75" height="156.75" fill="#E6B8AF"/>
+  <path d="m3240.2 958.75 52.25-52.25v156.75l-52.25 52.25z" fill="#B9948D" fill-rule="evenodd"/>
+  <path d="m2966.5 958.75 52.25-52.25h273.75l-52.25 52.25z" fill="#EBC6BF" fill-rule="evenodd"/>
+  <path d="m2966.5 958.75 52.25-52.25h273.75v156.75l-52.25 52.25h-273.75zh273.75l52.25-52.25m-52.25 52.25v156.75" fill="none" fill-rule="evenodd" stroke="#000" stroke-miterlimit="8" stroke-width="6.875"/>
+  <text transform="translate(2999.2 1056)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">TX/RX</text>
+  <rect x="2320.5" y="1647.8" width="310.75" height="141.75" fill="#E6B8AF"/>
+  <path d="m2631.2 1647.8 47.25-47.25v141.75l-47.25 47.25z" fill="#B9948D" fill-rule="evenodd"/>
+  <path d="m2320.5 1647.8 47.25-47.25h310.75l-47.25 47.25z" fill="#EBC6BF" fill-rule="evenodd"/>
+  <path d="m2320.5 1647.8 47.25-47.25h310.75v141.75l-47.25 47.25h-310.75zh310.75l47.25-47.25m-47.25 47.25v141.75" fill="none" fill-rule="evenodd" stroke="#000" stroke-miterlimit="8" stroke-width="6.875"/>
+  <text transform="translate(2352.8 1738)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">TX/RX</text>
+  <path d="m2521.5 1502.5 1.84 97.77" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(-1 0 0 1 2966.7 1036.5)" d="m0 0 82.175 7.0374" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <text transform="translate(2177 2255)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="700">Hardware Network</text>
+  <rect x="679.5" y="1273.5" width="124" height="119" fill="#E6B8AF" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <rect x="1013.5" y="906.5" width="124" height="119" fill="#E6B8AF" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m488.5 965.5 54.892 0.108" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 946.5 965.61)" d="m0 0 67.234 0.10827" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 741.5 1273.9)" d="m0 0 1.7323 55.433" fill="none" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 1486 1068.6)" d="m34.438-6.5498 206.14 1.9486-0.13 13.749-206.14-1.9486zm6.6147 27.564-41.053-21.014 41.443-20.234zm192.79-39.43 41.053 21.014-41.443 20.234z"/>
+  <text transform="translate(357.29 2255)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="700">Emulated Network</text>
+  <path d="m891.5 1160.7c0-24.4 19.774-44.17 44.167-44.17h406.66c24.4 0 44.17 19.77 44.17 44.17v176.66c0 24.4-19.77 44.17-44.17 44.17h-406.66c-24.393 0-44.167-19.77-44.167-44.17z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <rect x="900" y="1131" width="483" height="210"/>
+  <text transform="translate(932.57 1206)" fill="#FFFFFF" font-family="Courier New,Courier New_MSFontService,sans-serif" font-size="48" font-weight="700"># mn<tspan x="0" y="58" font-size="48">&gt; h1 ping h2</tspan></text>
+  <path d="m436.5 689.33c0-10.954 8.88-19.834 19.834-19.834h579.34c10.95 0 19.83 8.88 19.83 19.834v79.332c0 10.954-8.88 19.834-19.83 19.834h-579.34c-10.954 0-19.834-8.88-19.834-19.834z" fill="#D9D2E9" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <text transform="translate(561.48 748)" font-family="Arial,Arial_MSFontService,sans-serif" font-size="55" font-weight="400">SDN Controller</text>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 605.5 894.17)" d="m0 0 140.64 105.67" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path transform="matrix(1 -1.2246e-16 -1.2246e-16 -1 743.5 1075.3)" d="m0 0 2.9232 286.8" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+  <path d="m884.76 894.17-138.26-105.67" fill="none" fill-rule="evenodd" stroke="#000" stroke-dasharray="27.5 20.625" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="6.875"/>
+ </g>
+</svg>
