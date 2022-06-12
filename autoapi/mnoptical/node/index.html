@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>mnoptical.node &#8212; Mininet-Optical  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
@@ -13,6 +13,7 @@
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -33,16 +34,12 @@
           <div class="body" role="main">
             
   <section id="module-mnoptical.node">
-<span id="mnoptical-node"></span><h1><a class="reference internal" href="#module-mnoptical.node" title="mnoptical.node"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.node</span></code></a><a class="headerlink" href="#module-mnoptical.node" title="Permalink to this headline">¶</a></h1>
+<span id="mnoptical-node"></span><h1><a class="reference internal" href="#module-mnoptical.node" title="mnoptical.node"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.node</span></code></a><a class="headerlink" href="#module-mnoptical.node" title="Permalink to this heading">¶</a></h1>
 <section id="module-contents">
-<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">¶</a></h2>
 <section id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.Node" title="mnoptical.node.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Node</span></code></a></p></td>
 <td><p></p></td>
@@ -75,12 +72,8 @@
 </table>
 </section>
 <section id="attributes">
-<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.SwitchRule" title="mnoptical.node.SwitchRule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SwitchRule</span></code></a></p></td>
 <td><p></p></td>
@@ -115,7 +108,7 @@
 <dt class="sig sig-object py" id="mnoptical.node.Node.include_optical_signal_in">
 <span class="sig-name descname"><span class="pre">include_optical_signal_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optical_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ase_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nli_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Node.include_optical_signal_in" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>optical_signal</strong> – OpticalSignal object, OpticalSignal uid</p></li>
 <li><p><strong>power</strong> – power level of OpticalSignal</p></li>
@@ -131,7 +124,7 @@
 <dt class="sig sig-object py" id="mnoptical.node.Node.include_optical_signal_out">
 <span class="sig-name descname"><span class="pre">include_optical_signal_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optical_signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ase_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nli_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Node.include_optical_signal_out" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>optical_signal</strong> – OpticalSignal object</p></li>
 <li><p><strong>power</strong> – power level of OpticalSignal</p></li>
@@ -677,10 +670,10 @@ and call fast_switch()
 <dt class="sig sig-object py" id="mnoptical.node.Amplifier.load_wavelength_dependent_gain">
 <span class="sig-name descname"><span class="pre">load_wavelength_dependent_gain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdg_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Amplifier.load_wavelength_dependent_gain" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>wdg_id</strong> – file name id (see top of script) - string</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Return wavelength dependent gain array</p>
 </dd>
 </dl>
@@ -729,7 +722,7 @@ update EDFA and OpticalSignal state date structures</p>
 <dt class="sig sig-object py" id="mnoptical.node.Amplifier.stage_amplified_spontaneous_emission_noise">
 <span class="sig-name descname"><span class="pre">stage_amplified_spontaneous_emission_noise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optical_signal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Amplifier.stage_amplified_spontaneous_emission_noise" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p></p>
 </dd>
 </dl>
@@ -787,7 +780,7 @@ options are ‘in’ and ‘out’</p>
 <dt class="sig sig-object py" id="mnoptical.node.Monitor.get_optical_signals">
 <span class="sig-name descname"><span class="pre">get_optical_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Monitor.get_optical_signals" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Return power</dt>
+<dt class="field-odd">Return power<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Returns Optical signals for the required objects</p>
 </dd>
 </dl>
@@ -966,7 +959,11 @@ returns: [path,…]</p>
 <h3>Navigation</h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Mininet_Optical_Introduction.html">Mininet-Optical - An Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../API_walkthrough.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualisation.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">API Reference</a></li>
 </ul>
 
@@ -986,15 +983,7 @@ returns: [path,…]</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1003,7 +992,7 @@ returns: [path,…]</p>
       &copy;2022, Mininet-Optical Project Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

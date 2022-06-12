@@ -25,6 +25,7 @@ and optical network elements.
 - mnoptical: Mininet-Optical Python package (`mnoptical`)
 - examples: sample emulation scripts for Mininet-Optical
 - tests: tests for simulation mode
+- docs: Sphinx documentation 
 - onos_rest_api: ONOS CLI tool and REST proxy used in OFC20 demo
 - opticalemulator: southbound REST driver for ONOS used in OFC20 demo
 - dist (if present): created by `make dist`
@@ -49,7 +50,7 @@ and optical network elements.
 
 #### Other files
 
-- makefile: has make clean|depend|install|devel targets
+- makefile: has make clean|depend|install|devel|doc targets
 - requirements.txt: Python requirements file (for `pip3 install -r`)
 
 [1]: https://github.com/mininet-optical/mininet-optical/workflows/tests/badge.svg

@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Mininet-Optical Prototype and Demo &#8212; Mininet-Optical  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -13,10 +13,11 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Mininet-Optical Installation and Walkthrough" href="walkthrough.html" />
+    <link rel="next" title="Mininet-Optical - An Introduction" href="Mininet_Optical_Introduction.html" />
     <link rel="prev" title="Mininet-Optical Documentation" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -35,10 +36,10 @@
           <div class="body" role="main">
             
   <section id="mininet-optical-prototype-and-demo">
-<h1>Mininet-Optical Prototype and Demo<a class="headerlink" href="#mininet-optical-prototype-and-demo" title="Permalink to this headline">¶</a></h1>
+<h1>Mininet-Optical Prototype and Demo<a class="headerlink" href="#mininet-optical-prototype-and-demo" title="Permalink to this heading">¶</a></h1>
 <p><a class="reference external" href="https://github.com/mininet-optical/mininet-optical/actions"><img alt="tests" src="https://github.com/mininet-optical/mininet-optical/workflows/tests/badge.svg" /></a></p>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">¶</a></h2>
 <p>This is a prototype implementation of an emulator for packet optical software-defined networks.</p>
 <p>It includes:</p>
 <ul class="simple">
@@ -54,18 +55,19 @@ such as OpenFlow switches and Ethernet links, and SDN controllers to manage both
 and optical network elements.</p>
 </section>
 <section id="directories">
-<h2>Directories<a class="headerlink" href="#directories" title="Permalink to this headline">¶</a></h2>
+<h2>Directories<a class="headerlink" href="#directories" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>mnoptical: Mininet-Optical Python package (<code class="docutils literal notranslate"><span class="pre">mnoptical</span></code>)</p></li>
 <li><p>examples: sample emulation scripts for Mininet-Optical</p></li>
 <li><p>tests: tests for simulation mode</p></li>
+<li><p>docs: Sphinx documentation</p></li>
 <li><p>onos_rest_api: ONOS CLI tool and REST proxy used in OFC20 demo</p></li>
 <li><p>opticalemulator: southbound REST driver for ONOS used in OFC20 demo</p></li>
 <li><p>dist (if present): created by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">dist</span></code></p></li>
 </ul>
 </section>
 <section id="python-modules-in-mnoptical">
-<h2>Python modules in mnoptical/<a class="headerlink" href="#python-modules-in-mnoptical" title="Permalink to this headline">¶</a></h2>
+<h2>Python modules in mnoptical/<a class="headerlink" href="#python-modules-in-mnoptical" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>dataplane.py: dataplane emulation</p></li>
 <li><p>edfa_params.py: EDFA wavelength dependent gain functions</p></li>
@@ -79,7 +81,7 @@ and optical network elements.</p>
 </ul>
 </section>
 <section id="subcomponents-of-mnoptical">
-<h2>Subcomponents of mnoptical/<a class="headerlink" href="#subcomponents-of-mnoptical" title="Permalink to this headline">¶</a></h2>
+<h2>Subcomponents of mnoptical/<a class="headerlink" href="#subcomponents-of-mnoptical" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>examples/: emulation mode scripts that can also be used as modules</p></li>
 <li><p>ofcdemo/: modules/scripts related to our OFC demo(s)</p></li>
@@ -87,9 +89,9 @@ and optical network elements.</p>
 </ul>
 </section>
 <section id="other-files">
-<h2>Other files<a class="headerlink" href="#other-files" title="Permalink to this headline">¶</a></h2>
+<h2>Other files<a class="headerlink" href="#other-files" title="Permalink to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>makefile: has make clean|depend|install|devel targets</p></li>
+<li><p>makefile: has make clean|depend|install|devel|doc targets</p></li>
 <li><p>requirements.txt: Python requirements file (for <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">-r</span></code>)</p></li>
 </ul>
 </section>
@@ -121,7 +123,11 @@ and optical network elements.</p>
 <li class="toctree-l2"><a class="reference internal" href="#other-files">Other files</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Introduction.html">Mininet-Optical - An Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API_walkthrough.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -130,7 +136,7 @@ and optical network elements.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">Mininet-Optical Documentation</a></li>
-      <li>Next: <a href="walkthrough.html" title="next chapter">Mininet-Optical Installation and Walkthrough</a></li>
+      <li>Next: <a href="Mininet_Optical_Introduction.html" title="next chapter">Mininet-Optical - An Introduction</a></li>
   </ul></li>
 </ul>
 </div>
@@ -143,15 +149,7 @@ and optical network elements.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -160,7 +158,7 @@ and optical network elements.</p>
       &copy;2022, Mininet-Optical Project Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

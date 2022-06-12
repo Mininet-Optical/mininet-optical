@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Mininet-Optical - An Introduction &#8212; Mininet-Optical  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Mininet-Optical Installation and Walkthrough" href="walkthrough.html" />
+    <link rel="prev" title="Mininet-Optical Prototype and Demo" href="README.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="mininet-optical-an-introduction">
+<h1>Mininet-Optical - An Introduction<a class="headerlink" href="#mininet-optical-an-introduction" title="Permalink to this heading">¶</a></h1>
+<p>Mininet-Optical is an optical network emulation tool that seeks to expand on Mininet’s capabilities with simulating an optical network with tools such as Fiber Optic Cables, Terminals, Reconfigurable Optical Add-Drop Multiplexers (ROADMs), Amplifiers and so on.</p>
+<p>Mininet is a network emulation tool that creates a realistic virtual network, running real kernel, switch and application code,on a single machine (VM, cloud or native).Since it is very easy to interact with therealistic virtual network using the Mininet CLI (and API), customize it, shareit with others, or deploy it on real hardware, Mininet is useful fordevelopment, teaching, and research. Mininet is also a great way to develop,share, and experiment with Software-Defined Networking (SDN) systems usingOpenFlow and P4.</p>
+<p><img alt="" src="_images/Mininet_optical.svg" /></p>
+<figcaption>Figure. Equivalence of a virtual network designed in Mininet-Optical and a real network
+<p>The illustrated virtual network is exactly equivalent to the real network. Any control mechanisms designed for the virtual network will work as is in the real network. As a result, Mininet-optical allows us to make a “digital twin” of a real network (or testbed) and carry out experiments in a sotware environment. As a result, we have faster turn out time and a fail safe approach. The software can be easily reset to the original condition in case of any unforeseen problems.</p>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this heading">¶</a></h2>
+<p>Mininet-Optical creates an abstract layer over the kernel of the base Linux OS. The library of Mininet-optical has implementations for various optical networking devices like  Fiber Optic Cables, Terminals, Reconfigurable Optical Add-Drop Multiplexers (ROADMs), Amplifiers and so on. The library also has modules for Optical signal generation and propagation. An user can modify or add further device modules using Python.</p>
+<p>The network devices implemented inside Mininet-Optical interact with the SDN interface via the Python API. The SDN interface has provisions of designing the control logic.</p>
+<p>Mininet-Optical creates VMs over the base OS to create emulated copies of the hosts.</p>
+<p>The overall architecture is illustrated below.</p>
+<p><img alt="" src="_images/Mininet_optical_overview.svg" /></p>
+<figcaption>Figure. Mininet-Optical Architecture
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Mininet-Optical</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mininet-Optical - An Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API_walkthrough.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="README.html" title="previous chapter">Mininet-Optical Prototype and Demo</a></li>
+      <li>Next: <a href="walkthrough.html" title="next chapter">Mininet-Optical Installation and Walkthrough</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Mininet-Optical Project Contributors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/Mininet_Optical_Introduction.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

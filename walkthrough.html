@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Mininet-Optical Installation and Walkthrough &#8212; Mininet-Optical  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
@@ -13,10 +13,12 @@
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Mininet-Optical Prototype and Demo" href="README.html" />
+    <link rel="next" title="API Overview" href="API_walkthrough.html" />
+    <link rel="prev" title="Mininet-Optical - An Introduction" href="Mininet_Optical_Introduction.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -34,18 +36,18 @@
           <div class="body" role="main">
             
   <section id="mininet-optical-installation-and-walkthrough">
-<h1>Mininet-Optical Installation and Walkthrough<a class="headerlink" href="#mininet-optical-installation-and-walkthrough" title="Permalink to this headline">¶</a></h1>
+<h1>Mininet-Optical Installation and Walkthrough<a class="headerlink" href="#mininet-optical-installation-and-walkthrough" title="Permalink to this heading">¶</a></h1>
 <p>Welcome to the Mininet-Optical walkthrough. After finishing this walkthrough, you should be able
 to use the basic Mininet-Optical commands and execute a basic Mininet-Optical topology
 python script. You will also get acquainted with control plane configuration using <code class="docutils literal notranslate"><span class="pre">curl(1)</span></code>
 commands to create forwarding rules and launch your signals.</p>
 <section id="setting-up-mininet-optical">
-<h2>Setting up Mininet-Optical<a class="headerlink" href="#setting-up-mininet-optical" title="Permalink to this headline">¶</a></h2>
+<h2>Setting up Mininet-Optical<a class="headerlink" href="#setting-up-mininet-optical" title="Permalink to this heading">¶</a></h2>
 <p>Since Mininet-Optical is built on top of Mininet, you need to install and successfully test
 Mininet before proceeding to work with Mininet-Optical. In this section, you will find the
 procedure to install the base Mininet network emulator as well as Mininet-Optical.</p>
 <section id="prerequisites">
-<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this heading">¶</a></h3>
 <p>This walkthrough is designed for Ubuntu/Debian, but may be adjusted for other Linux distributions.</p>
 <p>On Ubuntu/Debian, run the following commands before installing Mininet and Mininet-Optical:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo apt-get update
@@ -54,7 +56,7 @@ $ sudo apt-get install python3 python3-pip git
 </div>
 </section>
 <section id="installing-mininet">
-<h3>Installing Mininet<a class="headerlink" href="#installing-mininet" title="Permalink to this headline">¶</a></h3>
+<h3>Installing Mininet<a class="headerlink" href="#installing-mininet" title="Permalink to this heading">¶</a></h3>
 <p>To install natively from source, clone the source code repository:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone git://github.com/mininet/mininet
 </pre></div>
@@ -69,7 +71,7 @@ $ cd ..
 </pre></div>
 </div>
 <p>Once you have the source tree, the command to install Mininet is:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./mininet/util/install.sh -nv
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./mininet/util/install.sh -nfv
 </pre></div>
 </div>
 <p>To test the Mininet functionality, run:</p>
@@ -81,7 +83,7 @@ the other installation option and commands, we suggest consulting the
 <a class="reference external" href="http://mininet.org/">Mininet documentation</a>.</p>
 </section>
 <section id="installing-mininet-optical">
-<h3>Installing Mininet-Optical<a class="headerlink" href="#installing-mininet-optical" title="Permalink to this headline">¶</a></h3>
+<h3>Installing Mininet-Optical<a class="headerlink" href="#installing-mininet-optical" title="Permalink to this heading">¶</a></h3>
 <p>Once Mininet is up and running, you will need to clone the
 Mininet-Optical repository using the following commands:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/mininet-optical/mininet-optical
@@ -93,7 +95,7 @@ $ make install
 </section>
 </section>
 <section id="running-a-simple-mininet-optical-script">
-<h2>Running a simple Mininet-Optical script<a class="headerlink" href="#running-a-simple-mininet-optical-script" title="Permalink to this headline">¶</a></h2>
+<h2>Running a simple Mininet-Optical script<a class="headerlink" href="#running-a-simple-mininet-optical-script" title="Permalink to this heading">¶</a></h2>
 <p>In this section, you will learn to create, configure and run a
 topology in Mininet-Optical representing the simplest fully emulated
 packet-optical network that we can create. The topology used here is
@@ -148,7 +150,7 @@ to Host <code class="docutils literal notranslate"><span class="pre">h2</span></
 devices and no signals have been launched.  However, it is still
 possible to run several commands to check the topology and components.</p>
 <section id="mininet-optical-commands">
-<h3>Mininet-Optical commands<a class="headerlink" href="#mininet-optical-commands" title="Permalink to this headline">¶</a></h3>
+<h3>Mininet-Optical commands<a class="headerlink" href="#mininet-optical-commands" title="Permalink to this heading">¶</a></h3>
 <p>Nodes:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mininet</span><span class="o">-</span><span class="n">optical</span><span class="o">&gt;</span> <span class="n">nodes</span>
 <span class="n">available</span> <span class="n">nodes</span> <span class="n">are</span><span class="p">:</span>
@@ -199,7 +201,7 @@ anything.</p>
 <p>Mininet’s regular CLI commands are also supported.</p>
 </section>
 <section id="setting-up-routes">
-<h3>Setting up routes<a class="headerlink" href="#setting-up-routes" title="Permalink to this headline">¶</a></h3>
+<h3>Setting up routes<a class="headerlink" href="#setting-up-routes" title="Permalink to this heading">¶</a></h3>
 <p>To create the routes and activate the hosts, open another terminal window, and run the following
 script:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical/examples
@@ -242,7 +244,7 @@ The result on the Mininet-Optical window should look like:</p>
 </section>
 </section>
 <section id="congratulations">
-<h2>Congratulations!<a class="headerlink" href="#congratulations" title="Permalink to this headline">¶</a></h2>
+<h2>Congratulations!<a class="headerlink" href="#congratulations" title="Permalink to this heading">¶</a></h2>
 <p>You have completed the Mininet-Optical walkthrough.</p>
 <p>This example has shown a very simple link configuration with two
 terminals. Check out the <a class="reference external" href="https://github.com/mininet-optical/mininet-optical/tree/master/mnoptical/examples"><code class="docutils literal notranslate"><span class="pre">examples/</span></code> directory</a> for other
@@ -270,12 +272,16 @@ emulate larger topologies using Mininet-Optical.</p>
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Introduction.html">Mininet-Optical - An Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Mininet-Optical Installation and Walkthrough</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up-mininet-optical">Setting up Mininet-Optical</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-a-simple-mininet-optical-script">Running a simple Mininet-Optical script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#congratulations">Congratulations!</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="API_walkthrough.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
 </ul>
 
@@ -283,7 +289,8 @@ emulate larger topologies using Mininet-Optical.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="README.html" title="previous chapter">Mininet-Optical Prototype and Demo</a></li>
+      <li>Previous: <a href="Mininet_Optical_Introduction.html" title="previous chapter">Mininet-Optical - An Introduction</a></li>
+      <li>Next: <a href="API_walkthrough.html" title="next chapter">API Overview</a></li>
   </ul></li>
 </ul>
 </div>
@@ -296,15 +303,7 @@ emulate larger topologies using Mininet-Optical.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -313,7 +312,7 @@ emulate larger topologies using Mininet-Optical.</p>
       &copy;2022, Mininet-Optical Project Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

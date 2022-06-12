@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>mnoptical.ofcdemo.lumentum_NETCONF_API &#8212; Mininet-Optical  documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
@@ -13,6 +13,7 @@
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
     <script src="../../../../_static/jquery.js"></script>
     <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="module-mnoptical.ofcdemo.lumentum_NETCONF_API">
-<span id="mnoptical-ofcdemo-lumentum-netconf-api"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="mnoptical.ofcdemo.lumentum_NETCONF_API"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="Permalink to this headline">¶</a></h1>
+<span id="mnoptical-ofcdemo-lumentum-netconf-api"></span><h1><a class="reference internal" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="mnoptical.ofcdemo.lumentum_NETCONF_API"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mnoptical.ofcdemo.lumentum_NETCONF_API</span></code></a><a class="headerlink" href="#module-mnoptical.ofcdemo.lumentum_NETCONF_API" title="Permalink to this heading">¶</a></h1>
 <p>Lumentum ROADM 20 Control API</p>
 <p>Author:   Jiakai Yu (<a class="reference external" href="mailto:jiakaiyu&#37;&#52;&#48;email&#46;arizona&#46;edu">jiakaiyu<span>&#64;</span>email<span>&#46;</span>arizona<span>&#46;</span>edu</a>)
 Created:  2019/03/09
@@ -41,14 +42,10 @@ Version:  2.1</p>
 <p>Last modified by Jiakai: 2020/08/11
 Cleaned up slightly by BL: 2022</p>
 <section id="module-contents">
-<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">¶</a></h2>
 <section id="classes">
-<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h3>
+<h3>Classes<a class="headerlink" href="#classes" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict" title="mnoptical.ofcdemo.lumentum_NETCONF_API.xmltodict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xmltodict</span></code></a></p></td>
 <td><p></p></td>
@@ -63,12 +60,8 @@ Cleaned up slightly by BL: 2022</p>
 </table>
 </section>
 <section id="attributes">
-<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME" title="mnoptical.ofcdemo.lumentum_NETCONF_API.USERNAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">USERNAME</span></code></a></p></td>
 <td><p></p></td>
@@ -181,7 +174,7 @@ note for /some/0/path ‘0’ is looked up as an int</p>
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.gen_dwdm_connections">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gen_dwdm_connections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_port</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.lumentum_NETCONF_API.Lumentum.gen_dwdm_connections" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>module</strong> – </p></li>
 <li><p><strong>input_port</strong> – </p></li>
@@ -190,7 +183,7 @@ note for /some/0/path ‘0’ is looked up as an int</p>
 <li><p><strong>channel_width</strong> – in GHz</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p></p>
 </dd>
 </dl>
@@ -242,7 +235,11 @@ note for /some/0/path ‘0’ is looked up as an int</p>
 <h3>Navigation</h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../README.html">Mininet-Optical Prototype and Demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Mininet_Optical_Introduction.html">Mininet-Optical - An Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../API_walkthrough.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../visualisation.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">API Reference</a></li>
 </ul>
 
@@ -262,15 +259,7 @@ note for /some/0/path ‘0’ is looked up as an int</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -279,7 +268,7 @@ note for /some/0/path ‘0’ is looked up as an int</p>
       &copy;2022, Mininet-Optical Project Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
