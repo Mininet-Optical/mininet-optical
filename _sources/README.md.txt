@@ -50,7 +50,7 @@ and optical network elements.
 
 #### Other files
 
-- makefile: has make clean|depend|install|devel|doc targets
-- requirements.txt: Python requirements file (for `pip3 install -r`)
+- makefile: has `make clean|depend|install|devel|doc` targets
+- requirements.txt: Python requirements file (for `make depend`)
 
 [1]: https://github.com/mininet-optical/mininet-optical/workflows/tests/badge.svg
