@@ -24,7 +24,7 @@ On Ubuntu/Debian, run the following commands before installing Mininet and Minin
 
 To install natively from source, clone the source code repository:
 
-    $ git clone git://github.com/mininet/mininet
+    $ git clone https://github.com/mininet/mininet
 
 Note that the `git` command above will check out the latest and greatest Mininet (which we
 recommend!) If you want to run the last tagged/released version of Mininet - or any other
