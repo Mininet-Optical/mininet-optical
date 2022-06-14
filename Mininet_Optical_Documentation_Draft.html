@@ -37,8 +37,23 @@
             
   <section id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this heading">¶</a></h1>
-<section id="simulation">
-<h2>Simulation<a class="headerlink" href="#simulation" title="Permalink to this heading">¶</a></h2>
+<p>Mininet-Optical can be used in either pure simulation mode, without
+a packet-optical dataplane and external control plane, or in full
+emulation mode, with a usable packet-optical dataplane and external
+SDN control plane.</p>
+<p>The Simulation Tutorial explains how to use Mininet-Optical in pure
+simulation mode, while the Emulation Tutorial explains how to use
+Mininet-Optical in full emulation mode.</p>
+<section id="simulation-mode-tutorial">
+<h2>Simulation Mode Tutorial<a class="headerlink" href="#simulation-mode-tutorial" title="Permalink to this heading">¶</a></h2>
+<p>Mininet-Optical’s simulation mode is useful when you just want to
+simulate optical transmissions and don’t need to send actual data
+through your network, model packet devices, or use an external
+SDN controller.</p>
+<p>You may find it to be convenient due to its fast startup and
+ease of use in an IDE such as Pycharm. Since it doesn’t create
+virtual network devices in Linux it does not require root privileges
+to run.</p>
 <p>After completing these exercises you will learn how to :</p>
 <ul class="simple">
 <li><p>add nodes and links to a network model.</p></li>
@@ -47,7 +62,7 @@
 <li><p>model a ring topology.</p></li>
 </ul>
 <p><em>Notes:</em></p>
-<p><em>For exercises 1 and 2 you will need the tutorial.py script.</em></p>
+<p><em>For exercises 1 and 2 you will need the tests/tutorial.py script.</em></p>
 <p><em>You will be generating another script labeled: three_ring_topology.py
 for exercise 3.</em></p>
 <p><em>Hints:</em></p>
@@ -116,8 +131,15 @@ The OSNR of Channel 2 at every EDFA location for launch power 0.00 dBm:
 <p><img alt="" src="_images/Picture1.svg" /></p>
 <figcaption>Figure. Output
 </section>
-<section id="emulation">
-<h2>Emulation<a class="headerlink" href="#emulation" title="Permalink to this heading">¶</a></h2>
+<section id="emulation-tutorial">
+<h2>Emulation Tutorial<a class="headerlink" href="#emulation-tutorial" title="Permalink to this heading">¶</a></h2>
+<p>Mininet-Optical’s full emulation mode supports sending data
+through the emulated network, supports modeling of packet devices
+as well as optical devices, and supports external SDN control
+of both packet and optical network elements.</p>
+<p>Since emulation mode relies on Mininet (and Linux) to create
+virtual network devices, it currently needs to run with root
+privileges, and Python scripts are typically run using <code class="docutils literal notranslate"><span class="pre">sudo</span></code>.</p>
 <p>For this exercise, you are going to modify the singleroadm.py script to
 add additional transceivers and links, and then you are going to
 configure the terminals (t1, t2, t3) and ROADM to enable connectivity
@@ -532,8 +554,8 @@ topology in Python or in this simplified text format?</p>
 <li class="toctree-l1"><a class="reference internal" href="walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
 <li class="toctree-l1"><a class="reference internal" href="API_walkthrough.html">API Overview</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#simulation">Simulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#emulation">Emulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-mode-tutorial">Simulation Mode Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#emulation-tutorial">Emulation Tutorial</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="visualisation.html">Visualization</a></li>
