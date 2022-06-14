@@ -1,4 +1,4 @@
-name: Build Sphinx Documentation
+name: Build and Deploy Sphinx Documentation
 
 on: push
 
@@ -12,6 +12,11 @@ jobs:
       - name: Build Sphinx docs
         run: make depend && make doc
 
+      - name: Add files for github pages
+        run: |
+             touch docs/build/html/.nojekyll
+             echo mininet-optical.org > docs/build/html/CNAME
+             
       - name: Upload html-docs artifact
         uses: actions/upload-artifact@v1
         with:
