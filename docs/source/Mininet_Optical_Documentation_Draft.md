@@ -1,6 +1,25 @@
 ### Tutorial
 
-#### Simulation
+Mininet-Optical can be used in either pure simulation mode, without
+a packet-optical dataplane and external control plane, or in full
+emulation mode, with a usable packet-optical dataplane and external
+SDN control plane.
+
+The Simulation Tutorial explains how to use Mininet-Optical in pure
+simulation mode, while the Emulation Tutorial explains how to use
+Mininet-Optical in full emulation mode.
+
+#### Simulation Mode Tutorial
+
+Mininet-Optical's simulation mode is useful when you just want to
+simulate optical transmissions and don't need to send actual data
+through your network, model packet devices, or use an external
+SDN controller.
+
+You may find it to be convenient due to its fast startup and
+ease of use in an IDE such as Pycharm. Since it doesn't create
+virtual network devices in Linux it does not require root privileges
+to run.
 
 After completing these exercises you will learn how to :
 
@@ -14,7 +33,7 @@ After completing these exercises you will learn how to :
 
 *Notes:*
 
-*For exercises 1 and 2 you will need the tutorial.py script.*
+*For exercises 1 and 2 you will need the tests/tutorial.py script.*
 
 *You will be generating another script labeled: three_ring_topology.py
 for exercise 3.*
@@ -99,7 +118,16 @@ Plotting the values:
 <figcaption>Figure. Output
 
 
-#### Emulation 
+#### Emulation Tutorial
+	
+Mininet-Optical's full emulation mode supports sending data
+through the emulated network, supports modeling of packet devices
+as well as optical devices, and supports external SDN control
+of both packet and optical network elements.
+
+Since emulation mode relies on Mininet (and Linux) to create
+virtual network devices, it currently needs to run with root
+privileges, and Python scripts are typically run using `sudo`.
 
 For this exercise, you are going to modify the singleroadm.py script to
 add additional transceivers and links, and then you are going to
