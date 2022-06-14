@@ -148,26 +148,25 @@ between all of the packet switches and hosts.</p>
 <h3>Part 0: Make sure singleroadm.py works correctly<a class="headerlink" href="#part-0-make-sure-singleroadm-py-works-correctly" title="Permalink to this heading">¶</a></h3>
 <p>First, make sure you can run singleroadm.py.</p>
 <p>For example, you should be able to do something like this:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical/
-$ sudo PYTHONPATH=. examples/singlelink.py/
-
-***Creating network
-***Adding controller
-***Adding hosts:
-h1 h2 h3
-***Adding switches:
-r1 s1 s2 s3 t1 t2 t3
-***Adding links:
-(h1, s1) (h2, s2) (h3, s3) (r1, t1) (r1, t2) (r1, t3) (s1, t1) (s2, t2)
-(s3, t3)
-***Configuring hosts
-h1 h2 h3
-***Starting controller
-c0
-***Starting 7 switches
-r1 s1 s2 s3 t1 t2 t3
-***Starting CLI:
-
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo examples/simplelink.py
+</pre></div>
+</div>
+<p>(or if that doesn’t work, <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">PYTHONPATH=.</span> <span class="pre">python3</span> <span class="pre">examples/simplelink.py</span></code>)</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>*** Creating network
+*** Adding controller
+*** Adding hosts:
+h1 h2 
+*** Adding switches:
+t1 t2 
+*** Adding links:
+(h1, t1) (h2, t2) (t1, t2) 
+*** Configuring hosts
+h1 h2 
+*** Starting controller
+c0 
+*** Starting 2 switches
+t1 t2 ...
+...
 mininet-optical&gt;
 </pre></div>
 </div>

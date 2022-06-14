@@ -140,27 +140,26 @@ First, make sure you can run singleroadm.py.
 
 For example, you should be able to do something like this:
 
-	$ cd ~/mininet-optical/
-	$ sudo PYTHONPATH=. examples/singlelink.py/
-
-	***Creating network
-	***Adding controller
-	***Adding hosts:
-	h1 h2 h3
-	***Adding switches:
-	r1 s1 s2 s3 t1 t2 t3
-	***Adding links:
-	(h1, s1) (h2, s2) (h3, s3) (r1, t1) (r1, t2) (r1, t3) (s1, t1) (s2, t2)
-	(s3, t3)
-	***Configuring hosts
-	h1 h2 h3
-	***Starting controller
-	c0
-	***Starting 7 switches
-	r1 s1 s2 s3 t1 t2 t3
-	***Starting CLI:
-
-	mininet-optical>
+    $ sudo examples/simplelink.py
+	
+(or if that doesn't work, `sudo PYTHONPATH=. python3 examples/simplelink.py`)
+	
+    *** Creating network
+    *** Adding controller
+    *** Adding hosts:
+    h1 h2 
+    *** Adding switches:
+    t1 t2 
+    *** Adding links:
+    (h1, t1) (h2, t2) (t1, t2) 
+    *** Configuring hosts
+    h1 h2 
+    *** Starting controller
+    c0 
+    *** Starting 2 switches
+    t1 t2 ...
+    ...
+    mininet-optical>
 
 Then open up another terminal window on your VM (or machine where
 mininet is running) and run the controller script, which will program
