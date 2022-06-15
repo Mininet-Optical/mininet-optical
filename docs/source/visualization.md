@@ -10,7 +10,7 @@ script. The graph obtained by the visualization tool does not aim to
 represent the full spectrum but rather gives the exact power level at
 each signal frequency of a given port.
 
-#### How to run the visualization
+#### How to run the visualization tool
 
 *For this walkthrough we will use the **sixnodestopo.py** topology as an
 example, a six ROADMs ring network, with its SDN controller
