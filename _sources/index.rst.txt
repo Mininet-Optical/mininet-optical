@@ -10,10 +10,10 @@ Mininet-Optical Documentation
    :maxdepth: 2
 
    README
-   architecture
    walkthrough
-   API_walkthrough
-   Mininet_Optical_Documentation_Draft
+   architecture
+   api-overview
+   tutorial
    visualization
 
 

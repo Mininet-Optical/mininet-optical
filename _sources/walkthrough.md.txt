@@ -1,4 +1,4 @@
-# Mininet-Optical Installation and Walkthrough
+# Installation and Walkthrough
 
 Welcome to the Mininet-Optical walkthrough. After finishing this walkthrough, you should be able
 to use the basic Mininet-Optical commands and execute a basic Mininet-Optical topology

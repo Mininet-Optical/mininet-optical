@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Mininet-Optical - An Introduction &#8212; Mininet-Optical  documentation</title>
+    <title>Architecture Overview &#8212; Mininet-Optical  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
@@ -17,8 +17,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Mininet-Optical Installation and Walkthrough" href="walkthrough.html" />
-    <link rel="prev" title="Mininet-Optical Prototype and Demo" href="README.html" />
+    <link rel="next" title="API Overview" href="api-overview.html" />
+    <link rel="prev" title="Installation and Walkthrough" href="walkthrough.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -35,19 +35,52 @@
 
           <div class="body" role="main">
             
-  <section id="mininet-optical-an-introduction">
-<h1>Mininet-Optical - An Introduction<a class="headerlink" href="#mininet-optical-an-introduction" title="Permalink to this heading">¶</a></h1>
-<p>Mininet-Optical is an optical network emulation tool that seeks to expand on Mininet’s capabilities with simulating an optical network with tools such as Fiber Optic Cables, Terminals, Reconfigurable Optical Add-Drop Multiplexers (ROADMs), Amplifiers and so on.</p>
-<p>Mininet is a network emulation tool that creates a realistic virtual network, running real kernel, switch and application code,on a single machine (VM, cloud or native).Since it is very easy to interact with therealistic virtual network using the Mininet CLI (and API), customize it, shareit with others, or deploy it on real hardware, Mininet is useful fordevelopment, teaching, and research. Mininet is also a great way to develop,share, and experiment with Software-Defined Networking (SDN) systems usingOpenFlow and P4.</p>
-<p><img alt="" src="_images/Mininet_optical.svg" /></p>
-<figcaption>Figure. Equivalence of a virtual network designed in Mininet-Optical and a real network
-<p>The illustrated virtual network is exactly equivalent to the real network. Any control mechanisms designed for the virtual network will work as is in the real network. As a result, Mininet-optical allows us to make a “digital twin” of a real network (or testbed) and carry out experiments in a sotware environment. As a result, we have faster turn out time and a fail safe approach. The software can be easily reset to the original condition in case of any unforeseen problems.</p>
+  <section id="architecture-overview">
+<h1>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permalink to this heading">¶</a></h1>
+<p>Mininet-Optical is an optical network emulation tool that seeks to
+expand on Mininet’s capabilities by simulating an optical network
+with elements such as Fiber Optic Cables, Terminals, Reconfigurable
+Optical Add-Drop Multiplexers (ROADMs), and
+Erbium-Doped Fiber Amplifiers (EDFAa).</p>
+<p><a class="reference external" href="http://mininet.org">Mininet</a> is a packet network emulation tool that creates a realistic virtual
+network, running real kernel, switch and application code,on a single
+machine (VM, cloud or native). Since it is very easy to interact with
+the realistic virtual network using the Mininet CLI (and API),
+customize it, share it with others, or deploy it on real hardware,
+Mininet is useful for development, teaching, and research. Mininet is
+also a great convenient to develop, share, and experiment with
+Software-Defined Networking (SDN) systems usingOpenFlow and/or P4.</p>
+<p><img alt="" src="_images/Mininet_optical.svg" /> <figcaption>Figure. Equivalence of a
+virtual network designed in Mininet-Optical and a real network</p>
+<p>The illustrated virtual network is equivalent to the real network. The
+goal for Mininet-Optical is to enable the same control software to
+work on a software-emulated virtual network and on a hardware
+testbed. Mininet-optical can enable us to create a “digital twin” of a
+real network (or testbed) and carry out experiments in a sotware
+environment. This enables faster turn out time and a fail-safe
+approach. The emulated network can be easily reset to its original
+condition for repeatability or in the case of errors.</p>
 <section id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this heading">¶</a></h2>
-<p>Mininet-Optical creates an abstract layer over the kernel of the base Linux OS. The library of Mininet-optical has implementations for various optical networking devices like  Fiber Optic Cables, Terminals, Reconfigurable Optical Add-Drop Multiplexers (ROADMs), Amplifiers and so on. The library also has modules for Optical signal generation and propagation. An user can modify or add further device modules using Python.</p>
-<p>The network devices implemented inside Mininet-Optical interact with the SDN interface via the Python API. The SDN interface has provisions of designing the control logic.</p>
-<p>Mininet-Optical creates VMs over the base OS to create emulated copies of the hosts.</p>
-<p>The overall architecture is illustrated below.</p>
+<p>Mininet-Optical creates an abstraction layer over the kernel of the
+base Linux OS. The Mininet-Optical Python library has implementations
+for various optical networking devices like Fiber Optic Cables,
+Terminals, ROADMs, and EDFAs. The library also has modules for Optical
+signal generation and propagation. An user can modify or add further
+device modules using Python.</p>
+<p>The network devices implemented inside Mininet-Optical interact with
+the SDN interface via the Python API. The SDN interface enables external
+control software and algorithms to configure and manage the optical
+devices.</p>
+<p>Mininet/Mininet-Optical uses lightweight containers (processes/cgroups
+in network namespaces) to create emulated hosts, and uses various features
+of the Linux kernel such as Open vSwitch and virtual Ethernet (veth)
+pairs to model network elements. Mininet-Optical extends packet Mininet
+with emulated optical network elements, which are connected to an
+optical network simulator that models the transmission physics. Northbound
+control and management interfaces enable external SDN control of the
+optical network elements.</p>
+<p>The overall architecture is illustrated below:</p>
 <p><img alt="" src="_images/Mininet_optical_overview.svg" /></p>
 <figcaption>Figure. Mininet-Optical Architecture
 </section>
@@ -71,14 +104,14 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="README.html">Mininet-Optical Prototype and Demo</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Mininet-Optical - An Introduction</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Welcome to Mininet-Optical</a></li>
+<li class="toctree-l1"><a class="reference internal" href="walkthrough.html">Installation and Walkthrough</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture Overview</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="walkthrough.html">Mininet-Optical Installation and Walkthrough</a></li>
-<li class="toctree-l1"><a class="reference internal" href="API_walkthrough.html">API Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Mininet_Optical_Documentation_Draft.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-overview.html">API Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="autoapi/index.html">API Reference</a></li>
 </ul>
@@ -87,8 +120,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="README.html" title="previous chapter">Mininet-Optical Prototype and Demo</a></li>
-      <li>Next: <a href="walkthrough.html" title="next chapter">Mininet-Optical Installation and Walkthrough</a></li>
+      <li>Previous: <a href="walkthrough.html" title="previous chapter">Installation and Walkthrough</a></li>
+      <li>Next: <a href="api-overview.html" title="next chapter">API Overview</a></li>
   </ul></li>
 </ul>
 </div>

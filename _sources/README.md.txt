@@ -1,10 +1,11 @@
-### Mininet-Optical Prototype and Demo
+### Welcome to Mininet-Optical
 
 [![tests][1]](https://github.com/mininet-optical/mininet-optical/actions)
 
 #### Overview
 
-This is a prototype implementation of an emulator for packet optical software-defined networks.
+[Mininet-Optical](https://github.com/mininet-optical/mininet-optical)
+is is a prototype implementation of an emulator for packet optical software-defined networks.
 
 It includes:
 
@@ -19,6 +20,8 @@ This enables end-to-end emulation of a software-defined network that includes op
 elements such as ROADMs, optical transceivers, fiber spans, and EDFAs, packet SDN elements
 such as OpenFlow switches and Ethernet links, and SDN controllers to manage both packet
 and optical network elements.
+
+Documentation is available at [mininet-optical.org](https://mininet-optical.org).
 
 #### Directories
 
