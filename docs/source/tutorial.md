@@ -417,7 +417,7 @@ This concludes the exercise!!
 
 ##### HINTS AND ADVICE
 
-1. Read the {doc}`API_walkthrough`
+1. Read the {doc}`api-overview`
 
 This provides an overview of Mininet-Optical's Python API as well
 as the REST control API.
