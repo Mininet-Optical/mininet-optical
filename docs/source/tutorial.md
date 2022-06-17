@@ -129,14 +129,14 @@ Since emulation mode relies on Mininet (and Linux) to create
 virtual network devices, it currently needs to run with root
 privileges, and Python scripts are typically run using `sudo`.
 
-For this exercise, you are going to modify the singleroadm.py script to
-add additional transceivers and links, and then you are going to
-configure the terminals (t1, t2, t3) and ROADM to enable connectivity
-between all of the packet switches and hosts.
+For this exercise, you are going to modify the singleroadm.py script
+to add additional transceivers and links, and then you are going to
+configure the terminals (`t1`, `t2`, `t3`) and ROADM to enable
+connectivity between all of the packet switches and hosts.
 
-##### Part 0: Make sure singleroadm.py works correctly
+##### Part 0: Make sure `singleroadm.py` works correctly
 
-First, make sure you can run singleroadm.py.
+First, make sure you can run `singleroadm.py`.
 
 For example, you should be able to do something like this:
 
@@ -163,20 +163,20 @@ For example, you should be able to do something like this:
 
 Then open up another terminal window on your VM (or machine where
 mininet is running) and run the controller script, which will program
-the ROADM to enable h1 to talk to h2 (but not h3!)
+the ROADM to enable `h1` to talk to `h2` (but not `h3`!)
 
 	$ cd ~/mininet-optical/
 	$ examples/config-singleroadm.sh
 
 You should be able to see the REST calls that config-singleroadm.sh is
-making as well as OK results to indicate they have succeeded. You should
+making as well as `OK` results to indicate they have succeeded. You should
 also see monitoring data reported by the REST monitoring calls. The
 ability to monitor power and OSNR is essential to SDN control of optical
 networks.
 
 In the Mininet window, you should see a number of successful signal
-receptions. The osnr command should show signals received at t1 and t2
-but not t3.
+receptions. The osnr command should show signals received at `t1` and
+`t2` but not `t3`.
 
 	mininet-optical> osnr
 	<name: t1-monitor, component: t1, mode: in>:
@@ -185,8 +185,9 @@ but not t3.
 	<ch1:191.35THz> OSNR: 34.70 dB gOSNR: 34.58 dB
 	<name: t3-monitor, component: t3, mode: in>:
 
-If you run the pingall command, you will see that h1 and h2 can talk to
-each other, but h3 cannot communicate with either h1 or h2:
+If you run the `pingall` command, you will see that `h1` and `h2` can
+talk to each other, but `h3` cannot communicate with either `h1` or
+`h2`:
 
 	mininet-optical> pingall
 	*** Ping: testing ping reachability
@@ -195,14 +196,14 @@ each other, but h3 cannot communicate with either h1 or h2:
 	h3 -> X X
 	*** Results: 66% dropped (2/6 received)
 
-During the tutorial, we showed how to program this topology so that h1
-could talk to h2 or h3, but not both at the same time!
+Note it is also possible to program this "y" topology so that `h1`
+can talk to `h2` or `h3`, but not both at the same time!
 
 In the next part of this exercise, you are going to modify the network
 topology by adding additional transceivers and links, and then you are
 going to program it to enable all of the endpoints to communicate.
 
-For now, exit out of mininet by using exit or control-D:
+For now, exit out of mininet-optical by using `exit` or control-D:
 
 	mininet-optical> exit
 	*** Stopping 1 controllers
@@ -231,9 +232,8 @@ progress.)
 
 ##### Part 1: Add transceivers and links
 
-During the tutorial, we showed you the singleroadm.py script and
-explained the basics of the Mininet-Optical topology API in emulation
-mode.
+The {doc}`api-overview` explains the `simplelink.py` script and the
+basics of the Mininet-Optical topology API in emulation mode.
 
 For this part, you will need to figure out how to add an additional
 transceiver to each terminal, as well as an additional link from each
@@ -243,12 +243,12 @@ In order for your SDN control plane (which for this exercise will
 probably be a simple configuration script similar to
 examples/config-singleroadm.sh) to operate properly, you will need to
 know which ports are connected on each device. You can specify the port
-numbers in the parameters of the addLink() method.
+numbers in the parameters of the `addLink()` method.
 
-When you are done, there should be two 50km links from t1<->r1, two
-50km links from t2\<-\>r1, and two 1m links from t3\<-\>r1.
+When you are done, there should be two 50km links from `t1`<->`r1`, two
+50km links from `t2`<->`r1`, and two 1m links from `t3`<->`r1`.
 
-You can check your topology from the mininet-optical\> prompt using the
+You can check your topology from the `mininet-optical>` prompt using the
 net command. When you are done with this part, it should look something
 like this:
 
@@ -271,14 +271,14 @@ like this:
 
 *Don't dismiss this as incomprehensible garbage* -- it is actually
 telling you useful information! Specifically, it is telling you how each
-node's interfaces are connected. For example, you can see that ROADM r1
-now has two links to each of the terminals t1-t3, for a total of 6
+node's interfaces are connected. For example, you can see that ROADM `r1`
+now has two links to each of the terminals `t1`-`t3`, for a total of 6
 links. You can also see the type of the port (Ethernet or WDM) as well
-as the port number. For example, r1-wdm1 is WDM port 1 on ROADM r1.
+as the port number. For example, `r1-wdm1` is WDM port 1 on ROADM r1.
 
-You can also use the spans command, which prints out long links but
-ignores links of \<100m. So, you should see the links from t1 and t3 but
-not t2:
+You can also use the `spans` command, which prints out long links but
+ignores links of <100m. So, you should see the links from `t1` and
+`t3` but not `t2`:
 
 	mininet-optical> spans
 
@@ -303,20 +303,21 @@ Note that the spans command shows the underlying physical spans (modeled
 by the simulator) which are unidirectional. Note that the fiber links
 don't have names but they have numbers in order to disambiguate them.
 
-You may also wish to try the intfs and ports commands.
+You may also wish to try the `intfs` and `ports` commands.
 
-If you install pygraphviz (using sudo apt install python3-pygraphviz),
-you can use the plotNet() function in singleroadm.py to save a plot of
-the topology to singleroadm.png. Your revised topology should look
-something like this:
+If you have installed `pygraphviz` (e.g. via `make depend` and/or
+using `sudo apt install python3-pygraphviz`), you can use the
+`plotNet()` function in `singleroadm.py` to save a plot of the topology to
+`singleroadm.png`. Your revised topology should look something like
+this:
 
 ![](images/Picture2.svg)
 <figcaption>Figure. Single ROADM Network Topology
 
 Note that there are two links (each of which is bidirectional,
 implemented as two sequences of fiber spans and amplifiers, going in
-opposite directions) from each packet switch (s1) to its respective
-Terminal (t1) and to the ROADM. You can also see the port numbers for
+opposite directions) from each packet switch (`s1`) to its respective
+Terminal (`t1`) and to the ROADM. You can also see the port numbers for
 each side of each link. You may find this to be the easiest way to
 understand your network at a glance and to identify port numbers for the
 next part.
@@ -325,14 +326,14 @@ next part.
 
 Lastly, we need to program the data plane so that we have full
 connectivity. In order to do this, all we need to do is enable
-connectivity between two pairs of Terminals, such as (t1, t2) and (t2,
-t3).
+connectivity between two pairs of Terminals, such as (`t1`, `t2`) and
+(`t2`, `t3`).
 
 *Question to think about: Why is connecting two pairs of terminals
 sufficient to connect all of the hosts?*
 
 In fact, you do not actually want to create a *loop* among the packet
-switches. Since we are using OVSBridge without spanning tree enabled,
+switches. Since we are using `OVSBridge` without spanning tree enabled,
 creating a loop typically leads to undesirable behavior where packets
 loop forever, usually rendering the network unusable or extremely slow
 (the problem is exacerbated by flooding and by broadcast packets for ARP
@@ -341,7 +342,7 @@ frequently seen by Mininet users who (often) think it is an emulator bug
 rather than realistic (but incorrectly configured) behavior!
 
 You should be able to use the REST calls described in the tutorial,
-and/or modify the existing singleroadm.sh script to program your
+and/or modify the existing `singleroadm.sh` script to program your
 network.
 
 When you are done, you should see a number of successful signal
@@ -383,9 +384,9 @@ connections at the terminals:
 	{1: [(<ch1:191.35THz>, <ch1:191.35THz>)], 2: [(<ch2:191.40THz>,
 	<ch2:191.40THz>)]}
 
-You should also see osnr at all of them, but for some reason that
+(Note: You should also see `osnr` at all of them, but for some reason that
 doesn't seem to be working properly at the moment. In my tests, it only
-reports osnr for t1 and t2:
+reports osnr for `t1` and `t2`:)
 
 	mininet-optical> osnr
 	<name: t1-monitor, component: t1, mode: in>:
@@ -408,78 +409,80 @@ You should also be able to monitor the OSNR remotely using REST calls:
 	2.653865120449501e-07}}}* t3
 	{"osnr": {}}
 
-Hopefully we will be able to determine why there is no OSNR reported for
-t3.
+(Hopefully we will be able to determine why there is no OSNR reported for
+`t3`.)
 
 This concludes the exercise!!
 
 **Thanks for trying this out -- we look forward to your feedback.**
 
-##### HINTS AND ADVICE
+##### Hints and Advice
 
-1. Read the {doc}`api-overview`
+1.  Read the {doc}`api-overview`
 
-This provides an overview of Mininet-Optical's Python API as well
-as the REST control API.
+    This provides an overview of Mininet-Optical's Python API as well
+    as the REST control API.
 
-2. Pay attentiont to port numbers
+2.  Pay attention to port numbers
 
-It's tricky (if not maddeningly so) to get this (and many SDN designs)
-working because you need to know the exact port numbers. You may wish to
-try things like:
+    It's tricky (if not maddeningly so) to get this (and many SDN
+    designs) working because you need to know the exact port numbers. You
+    may wish to try things like:
 
--   Plotting and printing out (or drawing) the topology and port numbers
+    -   Plotting (e.g. using `plotNet()`) and printing out (or drawing)
+        the topology and port numbers
 
--   *Writing a helper function* to help you determine port numbers, for
-    example telling you what is (or should be) connected at the other
-    side of a particular node and port number, or telling you what ROADM
-    port should correspond to what Terminal port for a given Terminal
-    and transceiver, or even just dumping out what each node and port
-    number is connected to.
+    -   *Writing a helper function* to help you determine port numbers, for
+        example telling you what is (or should be) connected at the other
+        side of a particular node and port number, or telling you what `ROADM`
+        port should correspond to what `Terminal` port for a given `Terminal`
+        and transceiver, or even just dumping out what each node and port
+        number is connected to.
 
--   Possibly using net.linksBetween(node1, node2), which returns all of
-    the links (as link objects) between two nodes in the Mininet
-    network. A link's endpoints are link.intf1 and link.intf2.
+    -   Possibly using `net.linksBetween(node1, node2)`, which returns all of
+        the links (as link objects) between two nodes in the Mininet
+        network. A link's endpoints are `link.intf1` and `link.intf2`.
 
--   Logging port numbers/names to make sure they are what you think they
-    are
+    -   Logging port numbers/names to make sure they are what you think they
+        are
 
-3. Testing REST calls using `curl`
+3.  Testing REST calls using `curl`
 
-REST calls can easily be executed and tested from the shell prompt using
-curl, but remember to enclose the URLs in quotes to avoid the shell
-(mis)interpreting special characters like &. Note that shell variables
-(\$url) should be enclosed in double quotes (not single quotes!) in
-order to be dereferenced.
+    REST calls can easily be executed and tested from the shell prompt using
+    `curl`, but remember to enclose the URLs in quotes to avoid the shell
+    (mis)interpreting special characters like &. Note that shell variables
+    (`$url`) should be enclosed in double quotes (not single quotes!) in
+    order to be dereferenced.
 
-4. Making mistakes is OK in an emulator, but be careful with hardware
+4.  Making mistakes is OK in an emulator, but be careful with hardware
 
-Fortunately, if you make mistakes on a software emulator it has few
-negative consequences, but mistakes in a hardware optical network, such
-as creating an amplified laser feedback loop, could potentially have
-disastrous consequences resulting in damaged devices at the very least!
-Ideally devices will have failsafe mechanisms but this may not be
-guaranteed.
+    Fortunately, if you make mistakes on a software emulator it has few
+    negative consequences, but mistakes in a hardware optical network, such
+    as creating an amplified laser feedback loop, could potentially have
+    disastrous consequences resulting in damaged devices at the very least!
+    Ideally devices will have failsafe mechanisms but this may not be
+    guaranteed.
 
-Creating packet loops in Ethernet networks doesn't usually cause fires
-but usually results in an unusable network.
+    Creating packet loops in Ethernet networks doesn't usually cause fires
+    but usually results in an unusable network.
 
 
-##### EXTRA CREDIT FOR THE INSANELY MOTIVATED
+##### Extra Credit for the Insanely Motivated
 
 This is almost certainly more than enough for now, but here are some
 (extremely optional) additional projects you could think about trying if
 you are excessively enthusiastic and have lots of extra time:
 
-1.  Try passing switch=functools.partial(OVSBridge,stp=True) into the
-    Mininet() constructor call (you will need to import functools) to
+1.  Try passing `switch=functools.partial(OVSBridge,stp=True)` into the
+    `Mininet()` constructor call (you will need to `import functools`) to
     turn on **spanning tree**. Note that it can take a while (\~30s) for
     spanning tree to do its thing (specifically discover any loops and
     block ports that create loops) but eventually you should be able to
     ping everything. Now, try creating a full mesh/loop topology where
     every terminal can connect to every other terminal. Verify that
     spanning tree enables your (bridged L2 Ethernet) network to work
-    even in the presence of loops.\
+    even in the presence of loops.
+    
     As an alternative to spanning tree, you could also use a packet SDN
     controller such as ONOS that supports Ethernet topologies with
     loops.
@@ -500,10 +503,10 @@ you are excessively enthusiastic and have lots of extra time:
     without creating loops and while minimizing the number of signals
     per link. Since this is an L2 Ethernet network, the connectivity
     among your packet switches (Ethernet bridges) should be a tree, or
-    you should turn on spanning tree protocol for OVSBridge as described
+    you should turn on spanning tree protocol for `OVSBridge` as described
     in (1) above.
 
-5.  Take a look at LinearRoadmTopo and DemoTopo in ofcdemo/demolib.py as
+5.  Take a look at `LinearRoadmTopo` and `DemoTopo` in `ofcdemo/demolib.py` as
     well as the scripts that use them, simpledemo.py and demo.py, and
     the apsp.py test controller. Unlike our simple exercises above,
     these install **IP routing rules** (programmed with OpenFlow) as
@@ -511,23 +514,30 @@ you are excessively enthusiastic and have lots of extra time:
     a mesh network with multiple subnets and a controller that
     implements a more advanced lightpath planning and routing
     algorithm?
-    Note that ofcdemo.demolib.configureLinearNet() also uses OpenFlow to
+    
+    Note that `ofcdemo.demolib.configureLinearNet()` also uses OpenFlow to
     set up IP routing rules. Alternately, you could use Mininet's
-    LinuxRouter and install rules in the routers using Linux routing
+    `LinuxRouter` and install rules in the routers using Linux routing
     commands.
 
 6.  Try creating a **simplified text format** to describe a
-    topology**,** and then create a build() method that reads your
+    topology**,** and then create a `build()` method that reads your
     description format and makes the appropriate calls to create the
     topology.
+    
     For example, the following format could be used to specify something
     like our simple linear network:
-    h1 -- s1 -- t1 --25km- amp1 --25km-- t2 -- s2 -- h2
+    
+        h1 -- s1 -- t1 --25km- amp1 --25km-- t2 -- s2 -- h2
+        
     and this format could be used to specify a single ROADM network:
-    h1 -- s1 -- t1 --25km- r1 --25km-- t2 -- s2 -- h1
-    r1 -- t3 -- s3 - h3
+    
+        h1 -- s1 -- t1 --25km- r1 --25km-- t2 -- s2 -- h1
+        r1 -- t3 -- s3 - h3
+        
     You could also use another format such as dot, or anything you
     like.
+    
     Some questions to think about:
 
     a.  How do you know the device type of a node in this specification?
