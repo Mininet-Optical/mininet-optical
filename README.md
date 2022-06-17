@@ -1,6 +1,6 @@
 ### Welcome to Mininet-Optical
 
-[![tests][1]](https://github.com/mininet-optical/mininet-optical/actions)
+[![tests][1]][2]
 
 #### Overview
 
@@ -11,7 +11,7 @@ It includes:
 
 - a **simulator** for the transmission physics of optical networks,
   based on the GN-model
-- an **emulated dataplane** that extends Mininet with optical network elements and links
+- an **emulated dataplane** that extends [Mininet][3] with optical network elements and links
 - a simple **SDN control plane** for the emulated network elements
 
 The simulator may be used independently, or as part of a Mininet packet-optical network.
@@ -57,3 +57,5 @@ Documentation is available at [mininet-optical.org](https://mininet-optical.org)
 - requirements.txt: Python requirements file (for `make depend`)
 
 [1]: https://github.com/mininet-optical/mininet-optical/workflows/tests/badge.svg
+[2]: https://github.com/mininet-optical/mininet-optical/actions
+[3]: https://mininet.org
