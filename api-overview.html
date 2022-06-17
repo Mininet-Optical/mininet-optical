@@ -58,8 +58,8 @@ looks like the following:</p>
 </div>
 <p>Let’s look at <code class="docutils literal notranslate"><span class="pre">examples/simplelink.py</span></code> to see how this is done.</p>
 <p>Since Python follows an object-oriented programming approach, we need
-to define a class named SimpleLinkTopo using the
-statement. SimpleLinkTopo extends Mininet’s Topo class.</p>
+to define a class named <code class="docutils literal notranslate"><span class="pre">SimpleLinkTopo</span></code> using the
+statement. <code class="docutils literal notranslate"><span class="pre">SimpleLinkTopo</span></code> extends Mininet’s <code class="docutils literal notranslate"><span class="pre">Topo</span></code> class.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>class SimpleLinkTopo(Topo):
 </pre></div>
 </div>
@@ -78,11 +78,11 @@ h2). We use the <code class="docutils literal notranslate"><span class="pre">add
 h1, h2 = self.addHost(&#39;h1&#39;), self.addHost(&#39;h2&#39;)
 </pre></div>
 </div>
-<p>Thereafter, we need to build the optical elements. The terminals (t1
-and t2) form the interface between the Ethernet hosts (h1 and h2) and
-the Optical network. Further, we need optical transceivers placed in
+<p>Thereafter, we need to build the optical elements. The terminals (<code class="docutils literal notranslate"><span class="pre">t1</span></code>
+and <code class="docutils literal notranslate"><span class="pre">t2</span></code>) provide the interface between the Ethernet hosts (<code class="docutils literal notranslate"><span class="pre">h1</span></code> and <code class="docutils literal notranslate"><span class="pre">h2</span></code>) and
+the optical network. Further, we need optical transceivers placed in
 the terminals for transmitting and receiving the optical
-signals. Therefore, first we define the transceivers as “params” and
+signals. Therefore, first we define the transceivers as <code class="docutils literal notranslate"><span class="pre">params</span></code> and
 then we place the transceivers in the terminals.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Optical network elements
 params = {&#39;transceivers&#39;: [(&#39;tx1&#39;, 0*dBm,&#39;C&#39;)] }
@@ -90,11 +90,19 @@ t1 = self.addSwitch(&#39;t1&#39;, cls=Terminal, **params)
 t2 = self.addSwitch(&#39;t2&#39;, cls=Terminal, **params)
 </pre></div>
 </div>
+<p>Note that parameters are just data values that will be used later to
+create the actual network emulator and simulator objects. In this
+case, <code class="docutils literal notranslate"><span class="pre">params</span></code> specifies a <code class="docutils literal notranslate"><span class="pre">transceivers</span></code> parameter that consists
+of a list of a single transceiver, <code class="docutils literal notranslate"><span class="pre">tx1</span></code>, with a default transmit
+power of 0dBm (and on the <code class="docutils literal notranslate"><span class="pre">C</span></code> band though this parameter is optional
+and currently ignored.) Note we are reusing the same set of parameters
+for <code class="docutils literal notranslate"><span class="pre">t1</span></code> and <code class="docutils literal notranslate"><span class="pre">t2</span></code>, but this is OK since separate objects will be
+created for them.</p>
 <p>At this point, the network nodes are defined. All we need to do now is
-to connect them together to form a working network. Hence, we connect
+to connect them together to form a working network. We connect
 the hosts to the terminals using Ethernet links. We also connect the
-terminals using a WDM link. That concludes the basic network designing
-Python script.</p>
+terminals using a WDM link. This concludes the topology specification
+in the <code class="docutils literal notranslate"><span class="pre">build()</span></code> method.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Ethernet links
 self.addLink(h1, t1, port2=1)
 self.addLink(h2, t2, port2=1)
@@ -156,8 +164,8 @@ net.stop()
 <h2>REST SDN Control API<a class="headerlink" href="#rest-sdn-control-api" title="Permalink to this heading">¶</a></h2>
 <p>After learning about the Python API and designing the simple linear
 network in the process, we will now look into the control API. Once
-the following set of commands are executed, the hosts (h1 and h2) in
-our linear topology will be able to communicate.</p>
+the following set of commands are executed, the hosts (<code class="docutils literal notranslate"><span class="pre">h1</span></code> and <code class="docutils literal notranslate"><span class="pre">h2</span></code>)
+in our linear topology will be able to communicate.</p>
 <p>Note: For this tutorial we will use Mininet-Optical’s simple REST
 control API. This is a simple control API created for Mininet-Optical
 that can be used from the command line as well as from software.</p>
@@ -166,14 +174,14 @@ is a command-line utility for transferring data from or to a server
 using URL syntax.</p>
 <p>First, we will set a base URL, which is the address of the local
 machine. We need to identify this address as all the nodes defined are
-built in the local host machine. Hence, the base URL is set as
-localhost:8080</p>
+built in the local host machine. The base URL is set as
+<code class="docutils literal notranslate"><span class="pre">localhost:8080</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>url=&quot;localhost:8080&quot;; t1=$url; t2=$url; t3=$url; r1=$url
 </pre></div>
 </div>
 <p>Next, we need to configure the terminals. Essectially, we set
 the channels on which the terminal is set to operate. We also
-“connect” the Ethernet and the WDM ports of the terminal as per our
+<code class="docutils literal notranslate"><span class="pre">connect</span></code> the Ethernet and the WDM ports of the terminal as per our
 routing requirements.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Configure Terminals:
 	curl &quot;$t1/connect?node=t1&amp;ethPort=1&amp;wdmPort=2&amp;channel=1&quot;
@@ -192,9 +200,10 @@ routing requirements.</p>
 <p>(Not for this network, but in general:) If a ROADM is present in the
 network topology, we need to first reset the ROADM and then install
 the switching logic. The rest is done to ensure that any previous
-switching rule is wiped off.</p>
+switching rule is removed.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Reset a ROADM:
 	curl &quot;$r1/reset?node=r1&quot;
+            
 Add a ROADM switching rule:
 	curl &quot;$r1/connect?node=r1&amp;port1=1&amp;port2=2&amp;channels=1&quot;
 </pre></div>

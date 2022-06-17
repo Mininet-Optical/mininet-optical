@@ -140,13 +140,13 @@ of both packet and optical network elements.</p>
 <p>Since emulation mode relies on Mininet (and Linux) to create
 virtual network devices, it currently needs to run with root
 privileges, and Python scripts are typically run using <code class="docutils literal notranslate"><span class="pre">sudo</span></code>.</p>
-<p>For this exercise, you are going to modify the singleroadm.py script to
-add additional transceivers and links, and then you are going to
-configure the terminals (t1, t2, t3) and ROADM to enable connectivity
-between all of the packet switches and hosts.</p>
+<p>For this exercise, you are going to modify the singleroadm.py script
+to add additional transceivers and links, and then you are going to
+configure the terminals (<code class="docutils literal notranslate"><span class="pre">t1</span></code>, <code class="docutils literal notranslate"><span class="pre">t2</span></code>, <code class="docutils literal notranslate"><span class="pre">t3</span></code>) and ROADM to enable
+connectivity between all of the packet switches and hosts.</p>
 <section id="part-0-make-sure-singleroadm-py-works-correctly">
-<h3>Part 0: Make sure singleroadm.py works correctly<a class="headerlink" href="#part-0-make-sure-singleroadm-py-works-correctly" title="Permalink to this heading">¶</a></h3>
-<p>First, make sure you can run singleroadm.py.</p>
+<h3>Part 0: Make sure <code class="docutils literal notranslate"><span class="pre">singleroadm.py</span></code> works correctly<a class="headerlink" href="#part-0-make-sure-singleroadm-py-works-correctly" title="Permalink to this heading">¶</a></h3>
+<p>First, make sure you can run <code class="docutils literal notranslate"><span class="pre">singleroadm.py</span></code>.</p>
 <p>For example, you should be able to do something like this:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo examples/simplelink.py
 </pre></div>
@@ -172,19 +172,19 @@ mininet-optical&gt;
 </div>
 <p>Then open up another terminal window on your VM (or machine where
 mininet is running) and run the controller script, which will program
-the ROADM to enable h1 to talk to h2 (but not h3!)</p>
+the ROADM to enable <code class="docutils literal notranslate"><span class="pre">h1</span></code> to talk to <code class="docutils literal notranslate"><span class="pre">h2</span></code> (but not <code class="docutils literal notranslate"><span class="pre">h3</span></code>!)</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical/
 $ examples/config-singleroadm.sh
 </pre></div>
 </div>
 <p>You should be able to see the REST calls that config-singleroadm.sh is
-making as well as OK results to indicate they have succeeded. You should
+making as well as <code class="docutils literal notranslate"><span class="pre">OK</span></code> results to indicate they have succeeded. You should
 also see monitoring data reported by the REST monitoring calls. The
 ability to monitor power and OSNR is essential to SDN control of optical
 networks.</p>
 <p>In the Mininet window, you should see a number of successful signal
-receptions. The osnr command should show signals received at t1 and t2
-but not t3.</p>
+receptions. The osnr command should show signals received at <code class="docutils literal notranslate"><span class="pre">t1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">t2</span></code> but not <code class="docutils literal notranslate"><span class="pre">t3</span></code>.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; osnr
 &lt;name: t1-monitor, component: t1, mode: in&gt;:
 &lt;ch1:191.35THz&gt; OSNR: 34.70 dB gOSNR: 34.58 dB
@@ -193,8 +193,9 @@ but not t3.</p>
 &lt;name: t3-monitor, component: t3, mode: in&gt;:
 </pre></div>
 </div>
-<p>If you run the pingall command, you will see that h1 and h2 can talk to
-each other, but h3 cannot communicate with either h1 or h2:</p>
+<p>If you run the <code class="docutils literal notranslate"><span class="pre">pingall</span></code> command, you will see that <code class="docutils literal notranslate"><span class="pre">h1</span></code> and <code class="docutils literal notranslate"><span class="pre">h2</span></code> can
+talk to each other, but <code class="docutils literal notranslate"><span class="pre">h3</span></code> cannot communicate with either <code class="docutils literal notranslate"><span class="pre">h1</span></code> or
+<code class="docutils literal notranslate"><span class="pre">h2</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; pingall
 *** Ping: testing ping reachability
 h1 -&gt; h2 X
@@ -203,12 +204,12 @@ h3 -&gt; X X
 *** Results: 66% dropped (2/6 received)
 </pre></div>
 </div>
-<p>During the tutorial, we showed how to program this topology so that h1
-could talk to h2 or h3, but not both at the same time!</p>
+<p>Note it is also possible to program this “y” topology so that <code class="docutils literal notranslate"><span class="pre">h1</span></code>
+can talk to <code class="docutils literal notranslate"><span class="pre">h2</span></code> or <code class="docutils literal notranslate"><span class="pre">h3</span></code>, but not both at the same time!</p>
 <p>In the next part of this exercise, you are going to modify the network
 topology by adding additional transceivers and links, and then you are
 going to program it to enable all of the endpoints to communicate.</p>
-<p>For now, exit out of mininet by using exit or control-D:</p>
+<p>For now, exit out of mininet-optical by using <code class="docutils literal notranslate"><span class="pre">exit</span></code> or control-D:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; exit
 *** Stopping 1 controllers
 c0
@@ -238,9 +239,8 @@ progress.)</p>
 </section>
 <section id="part-1-add-transceivers-and-links">
 <h3>Part 1: Add transceivers and links<a class="headerlink" href="#part-1-add-transceivers-and-links" title="Permalink to this heading">¶</a></h3>
-<p>During the tutorial, we showed you the singleroadm.py script and
-explained the basics of the Mininet-Optical topology API in emulation
-mode.</p>
+<p>The <a class="reference internal" href="api-overview.html"><span class="doc">API Overview</span></a> explains the <code class="docutils literal notranslate"><span class="pre">simplelink.py</span></code> script and the
+basics of the Mininet-Optical topology API in emulation mode.</p>
 <p>For this part, you will need to figure out how to add an additional
 transceiver to each terminal, as well as an additional link from each
 terminal to the ROADM.</p>
@@ -248,10 +248,10 @@ terminal to the ROADM.</p>
 probably be a simple configuration script similar to
 examples/config-singleroadm.sh) to operate properly, you will need to
 know which ports are connected on each device. You can specify the port
-numbers in the parameters of the addLink() method.</p>
-<p>When you are done, there should be two 50km links from t1&lt;-&gt;r1, two
-50km links from t2&lt;-&gt;r1, and two 1m links from t3&lt;-&gt;r1.</p>
-<p>You can check your topology from the mininet-optical&gt; prompt using the
+numbers in the parameters of the <code class="docutils literal notranslate"><span class="pre">addLink()</span></code> method.</p>
+<p>When you are done, there should be two 50km links from <code class="docutils literal notranslate"><span class="pre">t1</span></code>&lt;-&gt;<code class="docutils literal notranslate"><span class="pre">r1</span></code>, two
+50km links from <code class="docutils literal notranslate"><span class="pre">t2</span></code>&lt;-&gt;<code class="docutils literal notranslate"><span class="pre">r1</span></code>, and two 1m links from <code class="docutils literal notranslate"><span class="pre">t3</span></code>&lt;-&gt;<code class="docutils literal notranslate"><span class="pre">r1</span></code>.</p>
+<p>You can check your topology from the <code class="docutils literal notranslate"><span class="pre">mininet-optical&gt;</span></code> prompt using the
 net command. When you are done with this part, it should look something
 like this:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; net
@@ -274,13 +274,13 @@ t3-monitor
 </div>
 <p><em>Don’t dismiss this as incomprehensible garbage</em> – it is actually
 telling you useful information! Specifically, it is telling you how each
-node’s interfaces are connected. For example, you can see that ROADM r1
-now has two links to each of the terminals t1-t3, for a total of 6
+node’s interfaces are connected. For example, you can see that ROADM <code class="docutils literal notranslate"><span class="pre">r1</span></code>
+now has two links to each of the terminals <code class="docutils literal notranslate"><span class="pre">t1</span></code>-<code class="docutils literal notranslate"><span class="pre">t3</span></code>, for a total of 6
 links. You can also see the type of the port (Ethernet or WDM) as well
-as the port number. For example, r1-wdm1 is WDM port 1 on ROADM r1.</p>
-<p>You can also use the spans command, which prints out long links but
-ignores links of &lt;100m. So, you should see the links from t1 and t3 but
-not t2:</p>
+as the port number. For example, <code class="docutils literal notranslate"><span class="pre">r1-wdm1</span></code> is WDM port 1 on ROADM r1.</p>
+<p>You can also use the <code class="docutils literal notranslate"><span class="pre">spans</span></code> command, which prints out long links but
+ignores links of &lt;100m. So, you should see the links from <code class="docutils literal notranslate"><span class="pre">t1</span></code> and
+<code class="docutils literal notranslate"><span class="pre">t3</span></code> but not <code class="docutils literal notranslate"><span class="pre">t2</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; spans
 
 (r1-&gt;t1) &lt;boost 18.0dB&gt; &lt;1 25.0km&gt; &lt;r1-t1-amp1 5.5dB&gt; &lt;2
@@ -304,17 +304,18 @@ not t2:</p>
 <p>Note that the spans command shows the underlying physical spans (modeled
 by the simulator) which are unidirectional. Note that the fiber links
 don’t have names but they have numbers in order to disambiguate them.</p>
-<p>You may also wish to try the intfs and ports commands.</p>
-<p>If you install pygraphviz (using sudo apt install python3-pygraphviz),
-you can use the plotNet() function in singleroadm.py to save a plot of
-the topology to singleroadm.png. Your revised topology should look
-something like this:</p>
+<p>You may also wish to try the <code class="docutils literal notranslate"><span class="pre">intfs</span></code> and <code class="docutils literal notranslate"><span class="pre">ports</span></code> commands.</p>
+<p>If you have installed <code class="docutils literal notranslate"><span class="pre">pygraphviz</span></code> (e.g. via <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">depend</span></code> and/or
+using <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">python3-pygraphviz</span></code>), you can use the
+<code class="docutils literal notranslate"><span class="pre">plotNet()</span></code> function in <code class="docutils literal notranslate"><span class="pre">singleroadm.py</span></code> to save a plot of the topology to
+<code class="docutils literal notranslate"><span class="pre">singleroadm.png</span></code>. Your revised topology should look something like
+this:</p>
 <p><img alt="" src="_images/Picture2.svg" /></p>
 <figcaption>Figure. Single ROADM Network Topology
 <p>Note that there are two links (each of which is bidirectional,
 implemented as two sequences of fiber spans and amplifiers, going in
-opposite directions) from each packet switch (s1) to its respective
-Terminal (t1) and to the ROADM. You can also see the port numbers for
+opposite directions) from each packet switch (<code class="docutils literal notranslate"><span class="pre">s1</span></code>) to its respective
+Terminal (<code class="docutils literal notranslate"><span class="pre">t1</span></code>) and to the ROADM. You can also see the port numbers for
 each side of each link. You may find this to be the easiest way to
 understand your network at a glance and to identify port numbers for the
 next part.</p>
@@ -323,12 +324,12 @@ next part.</p>
 <h3>Part 2: Programming the Data Plane<a class="headerlink" href="#part-2-programming-the-data-plane" title="Permalink to this heading">¶</a></h3>
 <p>Lastly, we need to program the data plane so that we have full
 connectivity. In order to do this, all we need to do is enable
-connectivity between two pairs of Terminals, such as (t1, t2) and (t2,
-t3).</p>
+connectivity between two pairs of Terminals, such as (<code class="docutils literal notranslate"><span class="pre">t1</span></code>, <code class="docutils literal notranslate"><span class="pre">t2</span></code>) and
+(<code class="docutils literal notranslate"><span class="pre">t2</span></code>, <code class="docutils literal notranslate"><span class="pre">t3</span></code>).</p>
 <p><em>Question to think about: Why is connecting two pairs of terminals
 sufficient to connect all of the hosts?</em></p>
 <p>In fact, you do not actually want to create a <em>loop</em> among the packet
-switches. Since we are using OVSBridge without spanning tree enabled,
+switches. Since we are using <code class="docutils literal notranslate"><span class="pre">OVSBridge</span></code> without spanning tree enabled,
 creating a loop typically leads to undesirable behavior where packets
 loop forever, usually rendering the network unusable or extremely slow
 (the problem is exacerbated by flooding and by broadcast packets for ARP
@@ -336,7 +337,7 @@ and DHCP.) This is a common error in L2 Ethernet networks that is
 frequently seen by Mininet users who (often) think it is an emulator bug
 rather than realistic (but incorrectly configured) behavior!</p>
 <p>You should be able to use the REST calls described in the tutorial,
-and/or modify the existing singleroadm.sh script to program your
+and/or modify the existing <code class="docutils literal notranslate"><span class="pre">singleroadm.sh</span></code> script to program your
 network.</p>
 <p>When you are done, you should see a number of successful signal
 connections at the terminals:</p>
@@ -377,9 +378,9 @@ t3 Outputs:
 &lt;ch2:191.40THz&gt;)]}
 </pre></div>
 </div>
-<p>You should also see osnr at all of them, but for some reason that
+<p>(Note: You should also see <code class="docutils literal notranslate"><span class="pre">osnr</span></code> at all of them, but for some reason that
 doesn’t seem to be working properly at the moment. In my tests, it only
-reports osnr for t1 and t2:</p>
+reports osnr for <code class="docutils literal notranslate"><span class="pre">t1</span></code> and <code class="docutils literal notranslate"><span class="pre">t2</span></code>:)</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mininet-optical&gt; osnr
 &lt;name: t1-monitor, component: t1, mode: in&gt;:
 &lt;ch1:191.35THz&gt; OSNR: 34.05 dB gOSNR: 15.99 dB
@@ -402,49 +403,46 @@ reports osnr for t1 and t2:</p>
 {&quot;osnr&quot;: {}}
 </pre></div>
 </div>
-<p>Hopefully we will be able to determine why there is no OSNR reported for
-t3.</p>
+<p>(Hopefully we will be able to determine why there is no OSNR reported for
+<code class="docutils literal notranslate"><span class="pre">t3</span></code>.)</p>
 <p>This concludes the exercise!!</p>
 <p><strong>Thanks for trying this out – we look forward to your feedback.</strong></p>
 </section>
 <section id="hints-and-advice">
-<h3>HINTS AND ADVICE<a class="headerlink" href="#hints-and-advice" title="Permalink to this heading">¶</a></h3>
-<ol class="arabic simple">
-<li><p>Read the <a class="reference internal" href="api-overview.html"><span class="doc">API Overview</span></a></p></li>
-</ol>
+<h3>Hints and Advice<a class="headerlink" href="#hints-and-advice" title="Permalink to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p>Read the <a class="reference internal" href="api-overview.html"><span class="doc">API Overview</span></a></p>
 <p>This provides an overview of Mininet-Optical’s Python API as well
 as the REST control API.</p>
-<ol class="arabic simple" start="2">
-<li><p>Pay attentiont to port numbers</p></li>
-</ol>
-<p>It’s tricky (if not maddeningly so) to get this (and many SDN designs)
-working because you need to know the exact port numbers. You may wish to
-try things like:</p>
+</li>
+<li><p>Pay attention to port numbers</p>
+<p>It’s tricky (if not maddeningly so) to get this (and many SDN
+designs) working because you need to know the exact port numbers. You
+may wish to try things like:</p>
 <ul class="simple">
-<li><p>Plotting and printing out (or drawing) the topology and port numbers</p></li>
+<li><p>Plotting (e.g. using <code class="docutils literal notranslate"><span class="pre">plotNet()</span></code>) and printing out (or drawing)
+the topology and port numbers</p></li>
 <li><p><em>Writing a helper function</em> to help you determine port numbers, for
 example telling you what is (or should be) connected at the other
-side of a particular node and port number, or telling you what ROADM
-port should correspond to what Terminal port for a given Terminal
+side of a particular node and port number, or telling you what <code class="docutils literal notranslate"><span class="pre">ROADM</span></code>
+port should correspond to what <code class="docutils literal notranslate"><span class="pre">Terminal</span></code> port for a given <code class="docutils literal notranslate"><span class="pre">Terminal</span></code>
 and transceiver, or even just dumping out what each node and port
 number is connected to.</p></li>
-<li><p>Possibly using net.linksBetween(node1, node2), which returns all of
+<li><p>Possibly using <code class="docutils literal notranslate"><span class="pre">net.linksBetween(node1,</span> <span class="pre">node2)</span></code>, which returns all of
 the links (as link objects) between two nodes in the Mininet
-network. A link’s endpoints are link.intf1 and link.intf2.</p></li>
+network. A link’s endpoints are <code class="docutils literal notranslate"><span class="pre">link.intf1</span></code> and <code class="docutils literal notranslate"><span class="pre">link.intf2</span></code>.</p></li>
 <li><p>Logging port numbers/names to make sure they are what you think they
 are</p></li>
 </ul>
-<ol class="arabic simple" start="3">
-<li><p>Testing REST calls using <code class="docutils literal notranslate"><span class="pre">curl</span></code></p></li>
-</ol>
+</li>
+<li><p>Testing REST calls using <code class="docutils literal notranslate"><span class="pre">curl</span></code></p>
 <p>REST calls can easily be executed and tested from the shell prompt using
-curl, but remember to enclose the URLs in quotes to avoid the shell
+<code class="docutils literal notranslate"><span class="pre">curl</span></code>, but remember to enclose the URLs in quotes to avoid the shell
 (mis)interpreting special characters like &amp;. Note that shell variables
-($url) should be enclosed in double quotes (not single quotes!) in
+(<code class="docutils literal notranslate"><span class="pre">$url</span></code>) should be enclosed in double quotes (not single quotes!) in
 order to be dereferenced.</p>
-<ol class="arabic simple" start="4">
-<li><p>Making mistakes is OK in an emulator, but be careful with hardware</p></li>
-</ol>
+</li>
+<li><p>Making mistakes is OK in an emulator, but be careful with hardware</p>
 <p>Fortunately, if you make mistakes on a software emulator it has few
 negative consequences, but mistakes in a hardware optical network, such
 as creating an amplified laser feedback loop, could potentially have
@@ -453,25 +451,28 @@ Ideally devices will have failsafe mechanisms but this may not be
 guaranteed.</p>
 <p>Creating packet loops in Ethernet networks doesn’t usually cause fires
 but usually results in an unusable network.</p>
+</li>
+</ol>
 </section>
 <section id="extra-credit-for-the-insanely-motivated">
-<h3>EXTRA CREDIT FOR THE INSANELY MOTIVATED<a class="headerlink" href="#extra-credit-for-the-insanely-motivated" title="Permalink to this heading">¶</a></h3>
+<h3>Extra Credit for the Insanely Motivated<a class="headerlink" href="#extra-credit-for-the-insanely-motivated" title="Permalink to this heading">¶</a></h3>
 <p>This is almost certainly more than enough for now, but here are some
 (extremely optional) additional projects you could think about trying if
 you are excessively enthusiastic and have lots of extra time:</p>
 <ol class="arabic">
-<li><p>Try passing switch=functools.partial(OVSBridge,stp=True) into the
-Mininet() constructor call (you will need to import functools) to
+<li><p>Try passing <code class="docutils literal notranslate"><span class="pre">switch=functools.partial(OVSBridge,stp=True)</span></code> into the
+<code class="docutils literal notranslate"><span class="pre">Mininet()</span></code> constructor call (you will need to <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">functools</span></code>) to
 turn on <strong>spanning tree</strong>. Note that it can take a while (~30s) for
 spanning tree to do its thing (specifically discover any loops and
 block ports that create loops) but eventually you should be able to
 ping everything. Now, try creating a full mesh/loop topology where
 every terminal can connect to every other terminal. Verify that
 spanning tree enables your (bridged L2 Ethernet) network to work
-even in the presence of loops.<br />
-As an alternative to spanning tree, you could also use a packet SDN
+even in the presence of loops.</p>
+<p>As an alternative to spanning tree, you could also use a packet SDN
 controller such as ONOS that supports Ethernet topologies with
-loops.</p></li>
+loops.</p>
+</li>
 <li><p>Create a <strong>ring network</strong> similar to the network from Part 1. See if
 you can replicate the same (or similar) behavior. Note that the
 emulator API that we are using for this tutorial is bidirectional,
@@ -486,33 +487,38 @@ each POP. Use Manhattan routing to enable full mesh connectivity
 without creating loops and while minimizing the number of signals
 per link. Since this is an L2 Ethernet network, the connectivity
 among your packet switches (Ethernet bridges) should be a tree, or
-you should turn on spanning tree protocol for OVSBridge as described
+you should turn on spanning tree protocol for <code class="docutils literal notranslate"><span class="pre">OVSBridge</span></code> as described
 in (1) above.</p></li>
-<li><p>Take a look at LinearRoadmTopo and DemoTopo in ofcdemo/demolib.py as
+<li><p>Take a look at <code class="docutils literal notranslate"><span class="pre">LinearRoadmTopo</span></code> and <code class="docutils literal notranslate"><span class="pre">DemoTopo</span></code> in <code class="docutils literal notranslate"><span class="pre">ofcdemo/demolib.py</span></code> as
 well as the scripts that use them, simpledemo.py and demo.py, and
 the apsp.py test controller. Unlike our simple exercises above,
 these install <strong>IP routing rules</strong> (programmed with OpenFlow) as
 well as multiple subnets to enable mesh connectivity. Can you create
 a mesh network with multiple subnets and a controller that
 implements a more advanced lightpath planning and routing
-algorithm?
-Note that ofcdemo.demolib.configureLinearNet() also uses OpenFlow to
+algorithm?</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">ofcdemo.demolib.configureLinearNet()</span></code> also uses OpenFlow to
 set up IP routing rules. Alternately, you could use Mininet’s
-LinuxRouter and install rules in the routers using Linux routing
-commands.</p></li>
+<code class="docutils literal notranslate"><span class="pre">LinuxRouter</span></code> and install rules in the routers using Linux routing
+commands.</p>
+</li>
 <li><p>Try creating a <strong>simplified text format</strong> to describe a
-topology**,** and then create a build() method that reads your
+topology**,** and then create a <code class="docutils literal notranslate"><span class="pre">build()</span></code> method that reads your
 description format and makes the appropriate calls to create the
-topology.
-For example, the following format could be used to specify something
-like our simple linear network:
-h1 – s1 – t1 –25km- amp1 –25km– t2 – s2 – h2
-and this format could be used to specify a single ROADM network:
-h1 – s1 – t1 –25km- r1 –25km– t2 – s2 – h1
-r1 – t3 – s3 - h3
-You could also use another format such as dot, or anything you
-like.
-Some questions to think about:</p>
+topology.</p>
+<p>For example, the following format could be used to specify something
+like our simple linear network:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>h1 -- s1 -- t1 --25km- amp1 --25km-- t2 -- s2 -- h2
+</pre></div>
+</div>
+<p>and this format could be used to specify a single ROADM network:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>h1 -- s1 -- t1 --25km- r1 --25km-- t2 -- s2 -- h1
+r1 -- t3 -- s3 - h3
+</pre></div>
+</div>
+<p>You could also use another format such as dot, or anything you
+like.</p>
+<p>Some questions to think about:</p>
 <p>a.  How do you know the device type of a node in this specification?</p>
 <p>b.  How do you know whether a link is a packet link or an optical
 link?</p>
