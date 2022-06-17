@@ -23,8 +23,8 @@ looks like the following:
 Let's look at `examples/simplelink.py` to see how this is done.
 
 Since Python follows an object-oriented programming approach, we need
-to define a class named SimpleLinkTopo using the
-statement. SimpleLinkTopo extends Mininet's Topo class.
+to define a class named `SimpleLinkTopo` using the
+statement. `SimpleLinkTopo` extends Mininet's `Topo` class.
 
 	class SimpleLinkTopo(Topo):
 
@@ -44,11 +44,11 @@ h2). We use the `addHost()` for this purpose.
 	# Packet network elements
 	h1, h2 = self.addHost('h1'), self.addHost('h2')
 	
-Thereafter, we need to build the optical elements. The terminals (t1
-and t2) form the interface between the Ethernet hosts (h1 and h2) and
-the Optical network. Further, we need optical transceivers placed in
+Thereafter, we need to build the optical elements. The terminals (`t1`
+and `t2`) provide the interface between the Ethernet hosts (`h1` and `h2`) and
+the optical network. Further, we need optical transceivers placed in
 the terminals for transmitting and receiving the optical
-signals. Therefore, first we define the transceivers as "params" and
+signals. Therefore, first we define the transceivers as `params` and
 then we place the transceivers in the terminals.
 
 	# Optical network elements
@@ -56,12 +56,20 @@ then we place the transceivers in the terminals.
 	t1 = self.addSwitch('t1', cls=Terminal, **params)
 	t2 = self.addSwitch('t2', cls=Terminal, **params)
 
+Note that parameters are just data values that will be used later to
+create the actual network emulator and simulator objects. In this
+case, `params` specifies a `transceivers` parameter that consists
+of a list of a single transceiver, `tx1`, with a default transmit
+power of 0dBm (and on the `C` band though this parameter is optional
+and currently ignored.) Note we are reusing the same set of parameters
+for `t1` and `t2`, but this is OK since separate objects will be
+created for them.
 
 At this point, the network nodes are defined. All we need to do now is
-to connect them together to form a working network. Hence, we connect
+to connect them together to form a working network. We connect
 the hosts to the terminals using Ethernet links. We also connect the
-terminals using a WDM link. That concludes the basic network designing
-Python script.
+terminals using a WDM link. This concludes the topology specification
+in the `build()` method.
 
 	# Ethernet links
 	self.addLink(h1, t1, port2=1)
@@ -122,8 +130,8 @@ server and shut down the emulated network:
 
 After learning about the Python API and designing the simple linear
 network in the process, we will now look into the control API. Once
-the following set of commands are executed, the hosts (h1 and h2) in
-our linear topology will be able to communicate.
+the following set of commands are executed, the hosts (`h1` and `h2`)
+in our linear topology will be able to communicate.
 
 Note: For this tutorial we will use Mininet-Optical's simple REST
 control API. This is a simple control API created for Mininet-Optical
@@ -135,14 +143,14 @@ using URL syntax.
 
 First, we will set a base URL, which is the address of the local
 machine. We need to identify this address as all the nodes defined are
-built in the local host machine. Hence, the base URL is set as
-localhost:8080
+built in the local host machine. The base URL is set as
+`localhost:8080`:
 
 	url="localhost:8080"; t1=$url; t2=$url; t3=$url; r1=$url
 	
 Next, we need to configure the terminals. Essectially, we set
 the channels on which the terminal is set to operate. We also
-"connect" the Ethernet and the WDM ports of the terminal as per our
+`connect` the Ethernet and the WDM ports of the terminal as per our
 routing requirements.
 
 	Configure Terminals:
@@ -162,10 +170,11 @@ The next step is to turn on the terminals.
 (Not for this network, but in general:) If a ROADM is present in the
 network topology, we need to first reset the ROADM and then install
 the switching logic. The rest is done to ensure that any previous
-switching rule is wiped off.
+switching rule is removed.
 
 	Reset a ROADM:
 		curl "$r1/reset?node=r1"
+                
 	Add a ROADM switching rule:
 		curl "$r1/connect?node=r1&port1=1&port2=2&channels=1"
 
