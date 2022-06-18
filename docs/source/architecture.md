@@ -16,7 +16,7 @@ makes it convenient to develop, share, and experiment with
 Software-Defined Networking (SDN) systems using OpenFlow and/or P4.
 
 ![](images/Mininet_optical.svg) <figcaption>Figure. Equivalence of a
-virtual network designed in Mininet-Optical and a real network
+virtual network designed in Mininet-Optical and a hardware network
 
 The illustrated virtual network is equivalent to the real network. The
 goal for Mininet-Optical is to enable the same control software to
