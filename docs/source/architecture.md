@@ -22,7 +22,7 @@ The illustrated virtual network is equivalent to the real network. The
 goal for Mininet-Optical is to enable the same control software to
 work on a software-emulated virtual network and on a hardware
 testbed. Mininet-Optical can enable us to create a "digital twin" of a
-real network (or testbed) and carry out experiments in a sotware
+real network (or testbed) and carry out experiments in a software
 environment. This enables faster turn out time and a fail-safe
 approach. The emulated network can also be reset to its original
 condition for repeatability or in the case of errors.
