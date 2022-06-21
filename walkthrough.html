@@ -101,7 +101,9 @@ topology in Mininet-Optical representing the simplest fully emulated
 packet-optical network that we can create. The topology used here is
 called <code class="docutils literal notranslate"><span class="pre">SingleLinkTopo</span></code> and consists of 2 hosts, 2 switches, 2
 terminals separated by 2x25km spans with an EDFA in the middle:</p>
-<p>h1 - s1 - t1 - (boost-&gt;,amp2&lt;-) –25km– amp1 –25km– (-&gt;amp2,&lt;-boost) - t1 - s2 - h2</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>h1 - s1 - t1 - (boost-&gt;,amp2&lt;-) --25km-- amp1 --25km-- (-&gt;amp2,&lt;-boost) - t1 - s2 - h2
+</pre></div>
+</div>
 <p>To run this topology:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/mininet-optical
 $ sudo python3 examples/singlelink.py
