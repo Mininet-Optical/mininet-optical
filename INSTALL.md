@@ -65,7 +65,7 @@ packet-optical network that we can create. The topology used here is
 called `SingleLinkTopo` and consists of 2 hosts, 2 switches, 2
 terminals separated by 2x25km spans with an EDFA in the middle:
 
-h1 - s1 - t1 - (boost->,amp2<-) --25km-- amp1 --25km-- (->amp2,<-boost) - t1 - s2 - h2
+    h1 - s1 - t1 - (boost->,amp2<-) --25km-- amp1 --25km-- (->amp2,<-boost) - t1 - s2 - h2
 
 To run this topology:
 
