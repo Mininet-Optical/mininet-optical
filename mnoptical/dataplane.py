@@ -43,6 +43,7 @@ from mininet.clean import sh, Cleanup, cleanup
 from mininet.util import BaseString
 
 from itertools import chain
+from numbers import Number
 from operator import attrgetter
 from sys import argv
 
@@ -713,42 +714,47 @@ class OpticalLink( Link ):
         assert isinstance(self.intf1, OpticalIntf)
         assert isinstance(self.intf2, OpticalIntf)
 
-        def amp( prefix, name, *params ):
-            "Helper function to create PhyAmplifiers"
-            if not name:
-                return None
-            else:
-                name = prefix + name
-            if len( params ) == 1 and isinstance( params[ 0 ], dict ):
-                params = params[ 0 ]
-                return PhyAmplifier( name, **params )
-            amplifier_type = 'EDFA'
-            if len( params ) > 0 and isinstance( params[ 0 ], str ):
-                amplifier_type = params.pop( 0 )
-            # print(f"PhyAmplifier({name}, {amplifier_type}, {params} )")
-            return PhyAmplifier(name, amplifier_type, *params )
+        def component( prefix, cls=None, args=None, params=None):
+            "Helper function to create segment components"
+            if not cls: return []
+            args, params = args or [], params or {}
+            if prefix and not getattr(cls, 'anonymous', False):
+                # Non-anonymous class gets its name parameter adjusted
+                if params:
+                    params = params.copy()
+                try:
+                    name = params.pop('name', None)
+                    name, args = args[0], args[1:]
+                    args: args = (prefix+name,) + tuple(args[1:])
+                except:
+                    raise Exception(f'name required for component of type {cls}')
+            return cls( *args, **params )
 
         # Boost amplifiers if any
         # Note amp params can be a dict or a positional list, to allow
         # ('boost1', 3*dB) or ('boost1', {'target_gain': 3*dB})
         prefix1 = '%s-%s-' % (src, dst)
         prefix2 = '%s-%s-' % (dst, src)
-        boost1 = boost1 or (boost and ( boost[0], *boost[1:] ) )
-        boost2 = boost2 or (boost and ( boost[0], *boost[1:] ) )
-        boost1 = boost1 and amp( prefix1, *boost1 )
-        boost2 = boost2 and amp( prefix2, *boost2 )
+        boost1 = boost1 or boost
+        boost2 = boost2 or boost
+        boost1 = boost1 and component(
+            prefix1, *self._parseArgs( boost1, PhyAmplifier ) )
+        boost2 = boost2 and component(
+            prefix2, *self._parseArgs( boost2, PhyAmplifier ) )
 
-        # Create symmetric spans and phy links in both directions
-        # Note span params can also be a dict or positional list
-        # This parameter handling is a bit baroque but will
-        # hopefully make things easier to use!
-        spans = self.parseSpans( spans )
-        spans1 = [ PhySpan( length, amp( prefix1, name, params ) )
-                   for length, name, params in spans ]
+        # Create spans and phy links in both directions
+        # FIXME: We probably want to rethink this so that it is
+        # actually symmetric in terms of fiber lengths! We could
+        # do so by using a bidirectional amp pair with eastbound
+        # and westbound target gain (!) It would make things more
+        # realistic but harder to use.
+        spans = self._parseSpans( spans )
+        spans1 = [ SpanTuple( component('', *span), component(prefix1, *amp) )
+                   for span, amp in spans ]
         if bidirectional:
-            spans2 = [ PhySpan( length, amp( prefix2, name, params ) )
-                       for length, name, params in spans ]
-
+            spans2 = [ SpanTuple( component('', *span),
+                                  component(prefix2, *amp) )
+                   for span, amp in spans ]
         self.phyLink1 = PhyLink(
             src.model, dst.model, src_out_port=self.port1,
             dst_in_port=self.port2, boost_amp=boost1, spans=spans1 )
@@ -770,22 +776,42 @@ class OpticalLink( Link ):
                           for monitor in monitors ]
 
 
+    def _parseArgs( self, args, cls=None ):
+        "Parse (cls, *args, [params]) tuples"
+        if not args: return []
+        if not cls:
+            cls, args, params = args[0], args[1:], {}
+        if args and isinstance(args[-1], dict):
+            args, params = args[:-1], args[-1]
+        else:
+            params = {}
+        return cls, args, params
 
-    @staticmethod
-    def parseSpans( spans=None ):
-        "Parse list of spans and amplifiers into (length, amp) tuples"
-        spans = list(spans) or []
-        result = []
+    def _parseSpans( self, spans=None ):
+        "Parse list of spans and amplifiers into (span, amp) tuples"
+        # For convenience, we support a variety of parameter formats
+        # span/amp format (cls, *args, [params])
+        # shortcuts: Number -> (Span, int) ; str -> (Amplifier, str)
+        spans, result = (list(spans) or []), []
         while spans:
-            length, ampName, params = spans.pop(0), None, {}
-            # Maybe there's a better way of doing this polymorphic api
-            if spans and isinstance( spans[ 0 ], BaseString ):
-                ampName = spans.pop( 0 )
-            elif spans and isinstance( spans[ 0 ], tuple ):
-                ampName, params = spans.pop( 0 )
-            result.append( ( length, ampName, params ) )
+            if isinstance( spans[0], ( Number, tuple ) ):
+                # Length or custom span tuple
+                if isinstance( spans[0], Number):
+                    span, amp  = (FiberSpan, dict(length=spans.pop(0))), []
+                else:
+                    span, amp = spans.pop(0), []
+                # Optional amplifier tuple
+                if spans and isinstance( spans[0], tuple ):
+                    # No class specified -> PhyAmplifier
+                    if isinstance( spans[0][0], BaseString ):
+                        amp = (PhyAmplifier,) + spans.pop(0)
+                    elif issubclass(spans[0][0], PhyAmplifier):
+                        amp = spans.pop(0)
+            else:
+                raise Exception(
+                    f'{spans[0]}: Expected fiber length or tuple' )
+            result.append( (self._parseArgs(span), self._parseArgs(amp) ) )
         return result
-
 
     def intfName( self, node, n ):
         "Construct a canonical interface name node-wdmN for interface N"

@@ -671,7 +671,7 @@ class Roadm(Node):
         if self.monitor:
             return self.monitor
 
-    def include_optical_signal_in_roadm(self, optical_signal, power=None, ase_noise=None,
+    def include_optical_signal_in(self, optical_signal, power=None, ase_noise=None,
                                   nli_noise=None, in_port=0):
         """
         Include optical signals in preamp if object exists, and include
@@ -682,7 +682,7 @@ class Roadm(Node):
         if self.preamp and not isinstance(self.port_to_node_in[in_port], LineTerminal):
             self.preamp.include_optical_signal_in(optical_signal, power=power,
                                                   ase_noise=ase_noise, nli_noise=nli_noise, in_port=0)
-        self.include_optical_signal_in(optical_signal, power=power,
+        super().include_optical_signal_in(optical_signal, power=power,
                                        ase_noise=ase_noise, nli_noise=nli_noise, in_port=in_port)
 
         self.port_to_optical_signal_power_in.setdefault(in_port, [])
@@ -1359,6 +1359,7 @@ class Amplifier(Node):
         # Once the system gain has been updated
         # to reflect the power excursions,
         # re-compute amplification effect
+        component = self.next_component
         for optical_signal in optical_signals:
             self.output_amplified_power(optical_signal)
             self.nli_compensation(optical_signal)
@@ -1366,35 +1367,30 @@ class Amplifier(Node):
             self.stage_amplified_spontaneous_emission_noise(optical_signal)
 
             # Pass the updated signals to the next component
-            if self.next_component:
-                power_out = optical_signal.loc_out_to_state[self]['power']
-                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise']
-                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise']
-
-                if isinstance(self.next_component, LineTerminal):
+            if component:
+                state = optical_signal.loc_out_to_state[self]
+                power_out = state['power']
+                ase_noise_out = state['ase_noise']
+                nli_noise_out = state['nli_noise']
+                if isinstance(self.next_component, (LineTerminal, Roadm)):
                     in_port = self.next_component.link_to_port_in[self.link]
-                    self.next_component.include_optical_signal_in(
+                    component.include_optical_signal_in(
                         optical_signal, power=power_out,
                         ase_noise=ase_noise_out, nli_noise=nli_noise_out,
                         in_port=in_port)
-                    self.next_component.receiver(optical_signal, in_port)
-                elif isinstance(self.next_component, Roadm):
-                    in_port = self.next_component.link_to_port_in[self.link]
-                    self.next_component.include_optical_signal_in_roadm(
-                        optical_signal, power=power_out,
-                        ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                        in_port=in_port)
+                    if hasattr(component, 'receiver'):
+                        component.receiver(optical_signal, in_port)
                 else:
-                    self.next_component.include_optical_signal_in(
+                    component.include_optical_signal_in(
                         optical_signal, power=power_out,
                         ase_noise=ase_noise_out, nli_noise=nli_noise_out)
-
+                    
         # Trigger the action for the next component
-        if self.next_component:
-            if self.next_component.__class__.__name__ == 'Span':
-                self.next_component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
-            elif isinstance(self.next_component, Roadm):
-                self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+        if component:
+            if hasattr(component, 'switch'):
+                component.switch(in_port, self.link.src_node, safe_switch=safe_switch)            
+            elif hasattr(component, 'propagate'):
+                component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
 
     def set_gain(self, gain_dB):
         """
@@ -1739,24 +1735,26 @@ class NodeAuditing:
         linksigs = sorted(link.optical_signals, key=lambda s: s.index)
         linkset = set(linksigs)
         for span in link.spans:
-            if span.amplifier:
-                amp = span.amplifier
-                ampsigs = set(amp.port_to_optical_signal_in[0])
-                # Check for missing signals and signal state
+            for component in span:
+                if not component: continue
+                if hasattr(component, 'optical_signals'):
+                    compsigs = component.optical_signals
+                elif hasattr(component, 'port_to_optical_signal_in'):
+                    compsigs = component.port_to_optical_signal_in[0]
                 for sig in linksigs:
-                    if sig not in ampsigs:
-                       print(f'*** ERROR: {sig} missing '
-                             f'at {amp}' )
+                    if sig not in compsigs:
+                       print(f'*** ERROR: {sig} missing at {component}' )
                        errcount += 1
-                    if amp not in sig.loc_in_to_state:
+                    if component not in sig.loc_in_to_state:
                        print(f'**** ERROR: {sig} input state '
-                             f'missing at {amp}')
+                             f'missing at {component}')
                        errcount += 1
-                    if amp not in sig.loc_out_to_state:
+                    if component not in sig.loc_out_to_state:
                         print(f'*** ERROR: {sig} output state '
-                              f'missing at {amp}')
+                              f'missing at {component}')
                         errcount += 1
-                monitor = getattr(amp, 'monitor', None)
+            if span.amplifier:
+                monitor = getattr(span.amplifier, 'monitor', None)
                 if monitor:
                     mode = monitor.mode
                     osnr = monitor.get_dict_osnr()
@@ -1764,5 +1762,5 @@ class NodeAuditing:
                     if missing:
                         print(f'missing signals at {monitor}: {missing}')
                     errcount += len(missing)
-        print(f'{errcount} propagation errors detected')
+        print(f'{errcount} propagation errors detected for {link}')
         return errcount

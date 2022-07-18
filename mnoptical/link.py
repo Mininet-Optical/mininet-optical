@@ -175,6 +175,8 @@ class Span(object):
 
     ids = 1
 
+    anonymous = True  # Let constructor callers know we don't take a name
+    
     def __init__(self, fibre_type='SMF', length=20.0, debugger=False):
         """
         :param length: optical fiber span length in km - float
@@ -284,30 +286,17 @@ class Span(object):
                 self.include_optical_signal_out(optical_signal, power=power_out,
                                                 ase_noise=ase_noise_out, nli_noise=nli_noise_out)
 
+        component = self.next_component
+        in_port = component.link_to_port_in[self.link]
+        
         for optical_signal in self.optical_signals:
-            in_port = self.next_component.link_to_port_in[self.link]
-            if isinstance(self.next_component, LineTerminal):
-                self.next_component.include_optical_signal_in(
-                    optical_signal,
-                    power=optical_signal.loc_out_to_state[self]['power'],
-                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
-                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
-                    in_port=in_port)
-                self.next_component.receiver(optical_signal, in_port)
-            elif isinstance(self.next_component, Roadm):
-                self.next_component.include_optical_signal_in_roadm(
-                    optical_signal,
-                    power=optical_signal.loc_out_to_state[self]['power'],
-                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
-                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
-                    in_port=in_port)
-            elif isinstance(self.next_component, Amplifier):
-                self.next_component.include_optical_signal_in(
-                    optical_signal,
-                    power=optical_signal.loc_out_to_state[self]['power'],
-                    ase_noise=optical_signal.loc_out_to_state[self]['ase_noise'],
-                    nli_noise=optical_signal.loc_out_to_state[self]['nli_noise'],
-                    in_port=0)
+            state = optical_signal.loc_out_to_state[self]
+            power, ase_noise, nli_noise = state['power'], state['ase_noise'], state['nli_noise']
+            self.next_component.include_optical_signal_in(
+                optical_signal, power=power, ase_noise=ase_noise, nli_noise=nli_noise,
+                in_port=in_port)
+            if hasattr(component, 'receiver'):
+                self.next_component.receiver(optical_signal, in_port)                
 
         if isinstance(self.next_component, Amplifier):
             self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
@@ -427,3 +416,29 @@ class Span(object):
             psi -= np.arcsinh(np.pi ** 2 * asymptotic_length * abs(beta2) *
                               bw_cut * (delta_f - 0.5 * bw_ch))
         return psi
+
+
+class LBO(Span):
+    "A simple attenuator/Line Break Out"
+    
+    def __init__(self, loss=0):
+        "loss: loss expressed in (non-negative) dB"
+        super().__init__()
+        assert loss >= 0, "LBO: loss should be non-negative"
+        self.loss = loss
+
+    def output_nonlinear_noise(self):
+        "No NLI noise for simple attenuator"
+        pass
+
+    def srs_effect_model():
+        "No SRS for simple attenuator"
+        pass
+    
+    def __repr__(self):
+        "String representation"
+        return f'<LBO{self.span_id} -{self.loss}dB>'
+    
+    def attenuation(self):
+        print(self, "attenuating by", db_to_abs(self.loss))
+        return db_to_abs(self.loss)
