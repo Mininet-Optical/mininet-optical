@@ -1232,6 +1232,8 @@ class Amplifier(Node):
         :return: Return wavelength dependent gain array
         """
         if wdg_id is None:
+            wdg_id = 'linear'
+        elif wdg_id == 'randomize':
             return list(random.choice(list(ripple_functions.values())))
         return list(ripple_functions[wdg_id])
 
