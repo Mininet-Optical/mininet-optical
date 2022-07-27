@@ -91,7 +91,7 @@ Attributes
 
       
 
-   .. py:method:: wdmLink(self, src, dst, port1, port2, spans=(1 * m, ), **params)
+   .. py:method:: wdmLink(src, dst, port1, port2, spans=(1 * m, ), **params)
 
       Add a (default unidirectional) WDM link
 
@@ -102,13 +102,13 @@ Attributes
       Return host, switch, terminal, roadm names for node i
 
 
-   .. py:method:: addNetworkNodes(self, i, power=0 * dBm)
+   .. py:method:: addNetworkNodes(i, power=0 * dBm)
 
       Add a host-switch-terminal-ROADM nodes,
       named hN, sN, tN, rN
 
 
-   .. py:method:: addNodeLinks(self, i)
+   .. py:method:: addNodeLinks(i)
 
       Add internal links for network node i
 
@@ -123,7 +123,7 @@ Attributes
    Note WDM links are unidirectional and ethernet
    links are bidirectional.
 
-   .. py:method:: build(self, N=4, txcount=16)
+   .. py:method:: build(N=4, txcount=16)
 
       Build lumentum ring
 

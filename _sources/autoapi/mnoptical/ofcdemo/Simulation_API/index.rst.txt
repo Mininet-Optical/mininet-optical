@@ -21,60 +21,60 @@ Classes
 
    Bases: :py:obj:`object`
 
-   .. py:method:: ROADM_installSwitchRule(self, node, ruleID, inport, outport, channelID)
+   .. py:method:: ROADM_installSwitchRule(node, ruleID, inport, outport, channelID)
 
       install a switch rule in a ROADM
 
 
-   .. py:method:: ROADM_deleteSwitchRule(self, node, ruleID)
+   .. py:method:: ROADM_deleteSwitchRule(node, ruleID)
 
       delete a switch rule in a ROADM using rule ID
 
 
-   .. py:method:: ROADM_voaPowerLeveling(self, node, outport, power, channel)
+   .. py:method:: ROADM_voaPowerLeveling(node, outport, power, channel)
 
       Power control for a signal channel at a roadm using VOA leveling
 
 
-   .. py:method:: Terminal_configChannelPower(self, terminal, channel, power)
+   .. py:method:: Terminal_configChannelPower(terminal, channel, power)
 
       Congifure Terminal Launch power for a channel
 
 
-   .. py:method:: Terminal_configChannel(self, terminal, channel)
+   .. py:method:: Terminal_configChannel(terminal, channel)
 
       configure a Terminal with a given channel
 
 
-   .. py:method:: Terminal_turnonChannel(self, terminal)
+   .. py:method:: Terminal_turnonChannel(terminal)
 
       Turn on a Terminal
 
 
-   .. py:method:: Terminal_turnoffChannel(self, terminal, channel)
+   .. py:method:: Terminal_turnoffChannel(terminal, channel)
 
       Turn off a Terminal with a given channel
 
 
-   .. py:method:: Terminal_Reset_Threshold(self, terminal, threshold)
+   .. py:method:: Terminal_Reset_Threshold(terminal, threshold)
 
 
-   .. py:method:: ROADM_monitor_all_power(self, node)
+   .. py:method:: ROADM_monitor_all_power(node)
 
       monitoring all power data at a node
 
 
-   .. py:method:: ROADM_monitor_all_osnr(self, node)
+   .. py:method:: ROADM_monitor_all_osnr(node)
 
       monitoring all osnr data at a node
 
 
-   .. py:method:: ROADM_monitor_all_gosnr(self, node)
+   .. py:method:: ROADM_monitor_all_gosnr(node)
 
       monitoring all gosnr data at a node
 
 
-   .. py:method:: ROADM_monitor_channel_data(self, node, channel)
+   .. py:method:: ROADM_monitor_channel_data(node, channel)
 
       monitoring a signal channel in a ROADM node
 

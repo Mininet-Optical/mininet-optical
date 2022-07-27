@@ -59,7 +59,7 @@ Attributes
    Simple link topology:
    h1 - t1 - (boost->) --25km-- (<-boost) - t2 - h2
 
-   .. py:method:: build(self)
+   .. py:method:: build()
 
       Build single link topology
 

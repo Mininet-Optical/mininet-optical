@@ -60,22 +60,22 @@ Attributes
 
    Topo with convenience methods for optical networks
 
-   .. py:method:: wdmLink(self, node1, node2, port1, port2, **kwargs)
+   .. py:method:: wdmLink(node1, node2, port1, port2, **kwargs)
 
       Convenience function to add a unidirectional link
 
 
-   .. py:method:: ethLink(self, *args, **kwargs)
+   .. py:method:: ethLink(*args, **kwargs)
 
       Clarifying alias for addLink
 
 
-   .. py:method:: addTerminal(self, *args, **kwargs)
+   .. py:method:: addTerminal(*args, **kwargs)
 
       Convenience alias for addSwitch( ... cls=Terminal )
 
 
-   .. py:method:: addROADM(self, *args, **kwargs)
+   .. py:method:: addROADM(*args, **kwargs)
 
       Convenience alias for addSwitch( ... cls=ROADM )
 
@@ -98,22 +98,22 @@ Attributes
 
       
 
-   .. py:method:: addport(self, dst)
+   .. py:method:: addport(dst)
 
 
-   .. py:method:: dropport(self, src)
+   .. py:method:: dropport(src)
 
 
-   .. py:method:: ethport(self, dst)
+   .. py:method:: ethport(dst)
 
 
-   .. py:method:: uplink(self, dst)
+   .. py:method:: uplink(dst)
 
 
-   .. py:method:: downlink(self, src)
+   .. py:method:: downlink(src)
 
 
-   .. py:method:: build(self, power=0 * dBm, nodecount=3)
+   .. py:method:: build(power=0 * dBm, nodecount=3)
 
       Create a unidirectional linear network with the specified
       operational power and node and transceiver counts
@@ -138,7 +138,7 @@ Attributes
 
    CLI with config command
 
-   .. py:method:: do_config(self, _line)
+   .. py:method:: do_config(_line)
 
 
 

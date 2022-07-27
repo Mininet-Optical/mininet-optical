@@ -39,28 +39,28 @@ Attributes
    ROADM-ROADM). In the future we must enable network-element-node to controller-node
    connectivity.
 
-   .. py:method:: length(self)
+   .. py:method:: length()
 
       :return: link length adding up span lengths in spans attribute
 
 
-   .. py:method:: describe(self)
+   .. py:method:: describe()
 
 
-   .. py:method:: __repr__(self)
+   .. py:method:: __repr__()
 
       String representation
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
       Remove all optical signals from Link
 
 
-   .. py:method:: remove_optical_signal(self, optical_signal)
+   .. py:method:: remove_optical_signal(optical_signal)
 
 
-   .. py:method:: include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None, tup_key=None)
+   .. py:method:: include_optical_signal_in(optical_signal, power=None, ase_noise=None, nli_noise=None, tup_key=None)
 
       Include optical signal in optical_signals
       :param optical_signal: OpticalSignal object
@@ -70,7 +70,7 @@ Attributes
       :param tup_key: tuple key composed of (Link, Span)
 
 
-   .. py:method:: include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+   .. py:method:: include_optical_signal_out(optical_signal, power=None, ase_noise=None, nli_noise=None)
 
       Include optical signal in optical_signals_out
       :param optical_signal: OpticalSignal object
@@ -80,7 +80,7 @@ Attributes
       :param tup_key: tuple key composed of (Link, Span)
 
 
-   .. py:method:: propagate(self, is_last_port=False, safe_switch=False)
+   .. py:method:: propagate(is_last_port=False, safe_switch=False)
 
       Propagate the signals across the link
       :param is_last_port: boolean, needed for propagation algorithm
@@ -98,21 +98,21 @@ Attributes
 
       
 
-   .. py:method:: describe(self)
+   .. py:method:: describe()
 
 
-   .. py:method:: __repr__(self)
+   .. py:method:: __repr__()
 
       String representation
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
 
-   .. py:method:: attenuation(self)
+   .. py:method:: attenuation()
 
 
-   .. py:method:: beta2(self, ref_wavelength=1.55e-06)
+   .. py:method:: beta2(ref_wavelength=1.55e-06)
 
       Returns beta2 from dispersion parameter.
       Dispersion is entered in ps/nm/km.
@@ -120,10 +120,10 @@ Attributes
       :param ref_wavelength: can be a numpy array; default: 1550nm
 
 
-   .. py:method:: remove_optical_signal(self, optical_signal)
+   .. py:method:: remove_optical_signal(optical_signal)
 
 
-   .. py:method:: include_optical_signal_in(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+   .. py:method:: include_optical_signal_in(optical_signal, power=None, ase_noise=None, nli_noise=None)
 
       Include optical signal in optical_signals
       :param optical_signal: OpticalSignal object
@@ -132,7 +132,7 @@ Attributes
       :param nli_noise: nli noise  level of OpticalSignal
 
 
-   .. py:method:: include_optical_signal_out(self, optical_signal, power=None, ase_noise=None, nli_noise=None)
+   .. py:method:: include_optical_signal_out(optical_signal, power=None, ase_noise=None, nli_noise=None)
 
       Include optical signal in optical_signals_out
       :param optical_signal: OpticalSignal object
@@ -141,21 +141,21 @@ Attributes
       :param nli_noise: nli noise  level of OpticalSignal
 
 
-   .. py:method:: propagate(self, is_last_port=False, safe_switch=False)
+   .. py:method:: propagate(is_last_port=False, safe_switch=False)
 
 
-   .. py:method:: srs_effect_model(self)
+   .. py:method:: srs_effect_model()
 
       Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
       wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
 
 
-   .. py:method:: output_nonlinear_noise(self)
+   .. py:method:: output_nonlinear_noise()
 
       Compute GN model and updates state data structures
 
 
-   .. py:method:: gn_model(self)
+   .. py:method:: gn_model()
 
       Computes the nonlinear interference power on a single carrier.
       Translated from the GNPy project source code

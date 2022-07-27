@@ -52,7 +52,7 @@
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.add_lt">
-<span class="sig-name descname"><span class="pre">add_lt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transceivers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_lt" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_lt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transceivers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_lt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add lt node
 :param name: name of lt
 :param transceivers: transceivers of LT for automated instantiation
@@ -61,7 +61,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.add_roadm">
-<span class="sig-name descname"><span class="pre">add_roadm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_roadm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_roadm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_roadm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a ROADM node.
 :param name: name of ROADM
 :return: added ROADM</p>
@@ -69,7 +69,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.add_amplifier">
-<span class="sig-name descname"><span class="pre">add_amplifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplifier_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EDFA'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_amplifier" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_amplifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amplifier_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EDFA'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_amplifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add an Amplifier node.
 :param name: name of Amplifier
 :param amplifier_type: amplifier type (currently supporting only EDFA)
@@ -78,7 +78,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.add_link">
-<span class="sig-name descname"><span class="pre">add_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_out_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_in_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_link" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_out_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_in_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boost_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.add_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a uni-directional link
 :param src_node: source node in link
 :param dst_node: destination node in link
@@ -91,20 +91,20 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.find_link_and_out_port_from_nodes">
-<span class="sig-name descname"><span class="pre">find_link_and_out_port_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_and_out_port_from_nodes" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find_link_and_out_port_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_and_out_port_from_nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>This does not consider if there are multiple output ports
 to the dst_node, as it is the case of the LTs and ROADMs</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.find_link_and_in_port_from_nodes">
-<span class="sig-name descname"><span class="pre">find_link_and_in_port_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_and_in_port_from_nodes" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find_link_and_in_port_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_and_in_port_from_nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>This checks</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.find_link_from_nodes">
-<span class="sig-name descname"><span class="pre">find_link_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_from_nodes" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">find_link_from_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_node</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.find_link_from_nodes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -114,7 +114,7 @@ to the dst_node, as it is the case of the LTs and ROADMs</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.network.Network.describe">
-<span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.describe" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.network.Network.describe" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -172,10 +172,10 @@ to the dst_node, as it is the case of the LTs and ROADMs</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

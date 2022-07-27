@@ -63,7 +63,7 @@ Attributes
    - 1..N: uplinks/downlinks to/from terminal
    - N+1: local port, connected to host
 
-   .. py:method:: build(self, power=0 * dBm, N=3)
+   .. py:method:: build(power=0 * dBm, N=3)
 
       Create a 1-degree ROADM ring network, with the specified
       operational power and N ROADM/Terminal/Router/Host nodes
@@ -104,7 +104,7 @@ Attributes
 
    CLI with config command
 
-   .. py:method:: do_config(self, _line)
+   .. py:method:: do_config(_line)
 
 
 

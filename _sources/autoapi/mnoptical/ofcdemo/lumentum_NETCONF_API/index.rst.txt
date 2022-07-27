@@ -66,7 +66,7 @@ Attributes
 
       Bases: :py:obj:`Lumentum.WSSConnection`
 
-      .. py:method:: from_connection_details(cls, connection_details)
+      .. py:method:: from_connection_details(connection_details)
          :classmethod:
 
 
@@ -76,7 +76,7 @@ Attributes
 
       
 
-   .. py:method:: cleanup(self)
+   .. py:method:: cleanup()
 
 
    .. py:method:: lookup(node, path)
@@ -92,24 +92,24 @@ Attributes
       Look up path and node and return it as a string
 
 
-   .. py:method:: edfa_status(self)
+   .. py:method:: edfa_status()
 
       Return status of Boost and Preamp EDFAs
 
 
-   .. py:method:: ALS_disable(self, module)
+   .. py:method:: ALS_disable(module)
 
 
-   .. py:method:: edfa_config(self, module, ctrl_mode, status, gain_mode, target_power, target_gain, tilt, ALS)
+   .. py:method:: edfa_config(module, ctrl_mode, status, gain_mode, target_power, target_gain, tilt, ALS)
 
 
-   .. py:method:: wss_add_connections(self, connections)
+   .. py:method:: wss_add_connections(connections)
 
 
-   .. py:method:: wss_delete_connection(self, module_id, connection_id)
+   .. py:method:: wss_delete_connection(module_id, connection_id)
 
 
-   .. py:method:: wss_get_connections(self)
+   .. py:method:: wss_get_connections()
 
 
    .. py:method:: freqRangeGHz(channel)
@@ -132,7 +132,7 @@ Attributes
 
 .. py:class:: Lumentum_NETCONF
 
-   .. py:method:: _ConfigWSS(self, node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None)
+   .. py:method:: _ConfigWSS(node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None)
 
 
    .. py:method:: parseConnections(connections)
@@ -141,7 +141,7 @@ Attributes
       Return wss_info
 
 
-   .. py:method:: _WSSMonitor(self, node_ip)
+   .. py:method:: _WSSMonitor(node_ip)
 
 
 

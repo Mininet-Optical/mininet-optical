@@ -120,65 +120,65 @@ Attributes
 
    Netconf agent for single (Lumentum-like) ROADM
 
-   .. py:method:: nc_append_capabilities(self, caps)
+   .. py:method:: nc_append_capabilities(caps)
 
       Add our base netconf capability
 
 
-   .. py:method:: rpc_get(self, session, rpc, filter_or_none)
+   .. py:method:: rpc_get(session, rpc, filter_or_none)
 
       Get some config data
 
 
-   .. py:method:: rpc_get_config(self, session, rpc, source_elm, filter_or_none)
+   .. py:method:: rpc_get_config(session, rpc, source_elm, filter_or_none)
 
       Passed the source element
 
 
-   .. py:method:: rpc_edit_config(self, session, rpc, source_elm, filter_or_none)
+   .. py:method:: rpc_edit_config(session, rpc, source_elm, filter_or_none)
 
 
-   .. py:method:: updateConnections(self, inport, outport, channels, conn)
+   .. py:method:: updateConnections(inport, outport, channels, conn)
 
 
-   .. py:method:: rpc_disable_als(self, session, rpc, *params)
+   .. py:method:: rpc_disable_als(session, rpc, *params)
 
 
-   .. py:method:: rpc_remove_all_connections(self, session, rpc, *params)
+   .. py:method:: rpc_remove_all_connections(session, rpc, *params)
 
 
-   .. py:method:: rpc_delete_connection(self, session, rpc, *params)
+   .. py:method:: rpc_delete_connection(session, rpc, *params)
 
 
-   .. py:method:: delete_connection_dn(self, dn)
+   .. py:method:: delete_connection_dn(dn)
 
 
-   .. py:method:: stop(self)
+   .. py:method:: stop()
 
       Shut down Netconf server
 
 
-   .. py:method:: add_config(self, data)
+   .. py:method:: add_config(data)
 
       Add config entries to rpc return data
 
 
-   .. py:method:: add_edfas(self, data)
+   .. py:method:: add_edfas(data)
 
       Add EDFA config to data
 
 
-   .. py:method:: findInputPower(self, ch)
+   .. py:method:: findInputPower(ch)
 
       Return first signal power at ROADM's line input for channel
 
 
-   .. py:method:: findOutputPower(self, ch)
+   .. py:method:: findOutputPower(ch)
 
       Return first signal power at ROADM's line output for channel
 
 
-   .. py:method:: add_connections(self, data)
+   .. py:method:: add_connections(data)
 
 
 
@@ -186,12 +186,12 @@ Attributes
 
    Collection of Netconf agents for Mininet-Optical network
 
-   .. py:method:: start(self)
+   .. py:method:: start()
 
       Start up netconf agents
 
 
-   .. py:method:: stop(self)
+   .. py:method:: stop()
 
 
 

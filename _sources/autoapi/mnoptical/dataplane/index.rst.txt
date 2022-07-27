@@ -110,37 +110,37 @@ Attributes
 
       
 
-   .. py:method:: __iter__(self)
+   .. py:method:: __iter__()
 
       return iterator over node names
 
 
-   .. py:method:: addMonitor(self, monitor)
+   .. py:method:: addMonitor(monitor)
 
 
-   .. py:method:: addLinkComponents(self, link)
+   .. py:method:: addLinkComponents(link)
 
 
-   .. py:method:: addLink(self, *args, **kwargs)
+   .. py:method:: addLink(*args, **kwargs)
 
 
-   .. py:method:: addSwitch(self, *args, **kwargs)
+   .. py:method:: addSwitch(*args, **kwargs)
 
 
-   .. py:method:: restSetrippleHandler(self, query)
-
-      Demo/debugging: Support for REST setgain call
-
-
-   .. py:method:: set_ripple(self, amp_name, ripple)
-
-
-   .. py:method:: restSetgainHandler(self, query)
+   .. py:method:: restSetrippleHandler(query)
 
       Demo/debugging: Support for REST setgain call
 
 
-   .. py:method:: setgainCmd(self, ampName, gain)
+   .. py:method:: set_ripple(amp_name, ripple)
+
+
+   .. py:method:: restSetgainHandler(query)
+
+      Demo/debugging: Support for REST setgain call
+
+
+   .. py:method:: setgainCmd(ampName, gain)
 
       Demo/debugging: Support for demo CLI setgain command
 
@@ -170,21 +170,21 @@ Attributes
 
       
 
-   .. py:method:: intfList(self)
+   .. py:method:: intfList()
 
 
-   .. py:method:: intfNames(self)
+   .. py:method:: intfNames()
 
 
-   .. py:method:: pexec(self, *args, **kwargs)
+   .. py:method:: pexec(*args, **kwargs)
 
 
-   .. py:method:: restMonitor(self, query)
+   .. py:method:: restMonitor(query)
 
       Return OSNR to REST agent
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
       Return str(self).
 
@@ -211,10 +211,10 @@ Attributes
 
       
 
-   .. py:method:: cmd(self, *args, **kwargs)
+   .. py:method:: cmd(*args, **kwargs)
 
 
-   .. py:method:: defaultDpid(self, dpid=None)
+   .. py:method:: defaultDpid(dpid=None)
 
       Return a default DPID
 
@@ -225,12 +225,12 @@ Attributes
       Construct a ports dict for a node
 
 
-   .. py:method:: restResetHandler(self, query)
+   .. py:method:: restResetHandler(query)
 
       REST reset handler
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
       :abstractmethod:
 
       Reset function - override this!
@@ -265,57 +265,57 @@ Attributes
       Helper constructor for node.Transceiver
 
 
-   .. py:method:: start(self, _controllers)
+   .. py:method:: start(_controllers)
 
       Override to start without controller
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
       Reset/clear routes
 
 
-   .. py:method:: configTx(self, txNum, channel=None, power=None)
+   .. py:method:: configTx(txNum, channel=None, power=None)
 
       Configure transceiver txNum
       channels: [channel index...]
       power: power in dBm
 
 
-   .. py:method:: txnum(self, wdmPort)
+   .. py:method:: txnum(wdmPort)
 
       Return a tx number for wdmPort number
 
 
-   .. py:method:: restTurnonHandler(self)
+   .. py:method:: restTurnonHandler()
 
 
-   .. py:method:: turn_on(self)
+   .. py:method:: turn_on()
 
 
-   .. py:method:: restConnectHandler(self, query)
+   .. py:method:: restConnectHandler(query)
 
       REST connect handler
 
 
-   .. py:method:: connect(self, ethPort, wdmPort, channel=None, power=None, wdmInPort=None)
+   .. py:method:: connect(ethPort, wdmPort, channel=None, power=None, wdmInPort=None)
 
       Connect an ethPort to transceiver tx on port wdmPort
       ethPort: ethernet port number
       wdmPort: WDM port number
 
 
-   .. py:method:: receiverCallback(self, inport, signalInfoDict)
+   .. py:method:: receiverCallback(inport, signalInfoDict)
 
       Callback from PHY when signal is received
 
 
-   .. py:method:: block(self, inport, channel)
+   .. py:method:: block(inport, channel)
 
       Block channel at inport
 
 
-   .. py:method:: unblock(self, inport, channel)
+   .. py:method:: unblock(inport, channel)
 
       Unblock signal at inport
 
@@ -341,7 +341,7 @@ Attributes
 
       
 
-   .. py:method:: start(self, _controllers)
+   .. py:method:: start(_controllers)
 
       Override to start without controller
 
@@ -352,70 +352,70 @@ Attributes
       Return hashable tuple for rule
 
 
-   .. py:method:: phyReset(self)
+   .. py:method:: phyReset()
 
       Reset physical model
 
 
-   .. py:method:: phyInstall(self, inport, outport, channels)
+   .. py:method:: phyInstall(inport, outport, channels)
 
       Install switching rules into the physical model
 
 
-   .. py:method:: phyRemove(self, inport, outport, channels)
+   .. py:method:: phyRemove(inport, outport, channels)
 
 
-   .. py:method:: restRulesHandler(self, query)
+   .. py:method:: restRulesHandler(query)
 
       Handle REST rules request
 
 
-   .. py:method:: restCleanmeHandler(self, query)
+   .. py:method:: restCleanmeHandler(query)
 
       Handle REST clean request - same as reset for now
 
 
-   .. py:method:: dpReset(self)
+   .. py:method:: dpReset()
 
       Reset/initialize dataplane
 
 
-   .. py:method:: dpFlow(self, inport, outport, channel, action='add-flow')
+   .. py:method:: dpFlow(inport, outport, channel, action='add-flow')
 
       Return a switching rule for the dataplane
 
 
-   .. py:method:: dpInstall(self, inport, outport, channels, cmd='add-flow')
+   .. py:method:: dpInstall(inport, outport, channels, cmd='add-flow')
 
       Install a switching rule into the dataplane
 
 
-   .. py:method:: dpRemove(self, inport, outport, channels)
+   .. py:method:: dpRemove(inport, outport, channels)
 
       Remove a switching rule from the dataplane
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
       Reset dataplane and physical model
 
 
-   .. py:method:: install(self, inport, outport, channels, action='install')
+   .. py:method:: install(inport, outport, channels, action='install')
 
       Install rules into dataplane and physical model
 
 
-   .. py:method:: remove(self, inport, outport, channels)
+   .. py:method:: remove(inport, outport, channels)
 
       Remove rules from dataplane and physical model
 
 
-   .. py:method:: restConnectHandler(self, query, action='install')
+   .. py:method:: restConnectHandler(query, action='install')
 
       REST connect handler
 
 
-   .. py:method:: connect(self, port1, port2, channels, action='install')
+   .. py:method:: connect(port1, port2, channels, action='install')
 
       Install rule connecting port1 -> port2.
       If interfaces are bidirectional, connect port2<->port1
@@ -441,7 +441,7 @@ Attributes
    Port 3 is southeast add/drop
    Port 4 is southwest add/drop
 
-   .. py:method:: update(self, localChannels, passChannels=None)
+   .. py:method:: update(localChannels, passChannels=None)
 
       Update flow table to add/drop localChannels
       and pass passChannels
@@ -454,12 +454,12 @@ Attributes
 
    A bidirectional Optical Interface
 
-   .. py:method:: isInput(self)
+   .. py:method:: isInput()
 
       Is this interface a WDM input?
 
 
-   .. py:method:: isOutput(self)
+   .. py:method:: isOutput()
 
       Is this interface a WDM output?
 
@@ -471,12 +471,12 @@ Attributes
 
    A unidirectional optical input interface
 
-   .. py:method:: isInput(self)
+   .. py:method:: isInput()
 
       Is this interface a WDM input?
 
 
-   .. py:method:: isOutput(self)
+   .. py:method:: isOutput()
 
       Is this interface a WDM output?
 
@@ -488,12 +488,12 @@ Attributes
 
    A unidirectional  optical output interface
 
-   .. py:method:: isInput(self)
+   .. py:method:: isInput()
 
       Is this interface a WDM input?
 
 
-   .. py:method:: isOutput(self)
+   .. py:method:: isOutput()
 
       Is this interface a WDM output?
 
@@ -531,7 +531,7 @@ Attributes
       Parse list of spans and amplifiers into (length, amp) tuples
 
 
-   .. py:method:: intfName(self, node, n)
+   .. py:method:: intfName(node, n)
 
       Construct a canonical interface name node-wdmN for interface N
 
@@ -592,7 +592,7 @@ Attributes
    Two hosts/transceivers connected by a 2-way fiber span, which may
    consist of links and 2-way amplifiers
 
-   .. py:method:: build(self, spans=[25 * km, 'amp1', 50 * km, 'amp2', 25 * km])
+   .. py:method:: build(spans=[25 * km, 'amp1', 50 * km, 'amp2', 25 * km])
 
 
 

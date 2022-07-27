@@ -66,13 +66,13 @@ Attributes
 
       
 
-   .. py:method:: addport(self, i)
+   .. py:method:: addport(i)
 
 
-   .. py:method:: dropport(self, i)
+   .. py:method:: dropport(i)
 
 
-   .. py:method:: __str__(self)
+   .. py:method:: __str__()
 
 
 

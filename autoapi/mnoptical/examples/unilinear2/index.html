@@ -64,7 +64,7 @@ are still 1-degre.)</p>
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.unilinear2.config" title="mnoptical.examples.unilinear2.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a>(net, mesh=False, root=1)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.examples.unilinear2.config" title="mnoptical.examples.unilinear2.config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">config</span></code></a>(net[, mesh, root])</p></td>
 <td><p>Configure linear, unidirectional network</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.examples.unilinear2.test" title="mnoptical.examples.unilinear2.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test</span></code></a>(net)</p></td>
@@ -89,25 +89,25 @@ are still 1-degre.)</p>
 <p>Topo with convenience methods for optical networks</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.OpticalTopo.wdmLink">
-<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.wdmLink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.wdmLink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience function to add a unidirectional link</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.OpticalTopo.ethLink">
-<span class="sig-name descname"><span class="pre">ethLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.ethLink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">ethLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.ethLink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clarifying alias for addLink</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.OpticalTopo.addTerminal">
-<span class="sig-name descname"><span class="pre">addTerminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.addTerminal" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">addTerminal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.addTerminal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience alias for addSwitch( … cls=Terminal )</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.OpticalTopo.addROADM">
-<span class="sig-name descname"><span class="pre">addROADM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.addROADM" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">addROADM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.OpticalTopo.addROADM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience alias for addSwitch( … cls=ROADM )</p>
 </dd></dl>
 
@@ -141,42 +141,42 @@ are still 1-degre.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.linein">
-<span class="sig-name descname"><span class="pre">linein</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.linein" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">linein</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.linein" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.lineout">
-<span class="sig-name descname"><span class="pre">lineout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.lineout" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">lineout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.lineout" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.addport">
-<span class="sig-name descname"><span class="pre">addport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.addport" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">addport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.addport" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.dropport">
-<span class="sig-name descname"><span class="pre">dropport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.dropport" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">dropport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.dropport" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.ethport">
-<span class="sig-name descname"><span class="pre">ethport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.ethport" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">ethport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.ethport" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.uplink">
-<span class="sig-name descname"><span class="pre">uplink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.uplink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">uplink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.uplink" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.downlink">
-<span class="sig-name descname"><span class="pre">downlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.downlink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">downlink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.downlink" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.UniLinearTopo2.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodecount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.build" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodecount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.UniLinearTopo2.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a unidirectional linear network with the specified
 operational power and node and transceiver counts</p>
 </dd></dl>
@@ -205,7 +205,7 @@ Routing strategy:
 <p>CLI with config command</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.examples.unilinear2.CLI.do_config">
-<span class="sig-name descname"><span class="pre">do_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.CLI.do_config" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">do_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_line</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.examples.unilinear2.CLI.do_config" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -274,10 +274,10 @@ Routing strategy:
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

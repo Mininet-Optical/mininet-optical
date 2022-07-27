@@ -61,7 +61,7 @@ demo.</p>
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.configComb" title="mnoptical.ofcdemo.hwtopo.configComb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configComb</span></code></a>(net, chbase=1)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.hwtopo.configComb" title="mnoptical.ofcdemo.hwtopo.configComb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configComb</span></code></a>(net[, chbase])</p></td>
 <td><p>Statically configure Terminal + mux into 'comb source'</p></td>
 </tr>
 </tbody>
@@ -120,29 +120,29 @@ demo.</p>
 ports to mirror comb source in COSMOS testbed.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.addport">
-<span class="sig-name descname"><span class="pre">addport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.addport" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">addport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.addport" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.dropport">
-<span class="sig-name descname"><span class="pre">dropport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.dropport" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">dropport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.dropport" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.wdmLink">
-<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.wdmLink" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">wdmLink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.wdmLink" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a (default unidirectional) WDM link</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.hostname">
-<span class="sig-name descname"><span class="pre">hostname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.hostname" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">hostname</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjust</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.hostname" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optionally return alternate hostname for host i</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="mnoptical.ofcdemo.hwtopo.LumentumLinear.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodecount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txcount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.build" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodecount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txcount</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.ofcdemo.hwtopo.LumentumLinear.build" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build demo-like topology</p>
 </dd></dl>
 
@@ -213,10 +213,10 @@ to model testbed hardware</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

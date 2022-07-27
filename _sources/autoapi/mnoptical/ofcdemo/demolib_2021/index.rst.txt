@@ -64,12 +64,12 @@ Attributes
 
    Topo with convenience methods for optical links
 
-   .. py:method:: wdmLink(self, *args, **kwargs)
+   .. py:method:: wdmLink(*args, **kwargs)
 
       Convenience function to add an OpticalLink
 
 
-   .. py:method:: ethLink(self, *args, **kwargs)
+   .. py:method:: ethLink(*args, **kwargs)
 
       Clarifying alias for addLink
 
@@ -110,18 +110,18 @@ Attributes
       Return a local IP address or subnet for the given POP
 
 
-   .. py:method:: buildPop(self, p, txCount=2)
+   .. py:method:: buildPop(p, txCount=2)
 
       Build a POP; returns: ROADM
 
 
-   .. py:method:: spans(self, spanLength=50 * km, spanCount=4)
+   .. py:method:: spans(spanLength=50 * km, spanCount=4)
 
       Return a list of span specifiers (length, (amp, params))
       the compensation amplifiers are named prefix-ampN
 
 
-   .. py:method:: build(self, n=3, txCount=2)
+   .. py:method:: build(n=3, txCount=2)
 
       Add POPs and connect them in a line
 
@@ -158,12 +158,12 @@ Attributes
     h2 - s2 - t2 - r2
     etc.
 
-   .. py:method:: addPopLink(self, src, dst)
+   .. py:method:: addPopLink(src, dst)
 
       Construct a link of four 50km fiber spans
 
 
-   .. py:method:: build(self, n=4, txCount=10)
+   .. py:method:: build(n=4, txCount=10)
 
       Add POPs and connect them in a ring with some cross-connects
 

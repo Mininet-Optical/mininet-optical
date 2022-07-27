@@ -54,7 +54,7 @@ Attributes
    Note that t1--r1 and r2--t2 are 50km spans:
    (boost->,amp2<-) --25km-- amp1 --25km-- (amp2->,boost<-)
 
-   .. py:method:: build(self)
+   .. py:method:: build()
 
       Build single ROADM topology
 

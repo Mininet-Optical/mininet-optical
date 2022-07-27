@@ -64,7 +64,7 @@ Attributes
    (boost->,amp2<-) --25km-- amp1 --25km-- (->amp2,<-boost)
    - t1 - s2 - h2
 
-   .. py:method:: build(self)
+   .. py:method:: build()
 
       Build single link topology
 

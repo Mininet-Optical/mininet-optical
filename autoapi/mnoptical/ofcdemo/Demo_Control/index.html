@@ -43,16 +43,16 @@
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.init_Controller" title="mnoptical.ofcdemo.Demo_Control.init_Controller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_Controller</span></code></a>(Mininet_Enable=True)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.init_Controller" title="mnoptical.ofcdemo.Demo_Control.init_Controller"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_Controller</span></code></a>([Mininet_Enable])</p></td>
 <td><p>Initialize Lumentum or Mininet controller</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Span" title="mnoptical.ofcdemo.Demo_Control.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a>(km, amp=None)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Span" title="mnoptical.ofcdemo.Demo_Control.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a>(km[, amp])</p></td>
 <td><p>Return a fiber segment of length km with a compensating amp</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork" title="mnoptical.ofcdemo.Demo_Control.RoadmPhyNetwork"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RoadmPhyNetwork</span></code></a>()</p></td>
 <td><p>ROADM network topo</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_installPath" title="mnoptical.ofcdemo.Demo_Control.Mininet_installPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_installPath</span></code></a>(lightpath_id, path, channel, power=0)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_installPath" title="mnoptical.ofcdemo.Demo_Control.Mininet_installPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_installPath</span></code></a>(lightpath_id, path, channel[, power])</p></td>
 <td><p>intall switch rules on roadms along a lightpath for some signal channels</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath" title="mnoptical.ofcdemo.Demo_Control.Mininet_uninstallPath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mininet_uninstallPath</span></code></a>(lightpath_id)</p></td>
@@ -91,7 +91,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.netGraph" title="mnoptical.ofcdemo.Demo_Control.netGraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">netGraph</span></code></a>(links)</p></td>
 <td><p>Return an adjacency dict for links</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.FindRoute" title="mnoptical.ofcdemo.Demo_Control.FindRoute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FindRoute</span></code></a>(src, graph, destinations, k=1)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.FindRoute" title="mnoptical.ofcdemo.Demo_Control.FindRoute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FindRoute</span></code></a>(src, graph, destinations[, k])</p></td>
 <td><p>Route from src to destinations</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.waveAvailibility" title="mnoptical.ofcdemo.Demo_Control.waveAvailibility"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waveAvailibility</span></code></a>(path)</p></td>
@@ -100,7 +100,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.waveSelection" title="mnoptical.ofcdemo.Demo_Control.waveSelection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">waveSelection</span></code></a>(channels)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Lightpath" title="mnoptical.ofcdemo.Demo_Control.install_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Lightpath</span></code></a>(path, channel, up_time=0.0, down_time=float('inf'), Mininet=False)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Lightpath" title="mnoptical.ofcdemo.Demo_Control.install_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Lightpath</span></code></a>(path, channel[, up_time, down_time, ...])</p></td>
 <td><p>install switch rules on roadms along a lightpath for some signal channels, update control database</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf" title="mnoptical.ofcdemo.Demo_Control.check_lightpath_for_traf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_lightpath_for_traf</span></code></a>(src, dst)</p></td>
@@ -109,13 +109,13 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time" title="mnoptical.ofcdemo.Demo_Control.update_lightpath_down_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_lightpath_down_time</span></code></a>(lightpath_id, down_time)</p></td>
 <td><p>if there is a traf, update lightpath teardown time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment" title="mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traf_to_lightpah_Assignment</span></code></a>(traf_id, lightpath_id, down_time=float('inf'))</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment" title="mnoptical.ofcdemo.Demo_Control.traf_to_lightpah_Assignment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traf_to_lightpah_Assignment</span></code></a>(traf_id, lightpath_id[, ...])</p></td>
 <td><p>assign a traffic to a lightpath, update control database</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Traf" title="mnoptical.ofcdemo.Demo_Control.install_Traf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Traf</span></code></a>(src, dst, routes, cur_time, down_time=float('inf'), Mininet=False)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.install_Traf" title="mnoptical.ofcdemo.Demo_Control.install_Traf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">install_Traf</span></code></a>(src, dst, routes, cur_time[, down_time, ...])</p></td>
 <td><p>source RRH node to destination BBU node</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath" title="mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uninstall_Lightpath</span></code></a>(lightpath_id, Mininet=False)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath" title="mnoptical.ofcdemo.Demo_Control.uninstall_Lightpath"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uninstall_Lightpath</span></code></a>(lightpath_id[, Mininet])</p></td>
 <td><p>delete switch rules on roadms along a lightpath for some signal channels</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release" title="mnoptical.ofcdemo.Demo_Control.traf_to_lightpath_Release"><code class="xref py py-obj docutils literal notranslate"><span class="pre">traf_to_lightpath_Release</span></code></a>(traf_id)</p></td>
@@ -124,7 +124,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.trafficPattern" title="mnoptical.ofcdemo.Demo_Control.trafficPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trafficPattern</span></code></a>(pattern, time)</p></td>
 <td><p>24 hour normalized traffic</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TrafficTest" title="mnoptical.ofcdemo.Demo_Control.TrafficTest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrafficTest</span></code></a>(Mininet_Enable=False)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.TrafficTest" title="mnoptical.ofcdemo.Demo_Control.TrafficTest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrafficTest</span></code></a>([Mininet_Enable])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.Demo_Control.testMininet" title="mnoptical.ofcdemo.Demo_Control.testMininet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">testMininet</span></code></a>()</p></td>
@@ -642,10 +642,10 @@ entertainment area: 39% entertainment, 23% office, 11% resident, 28% transport</
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

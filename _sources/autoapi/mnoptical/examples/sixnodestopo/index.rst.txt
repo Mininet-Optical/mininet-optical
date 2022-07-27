@@ -48,7 +48,7 @@ Attributes
 
    Six ROADMs ring topology with 6 transceivers at each Terminal.
 
-   .. py:method:: build(self)
+   .. py:method:: build()
 
       Build single ROADM topology
 

@@ -53,7 +53,7 @@ have to use Dijkstra’s algorithm - BFS works just fine!</p>
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.run" title="mnoptical.ofcdemo.apsp.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(net, N=3)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.run" title="mnoptical.ofcdemo.apsp.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(net[, N])</p></td>
 <td><p>Configure and monitor network with N=3 channels for each path</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.canonical" title="mnoptical.ofcdemo.apsp.canonical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical</span></code></a>(link)</p></td>
@@ -62,7 +62,7 @@ have to use Dijkstra’s algorithm - BFS works just fine!</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.monitorKey" title="mnoptical.ofcdemo.apsp.monitorKey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorKey</span></code></a>(monitor)</p></td>
 <td><p>Key for sorting monitor names</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.monitorOSNR" title="mnoptical.ofcdemo.apsp.monitorOSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorOSNR</span></code></a>(net, gosnrThreshold=18.0)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.monitorOSNR" title="mnoptical.ofcdemo.apsp.monitorOSNR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">monitorOSNR</span></code></a>(net[, gosnrThreshold])</p></td>
 <td><p>Monitor gOSNR continuously; if any monitored gOSNR drops</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.adjacencyDict" title="mnoptical.ofcdemo.apsp.adjacencyDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adjacencyDict</span></code></a>(links)</p></td>
@@ -80,7 +80,7 @@ have to use Dijkstra’s algorithm - BFS works just fine!</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.reroute" title="mnoptical.ofcdemo.apsp.reroute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reroute</span></code></a>(net, failures)</p></td>
 <td><p>Reroute failures</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.configureTerminals" title="mnoptical.ofcdemo.apsp.configureTerminals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configureTerminals</span></code></a>(net, power=0.0)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.configureTerminals" title="mnoptical.ofcdemo.apsp.configureTerminals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configureTerminals</span></code></a>(net[, power])</p></td>
 <td><p>Configure terminals statically: ethN &lt;-&gt; wdmM:channel</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.ofcdemo.apsp.configurePacketSwitches" title="mnoptical.ofcdemo.apsp.configurePacketSwitches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configurePacketSwitches</span></code></a>(net)</p></td>
@@ -260,10 +260,10 @@ returns: routes dict</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

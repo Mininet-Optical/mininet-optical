@@ -183,7 +183,7 @@ Functions
 
       
 
-   .. py:method:: log_request(self, *args, **kwargs)
+   .. py:method:: log_request(*args, **kwargs)
 
       Log an accepted request.
 
@@ -203,12 +203,12 @@ Functions
 
       
 
-   .. py:method:: start(self)
+   .. py:method:: start()
 
       Start REST server
 
 
-   .. py:method:: stop(self)
+   .. py:method:: stop()
 
 
 

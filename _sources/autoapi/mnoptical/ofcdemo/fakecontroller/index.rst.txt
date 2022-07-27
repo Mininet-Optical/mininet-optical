@@ -62,7 +62,7 @@ Attributes
 
    Base proxy class
 
-   .. py:method:: __repr__(self)
+   .. py:method:: __repr__()
 
       Return repr(self).
 
@@ -84,7 +84,7 @@ Attributes
 
       
 
-   .. py:method:: dpctl(self, cmd, params='', verbose=False)
+   .. py:method:: dpctl(cmd, params='', verbose=False)
 
       Invoke ovs-ofctl to program remote switch
 
@@ -96,7 +96,7 @@ Attributes
 
    Proxy for REST API objects/calls
 
-   .. py:method:: get(self, path, params=None)
+   .. py:method:: get(path, params=None)
 
       Make a REST request
 
@@ -108,7 +108,7 @@ Attributes
 
    Base class for switching node proxies
 
-   .. py:method:: ports(self)
+   .. py:method:: ports()
 
       Fetch node's switching rules if any
 
@@ -120,7 +120,7 @@ Attributes
 
    Base class for switching node proxies
 
-   .. py:method:: rules(self)
+   .. py:method:: rules()
 
       Fetch node's switching rules if any
 
@@ -132,15 +132,15 @@ Attributes
 
    Local proxy for Terminal/transceiver configuration via REST
 
-   .. py:method:: connect(self, ethPort, wdmPort, channel=None, power=None)
+   .. py:method:: connect(ethPort, wdmPort, channel=None, power=None)
 
       Configure terminal/transceiver
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
 
-   .. py:method:: turn_on(self)
+   .. py:method:: turn_on()
 
 
 
@@ -150,12 +150,12 @@ Attributes
 
    Local proxy for ROADM configuration via REST
 
-   .. py:method:: connect(self, port1, port2, channels, action='install')
+   .. py:method:: connect(port1, port2, channels, action='install')
 
       Configure ROADM
 
 
-   .. py:method:: reset(self)
+   .. py:method:: reset()
 
 
 

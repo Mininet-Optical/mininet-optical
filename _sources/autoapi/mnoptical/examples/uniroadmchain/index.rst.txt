@@ -43,12 +43,12 @@ Attributes
    h1 <-> t1 -> re1 ... reN -> t2 <-> h2
              <- rwN ... rw1 <- t2
 
-   .. py:method:: build(self, power=0 * dBm, roadmCount=3)
+   .. py:method:: build(power=0 * dBm, roadmCount=3)
 
       Build simple unidirectional ROADM chain
 
 
-   .. py:method:: configNet(self, net)
+   .. py:method:: configNet(net)
 
       Configure unidirectional ROADM chain
 

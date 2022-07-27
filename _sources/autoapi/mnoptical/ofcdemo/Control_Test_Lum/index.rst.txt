@@ -90,20 +90,20 @@ Attributes
 
    Bases: :py:obj:`object`
 
-   .. py:method:: installPath(self, path, lightpathID, channel)
+   .. py:method:: installPath(path, lightpathID, channel)
 
       Install switch rules on roadms along a lightpath with a signal channel
 
 
-   .. py:method:: uninstallPath(self, path, lightpathID)
+   .. py:method:: uninstallPath(path, lightpathID)
 
       delete switch rules on roadms along a lightpath for some signal channels
 
 
-   .. py:method:: cleanAllROADMs(self)
+   .. py:method:: cleanAllROADMs()
 
 
-   .. py:method:: channel_monitor(self, path, lightpathID)
+   .. py:method:: channel_monitor(path, lightpathID)
 
 
 

@@ -51,7 +51,7 @@
 <h3>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.topo.linear.Span" title="mnoptical.topo.linear.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a>(km, amp=None)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.topo.linear.Span" title="mnoptical.topo.linear.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a>(km[, amp])</p></td>
 <td><p>Return a fiber segment of length km with a compensating amp</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.topo.linear.build_spans" title="mnoptical.topo.linear.build_spans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_spans</span></code></a>(net, r1, r2)</p></td>
@@ -60,7 +60,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.topo.linear.build_link" title="mnoptical.topo.linear.build_link"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_link</span></code></a>(net, r1, r2)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.topo.linear.add_amp" title="mnoptical.topo.linear.add_amp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_amp</span></code></a>(net, node_name=None, type=None, gain_dB=None)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.topo.linear.add_amp" title="mnoptical.topo.linear.add_amp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_amp</span></code></a>(net[, node_name, type, gain_dB])</p></td>
 <td><p>Create an Amplifier object to add to a ROADM node</p></td>
 </tr>
 </tbody>
@@ -183,10 +183,10 @@ that require different lengths</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Mininet-Optical Project Contributors.
+      &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
