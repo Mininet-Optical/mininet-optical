@@ -42,7 +42,7 @@ demotest:
 
 # Run cross validation sanity check
 crossvalsanity:
-	(cd cross-validation-tests && ./cross_validation.sh)
+	(cd cross-validation-tests && bash -x ./cross_validation.sh)
 
 # Run all tests
 test: simtest emutest demotest crossvalsanity
