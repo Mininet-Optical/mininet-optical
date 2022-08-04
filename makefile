@@ -2,7 +2,7 @@ MODULE = mnoptical
 SRCS = $(MODULE)/*.py $(MODULE)/*/*.py
 PKG = pyproject.toml setup.cfg setup.py
 PIP = python3 -m pip
-APT = apt
+APT = apt -y
 
 # Build python package (wheel/.whl file)
 # using pyproject-build (from python 'build' package)
