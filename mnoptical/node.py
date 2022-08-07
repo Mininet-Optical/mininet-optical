@@ -7,6 +7,7 @@ import random
 from collections import namedtuple
 from scipy.special import erfc
 from math import sqrt
+import ML_models  # for three ML models -> 'ML_1', 'ML_2', 'ML_3'
 
 
 class Node(object):
@@ -300,7 +301,6 @@ class LineTerminal(Node):
         self.tx_to_channel[out_port] = {'optical_signal': optical_signal, 'transceiver': transceiver}
         self.optical_signals_out += 1
 
-
     def disassoc_tx_to_channel(self, out_port):
         """
         Disassociate a transmitter transceiver (tx) to an output port
@@ -427,7 +427,7 @@ class LineTerminal(Node):
         else:
             self.receiver_callback(in_port, signalInfoDict)
             if self.debugger:
-                print("*** %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel) )
+                print("*** %s.receiver rx_to_channel: %s" %(self, self.rx_to_channel))
             print("warning: @%s, input port: %s not configured correctly for "
                              "optical signal: %s in LineTerminal.\n"
                              "You can configure it with %s.assoc_rx_to_channel() before launching transmission." %
@@ -565,7 +565,7 @@ class OpticalSignal(object):
             power = self.power
         if ase_noise is None:
             ase_noise = self.ase_noise
-        if nli_noise  is None:
+        if nli_noise is None:
             nli_noise = self.nli_noise
         # XXX: We probably shouldn't update the default/launch state to
         # some random input state in the network, should we?
@@ -1133,6 +1133,7 @@ class Roadm(Node):
         :param safe_switch: boolean, indicates whether it needs
                             to check for switch feasibility.
         """
+
         link = self.port_to_link_out[out_port]
         link.propagate(is_last_port=True, safe_switch=safe_switch)
 
@@ -1196,12 +1197,37 @@ class Amplifier(Node):
         :param boost: OBSOLETE; kept for backwards compatibility
         """
         Node.__init__(self, name)
+        if wdg_id in ['ML_1', 'ML_2', 'ML_3']:
+            model = AmplifierModels()
+            parameters = model.ML_Model_1()
+            self.noise_figure = parameters["noise_figure"]
+            self.bandwidth = parameters["bandwidth"]
+            noise_figure_function = None
+            self.noise_figure = self.get_noise_figure(self.noise_figure, noise_figure_function)
+            self.ML_model = wdg_id
+
+        elif wdg_id in ['CM', 'CM2', 'CM3', 'CM4']:
+            model = AmplifierModels()
+            parameters = model.CM_Model()
+            self.noise_figure = parameters["noise_figure"]
+            self.bandwidth = parameters["bandwidth"]
+            noise_figure_function = None
+            self.noise_figure = self.get_noise_figure(self.noise_figure, noise_figure_function)
+            self.wavelength_dependent_gain = (
+            self.load_wavelength_dependent_gain(wdg_id))
+            self.ML_model = None
+
+        else:
+            self.bandwidth = bandwidth
+            self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
+            self.wavelength_dependent_gain = (
+            self.load_wavelength_dependent_gain(wdg_id))
+            self.ML_model = None
+
         self.target_gain = target_gain
         self.system_gain = target_gain
-        self.noise_figure = self.get_noise_figure(noise_figure, noise_figure_function)
-        self.bandwidth = bandwidth
-        self.wavelength_dependent_gain = (
-            self.load_wavelength_dependent_gain(wdg_id))
+        self.propagating_optical_signals = []
+        self.DNN_predictions = []
 
         if monitor_mode:
             self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
@@ -1245,13 +1271,109 @@ class Amplifier(Node):
         self.wavelength_dependent_gain = (
             self.load_wavelength_dependent_gain(wdg_id))
 
+    def get_optical_signals(self):
+        all_optical_signals = []
+        similar_signals = []
+
+        # Read the current signal
+        for in_port, optical_signals in self.port_to_optical_signal_in.items():
+            for optical_signal in optical_signals:
+                all_optical_signals.append(optical_signal.loc_in_to_state[self])
+                current_signal_label = list(optical_signal.loc_in_to_state.keys())[0]
+                if optical_signal not in self.propagating_optical_signals:
+                    self.propagating_optical_signals.append(optical_signal)
+
+        all_optical_signals_in_system = self.propagating_optical_signals
+
+        # Check for signals propagating through
+        if len(all_optical_signals_in_system) > 0:
+            for i in range(0, len(all_optical_signals_in_system)):
+                prev_signals_labels = list(all_optical_signals_in_system[i].loc_in_to_state.keys())
+                if len(prev_signals_labels) > 0:
+                    if str(current_signal_label) == str(prev_signals_labels[0]):
+                        similar_signals.append(all_optical_signals_in_system[i])
+
+        return similar_signals
+
+    # This function is used by the machine learning model for prediction
+    def predict_wavelength_dependent_gain(self, signal_index):
+
+        # Check for the wavelength dependent gain of the signal
+        if len(self.DNN_predictions) > 0:
+            if len(self.DNN_predictions) >= signal_index:
+                prediction = self.DNN_predictions[signal_index-1]
+                return prediction
+
+        # Store the input power and index of each channel
+        input_powers = []
+        input_signals = self.get_optical_signals()
+        channel_indices = []
+        for i in range(0, len(input_signals)):
+            input_powers.append(input_signals[i].loc_in_to_state[self]['power'])
+            channel_indices.append(input_signals[i].index)
+
+        # Set the initial power level of each channel to zero
+        all_input_powers = np.zeros(94)
+        channel_index = 0
+        for i in (channel_indices):
+            all_input_powers[i] = input_powers[channel_index]
+            channel_index += 1
+        all_input_powers = all_input_powers.tolist()
+
+        if len(all_input_powers) < 94:
+            no_inactive_channels = 94 - len(all_input_powers)
+            inactive_channels_power = (np.zeros(no_inactive_channels, dtype='float32')).tolist()
+            all_input_powers.extend(inactive_channels_power)
+
+        # Set the initial status of each channel to zero
+        channels_status = np.zeros(94)
+
+        # Assign the status of active channels to 1
+        for i in (channel_indices):
+            channels_status[i] = 1
+        channels_status = channels_status.tolist()
+        input_powers_and_status = []
+
+        # Assign the status of each channel
+        for i in range(0, 94):
+            input_powers_and_status.append(all_input_powers[i])
+            input_powers_and_status.append(channels_status[i])
+
+        # Inputs to be fed into the network
+        target_gain = self.target_gain
+        model_input = [target_gain]
+        model_input.extend(input_powers_and_status)
+        model_input = [model_input]
+
+        # Load the ML model to perform inference
+        model_pred = ML_models.predictWDG(model_input, self.ML_model)
+        model_pred_dB = abs_to_db(model_pred)
+        wavelength_dependent_gain = model_pred_dB - np.average(model_pred_dB)
+        wavelength_dependent_gain = wavelength_dependent_gain.tolist()
+
+        # Store the previous predictions of the model
+        self.DNN_predictions.append(wavelength_dependent_gain)
+
+        # Return the prediction values
+        return wavelength_dependent_gain
+
+
     def get_wavelength_dependent_gain(self, signal_index):
         """
         Retrieve WDG by signal index
         :param signal_index:
         :return: WDG of signal
         """
-        return self.wavelength_dependent_gain[signal_index - 1]
+        model = self.ML_model
+        # Check the model type
+        if model in ['ML_1', 'ML_2', 'ML_3']:
+            wavelength_dependent_gain = self.predict_wavelength_dependent_gain(signal_index)
+            self.wavelength_dependent_gain = wavelength_dependent_gain
+            # return the predicted wavelength dependent gain values for each signal
+            return self.wavelength_dependent_gain[0][signal_index - 1]
+
+        else:
+            return self.wavelength_dependent_gain[signal_index - 1]
 
     @staticmethod
     def get_noise_figure(noise_figure, noise_figure_function):
@@ -1302,7 +1424,6 @@ class Amplifier(Node):
         system_gain_linear = db_to_abs(self.system_gain)
         wavelength_dependent_gain_linear = db_to_abs(
             self.get_wavelength_dependent_gain(optical_signal.index))
-
         # the NLI noise als gets affected
         nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
         nli_noise_out = nli_noise_in * system_gain_linear * wavelength_dependent_gain_linear
@@ -1417,6 +1538,23 @@ class Amplifier(Node):
     def mock_amp_gain_adjust(self, new_gain):
         self.target_gain = new_gain
         self.system_gain = new_gain
+
+
+# A class that contains different amplifier models
+class AmplifierModels():
+    # A function for a ML model
+    def ML_Model_1(self):
+        bandwidth = 50.0e9
+        noise_figure = (5.6, 94)
+        parameters = {"noise_figure":noise_figure, "bandwidth":bandwidth}
+        return parameters
+
+    # A function for the centre of mass model
+    def CM_Model(self):
+        bandwidth = 50.0e9
+        noise_figure = (5.6, 94)
+        parameters = {"noise_figure":noise_figure, "bandwidth":bandwidth}
+        return parameters
 
 
 class Monitor(Node):
@@ -1628,7 +1766,6 @@ class Monitor(Node):
             self.name, self.component, self.mode)
 
 
-
 class SignalTracing:
     """Routines for Signal tracing and debugging"""
 
@@ -1662,7 +1799,7 @@ class SignalTracing:
             if not link or signal not in link.optical_signals:
                 break
             path.append(link)
-            node = node.port_to_node_out.get( port, None )
+            node = node.port_to_node_out.get(port, None)
             port = SignalTracing.get_port(node, signal, in_out='in')
         return path
 
@@ -1680,7 +1817,7 @@ class SignalTracing:
         return {signal: SignalTracing.signal_path(node, signal)
                 for signal in signals}
 
-    pathEntry = namedtuple( 'pathEntry', 'location instate outstate' )
+    pathEntry = namedtuple('pathEntry', 'location instate outstate')
 
     @staticmethod
     def path_state(signal, path, missing=None):
@@ -1700,7 +1837,7 @@ class NodeAuditing:
     @staticmethod
     def check_roadm_propagation(roadm):
         "Check ROADM propagation and report errors"
-        print( f'*** Checking ROADM {roadm} signal propagation' )
+        print(f'*** Checking ROADM {roadm} signal propagation')
         switch_table = roadm.switch_table
         errcount = 0
         for port in sorted(roadm.port_to_optical_signal_in):
@@ -1715,10 +1852,10 @@ class NodeAuditing:
                 outport = switch_table[(port, ch)]
                 if sig not in roadm.port_to_optical_signal_out[outport]:
                     print(
-                        f'*** ERROR {roadm}: {sig} missing on outport {outport}' )
+                        f'*** ERROR {roadm}: {sig} missing on outport {outport}')
                     errcount += 1
                     continue
-                outlink = roadm.port_to_link_out.get( outport, None )
+                outlink = roadm.port_to_link_out.get(outport, None)
                 if outlink and sig not in outlink.optical_signals:
                     print(f'*** ERROR {roadm}: {sig} missing on '
                           f'output port {outport} link {outlink}')
@@ -1726,7 +1863,7 @@ class NodeAuditing:
                     continue
                 else:
                     print(f'{roadm}: {sig} present on '
-                          f'output port {outport} link {outlink}' )
+                          f'output port {outport} link {outlink}')
                 print(f'{roadm} channel {ch} inport {port} -> outport {outport}')
         print(f'*** {roadm}: {errcount} propagation errors detected')
         return errcount
@@ -1746,7 +1883,7 @@ class NodeAuditing:
                 for sig in linksigs:
                     if sig not in ampsigs:
                        print(f'*** ERROR: {sig} missing '
-                             f'at {amp}' )
+                             f'at {amp}')
                        errcount += 1
                     if amp not in sig.loc_in_to_state:
                        print(f'**** ERROR: {sig} input state '
@@ -1766,3 +1903,4 @@ class NodeAuditing:
                     errcount += len(missing)
         print(f'{errcount} propagation errors detected')
         return errcount
+
