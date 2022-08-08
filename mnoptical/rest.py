@@ -7,6 +7,7 @@ rest.py: Simple REST-based SDN control plane for mininet-optical
 from wsgiref.simple_server import make_server, WSGIRequestHandler
 from bottle import route, get, post, request, default_app, abort
 from threading import Thread
+from sys import stdout
 
 from mnoptical.dataplane import SwitchBase, Terminal, ROADM, OpticalLink
 from mininet.node import Switch
@@ -276,4 +277,5 @@ class RestServer( object ):
 
     def stop( self ):
         self.server.shutdown()
+        stdout.flush()
         self.thread.join()
