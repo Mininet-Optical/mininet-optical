@@ -12,3 +12,8 @@ Module Contents
 
    
 
+.. py:data:: fibre_spectral_attenuation
+   
+
+   
+
