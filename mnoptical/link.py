@@ -28,52 +28,39 @@ class Link(object):
         :param debugger: boolean, debugging flag
         """
         if src_node == dst_node:
-            raise ValueError("link.__init__ src_node must be different from dst_node!")
+            raise ValueError(f"{self} src_node must be different from dst_node!")
         self.debugger = debugger
-        # configuration attributes
+        # Configuration attributes
         self.src_node = src_node
         self.dst_node = dst_node
         self.boost_amp = boost_amp
         self.srs_effect = srs_effect
         self.spans = spans or []
-
         self.optical_signals = []
 
-        # set connection ports for amps and the link
+        def connect(prev, component):
+            "Connect previous component to component"
+            if prev != src_node:
+                prev.next_component = component
+                prev.set_output_port(component, self, output_port=0)
+            if component != dst_node:
+                component.link = self
+                component.prev_component =  prev
+                component.set_input_port(prev, self, input_port=0)
+            return component
+
+        # Set connection ports for amps and the link
+        prev_component = src_node
         if boost_amp:
-            self.boost_amp.set_input_port(self.src_node, self, input_port=0)
-            self.boost_amp.set_output_port(spans[0][0], self, output_port=0)
-            self.boost_amp.prev_component = src_node
-            self.boost_amp.next_component = spans[0][0]
+            prev_component = connect(src_node, boost_amp)
 
-        prev_amp = None
-        for i, span in enumerate(spans):
-            prev_span = span[0]
-            prev_span.link = self
-            amplifier = span[1]
-
-            if i == 0:
-                prev_span.prev_component = src_node
-            else:
-                prev_span.prev_component = prev_amp
-
+        for span, amplifier in spans:
+            if span:
+                prev_component = connect(prev_component, span)
             if amplifier:
-                amplifier.link = self
-                amplifier.set_input_port(prev_span, self, input_port=0)
+                prev_component = connect(prev_component, amplifier)
 
-                amplifier.prev_component = prev_span
-                if i + 1 < len(spans):
-                    next_span = spans[i + 1][0]
-                    amplifier.set_output_port(next_span, self, output_port=0)
-                    amplifier.next_component = next_span
-                else:
-                    amplifier.set_output_port(dst_node, self, output_port=0)
-                    amplifier.next_component = dst_node
-
-                prev_amp = amplifier
-                prev_span.next_component = amplifier
-            else:
-                prev_span.next_component = dst_node
+        connect(prev_component, dst_node)
 
         self.src_node.set_output_port(self.dst_node, self, output_port=src_out_port)
         self.dst_node.set_input_port(self.src_node, self, input_port=dst_in_port)
@@ -156,27 +143,19 @@ class Link(object):
         :param safe_switch: boolean, needed for propagation algorithm
         :return:
         """
-        if self.boost_amp:
-            for optical_signal in self.optical_signals:
-                # associate boost_amp to optical signal at input interface
-                self.boost_amp.include_optical_signal_in(optical_signal,
-                                                         in_port=0)
-            self.boost_amp.propagate(self.optical_signals,
-                                     is_last_port=is_last_port,
-                                     safe_switch=safe_switch)
-        else:
-            first_span = self.spans[0][0]
-            for optical_signal in self.optical_signals:
-                first_span.include_optical_signal_in(optical_signal)
-            first_span.propagate(is_last_port=is_last_port,
-                                 safe_switch=safe_switch)
+        first_component = self.boost_amp or self.spans[0][0]
+        for optical_signal in self.optical_signals:
+            first_component.include_optical_signal_in(optical_signal, in_port=0)
+        first_component.propagate(optical_signals=self.optical_signals,
+                                  is_last_port=is_last_port,
+                                  safe_switch=safe_switch)
 
 class Span(object):
 
     ids = 1
 
     anonymous = True  # Let constructor callers know we don't take a name
-    
+
     def __init__(self, fibre_type='SMF', length=20.0, debugger=False):
         """
         :param length: optical fiber span length in km - float
@@ -236,7 +215,7 @@ class Span(object):
             self.optical_signals.remove(optical_signal)
 
     def include_optical_signal_in(self, optical_signal, power=None,
-                                  ase_noise=None, nli_noise=None):
+                                  ase_noise=None, nli_noise=None, in_port=None):
         """
         Include optical signal in optical_signals
         :param optical_signal: OpticalSignal object
@@ -259,50 +238,59 @@ class Span(object):
         """
         optical_signal.assoc_loc_out(self, power, ase_noise, nli_noise)
 
-    def propagate(self, is_last_port=False, safe_switch=False):
+    def set_input_port(self, *args, **kwargs):
+        pass
+
+    def set_output_port(self, *args, **kwargs):
+        pass
+
+    def propagate(self, optical_signals=None, is_last_port=False, safe_switch=False):
+        optical_signals = optical_signals or self.optical_signals
+
+        # XXX The GN model seems to want our outputs to be preloaded
         for optical_signal in self.optical_signals:
-            power_in = optical_signal.loc_in_to_state[self]['power']
-            ase_noise_in = optical_signal.loc_in_to_state[self]['ase_noise']
-            nli_noise_in = optical_signal.loc_in_to_state[self]['nli_noise']
+            state = optical_signal.loc_in_to_state[self]
+            power, ase_noise, nli_noise = state['power'], state['ase_noise'], state['nli_noise']
+            self.include_optical_signal_out(
+                optical_signal,power=power, ase_noise=ase_noise, nli_noise=nli_noise)
 
-            self.include_optical_signal_out(optical_signal, power=power_in,
-                                            ase_noise=ase_noise_in, nli_noise=nli_noise_in)
-            self.link.include_optical_signal_out(optical_signal, power=power_in,
-                                            ase_noise=ase_noise_in, nli_noise=nli_noise_in)
 
+        # XXX Why do we ignore propagation effects if we're connected to a terminal?
         if not isinstance(self.prev_component, LineTerminal):
             # Compute the nonlinear noise with the GN model
             self.output_nonlinear_noise()
             # Compute SRS effects from the fibre
-            if self.link.srs_effect:
-                if len(self.optical_signals) > 1:
+            if self.link.srs_effect and len(self.optical_signals) > 1:
                     self.srs_effect_model()
-
+            # Compute attenuation effects
             for optical_signal in self.optical_signals:
-                power_out = optical_signal.loc_out_to_state[self]['power'] / self.attenuation()
-                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise'] / self.attenuation()
-                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise'] / self.attenuation()
-
-                self.include_optical_signal_out(optical_signal, power=power_out,
-                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+                state = optical_signal.loc_out_to_state[self]
+                power, ase_noise, nli_noise = state['power'], state['ase_noise'], state['nli_noise']
+                attenuation = self.attenuation()
+                self.include_optical_signal_out(
+                    optical_signal,
+                    power=power/attenuation,
+                    ase_noise=ase_noise/attenuation,
+                    nli_noise=nli_noise/attenuation)
 
         component = self.next_component
-        in_port = component.link_to_port_in[self.link]
-        
+        in_port = component.link_to_port_in[self.link] if hasattr(component, 'link_to_port_in') else 0
+
         for optical_signal in self.optical_signals:
             state = optical_signal.loc_out_to_state[self]
             power, ase_noise, nli_noise = state['power'], state['ase_noise'], state['nli_noise']
-            self.next_component.include_optical_signal_in(
+            component.include_optical_signal_in(
                 optical_signal, power=power, ase_noise=ase_noise, nli_noise=nli_noise,
                 in_port=in_port)
             if hasattr(component, 'receiver'):
-                self.next_component.receiver(optical_signal, in_port)                
+                component.receiver(optical_signal, in_port)
 
-        if isinstance(self.next_component, Amplifier):
-            self.next_component.propagate(self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
-        elif isinstance(self.next_component, Roadm) and is_last_port:
-            in_port = self.next_component.link_to_port_in[self.link]
-            self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+        if hasattr(component, 'switch'):
+            if is_last_port:
+                component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+        elif hasattr(component, 'propagate'):
+            component.propagate(
+                optical_signals=self.optical_signals, is_last_port=is_last_port, safe_switch=safe_switch)
 
     def srs_effect_model(self):
         """
@@ -420,7 +408,7 @@ class Span(object):
 
 class LBO(Span):
     "A simple attenuator/Line Break Out"
-    
+
     def __init__(self, loss=0):
         "loss: loss expressed in (non-negative) dB"
         super().__init__()
@@ -434,11 +422,11 @@ class LBO(Span):
     def srs_effect_model():
         "No SRS for simple attenuator"
         pass
-    
+
     def __repr__(self):
         "String representation"
         return f'<LBO{self.span_id} -{self.loss}dB>'
-    
+
     def attenuation(self):
         print(self, "attenuating by", db_to_abs(self.loss))
         return db_to_abs(self.loss)
