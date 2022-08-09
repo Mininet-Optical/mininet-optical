@@ -31,6 +31,9 @@ jobs:
       - name: Run Simulation Tests
         run: PYTHONPATH= make simtest
 
+      - name: Run Cross-validation Tests
+        run: PYTHONPATH= make crossvalsanity
+
       - name: Install Mininet (master)
         run: |
              git clone https://github.com/mininet/mininet

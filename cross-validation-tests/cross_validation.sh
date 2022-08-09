@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPT_DIR=$(pwd)
+
 ###################### Description - start ######################
 #
 #    Aug 27, 2021
@@ -37,9 +39,6 @@ $PIP install scipy
 
 
 ###################### Mininet-Optical tests - start ######################
-# Mininet-Optical directory
-MO_DIR="optical-network-emulator"
-
 # Run Mininet-Optical tests to create datafile
 echo "Running Mininet-Optical tests..."
 PYTHONPATH=.. $PYTHON auto_tests.py
@@ -76,7 +75,7 @@ ELEMENTS_FILE="gnpy/core/elements.py"
 EQPT_FILE="tests/data/eqpt_config.json"
 
 # Directory to patches and files from patches
-CROSS_VAL_DIR="../$MO_DIR/cross-validation-tests"
+CROSS_VAL_DIR=$SCRIPT_DIR
 PATCHES_DIR="$CROSS_VAL_DIR/patches"
 GNPY_FILES_DIR="$CROSS_VAL_DIR/gnpy-files"
 GNPY_TESTS_DIR="$CROSS_VAL_DIR/gnpy-mytests"
@@ -138,7 +137,7 @@ PYTHONPATH=.. $PYTHON auto_tests.py
 
 
 ###################### Cross-validation analysis - start ######################
-cd ../$CROSS_VAL_DIR
+cd $CROSS_VAL_DIR
 echo "Running cross-validation analysis..."
 PYTHONPATH=.. $PYTHON cross_val_test.py
 ###################### Cross-validation analysis - end ######################
