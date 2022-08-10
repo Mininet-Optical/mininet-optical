@@ -719,7 +719,15 @@ class OpticalLink( Link ):
             if not cls: return []
             args, params = args or [], params or {}
             if prefix and not getattr(cls, 'anonymous', False):
-                args: args = (prefix+args[0],) + args[1:]
+                # Non-anonymous class gets its name parameter adjusted
+                if params:
+                    params = params.copy()
+                try:
+                    name = params.pop('name', None)
+                    name, args = args[0], args[1:]
+                    args: args = (prefix+name,) + tuple(args[1:])
+                except:
+                    raise Exception(f'name required for component of type {cls}')
             return cls( *args, **params )
 
         # Boost amplifiers if any
@@ -740,11 +748,9 @@ class OpticalLink( Link ):
         # do so by using a bidirectional amp pair with eastbound
         # and westbound target gain (!) It would make things more
         # realistic but harder to use.
-        print('SPANS', spans)
         spans = self._parseSpans( spans )
         spans1 = [ SpanTuple( component('', *span), component(prefix1, *amp) )
                    for span, amp in spans ]
-        print(self, "SPANTUPLES", list(spans1))
         if bidirectional:
             spans2 = [ SpanTuple( component('', *span),
                                   component(prefix2, *amp) )
