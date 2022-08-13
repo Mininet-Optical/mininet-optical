@@ -525,10 +525,14 @@ Attributes
 
       
 
-   .. py:method:: parseSpans(spans=None)
-      :staticmethod:
+   .. py:method:: _parseArgs(args, cls=None)
 
-      Parse list of spans and amplifiers into (length, amp) tuples
+      Parse (cls, *args, [params]) tuples
+
+
+   .. py:method:: _parseSpans(spans=None)
+
+      Parse list of spans and amplifiers into (span, amp) tuples
 
 
    .. py:method:: intfName(node, n)
