@@ -49,7 +49,7 @@ class SimpleLinkTopo(Topo):
         self.addLink(h2, t2, port2=1)
         # WDM link
         self.addLink(t1, t2, cls=OpticalLink, port1=2, port2=2,
-                     boost=('boost', {'target_gain':17*dB}),
+                     boost=('boost', {'target_gain':5*dB}),
                      spans=[25*km])
 
 def test(net):
