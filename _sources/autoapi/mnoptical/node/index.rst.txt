@@ -303,7 +303,7 @@ Attributes
    .. py:method:: monitor_query()
 
 
-   .. py:method:: include_optical_signal_in_roadm(optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=0)
+   .. py:method:: include_optical_signal_in(optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=0)
 
       Include optical signals in preamp if object exists, and include
       input signals at a Node level

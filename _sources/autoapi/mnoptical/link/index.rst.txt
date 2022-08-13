@@ -98,6 +98,11 @@ Attributes
 
       
 
+   .. py:attribute:: anonymous
+      :annotation: = True
+
+      
+
    .. py:method:: describe()
 
 
@@ -123,7 +128,7 @@ Attributes
    .. py:method:: remove_optical_signal(optical_signal)
 
 
-   .. py:method:: include_optical_signal_in(optical_signal, power=None, ase_noise=None, nli_noise=None)
+   .. py:method:: include_optical_signal_in(optical_signal, power=None, ase_noise=None, nli_noise=None, in_port=None)
 
       Include optical signal in optical_signals
       :param optical_signal: OpticalSignal object
@@ -141,7 +146,13 @@ Attributes
       :param nli_noise: nli noise  level of OpticalSignal
 
 
-   .. py:method:: propagate(is_last_port=False, safe_switch=False)
+   .. py:method:: set_input_port(*args, **kwargs)
+
+
+   .. py:method:: set_output_port(*args, **kwargs)
+
+
+   .. py:method:: propagate(optical_signals=None, is_last_port=False, safe_switch=False)
 
 
    .. py:method:: srs_effect_model()
