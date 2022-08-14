@@ -60,9 +60,11 @@ Attributes
 
 
 
-.. py:function:: plotNet(net, outfile='singleroadm.png', directed=False, layout='circo', colorMap=None)
+.. py:function:: plotNet(net, outfile='singleroadm.png', directed=False, layout='circo', colorMap=None, linksPerPair=5)
 
    Plot network graph to outfile
+   linksPerPair: max # of links between a pair of nodes to plot, or
+                 None for no limit (default: 5)
 
 
 .. py:function:: test(net)
