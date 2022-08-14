@@ -205,7 +205,7 @@ class OpticalCLI( CLI ):
         phyLinks = sum( [ [link.phyLink1, link.phyLink2] for link in links], [] )
         for phyLink in sorted( phyLinks, key=natural ):
             if not phyLink:
-                continuename
+                continue
             if len( phyLink.spans ) == 1 and phyLink.spans[0].span.length < minlength:
                 # Skip short lengths of fiber
                 continue
