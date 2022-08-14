@@ -1384,11 +1384,11 @@ class Amplifier(Node):
                     component.include_optical_signal_in(
                         optical_signal, power=power_out,
                         ase_noise=ase_noise_out, nli_noise=nli_noise_out)
-                    
+
         # Trigger the action for the next component
         if component:
             if hasattr(component, 'switch'):
-                component.switch(in_port, self.link.src_node, safe_switch=safe_switch)            
+                component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
             elif hasattr(component, 'propagate'):
                 component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
 
@@ -1413,6 +1413,79 @@ class Amplifier(Node):
     def mock_amp_gain_adjust(self, new_gain):
         self.target_gain = new_gain
         self.system_gain = new_gain
+
+
+class Attenuator(Amplifier):
+
+    def __init__(self, name, loss=1, noise_figure=(0.0, 91), monitor='in'):
+        super().__init__(name)
+
+        self.target_gain = -loss
+        self.attenuation_power = db_to_abs(loss)
+
+        if monitor:
+            self.monitor = Monitor(name + "-monitor", component=self, mode=monitor)
+
+    def attenuation(self, optical_signal):
+
+        input_power = optical_signal.loc_in_to_state[self]['power']
+        input_ase_noise = optical_signal.loc_in_to_state[self]['ase_noise']
+        input_nli_noise = optical_signal.loc_in_to_state[self]['nli_noise']
+
+
+        output_power = input_power/self.attenuation_power
+        output_ase_noise = optical_signal.loc_in_to_state[self]['ase_noise']/self.attenuation_power
+        output_nli_noise = optical_signal.loc_in_to_state[self]['nli_noise']/self.attenuation_power
+
+        # associate amp to optical signal at output interface
+        # and update the optical signal state (power)
+        self.include_optical_signal_out(optical_signal, power=output_power,
+                                        ase_noise=output_ase_noise,
+                                        nli_noise=output_nli_noise,
+                                        out_port=0)
+
+    def propagate(self, optical_signals, is_last_port=False, safe_switch=False):
+        """
+        Compute the amplification process
+        :param optical_signals: list
+        """
+
+        for optical_signal in optical_signals:
+            self.attenuation(optical_signal)
+
+            # Pass the updated signals to the next component
+            if self.next_component:
+                power_out = optical_signal.loc_out_to_state[self]['power']
+                ase_noise_out = optical_signal.loc_out_to_state[self]['ase_noise']
+                nli_noise_out = optical_signal.loc_out_to_state[self]['nli_noise']
+
+                # LineTerminal requires us to call receiver()
+                if hasattr(self.next_component, 'receiver'):
+                    in_port = self.next_component.link_to_port_in[self.link]
+                    self.next_component.include_optical_signal_in(
+                        optical_signal, power=power_out,
+                        ase_noise=ase_noise_out, nli_noise=nli_noise_out,
+                        in_port=in_port)
+                    self.next_component.receiver(optical_signal, in_port)
+                # Roadm has its own flavor of include_optical_signal_in()
+                elif hasattr(self.next_component, 'include_optical_signal_in_roadm'):
+                    in_port = self.next_component.link_to_port_in[self.link]
+                    self.next_component.include_optical_signal_in_roadm(
+                        optical_signal, power=power_out,
+                        ase_noise=ase_noise_out, nli_noise=nli_noise_out,
+                        in_port=in_port)
+                # Otherwise do the normal thing
+                else:
+                    self.next_component.include_optical_signal_in(
+                        optical_signal, power=power_out,
+                        ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+
+        # Trigger the action for the next component if needed
+        if self.next_component:
+            if hasattr(self.next_component, 'switch'):
+                self.next_component.switch(in_port, self.link.src_node, safe_switch=safe_switch)
+            elif hasattr(self.next_component,'propagate'):
+                self.next_component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
 
 
 class Monitor(Node):
