@@ -50,7 +50,7 @@ Attributes
 
    
 
-.. py:class:: LROADM(*args, netconfPort=None, **kwargs)
+.. py:class:: LROADM(name, *args, netconfPort=None, **kwargs)
 
    Bases: :py:obj:`mnoptical.dataplane.ROADM`
 
