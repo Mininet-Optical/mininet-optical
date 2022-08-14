@@ -89,13 +89,15 @@ def parseconn( conn ):
         half_channel_width = 25  # in GHz
         start_center_frequency = 191350  # in GHz
         startfreq, endfreq = int(startfreq), int(endfreq)
-        startfreq += half_channel_width
         channels = []
-        ch = (startfreq - start_center_frequency)//50
-        assert ch >= 0
-        while startfreq < endfreq:
-            channels.append( ch )
-            startfreq += 50
+        ch = 1 + (startfreq-start_center_frequency)//50
+        chfreq = start_center_frequency + (ch-1)*50
+        while chfreq <= endfreq:
+            # Assume client will ask for at least 40GHz
+            if startfreq <= chfreq-20 and chfreq+20 <=endfreq:
+                channels.append( ch )
+            ch += 1
+            chfreq += 50
         return channels
 
     dn, config, module, inport, outport, channels = (
