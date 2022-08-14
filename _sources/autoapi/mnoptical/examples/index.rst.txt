@@ -18,6 +18,7 @@ Submodules
    singlelink/index.rst
    singleroadm/index.rst
    sixnodestopo/index.rst
+   test-attenuator/index.rst
    unilinear1/index.rst
    unilinear2/index.rst
    uniring/index.rst

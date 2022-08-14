@@ -1,0 +1,72 @@
+:py:mod:`mnoptical.examples.test-attenuator`
+============================================
+
+.. py:module:: mnoptical.examples.test-attenuator
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.test-attenuator.MultiROADMTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.test-attenuator.plotNet
+   mnoptical.examples.test-attenuator.add_amp
+   mnoptical.examples.test-attenuator.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.test-attenuator.topo
+
+
+.. py:function:: plotNet(net, outfile='img.png', directed=False, layout='circo', colorMap=None)
+
+   Plot network graph to outfile
+
+
+.. py:function:: add_amp(node_name=None, type=None, gain_dB=None, monitor_mode='out')
+
+   Create an Amplifier object to add to a ROADM node
+   :param node_name: string
+   :param type: string ('boost' or 'preamp'
+   :param gain_dB: int or float
+
+
+.. py:class:: MultiROADMTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   .. py:method:: build(operational_power=0 * dB)
+
+
+   .. py:method:: get_monitor_power(monitor, monitor_mode='in')
+
+
+   .. py:method:: configNet(net)
+
+
+
+.. py:function:: test(net)
+
+
+.. py:data:: topo
+   
+
+   
+

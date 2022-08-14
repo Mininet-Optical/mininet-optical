@@ -59,13 +59,16 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.node.Amplifier" title="mnoptical.node.Amplifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Amplifier</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.Monitor" title="mnoptical.node.Monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Monitor</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.Attenuator" title="mnoptical.node.Attenuator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Attenuator</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.node.Monitor" title="mnoptical.node.Monitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Monitor</span></code></a></p></td>
 <td><p>This implementation of Monitors could be used for ROADMs and Amplifiers.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.node.SignalTracing" title="mnoptical.node.SignalTracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SignalTracing</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.SignalTracing" title="mnoptical.node.SignalTracing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SignalTracing</span></code></a></p></td>
 <td><p>Routines for Signal tracing and debugging</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.node.NodeAuditing" title="mnoptical.node.NodeAuditing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeAuditing</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.node.NodeAuditing" title="mnoptical.node.NodeAuditing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeAuditing</span></code></a></p></td>
 <td><p>WIP: Auditing class with propagation checks</p></td>
 </tr>
 </tbody>
@@ -760,6 +763,24 @@ gain of the signals in the amplifier: power excursions
 <dt class="sig sig-object py" id="mnoptical.node.Amplifier.mock_amp_gain_adjust">
 <span class="sig-name descname"><span class="pre">mock_amp_gain_adjust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_gain</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Amplifier.mock_amp_gain_adjust" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.node.Attenuator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.node.</span></span><span class="sig-name descname"><span class="pre">Attenuator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_figure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">91)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'in'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Attenuator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.node.Amplifier" title="mnoptical.node.Amplifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Amplifier</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.node.Attenuator.attenuation">
+<span class="sig-name descname"><span class="pre">attenuation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optical_signal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Attenuator.attenuation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.node.Attenuator.propagate">
+<span class="sig-name descname"><span class="pre">propagate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optical_signals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_last_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_switch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.node.Attenuator.propagate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the amplification process
+:param optical_signals: list</p>
+</dd></dl>
 
 </dd></dl>
 

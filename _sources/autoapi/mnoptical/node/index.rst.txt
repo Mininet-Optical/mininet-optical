@@ -18,6 +18,7 @@ Classes
    mnoptical.node.OpticalSignal
    mnoptical.node.Roadm
    mnoptical.node.Amplifier
+   mnoptical.node.Attenuator
    mnoptical.node.Monitor
    mnoptical.node.SignalTracing
    mnoptical.node.NodeAuditing
@@ -566,6 +567,20 @@ Attributes
 
 
    .. py:method:: mock_amp_gain_adjust(new_gain)
+
+
+
+.. py:class:: Attenuator(name, loss=1, noise_figure=(0.0, 91), monitor='in')
+
+   Bases: :py:obj:`Amplifier`
+
+   .. py:method:: attenuation(optical_signal)
+
+
+   .. py:method:: propagate(optical_signals, is_last_port=False, safe_switch=False)
+
+      Compute the amplification process
+      :param optical_signals: list
 
 
 
