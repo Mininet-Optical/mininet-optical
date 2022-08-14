@@ -391,7 +391,7 @@ class Lumentum:
         "Return frequency range (startGHz, endGHz) for channel"
         half_channel_width = 25  # in GHz
         start_center_frequency = 191350.0  # in GHz
-        center_frequency = start_center_frequency + channel * 50
+        center_frequency = start_center_frequency + (channel-1) * 50
         start_freq = str(center_frequency - half_channel_width)
         end_freq = str(center_frequency + half_channel_width)
         return start_freq, end_freq
@@ -409,11 +409,12 @@ class Lumentum:
         """
         connections = []
         for i in range(96):
+            channel = i+1
             center_frequency = start_center_frequency + i * channel_spacing
             start_freq, end_freq = Lumentum.freqRangeGHz(channel)
             connection = Lumentum.WSSConnection(
                 module,
-                str(i + 1),
+                str(channel),
                 'in-service',
                 'false',
                 input_port,
@@ -421,7 +422,7 @@ class Lumentum:
                 str(start_freq),
                 str(end_freq),
                 loss,
-                'CH' + str(i + 1)
+                'CH' + str(channel)
             )
             connections.append(connection)
         return connections

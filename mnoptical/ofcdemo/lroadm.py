@@ -14,6 +14,7 @@ from mnoptical.dataplane import (
     OpticalNet as Mininet,
     km, m, dB, dBm)
 
+from mnoptical.node import Amplifier
 from mnoptical.ofcdemo.demolib import OpticalCLI as CLI, cleanup
 from mnoptical.rest import RestServer
 from mnoptical.ofcdemo.netconfserver import NetconfServer
@@ -46,12 +47,18 @@ class LROADM( ROADM ):
     def addport(self, i): return self.addbase + i
     def dropport(self, i): return self.dropbase + i
 
-    def __init__( self, *args, netconfPort=None, **kwargs):
+    def __init__( self, name, *args, netconfPort=None, **kwargs):
         if not netconfPort:
             raise Exception('Lumentum: netconfPort required')
         self.username = kwargs.pop('username', self.username)
         self.password = kwargs.pop('password', self.password)
-        super().__init__(*args, **kwargs)
+        # FIXME: for some reason the preamp causes the
+        # lroadmring.py test to explode
+        if False and 'preamp' not in kwargs:
+            kwargs['preamp'] = Amplifier(name+'-pre', target_gain=0*dB, preamp=True)
+        if 'boost' not in kwargs:
+            kwargs['boost'] = Amplifier(name+'-boost', target_gain=0*dB, boost=True)
+        super().__init__(name, *args, **kwargs)
         self.netconfPort = netconfPort
 
     def __str__( self ):
