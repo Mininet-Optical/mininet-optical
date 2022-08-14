@@ -63,8 +63,10 @@ class SingleROADMTopo(Topo):
 
 # Debugging: Plot network graph
 def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo',
-            colorMap=None):
-    "Plot network graph to outfile"
+            colorMap=None, linksPerPair=5):
+    """Plot network graph to outfile
+       linksPerPair: max # of links between a pair of nodes to plot, or
+                     None for no limit (default: 5)"""
     try:
         import pygraphviz as pgv
     except:
@@ -85,10 +87,14 @@ def plotNet(net, outfile="singleroadm.png", directed=False, layout='circo',
         g.add_node(node.name, color=colors[node], **nfont)
     for node in net.hosts:
         g.add_node(node.name, color=colors[node], **nfont, shape='box')
+    linkcount = {}
     for link in net.links:
         intf1, intf2 = link.intf1, link.intf2
         node1, node2 = intf1.node, intf2.node
         port1, port2 = node1.ports[intf1], node2.ports[intf2]
+        linkcount[node1,node2] = linkcount.get((node1, node2),0) + 1
+        if linksPerPair is not None and linkcount[node1,node2] > linksPerPair:
+            continue
         g.add_edge(node1.name, node2.name,
                    headlabel=f' {node2}:{port2} ',
                    taillabel=f' {node1}:{port1} ',
