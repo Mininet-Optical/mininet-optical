@@ -34,7 +34,7 @@ Attributes
    mnoptical.node.SwitchRule
 
 
-.. py:class:: Node(name, debugger=True)
+.. py:class:: Node(name, debugger=None)
 
    Bases: :py:obj:`object`
 
@@ -45,6 +45,11 @@ Attributes
 
    .. py:attribute:: output_port_base
       :annotation: = 0
+
+      
+
+   .. py:attribute:: debugger
+      :annotation: = True
 
       
 
