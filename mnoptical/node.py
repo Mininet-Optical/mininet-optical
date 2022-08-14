@@ -12,10 +12,13 @@ from math import sqrt
 class Node(object):
     input_port_base = 0
     output_port_base = 0
-
-    def __init__(self, name, debugger=True):
+    debugger = True   # Print debugger messages by default
+    
+    def __init__(self, name, debugger=None):
+        
         self.name = name
-        self.debugger = debugger
+        if debugger is not None:
+            self.debugger = debugger
 
         # static attributes - inputs
         # Note: one-to-one
