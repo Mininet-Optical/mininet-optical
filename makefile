@@ -56,7 +56,7 @@ doc:
 	make -C docs html
 
 docclean:
-	make -C docs clean
+	rm -rf docs/build/*
 
 # Generate and serve local html documentation
 docserve: doc
