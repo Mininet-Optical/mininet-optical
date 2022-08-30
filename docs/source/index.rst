@@ -18,8 +18,17 @@ Mininet-Optical Documentation
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+Acknowledgments
+---------------
+
+Mininet Optical has been developed with support in part from the Department of 
+Energy under grant DE-SC0015867, the National Science Foundation under the CIAN 
+ERC, COSMOS PAWR platform and COSM-IC project under grants CNS-1827923, 
+OAC-2029295, and CNS-2112562. And with support from the Science Foundation 
+Ireland through the CONNECT Centre under grant #13/RC/2077_P2.
