@@ -7,7 +7,7 @@ import random
 from collections import namedtuple
 from scipy.special import erfc
 from math import sqrt
-import ML_models  # for three ML models -> 'ML_1', 'ML_2', 'ML_3'
+import mnoptical.ML_models  # for three ML models -> 'ML_1', 'ML_2', 'ML_3'
 
 
 class Node(object):

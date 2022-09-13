@@ -17,11 +17,11 @@ def customLoss(y_actual, y_pred):
 # Function for the prediction of WDG
 def predictWDG(input_features, ML_model):
     if ML_model == 'ML_1':
-        model_name = 'ML_Model_Booster_rd1_co1'
+        model_name = './saved_models/ML_Model_Booster_rd1_co1.h5'
     elif ML_model == 'ML_2':
-        model_name = 'ML_Model_Preamp_rd2_co1'
+        model_name = './saved_models/ML_Model_Preamp_rd2_co1.h5'
     elif ML_model == 'ML_3':
-        model_name = 'ML_Model_LineAmp1'
+        model_name = './saved_models/ML_Model_LineAmp1.h5'
 
     # Load the model and use a custom loss function
     model = load_model(
