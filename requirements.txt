@@ -8,3 +8,4 @@ ncclient
 sphinx
 sphinx-autoapi
 myst-parser
+tensorflow
