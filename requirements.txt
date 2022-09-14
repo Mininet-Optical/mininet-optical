@@ -9,3 +9,4 @@ sphinx
 sphinx-autoapi
 myst-parser
 tensorflow
+markupsafe==2.0.1
