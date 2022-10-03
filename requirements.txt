@@ -9,3 +9,4 @@ sphinx
 sphinx-autoapi
 myst-parser
 matplotlib
+networkx
