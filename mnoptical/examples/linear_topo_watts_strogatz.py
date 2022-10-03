@@ -402,7 +402,7 @@ if __name__ == '__main__':
     channels = []
     prob = 0.75
     prob_file = "075"
-    channel_file = "dataset/saved_channels.csv"
+    channel_file = "saved_channels.csv"
     if not os.path.isfile(channel_file):
         print("File not exists")
         with open(channel_file, 'w', encoding='UTF8', newline='') as file:
