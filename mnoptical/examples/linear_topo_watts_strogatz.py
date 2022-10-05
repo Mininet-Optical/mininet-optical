@@ -470,7 +470,8 @@ if __name__ == '__main__':
     conn7_file.close()
     conn8_file.close()
     if 'test' in argv:
-        test(net)
+        # test(net)
+        pass
     else:
         CLI(net)
     restServer.stop()
