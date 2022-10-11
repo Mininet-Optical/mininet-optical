@@ -37,7 +37,7 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.node import OVSSwitch
 from mininet.link import Link, TCIntf
-from mininet.log import setLogLevel, info, warn
+from mininet.log import setLogLevel, info, warn, debug
 from mininet.cli import CLI
 from mininet.clean import sh, Cleanup, cleanup
 from mininet.util import BaseString
@@ -532,7 +532,7 @@ class ROADM( SwitchBase ):
     def dpInstall( self, inport, outport, channels, cmd='add-flow' ):
         "Install a switching rule into the dataplane"
         for channel in channels:
-            print('install/uninstall', inport, outport, channel, cmd)
+            debug('install/uninstall', inport, outport, channel, cmd)
             flow = self.dpFlow( inport, outport, channel, cmd )
             self.dpctl( cmd, flow )
 
@@ -842,6 +842,61 @@ class AmplifierPair(object):
         params2 = params2 or kwargs.copy()
         self.phyAmp1 = PhyAmplifier( name + '.1', *args, **params1)
         self.phyAmp2 = PhyAmplifier( name + '.2', *args, **params2)
+
+
+# Comb Source with simulated (only) optical signals
+
+class CombSource(ROADM):
+    """Comb Source with simulated optical signals.
+
+       The CombSource component emulates a comb source in COSMOS or
+       other hardware testbeds. It is a dataplane component (the MUX
+       half of a ROADM) but it only generates and transmits simulated
+       signals. It is convenient for emulating a hardware comb source
+       or for generating opaque background traffic in the simulated
+       physical plane."""
+
+    # Default MUX port numbers
+    ADD = 4100
+    LINEOUT = 4201
+
+    def __init__(self, name, *args, power={1: 0*dBm}, **kwargs):
+        """power: in form of dict {ch: power} where
+           ch: channels to transmit
+           power: tx power"""
+           
+        self.power = power
+        super().__init__(name, *args, **kwargs)
+        self.addTerminal()
+
+    def addTerminal(self):
+        "Add our simulated LineTerminal"
+        self.lt = lt = PhyTerminal(self.name + '-lt')
+        mux = self.model
+        if isinstance(self.power, dict):
+            for i, (ch, power) in enumerate(self.power.items(), start=1):
+                tx = Transceiver(i, f'tx{ch}', power)
+                lt.add_transceiver(tx)
+                PhyLink(lt, mux, i, self.ADD+i, spans=[PhySpan(1*m)])
+        else:
+            raise Exception(
+                "Expected dict of type {channel: power}")
+
+    def restTurnonHandler(self):
+        "Handle REST call: /turn_on?node=name"
+        self.turn_on()
+
+    def turn_on(self):
+        "Configure components and turn on signals"
+        lt, mux = self.lt, self.model
+        # Configure transceivers
+        for i, (channel, power) in enumerate(self.power.items(), start=1):
+            outport = i
+            tx = lt.transceivers[i-1]
+            lt.assoc_tx_to_channel(tx, channel, outport)
+            mux.install_switch_rule(self.ADD+i, self.LINEOUT, [channel])
+        # Start transmission
+        self.lt.turn_on()
 
 
 ### Support functions
