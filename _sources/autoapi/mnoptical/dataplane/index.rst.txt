@@ -46,6 +46,7 @@ Classes
    mnoptical.dataplane.OpticalOut
    mnoptical.dataplane.OpticalLink
    mnoptical.dataplane.AmplifierPair
+   mnoptical.dataplane.CombSource
    mnoptical.dataplane.TwoTransceiverTopo
 
 
@@ -566,6 +567,45 @@ Attributes
       
 
       
+
+
+.. py:class:: CombSource(name, *args, power={1: 0 * dBm}, **kwargs)
+
+   Bases: :py:obj:`ROADM`
+
+   Comb Source with simulated optical signals.
+
+   The CombSource component emulates a comb source in COSMOS or
+   other hardware testbeds. It is a dataplane component (the MUX
+   half of a ROADM) but it only generates and transmits simulated
+   signals. It is convenient for emulating a hardware comb source
+   or for generating opaque background traffic in the simulated
+   physical plane.
+
+   .. py:attribute:: ADD
+      :annotation: = 4100
+
+      
+
+   .. py:attribute:: LINEOUT
+      :annotation: = 4201
+
+      
+
+   .. py:method:: addTerminal()
+
+      Add our simulated LineTerminal
+
+
+   .. py:method:: restTurnonHandler()
+
+      Handle REST call: /turn_on?node=name
+
+
+   .. py:method:: turn_on()
+
+      Configure components and turn on signals
+
 
 
 .. py:function:: cleanOptLinks()

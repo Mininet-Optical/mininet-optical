@@ -15,6 +15,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -90,7 +91,10 @@ full-duplex, and that transponders use thes ame tx and rx channels.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.AmplifierPair" title="mnoptical.dataplane.AmplifierPair"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AmplifierPair</span></code></a></p></td>
 <td><p>A bidirectional PhyAmplifier pair.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.TwoTransceiverTopo" title="mnoptical.dataplane.TwoTransceiverTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwoTransceiverTopo</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#mnoptical.dataplane.CombSource" title="mnoptical.dataplane.CombSource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CombSource</span></code></a></p></td>
+<td><p>Comb Source with simulated optical signals.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#mnoptical.dataplane.TwoTransceiverTopo" title="mnoptical.dataplane.TwoTransceiverTopo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TwoTransceiverTopo</span></code></a></p></td>
 <td><p>Two hosts/transceivers connected by a 2-way fiber span, which may</p></td>
 </tr>
 </tbody>
@@ -700,6 +704,47 @@ of fiber spans and amplfiers.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">CombSource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{1:</span> <span class="pre">0</span> <span class="pre">*</span> <span class="pre">dBm}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.CombSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mnoptical.dataplane.ROADM" title="mnoptical.dataplane.ROADM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ROADM</span></code></a></p>
+<p>Comb Source with simulated optical signals.</p>
+<p>The CombSource component emulates a comb source in COSMOS or
+other hardware testbeds. It is a dataplane component (the MUX
+half of a ROADM) but it only generates and transmits simulated
+signals. It is convenient for emulating a hardware comb source
+or for generating opaque background traffic in the simulated
+physical plane.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource.ADD">
+<span class="sig-name descname"><span class="pre">ADD</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">4100</span></em><a class="headerlink" href="#mnoptical.dataplane.CombSource.ADD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource.LINEOUT">
+<span class="sig-name descname"><span class="pre">LINEOUT</span></span><em class="property"><span class="w"> </span><span class="pre">=</span> <span class="pre">4201</span></em><a class="headerlink" href="#mnoptical.dataplane.CombSource.LINEOUT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource.addTerminal">
+<span class="sig-name descname"><span class="pre">addTerminal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.CombSource.addTerminal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add our simulated LineTerminal</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource.restTurnonHandler">
+<span class="sig-name descname"><span class="pre">restTurnonHandler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.CombSource.restTurnonHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle REST call: /turn_on?node=name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mnoptical.dataplane.CombSource.turn_on">
+<span class="sig-name descname"><span class="pre">turn_on</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.CombSource.turn_on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure components and turn on signals</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="mnoptical.dataplane.cleanOptLinks">
 <span class="sig-prename descclassname"><span class="pre">mnoptical.dataplane.</span></span><span class="sig-name descname"><span class="pre">cleanOptLinks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mnoptical.dataplane.cleanOptLinks" title="Permalink to this definition">¶</a></dt>
@@ -803,7 +848,7 @@ consist of links and 2-way amplifiers</p>
       &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.3</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
