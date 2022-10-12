@@ -11,9 +11,12 @@ Submodules
    :maxdepth: 1
 
    config_lroadmring/index.rst
+   cosmostutorial/index.rst
    dbgtest/index.rst
    lroadmring/index.rst
+   nc_add_connection/index.rst
    roadm_with_amps/index.rst
+   sigcommtutorial/index.rst
    simplelink/index.rst
    singlelink/index.rst
    singleroadm/index.rst

@@ -1,0 +1,121 @@
+:py:mod:`mnoptical.examples.cosmostutorial`
+===========================================
+
+.. py:module:: mnoptical.examples.cosmostutorial
+
+.. autoapi-nested-parse::
+
+   cosmostutorial.py: hardware-like topology for COSM-IC mini-tutorial.
+
+   This is for the tutorial at:
+   https://wiki.cosmos-lab.org/wiki/Tutorials/Optical/MininetOpticalTutorial1
+
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.cosmostutorial.TutorialTopo
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.cosmostutorial.config0
+   mnoptical.examples.cosmostutorial.arp
+   mnoptical.examples.cosmostutorial.test
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.cosmostutorial.username
+   mnoptical.examples.cosmostutorial.password
+   mnoptical.examples.cosmostutorial.sslkeyfile
+   mnoptical.examples.cosmostutorial.ch
+   mnoptical.examples.cosmostutorial.ch2
+   mnoptical.examples.cosmostutorial.topo
+
+
+.. py:data:: username
+   :annotation: = cosmos
+
+   
+
+.. py:data:: password
+   :annotation: = cosmos
+
+   
+
+.. py:data:: sslkeyfile
+   :annotation: = testcerts/fakeserver.key
+
+   
+
+.. py:data:: ch
+   :annotation: = 34
+
+   
+
+.. py:data:: ch2
+   :annotation: = 60
+
+   
+
+.. py:class:: TutorialTopo
+
+   Bases: :py:obj:`mininet.topo.Topo`
+
+   COSM-IC mini-tutorial topology:
+
+   roadm4 <-> roadm1 <-> roadm2 <-22km-> roadm3
+    |          |                          |
+   tor1       tor2                       tor3
+    |          |                          |
+   server1    server2                    server3
+
+   This is for the COSMOS mini-tutorial at:
+   https://wiki.cosmos-lab.org/wiki/Tutorials/Optical/MininetOpticalTutorial1
+
+   .. py:method:: wdmLink(src, dst, port1, port2, **params)
+
+      Add a (default unidirectional) WDM link
+
+
+   .. py:method:: build()
+
+      Build COSMOS tutorial topology
+
+
+
+.. py:function:: config0(net)
+
+   Simple sanity-check configuration using internal API
+
+
+.. py:function:: arp(net)
+
+   Update host IP address info and send gratuitous ARPs
+
+
+.. py:function:: test(net)
+
+   Test network configurations
+
+
+.. py:data:: topo
+   
+
+   
+

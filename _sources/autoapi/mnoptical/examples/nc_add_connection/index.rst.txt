@@ -1,0 +1,44 @@
+:py:mod:`mnoptical.examples.nc_add_connection`
+==============================================
+
+.. py:module:: mnoptical.examples.nc_add_connection
+
+.. autoapi-nested-parse::
+
+   nc_add_connection.py: add an LROADM connection using netconf
+
+   currently hard-wired for cosmos tutorial
+
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.nc_add_connection.connect
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   mnoptical.examples.nc_add_connection.args
+
+
+.. py:function:: connect(ipport, module, connection_id, operation, blocked, inport, outport, startfreq, endfreq, loss, name)
+
+   Make a netconf connection RPC, printing results and new config
+
+
+.. py:data:: args
+   
+
+   
+
