@@ -41,9 +41,15 @@ class Link(object):
         def connect(prev, component):
             "Connect previous component to component"
             if prev != src_node:
+                if prev.next_component:
+                    raise ValueError(
+                        f'{self}: {prev} already connected to {prev.next_component}')
                 prev.next_component = component
                 prev.set_output_port(component, self, output_port=0)
             if component != dst_node:
+                if component.link:
+                    raise ValueError(
+                        f'{self}: {component} already used in {component.link}')
                 component.link = self
                 component.prev_component =  prev
                 component.set_input_port(prev, self, input_port=0)
@@ -145,7 +151,8 @@ class Link(object):
         """
         first_component = self.boost_amp or self.spans[0][0]
         for optical_signal in self.optical_signals:
-            first_component.include_optical_signal_in(optical_signal, in_port=0)
+            state = optical_signal.loc_in_to_state[self]
+            first_component.include_optical_signal_in(optical_signal, **state, in_port=0)
         first_component.propagate(optical_signals=self.optical_signals,
                                   is_last_port=is_last_port,
                                   safe_switch=safe_switch)
