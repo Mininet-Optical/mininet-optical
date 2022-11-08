@@ -544,7 +544,7 @@ class OpticalSignal(object):
         assert (power, ase_noise, nli_noise) != (None, None, None)
         state = self.loc_in_to_state.setdefault(
             loc, dict(power=0, ase_noise=0, nli_noise=0))
-        if power is not None: 
+        if power is not None:
             state['power'] = power
         if ase_noise is not None:
             state['ase_noise'] = ase_noise
@@ -560,10 +560,10 @@ class OpticalSignal(object):
         :param ase_noise: ase levels [mW] (or None for default/launch state)
         :param nli_noise: nli levels [mW] (or None for default/launch state)
         """
-        assert (power, ase_noise, nli_noise) != (None, None, None)        
+        assert (power, ase_noise, nli_noise) != (None, None, None)
         state = self.loc_out_to_state.setdefault(
             loc, dict(power=0, ase_noise=0, nli_noise=0))
-        if power is not None: 
+        if power is not None:
             state['power'] = power
         if ase_noise is not None:
             state['ase_noise'] = ase_noise
@@ -603,8 +603,10 @@ class Roadm(Node):
     components (i.e., WSSs).
     """
 
-    def __init__(self, name, insertion_loss_dB=17, reference_power_dBm=0,
-                 preamp=None, boost=None, monitor_mode=None, debugger=False):
+    def __init__(self, name,  reference_power_dBm=0,
+                 preamp=None, boost=None,
+                 insertion_loss_dB=17, channel_map=None,
+                 monitor_mode=None, debugger=False):
         """
         :param name: string, name tag of ROADM
         :param insertion_loss_dB: int, linear insertion loss of ROADM (default 17 dB)
@@ -633,9 +635,14 @@ class Roadm(Node):
         channel_no = 90
         self.insertion_loss_dB = {k: insertion_loss_dB for k in range(1, channel_no + 1)}
         self.reference_power_dBm = {k: reference_power_dBm for k in range(1, channel_no + 1)}
-        # expected output power of signals
+        # expected/desired output power of signals
+        # FIXME: Although add/drop signals traverse a single WSS while passthrough
+        # signals traverse both WSSs, we set the same target output power. This might
+        # not be correct or desirable. We also appear to be passing drop signals through
+        # the internal boost amplifier if any.
         self.target_output_power_dBm = {k: self.reference_power_dBm[k] - self.insertion_loss_dB[k]
                                         for k in range(1, channel_no + 1)}
+        self.channel_map = None if channel_map is None else set(channel_map)
 
         # keep track of previous power
         # levels of individual signals
@@ -1022,7 +1029,7 @@ class Roadm(Node):
                     if optical_signals_in_preamp:
                         self.preamp.propagate(optical_signals_in_preamp)
 
-    def compute_carrier_attenuation(self, in_port, amp=None):
+    def compute_carrier_attenuation_old(self, in_port, amp=None):
         """
         Compute the total power at an input port, and
         use it to compute the carriers attenuation
@@ -1050,64 +1057,36 @@ class Roadm(Node):
 
         return carriers_att
 
-    def process_att(self, out_port, in_port, optical_signals, src_node, dst_node, link, amp=None):
+
+    def compute_carrier_attenuation(self, in_port, amp=None):
         """
-        Compute the attenuation effects at the ROADM
-        :param out_port: int, output port (direction of signals)
-        :param in_port: int, input port (direction of signals)
-        :param optical_signals: list of optical signals
-        :param src_node: LineTerminal or Amplifier object
-        :param dst_node: LineTerminal or Amplifier object
-        :param link: Link object (direction of signals)
+        Compute the total power at an input port, and
+        use it to compute the carriers attenuation
+        :param in_port: int, input port for total power calculation
         :param amp: Amplifier object, if there are boost and preamp
                     the signals are contained within these objects
         """
-        # Compute per carrier attenuation
-        carriers_att = self.compute_carrier_attenuation(in_port, amp=amp)
+        carriers_att = {}
+        channel_map = self.channel_map
+        for optical_signal in self.port_to_optical_signal_in[in_port]:
 
-        for optical_signal in optical_signals:
-            if amp:
-                # attenuate signals at output interface of amp
-                power_out = optical_signal.loc_out_to_state[amp]['power'] / carriers_att[optical_signal.index]
-                ase_noise_out = optical_signal.loc_out_to_state[amp]['ase_noise'] / carriers_att[optical_signal.index]
-                nli_noise_out = optical_signal.loc_out_to_state[amp]['nli_noise'] / carriers_att[optical_signal.index]
+            if amp: state = optical_signal.loc_out_to_state[amp]
+            else: state = optical_signal.loc_in_to_state[self]
+
+            if channel_map is None or optical_signal.index in channel_map:
+                # Attenuate by amount over target power
+                power_in = state['power']
+                ase_noise_in = state['ase_noise']
+                total_power_dBm = abs_to_db((power_in + ase_noise_in)*1e3)
+                excess_power = total_power_dBm - self.target_output_power_dBm[optical_signal.index]
+                carriers_att[optical_signal.index] = db_to_abs(max(excess_power, 0))
             else:
-                # attenuate signals as they entered the ROADM (self)
-                power_out = optical_signal.loc_in_to_state[self]['power'] / carriers_att[optical_signal.index]
-                ase_noise_out = optical_signal.loc_in_to_state[self]['ase_noise'] / carriers_att[optical_signal.index]
-                nli_noise_out = optical_signal.loc_in_to_state[self]['nli_noise'] / carriers_att[optical_signal.index]
-
-            if self.boost:
-                # need to pass signals to boost for later processing
-                self.boost.include_optical_signal_in(optical_signal, power=power_out,
-                                                     ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                     in_port=0)
-            else:
-                # update the structures in the link for that direction,
-                # all these signals are going towards the same out port
-                link.include_optical_signal_in(optical_signal, power=power_out,
-                                               ase_noise=ase_noise_out, nli_noise=nli_noise_out)
-                self.include_optical_signal_out(optical_signal, power=power_out,
-                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                out_port=out_port)
-
-        if self.boost:
-            # process boost amp
-            self.boost.propagate(optical_signals)
-
-            # pass signals to link and update state at Roadm
-            for i, optical_signal in enumerate(optical_signals):
-                power_out = optical_signal.loc_out_to_state[self.boost]['power']
-                ase_noise_out = optical_signal.loc_out_to_state[self.boost]['ase_noise']
-                nli_noise_out = optical_signal.loc_out_to_state[self.boost]['nli_noise']
-
-                # update the structures for that direction
-                # all these signals are going towards the same out port
-                link.include_optical_signal_in(optical_signal, power=power_out,
-                                               ase_noise=ase_noise_out, nli_noise=nli_noise_out)
-                self.include_optical_signal_out(optical_signal, power=power_out,
-                                                ase_noise=ase_noise_out, nli_noise=nli_noise_out,
-                                                out_port=out_port)
+                # Attenuate by standard amount
+                # FIXME: This isn't right for add ports that only pass through
+                # a single WSS, but we only have a single insertion loss parameter...
+                carriers_att[optical_signal.index] = db_to_abs(
+                    self.insertion_loss_dB[optical_signal.index])
+        return carriers_att
 
     def propagate(self, out_port, in_port, optical_signals):
         """
@@ -1120,12 +1099,40 @@ class Roadm(Node):
         dst_node = self.port_to_node_out[out_port]
         link = self.port_to_link_out[out_port]
 
-        if self.preamp and not isinstance(src_node, LineTerminal):
-            # the current state of the signals is at self.preamp
-            self.process_att(out_port, in_port, optical_signals, src_node, dst_node, link, amp=self.preamp)
-        else:
-            # the current state of the signals are at the Roadm input port
-            self.process_att(out_port, in_port, optical_signals, src_node, dst_node, link)
+        # Line inputs go through the preamp if any
+        is_line_input = not isinstance(src_node, LineTerminal)
+        amp = is_line_input and self.preamp or None
+
+        # Compute per carrier attenuation
+        carriers_att = self.compute_carrier_attenuation(in_port, amp=amp)
+
+        for optical_signal in optical_signals:
+
+            # Signal state is at preamp output or roadm input
+            if amp: state = optical_signal.loc_out_to_state[amp].copy()
+            else: state = optical_signal.loc_in_to_state[self].copy()
+
+            # Attenuate signals
+            state['power'] /= carriers_att[optical_signal.index]
+            state['ase_noise'] /= carriers_att[optical_signal.index]
+            state['nli_noise'] /= carriers_att[optical_signal.index]
+
+            if self.boost:
+                # Pass output signals through boost amplifier if any
+                # FIXME: It is incorrect to pass *dropped* signals through
+                # the boost amp, but we have over-attenuated them...
+                self.boost.include_optical_signal_in(optical_signal, **state, in_port=0)
+            else:
+                link.include_optical_signal_in(optical_signal, **state)
+                self.include_optical_signal_out(optical_signal, **state, out_port=out_port)
+
+        if self.boost:
+            self.boost.propagate(optical_signals)
+            for optical_signal in optical_signals:
+                state = optical_signal.loc_out_to_state[self.boost]
+                link.include_optical_signal_in(optical_signal, **state)
+                self.include_optical_signal_out(optical_signal, **state, out_port=out_port)
+
 
     def route(self, out_port, safe_switch):
         """Calling route will continue to propagate the signals in this link
@@ -1167,6 +1174,11 @@ class Roadm(Node):
             for i, x in self.target_output_power_dBm.items():
                 self.target_output_power_dBm[i] = ref_power_dBm - self.insertion_loss_dB[i]
         self.fast_switch()
+
+
+    def set_channel_map(self, channel_map):
+        if channel_map is not None:
+            self.channel_map = set(channel_map)
 
     def fast_switch(self):
         """
@@ -1434,13 +1446,13 @@ class Splitter(Node):
 
     We use the same ingress API/protocol as Roadm.
     """
-    
+
     def __init__(self, name, split=None, monitor_mode='out'):
         "split: {port:percent...}"
         super().__init__(name)
         self.split = split or {}
         self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
-        
+
     def switch(self, in_port, src_node, safe_switch=False):
         """Propagate splitter's signals to its output ports.
            This is part of the Roadm protocol that we conform to."""
@@ -1471,7 +1483,7 @@ class Splitter(Node):
         "Here to signal that we are conforming to the Roadm protocol"
         self.include_optical_signal_in(
             optical_signal, power=power, ase_noise=ase_noise, nli_noise=nli_noise, in_port=in_port)
-    
+
 
 class Monitor(Node):
     """
