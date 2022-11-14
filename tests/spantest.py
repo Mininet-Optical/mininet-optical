@@ -26,7 +26,7 @@ def span(length, gain=None):
         ampcount += 1
         amp = net.add_amplifier(
             f'amp{ampcount}', target_gain=gain, monitor_mode='out')
-    return SpanTuple(Span(length=length), amp)
+    return SpanTuple(Span(length=length, wd_loss='linear'), amp)
 
 def config(t, txnum, ch, inport, outport):
     "Configure tx/rx on LineTerminal t"

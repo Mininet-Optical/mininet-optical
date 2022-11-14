@@ -70,7 +70,7 @@ class Network(object):
         return amplifier
 
     def add_link(self, src_node, dst_node, src_out_port=-1,
-                 dst_in_port=-1, boost_amp=None, spans=None):
+                 dst_in_port=-1, boost_amp=None, spans=None, **params):
         """
         Add a uni-directional link
         :param src_node: source node in link
@@ -79,13 +79,15 @@ class Network(object):
         :param dst_in_port: dst_node input port
         :param boost_amp: optional amplifier object for boost_amplification
         :param spans:
+        :param **params: optional keyword parameters for fiber/span (eg. srs_model, wd_loss etc.)
         :return: created and added link
         """
         link = Link(src_node, dst_node,
                     src_out_port=src_out_port,
                     dst_in_port=dst_in_port,
                     boost_amp=boost_amp,
-                    spans=spans)
+                    spans=spans,
+                    **params)
 
         self.links.append(link)
         self.topology[src_node].append((dst_node, link))

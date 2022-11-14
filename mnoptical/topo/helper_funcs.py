@@ -4,11 +4,12 @@ from mnoptical.link import Span as Fiber, SpanTuple as Segment
 km = dB = dBm = 1.0
 m = .001
 
-def Span(km, amp=None):
-    """Return a fiber segment of length km with a compensating amp"""
-    return Segment(span=Fiber(length=km), amplifier=amp)
+def Span(km, amp=None, **params):
+    """Return a fiber segment of length km with a compensating amp
+       :param **params: optional keyword parameters for fiber/span (eg. srs_model, wd_loss etc.)"""
+    return Segment(span=Fiber(length=km, **params), amplifier=amp)
 
-def build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_ok=False, debugger=True, wdg_id=None):
+def build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_ok=False, debugger=True, wdg_id=None, **params):
     # store all spans (sequentially) in a list
     spans = []
 
@@ -30,18 +31,18 @@ def build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_o
                     monitor_mode='out',
                     debugger=debugger,
                     wdg_id=wdg_id)
-        span = Span(span_length, amp=amplifier)
+        span = Span(span_length, amp=amplifier, **params)
         spans.append(span)
 
     return net, spans
 
-def build_link(net, r1, r2, span_no, span_length, debugger=True, wdg_id=None):
-    net, spans = build_spans(net, r1, r2, span_no, span_length, amp=True, debugger=debugger, wdg_id=wdg_id)
+def build_link(net, r1, r2, span_no, span_length, debugger=True, wdg_id=None, **params):
+    net, spans = build_spans(net, r1, r2, span_no, span_length, amp=True, debugger=debugger, wdg_id=wdg_id, **params)
     for step, span in enumerate(spans, start=1):
         net.spans.append(span)
 
     # link object
-    net.add_link(r1, r2, spans=spans)
+    net.add_link(r1, r2, spans=spans, **params)
 
 def add_amp(net, node_name=None, type=None, gain_dB=None, debugger=True, wdg_id=None):
     """
