@@ -253,13 +253,13 @@ def fiberOutput(signals, length, srs=srs_effect_model1, bw=32*GHz):
     # GN model NLI compensation
     nli = gn_model(signals, nonlinear_coefficient, alpha=alpha,
                    effective_length=effective_length, bw=bw)
-    print(nli)
-    exit(0)
+
 
     # Apply fiber attenuation
     attenuationdb = length * fiber_attenuation
     att = dbtolinear(-attenuationdb)
-    output = {ch: Sigstate(s.pwr*att, s.ase*att, nli[ch]*att)
+    # WIP - ignore GN model until fixed
+    output = {ch: Sigstate(s.pwr*att, s.ase*att, 0*nli[ch]*att)
               for ch, s in signals.items()}
 
     return output
