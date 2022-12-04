@@ -20,7 +20,7 @@ GNpy as well.
 from simfunctions import (
     Sigstate, createSignals, fiberOutput, edfaAdjustedOutput,
     roadmOutput, flatWDG,
-    plotChannelPower, pwr, ase,
+    plotChannelPower, pwr, ase, nli,
     dB, dBm, cm, m, wdg1 )
 
 # Mininet-Optical imports
@@ -45,25 +45,35 @@ def singlespantest():
     channels = set(range(1,90))
     s0 = createSignals({ch:0*dBm for ch in channels})
     s1, _drop = roadmOutput(
-        mux={'add':s0, 'levelto': -4.5*dBm, 'headroom':1.0*dB},
+        mux={'add':s0, 'levelto': None},
         boost={'gtarg':4.5*dB, 'wdg':flatWDG})
     s2 = fiberOutput(s1, 75, srs=None)
     s3 = edfaAdjustedOutput(s2, gtarg=75*.22*dB, wdg=wdg1)
     _lineout, s4 = roadmOutput(s3, demux={'drop':channels})
 
     # Mininet-Optical simulated version
-    msignals = run1(net1())
-    m1 = msignals['r1']
-    m3 = msignals['amp1']
-    m4 = msignals['t1']
+    net = net1()
+    mnin, mnout = run1(net)
+    m1 = mnout['r1']
+    m2 = mnin['amp1']
+    m3 = mnout['amp1']
+    m4 = mnout['t1']
+    nodes = net.name_to_node
+    amp1 = nodes['amp1']
+    print(amp1, amp1.system_gain)
 
     # Comparison
     plotChannelPower({
-        'r1 output(fn)': pwr(s1),
-        'r1 output(mn)': pwr(m1),
+        #'r1 output(fn)': pwr(s1),
+        #'r1 output(mn)': pwr(m1),
         #'fiber output(fn)': pwr(s2),
-        'amp1 output(fn)': pwr(s3),
-        'amp1 output(mn)': pwr(m3),
+        #'fiber output(mn)': pwr(m2),
+        #'amp1 out pwr(fn)': pwr(s3),
+        #'amp1 out pwr(mn)': pwr(m3),
+        'amp1 out ase(fn)': ase(s3),
+        'amp1 out ase(mn)': ase(m3),
+        #'amp1 out nli(fn)': nli(s3),
+        #'amp1 out nli(mn)': nli(m3),
         #'r2 drop(fn)': pwr(s4),
         #'r2 drop(mn)': pwr(m4)
         }, 'Single Span Test')
@@ -106,12 +116,12 @@ def dualspantest():
 
     # Comparison
     plotChannelPower({
-        #'r1 output(fn)': pwr(s1),
-        #'r1 output(mn)': pwr(m1),
+        'r1 output(fn)': pwr(s1),
+        'r1 output(mn)': pwr(m1),
         'amp1 out/r2 in(fn)': pwr(s3),
         'amp1 out/r2 in(mn)': pwr(m3),
-        #'r2 output(fn)': pwr(s4),
-        #'r2 output(mn)': pwr(m4),
+        'r2 output(fn)': pwr(s4),
+        'r2 output(mn)': pwr(m4),
         #'amp2 output(fn)': pwr(s6),
         #'r3 output(fn)': pwr(s7),
         #'r3 ase(fn)': ase(s7),
@@ -160,7 +170,8 @@ def net1():
 
 
 def run1(net):
-    "Configure and run net1, returning output signals"
+    """Configure and run net1, returning input and output signals
+       for all nodes with attached monitors"""
 
     # ROADMs: r1 adds channels; r2 drops them
     r1, r2 = net.roadms
@@ -180,10 +191,12 @@ def run1(net):
     for t in t1, t2:
         t.turn_on()
 
-    # Return output signals in SigState format
-    return {node.name: mntosigstate(node)
+    # Return input and output signals in SigState format
+    return [{node.name: mntosigstate(node, mode)
             for node in net.name_to_node.values()
-            if hasattr(node, 'monitor')}
+                 if hasattr(node, 'monitor')}
+            for mode in ('in', 'out')]
+
 
 
 def net2():
@@ -261,10 +274,12 @@ def makespan(net, length, aname='', *args, **params):
     return Segment(span=Fiber(length=length), amplifier=amp)
 
 
-def mntosigstate(node):
-    "Convert mn-optical signal list to Sigstate dict"
-    # FIXME: we should specify the direction and port
+def mntosigstate(node, mode=None):
+    """Convert mn-optical signal list to Sigstate dict
+       node: mnoptical.node.Node with attached monitor
+       mode: direction: None (node default) | 'in' | 'out'"""
     mon = node.monitor
+    if mode: mon.modify_mode(mode)
     return {s.index: Sigstate(pwr=mon.get_power(s),
                               ase=mon.get_ase_noise(s),
                               nli=mon.get_nli_noise(s))
