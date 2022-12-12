@@ -17,10 +17,11 @@ GNpy as well.
 
 
 # Functional model imports
-from simfunctions import (
+from tests.simfunctions import (
     Sigstate, createSignals, fiberOutput, edfaAdjustedOutput,
     roadmOutput, flatWDG,
-    plotChannelPower, pwr, ase, nli,
+    plotChannelPower, pwr, ase, nli, tpwr, ddelta,
+    wattstodbm, dbmtowatts,
     dB, dBm, cm, m, wdg1 )
 
 # Mininet-Optical imports
@@ -34,6 +35,8 @@ from functools import partial
 
 ### Validation tests: functional model vs. Mininet-Optical
 
+TXCOUNT = 1 # number of channels to transmit
+
 
 ### 1. Single span with add and drop ROADMs
 
@@ -42,11 +45,12 @@ def singlespantest():
        channels -> roadm -> fiber -> amp -> roadm """
 
     # Functional version
-    channels = set(range(1,90))
+    channels = set(range(1,TXCOUNT+1))
     s0 = createSignals({ch:0*dBm for ch in channels})
     s1, _drop = roadmOutput(
-        mux={'add':s0, 'levelto': None},
-        boost={'gtarg':4.5*dB, 'wdg':flatWDG})
+        mux={'add':s0, 'loss':4.5, 'levelto': None},
+        demux={'loss':0.0},
+        boost={'gtarg':4.5, 'wdg':flatWDG})
     s2 = fiberOutput(s1, 75, srs=None)
     s3 = edfaAdjustedOutput(s2, gtarg=75*.22*dB, wdg=wdg1)
     _lineout, s4 = roadmOutput(s3, demux={'drop':channels})
@@ -63,15 +67,23 @@ def singlespantest():
     print(amp1, amp1.system_gain)
 
     # Comparison
+    dmax = max(abs(s1[ch].ase - m1[ch].ase)
+               for ch in s1)
+    print("ROADM/BOOST OUTPUT")
+    print("FUNCTIONAL", s1)
+    print("MNO", m1)
+    print('DMAX', dmax)
+    exit(0)
     plotChannelPower({
-        #'r1 output(fn)': pwr(s1),
-        #'r1 output(mn)': pwr(m1),
-        #'fiber output(fn)': pwr(s2),
-        #'fiber output(mn)': pwr(m2),
+        #'r1 output ase (fn)': ase(s1),
+        #'r1 output ase (mn)': ase(m1),
+        'r1 ase delta': ddelta(ase(s1), ase(m1)),
+        #'amp1 in pwr(fn)': pwr(s2),
+        #'amp1 in pwr(mn)': pwr(m2),
         #'amp1 out pwr(fn)': pwr(s3),
         #'amp1 out pwr(mn)': pwr(m3),
-        'amp1 out ase(fn)': ase(s3),
-        'amp1 out ase(mn)': ase(m3),
+        #'amp1 out ase(fn)': ase(s3),
+        #'amp1 out ase(mn)': ase(m3),
         #'amp1 out nli(fn)': nli(s3),
         #'amp1 out nli(mn)': nli(m3),
         #'r2 drop(fn)': pwr(s4),
@@ -87,10 +99,10 @@ def dualspantest():
 
     # Functional version
     channels = set(range(1,90))
-    s0 = createSignals({ch:0*dBm for ch in channels})
+    s0 = createSignals({ch:-9.0*dBm for ch in channels})
     # ROADM1
     s1, _drop = roadmOutput(
-        mux={'add':s0, 'levelto': -4.5*dBm, 'headroom':1.0*dB},
+        mux={'add':s0, 'levelto': None},
         boost={'gtarg':4.5*dB, 'wdg':flatWDG})
     # Span1 + Amp1
     s2 = fiberOutput(s1, 75)
@@ -139,7 +151,7 @@ def net1():
 
     net = Network()
 
-    channels = set(range(1,91))
+    channels = set(range(1,TXCOUNT+1))
 
     # Helpful shortcuts used below
     term, roadm, amp = (net.add_lt, net.add_roadm, net.add_amplifier)
@@ -152,14 +164,14 @@ def net1():
     t2 = term('t2', [Tx(i, f'tx{i}', 0*dBm) for i in channels], **inm)
     r1 = roadm('r1',
                reference_power_dBm=0.0*dBm,
-               boost=amp('b1', target_gain=9.0*dB, wdg_id='linear'),
-               insertion_loss_dB=9*dB, **outm)
+               boost=amp('b1', target_gain=4.5*dB, wdg_id='linear'),
+               insertion_loss_dB=4.5*dB, **outm)
     r2 = roadm('r2', preamp=None, boost=None, **outm)
 
     # Uplinks and downlinks
     for ch in channels:
-        L(t1, r1, TX+ch, ADD+ch, spans=[span(1*m)])
-        L(r2, t2, DROP+ch, RX+ch, spans=[span(1*m)])
+        L(t1, r1, TX+ch, ADD+ch, spans=[span(.001)])
+        L(r2, t2, DROP+ch, RX+ch, spans=[span(.001)])
 
     # Fiber span and compensating amplifier
     length = 75  # km !!!
@@ -175,13 +187,13 @@ def run1(net):
 
     # ROADMs: r1 adds channels; r2 drops them
     r1, r2 = net.roadms
-    for ch in range(1,91):
+    for ch in range(1,TXCOUNT+1):
         r1.install_switch_rule(ADD+ch, LINEOUT, [ch])
         r2.install_switch_rule(LINEIN, DROP+ch, [ch])
 
     # Terminals: t1 is uplink; t2 is downlink
     t1, t2 = net.line_terminals
-    for ch in range(1, 91):
+    for ch in range(1, TXCOUNT+1):
         t1.assoc_tx_to_channel(
             t1.id_to_transceivers[ch], ch, out_port=TX+ch)
         t2.assoc_rx_to_channel(

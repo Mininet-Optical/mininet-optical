@@ -2,20 +2,20 @@
 simfunctions.py: optical modeling function library
 
 This file is a simple *functional* (re)implementation of the
-simulation model used by Mininet-Optical, including
-the GN-model (Gaussian Noise model) and a simple model for
-SRS (Stimulated Raman Scattering) effects.
+steady-state optical transmission physics simulation model used by
+Mininet-Optical, including the GN-model (Gaussian Noise model) and a
+simple model for SRS (Stimulated Raman Scattering) effects.
 
 Optical signal and component models:
 
 Signal state model/representation
 - signal power, ASE noise power, NLI effects
 - fixed ITU 50 GHz channel grid
-- spectrum is {ch: Sigstate} dict
+- spectrum is {ch: (pwr, ase, nli) in watts}
 - frequency <-> channel conversion functions
 
 Fiber (SMF) model:
-- flat attenuation (.22 dB/km across all channels)
+- fixed attenuation (.22 dB/km across all channels)
 - SRS model
 - GN-model for nonlinear interference (NLI) effects
 
@@ -49,9 +49,11 @@ Inviolable rules for model functions:
 
 """
 
-from collections import namedtuple
-from math import e, pi, exp, log10, asinh
 from mnoptical.edfa_params import ripple_functions
+
+from collections import namedtuple
+from math import e, pi, exp, log10, asinh, prod
+
 
 ### Units
 
@@ -78,7 +80,7 @@ C = 299792458.0   # speed of light (m/s)
 
 def dbtolinear(dbvalue):
     "Convert power dB value to linear factor"
-    return 10 ** (dbvalue/10.0)
+    return 10 ** (dbvalue/10)
 
 def lineartodb(linearvalue):
     "Convert linear factor to power dB value"
@@ -87,14 +89,14 @@ def lineartodb(linearvalue):
 
 def dbmtowatts(dbmvalue):
     "Convert dBm value to Watts"
-    return dbtolinear(dbmvalue) * 1e-3
+    return dbtolinear(dbmvalue) * .001
 
 def wattstodbm(wvalue):
     "Convert watts value to dBm"
-    return lineartodb(wvalue*1e3)
+    return lineartodb(wvalue * 1000)
 
 def chtofreq(ch):
-    """Convert Mininet-Optical/ROADM-20/ITU 50 GHz
+    """Convert ITU/ROADM-20/Mininet-Optical fixed 50 GHz
        channel grid index to frequency in Hz."""
     # Channel 0 frequency and channel width in GHz
     ch0 = 191300
@@ -104,35 +106,33 @@ def chtofreq(ch):
 
 ### Signal state representation
 
-# Signal state Sigstate ('sig') consists of:
+# Signal state Sigstate ('S') consists of:
 # pwr: signal power in watts
 # ase: ASE noise in watts
 # nli: GN model NLI noise component in watts
 
-Sigstate = namedtuple('sig', 'pwr ase nli')
+Sigstate = namedtuple('S', 'pwr ase nli')
+S = Sigstate   # abbreviation
 
 def createSignals(channels):
     """Return a signal spectrum
        channels: {ch: power in dBm}
        returns: {ch: Sigstate(pwr in watts)}"""
-    return {ch: Sigstate(pwr=dbmtowatts(pdbm),ase=0,nli=0)
+    return {ch: S(dbmtowatts(pdbm), ase=0, nli=0)
             for ch, pdbm in channels.items()}
 
 # Signal spectrum helper functions
 
 def adjust(signals, gain):
     "Adjust (amplify/attenuate) signals by gain/loss in dB"
-    if gain == 0*dB: return signals  # bypass
     g = dbtolinear(gain)
-    return {ch:
-            Sigstate(pwr=s.pwr*g, ase=s.ase*g, nli=s.nli*g)
+    return {ch: S(s.pwr*g, s.ase*g, s.nli*g)
             for ch, s in signals.items()}
 
 def attenuate(signals, loss):
     "Attenuate signals by loss in dB"
     assert loss >= 0
     return adjust(signals, -loss)
-
 
 
 # Selector functions (useful for plotting)
@@ -146,6 +146,16 @@ def pwr(sigs): return selectdbm(sigs, 'pwr')
 def ase(sigs): return selectdbm(sigs, 'ase')
 def nli(sigs): return selectdbm(sigs, 'nli')
 
+def tpwr(signals):
+    "Return signal + ase power"
+    return {ch:s.pwr+s.ase
+            for ch, s in signals.items()}
+
+def ddelta(d1, d2):
+    "Dictionary delta {ch: d2[ch]-d1[ch]}"
+    result = { ch: d2[ch] - d1[ch]
+               for ch in d1}
+    return result
 
 ### Fiber span model
 
@@ -158,25 +168,28 @@ SmfRamanGain = 7.0 * 1e-12 * cm/W  # SMF Raman gain
 RamanAmpBand = 15 * THz  # Raman amplification band
 RamanCoeff1 = SmfRamanGain / (2 * SmfEffArea * RamanAmpBand)
 
-def srs_effect_model1(signals, length, beta=RamanCoeff1):
+def srs_effect_model1(signals, length,
+                      beta=RamanCoeff1):
     """SRS model from [Zirngibl98:eq7,8]
        length: effective fiber length in KILOMETERS (!!!)
        beta: raman coefficient"""
     chmin, chmax = min(signals, default=0), max(signals, default=1)
     fmin, fmax = chtofreq(chmin), chtofreq(chmax)
     # XXX: do we need to consider noise power?!?!
+    # It seems incorrect not to.
     tpower = sum((s.pwr for s in signals.values()), 0)
     output = {}
     # Equation
+    # length is in km
     term1 = beta * tpower * length * (fmax-fmin)
     r2 = exp(term1) - 1  # denominator
-    if r2 == 0: return signals
+    if r2 == 0: return signals.copy()
     output = {}
     for ch, s in signals.items():
         f = chtofreq(ch)
         r1 = term1 * exp(beta * tpower * length * (f-fmin))
         r = r1/r2
-        output[ch] = Sigstate(pwr=s.pwr*r, ase=s.ase*r, nli=s.nli*r)
+        output[ch] = S(s.pwr*r, s.ase*r, s.nli*r)
     return output
 
 
@@ -186,7 +199,7 @@ def srs_effect_model1(signals, length, beta=RamanCoeff1):
 
 ### BL NOTES:
 ###
-### 1. I simplified this somewhat vs. mnoptical.Node
+### 1. I simplified this somewhat vs. mnoptical.node,
 ###    assuming a standard channel bandwidth==symbol rate.
 ###
 ### 2. I think we should really verify this against the
@@ -198,8 +211,11 @@ pi2 = pi*pi
 
 def gn_model(signals, length_km, fiber_attenuation,
              nonlinear_coefficient=1.27, # /(W*km)
-             bw=32*GHz,
-             dispersion=1.67e-05, ref_wavelength=1550e-9):
+             bw=32*GHz, # ??? is this correct???
+             # This should be 16.7 ps/(km*nm) for SMF
+             # I don't see why it should be off by 1e6
+             dispersion=1.67e-5, # SMF dispersion ps/(km*nm)
+             ref_wavelength=1550e-9):
     """
     Original comment (A.Diaz):
     Computes the nonlinear interference power on a single carrier.
@@ -208,33 +224,39 @@ def gn_model(signals, length_km, fiber_attenuation,
     :return: {ch:nli} per-channel nonlinear interference value
     in W on the carrier under analysis
     """
-    # alpha (field gain coefficient);
+    # alpha (field loss coefficient)
     # optical power attenuates as exp(-2*alpha*length)
     alpha = fiber_attenuation / (20 * log10(e))
     asymptotic_length = 1 / (2 * alpha)
     # BL: effective length is counterintuitive...
     effective_length = ((1 - exp(-2 * alpha * length_km)) /
                          (2 * alpha))
+    print("effective length km", effective_length)
+    print("asymptotic length km", asymptotic_length)
     # Note cut/sut == channel/signal under test
     bw_cut = bw_ch = bw
     gamma = nonlinear_coefficient
-    D = abs(dispersion)
     # TODO: CHECK UNITS HERE
+    D = abs(dispersion)
     beta2 = -(ref_wavelength ** 2) * D / (2 * pi * C) # ps^2/km
-    # Accumulate modeled NLI power (pseudo-power?) for all channels
-    # const: constant term outside summation
+    print('beta2', beta2)
+    # Constant term outside summation:
     const = ((16/27) * (gamma * effective_length)**2 /
              (2*pi * abs(beta2) * asymptotic_length))
+    # Accumulate modeled NLI (pseudo?)power across all channels
     nli = {}
     for cut, sut in signals.items():
-        # G is the flat PSD per channel power (per polarization)
+        # G is the flat PSD per channel power (per polarization) (??)
+        # BL: apparently we are only modeling interference
+        # between coherent signals, so we ignore noise power
         g_cut = sut.pwr / bw_cut
         g_nli = 0
         for ch, sig in signals.items():
             g_ch = sig.pwr / bw_ch
             psi = psi_factor(
                 cut, ch, bw_cut, bw_ch, beta2, asymptotic_length)
-            g_nli += g_ch * g_ch * g_cut * psi
+            print("PSI FACTOR", psi)
+            g_nli += (g_ch * g_ch) * g_cut * psi
         nli[cut] = const * g_nli * bw_cut
     return nli
 
@@ -247,6 +269,7 @@ def psi_factor(carrier, interfering_carrier, bw_cut, bw_ch,
     `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`
     Translated from the GNPy project source code
     """
+    print('PSI AL DF BW', asymptotic_length, bw_cut)
     # Self channel interference (SCI)
     if carrier == interfering_carrier:
         return asinh(0.5 * pi2 * asymptotic_length * abs(beta2)
@@ -259,7 +282,6 @@ def psi_factor(carrier, interfering_carrier, bw_cut, bw_ch,
                     bw_cut * (delta_f - 0.5 * bw_ch)))
 
 
-
 def fiberOutput(signals, length, srs=srs_effect_model1):
     """Return output signals after passing through fiber span
        signals: fiber span input signals
@@ -267,18 +289,19 @@ def fiberOutput(signals, length, srs=srs_effect_model1):
     length_km = length
     fiber_attenuation=.22*dB # /km
 
-    # SRS effect if any
-    if False and srs: signals = srs(signals, length_km )
-
     # GN model NLI compensation value
     nli = gn_model(signals, length_km, fiber_attenuation)
+    # ??? Do we add in the NLI noise value from the GN-model
+    # *before* attenuation like Mininet-Optical?!?!
+    signals = {ch: S(s.pwr, s.ase, s.nli + nli[ch])
+               for ch, s in signals.items()}
 
+    # SRS effect if any
+    if srs: signals = srs(signals, length_km )
 
-    # Apply fiber attenuation
+    # Fiber attenuation
     attenuationdb = length * fiber_attenuation
-    att = dbtolinear(-attenuationdb)
-    output = {ch: Sigstate(s.pwr*att, s.ase*att, nli[ch]*att)
-              for ch, s in signals.items()}
+    output = attenuate(signals, attenuationdb)
 
     return output
 
@@ -290,13 +313,23 @@ def edfaAseNoise(ase, freq, glin, nf, bw):
     """
     Return EDFA Amplified Spontaneous Emission Noise output power (W)
     Equation source: [Diaz21:eq3.7], [Kumar/Deen14:eqA.38]
-    ASE: input ASE noise (W)
+    ase: input ASE noise (W)
     glin: system power gain (linear)
-    nf: noise/spontaneous emission/population inversion factor (float)
+    nf: noise figure in dB: 10^(nf/10) = inversion factor 2*nsp
     freq: center frequency of signal
     bw: bandwidth (we use channel bandwidth in our model?)
     """
-    return ase * glin + nf * Planck * freq * (glin-1.0) * bw
+    nflin = dbtolinear(nf)
+    return ase * glin + nflin * Planck * freq * (glin-1.0) * bw
+
+
+def edfaAseNoiseWrong(ase, freq, glin, nf, bw):
+    """
+    Seemingly incorrect version of ASE noise implemented in
+    mininet-optical?
+    """
+    nflin = dbtolinear(nf)
+    return ase * glin + nflin * Planck * freq * (glin) * bw
 
 
 def flatWDG(ch, signals):
@@ -312,33 +345,32 @@ def wdg1(ch, signals, profile='wdg1'):
     """Return static WDG from Mininet-Optical's
        'wdg1' ripple function
        profile: WDG profile name ('wdg1')
-       returns: linear power gain factor """
+       returns: LINEAR power gain factor """
     # Assume entry 0 corresponds to channel 1
     return dbtolinear(ripple_functions[profile][ch-1])
 
 
 def nf55(ch):
-    """Default static noise factor 5.5
-       used in Mininet-Optical (provenance?)"""
-    return 5.5
+    """Default constant 5.5 dB EDFA noise figure,
+       used in Mininet-Optical (and GNpy?)"""
+    return 5.5*dB
 
 
-def edfaOutput(signals, gsys, wdg, nf, bw):
+def edfaOutput(signals, gsys, wdg, nf, bw, asefn):
     """Return EDFA output for given input;
        gsys: system (nominal) gain setting in dB
        wdg: wavelength dependent gain function
             (ch, signals)->linear gain factor
        nf: noise figure array (units???)
        bw: EDFA configured bandwidth in Hz"""
-    glin = dbtolinear(gsys)
     output = {}
     for ch, s in signals.items():
-        wlin =  wdg(ch, signals)
-        output[ch] = Sigstate(
-            pwr = glin * wlin * s.pwr,
-            ase = edfaAseNoise(
-                s.ase, chtofreq(ch), glin*wlin, nf(ch), bw),
-            nli = glin * wlin * s.nli
+        glin = dbtolinear(gsys) * wdg(ch, signals)
+        output[ch] = S(
+            pwr = glin * s.pwr,
+            ase = asefn(
+                s.ase, chtofreq(ch), glin, nf(ch), bw),
+            nli = glin * s.nli
         )
     return output
 
@@ -348,38 +380,28 @@ def totalPowerGain(sigin, sigout):
        NB: we *ignore* NLI power as apparently it is a
        compensation factor and not physical power. Real
        NLI is small so it should not make a huge difference."""
-    # Total input power approximation
+    # Total input/output power approximation
     # We sum up the channel powers; presumably this is
     # comparable to integrating the power spectral density
-    Tin = sum(sig.pwr + sig.ase for sig in sigin.values())
-    # Total output power approximation
-    Tout = sum(sig.pwr + sig.ase for sig in sigout.values())
+    Tin = sum(s.pwr + s.ase for s in sigin.values())
+    Tout = sum(s.pwr + s.ase for s in sigout.values())
     return lineartodb(Tout/Tin) if Tin != 0 else None
 
 
-def geometricMeanGain(sigin, sigout):
-    """Return geometric mean of signal + ase power gain, in dB,
-       ignoring zero-power channels"""
-    dbtotal = count = 0
-    for ch in sigin:
-        s1, s2 = sigin[ch], sigout[ch]
-        p1, p2 = s1.pwr+s1.ase, s2.pwr+s2.ase
-        dbtotal += lineartodb(p2/p1)
-        count += 1
-    return dbtotal/count if count != 0 else None
+def gmean(items):
+    "Geometric mean"
+    items = tuple(items)
+    return prod(items)**(1/len(items))
 
 
-def signalGeometricMeanGain(sigin, sigout):
-    """Non-physical: return geometric mean of *signal* power
-       gain, in dB, ignoring ASE noise and zero-signal channels"""
-    dbtotal = count = 0
-    for ch in sigin:
-        s1, s2 = sigin[ch], sigout[ch]
-        p1, p2 = s1.pwr, s2.pwr
-        dbtotal += lineartodb(p2/p1)
-        count += 1
-    print('dbtotal', dbtotal, 'count', count)
-    return dbtotal/count if count != 0 else None
+def mininetOpticalMeanGain(sigin, sigout):
+    """Mininet-Optical mean gain algorithm.
+       Mininet-Optical calculates the gain as the ratio of the
+       geometric mean SIGNAL output power to the geometric mean input power.
+       ???: This seems non-physical. And why geometric mean???"""
+    Min = gmean(s.pwr for s in sigin.values())
+    Mout = gmean(s.pwr for s in sigout.values())
+    return lineartodb(Mout/Min) if Min != 0 else None
 
 
 ### Question: is the 32 GHz default bandwidth correct for
@@ -387,7 +409,7 @@ def signalGeometricMeanGain(sigin, sigout):
 
 def edfaAdjustedOutput(signals, gtarg=0*dB, wdg=flatWDG, nf=nf55,
                        bw=32*GHz, iterations=1,
-                       meanfn=geometricMeanGain):
+                       meanfn=totalPowerGain, asefn=edfaAseNoise):
     """Return EDFA output for given input,
        with system gain adjusted by the automatic
        constant gain control algorithm.
@@ -395,19 +417,21 @@ def edfaAdjustedOutput(signals, gtarg=0*dB, wdg=flatWDG, nf=nf55,
        gtarg: desired target gain in dB
        wdg: wavelength dependent gain function
             (ch, signals)->linear gain factor
-       nf: noise figure array
+       nf: noise figure function (dB)
        bw: EDFA configured bandwidth in THz
-       iterations: number of iterations to run"""
+       iterations: number of iterations to run
+       meanfn: function to calculate mean power gain
+       asefn: ASE noise function"""
     # Start system gain setting at target gain
     gain = gtarg
     # Perform iterations of gain control algorithm
+    params = dict(wdg=wdg, nf=nf, bw=bw, asefn=asefn)
     for _ in range(iterations):
-        sigout = edfaOutput(signals, gain, wdg=wdg, nf=nf, bw=bw)
+        sigout = edfaOutput(signals, gain, **params)
         gmean = meanfn(signals, sigout)
         if gmean is None: break
         gain += gtarg - gmean
-    print('gtarg', gtarg, 'gain', gain)
-    return edfaOutput(signals, gain, wdg=wdg, nf=nf, bw=bw)
+    return edfaOutput(signals, gain, **params)
 
 
 ### ROADM and WSS model
@@ -518,14 +542,17 @@ def muxOutput(signals, add={}, loss=4.5*dB,
        levelto: target output power in dBm
        **levelparams: other levelpower parameters"""
     # Multiplex signals together
+    print('mux input', signals)
     assert not add or set(signals) - set(add) == set(), (
         'MUX line input/add signals must not overlap')
     print('mux add', add.get(1, None))
     output = signals.copy()  # must not change input values
     output.update(add)  # OK since sigstate is immutable
     output = attenuate(output, loss)
+    print('attenuated by', loss, '->', output)
     if levelpower and levelto is not None:
         output = levelpower(output, levelto, **levelparams)
+    print('leveled to', output)
     return output
 
 
@@ -552,20 +579,22 @@ def roadmOutput(lineSignals={}, lineInputLoss=0*dB, preamp={}, mux={},
     Returns: line output, drop signals
     """
     s = lineSignals
-    print('line input', s)
     # Line input loss
     s = attenuate(s, lineInputLoss)
+    print('attenuated line input', s)
     # Preamp if present
     if preamp is not None: s = edfaAdjustedOutput(s, **preamp)
     # Demux WSS
     s, dropSignals = demuxOutput(s, **demux)
-    print('demux output', s, dropSignals)
     # Passthrough coupling loss
     s = attenuate(s, passLinkLoss)
+    print('passthrough', s)
     # Mux WSS
     s = muxOutput(s, **mux)
+    print('mux output', s)
     # Boost if any
     if boost is not None: s = edfaAdjustedOutput(s, **boost)
+    print('boost output', s)
     # Line output loss
     s = attenuate(s, lineOutputLoss)
     lineOutput = s
