@@ -98,7 +98,7 @@ def edfaSingleWavelengthTest(ch=1, pwr=0*dBm, gain=3*dB,
     for field in 'pwr', 'ase', 'nli':
         check(ch, medfain, fedfain, 'EDFA input', field)
         check(ch, medfaout, fedfaout, 'EDFA output', field)
-
+        check(ch, mfiberout, ffiberout, 'fiber output', field)
 
 
 ### SIMPLE FIBER TEST
