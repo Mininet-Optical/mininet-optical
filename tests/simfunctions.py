@@ -255,7 +255,7 @@ def gn_model(signals, length_km, fiber_attenuation,
             g_ch = sig.pwr / bw_ch
             psi = psi_factor(
                 cut, ch, bw_cut, bw_ch, beta2, asymptotic_length)
-            print("PSI FACTOR", psi)
+            # print("PSI FACTOR", psi)
             g_nli += (g_ch * g_ch) * g_cut * psi
         nli[cut] = const * g_nli * bw_cut
     return nli
@@ -269,7 +269,7 @@ def psi_factor(carrier, interfering_carrier, bw_cut, bw_ch,
     `arXiv:1209.0394 <https://arxiv.org/abs/1209.0394>`
     Translated from the GNPy project source code
     """
-    print('PSI AL DF BW', asymptotic_length, bw_cut)
+    # print('PSI AL DF BW', asymptotic_length, bw_cut)
     # Self channel interference (SCI)
     if carrier == interfering_carrier:
         return asinh(0.5 * pi2 * asymptotic_length * abs(beta2)
@@ -542,17 +542,17 @@ def muxOutput(signals, add={}, loss=4.5*dB,
        levelto: target output power in dBm
        **levelparams: other levelpower parameters"""
     # Multiplex signals together
-    print('mux input', signals)
+    # print('mux input', signals)
     assert not add or set(signals) - set(add) == set(), (
         'MUX line input/add signals must not overlap')
-    print('mux add', add.get(1, None))
+    # print('mux add', add.get(1, None))
     output = signals.copy()  # must not change input values
     output.update(add)  # OK since sigstate is immutable
     output = attenuate(output, loss)
-    print('attenuated by', loss, '->', output)
+    # print('attenuated by', loss, '->', output)
     if levelpower and levelto is not None:
         output = levelpower(output, levelto, **levelparams)
-    print('leveled to', output)
+    # print('leveled to', output)
     return output
 
 
@@ -581,20 +581,20 @@ def roadmOutput(lineSignals={}, lineInputLoss=0*dB, preamp={}, mux={},
     s = lineSignals
     # Line input loss
     s = attenuate(s, lineInputLoss)
-    print('attenuated line input', s)
+    # print('attenuated line input', s)
     # Preamp if present
     if preamp is not None: s = edfaAdjustedOutput(s, **preamp)
     # Demux WSS
     s, dropSignals = demuxOutput(s, **demux)
     # Passthrough coupling loss
     s = attenuate(s, passLinkLoss)
-    print('passthrough', s)
+    #print('passthrough', s)
     # Mux WSS
     s = muxOutput(s, **mux)
-    print('mux output', s)
+    # print('mux output', s)
     # Boost if any
     if boost is not None: s = edfaAdjustedOutput(s, **boost)
-    print('boost output', s)
+    # print('boost output', s)
     # Line output loss
     s = attenuate(s, lineOutputLoss)
     lineOutput = s

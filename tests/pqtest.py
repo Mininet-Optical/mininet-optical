@@ -68,8 +68,7 @@ const = ((16/27) * (gamma * effective_length)**2 /
 
 # Self channel interference psi computation
 # Note parameter should be unitless
-psi = asinh(0.5 * pi*pi * asymptotic_length *
-            beta2 * bw_cut*bw_cut)
+psi = asinh(0.5 * pi*pi * asymptotic_length * beta2 * bw_cut*bw_cut)
 
 # G is the flat PSD
 g_cut = pwr_cut/bw_cut
@@ -77,5 +76,6 @@ g_ch = pwr_ch/bw_ch
 
 g_nli = const * (g_ch*g_ch) * g_cut * psi * bw_cut
 
+print(g_nli)
 print(g_nli.mW)
 print(g_nli.mW.dB)
