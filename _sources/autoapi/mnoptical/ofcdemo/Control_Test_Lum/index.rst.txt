@@ -42,47 +42,44 @@ Attributes
 
 
 .. py:data:: m
-   :annotation: = 0.001
+   :value: 0.001
 
    
 
 .. py:data:: NUM_WAV
-   :annotation: = 40
+   :value: 40
 
    
 
 .. py:data:: NUM_NODE
-   :annotation: = 5
+   :value: 5
 
    
 
 .. py:data:: THRUPORT
-   :annotation: = 4
+   :value: 4
 
    
 
 .. py:data:: ADD_DROP
-   :annotation: = 1
+   :value: 1
 
    
 
 .. py:data:: Lumentum_NETCONF_Agent
-   
 
    
 
 .. py:data:: AllLumName
-   :annotation: = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6']
+   :value: ['L1', 'L2', 'L3', 'L4', 'L5', 'L6']
 
    
 
 .. py:data:: NodeLink_to_LumentumLink
-   
 
    
 
 .. py:data:: LumentumName_to_IP
-   
 
    
 

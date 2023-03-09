@@ -13,19 +13,16 @@ Module Contents
 ---------------
 
 .. py:data:: rx_thresholds
-   
 
    bits per symbol
 
 
 .. py:data:: bps
-   
 
    symbol rate
 
 
 .. py:data:: sr
-   
 
    
 

@@ -39,57 +39,48 @@ Attributes
    mnoptical.examples.sigcommtutorial.comb_src_range
    mnoptical.examples.sigcommtutorial.comb1_power
    mnoptical.examples.sigcommtutorial.comb2_power
-   mnoptical.examples.sigcommtutorial.debugger
    mnoptical.examples.sigcommtutorial.topo
 
 
 .. py:data:: NetconfPortBase
-   :annotation: = 1830
+   :value: 1830
 
    
 
 .. py:data:: username
-   :annotation: = cosmos
+   :value: 'cosmos'
 
    
 
 .. py:data:: password
-   :annotation: = cosmos
+   :value: 'cosmos'
 
    
 
 .. py:data:: sslkeyfile
-   :annotation: = testcerts/fakeserver.key
+   :value: 'testcerts/fakeserver.key'
 
    
 
 .. py:data:: txcount
-   :annotation: = 95
+   :value: 95
 
    
 
 .. py:data:: ch
-   :annotation: = 61
+   :value: 61
 
    
 
 .. py:data:: comb_src_range
-   
 
    
 
 .. py:data:: comb1_power
-   
 
    
 
 .. py:data:: comb2_power
-   
-
-   
-
-.. py:data:: debugger
-   :annotation: = False
 
    
 
@@ -120,7 +111,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

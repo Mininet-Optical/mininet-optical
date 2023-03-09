@@ -49,27 +49,27 @@ Attributes
 
 
 .. py:data:: username
-   :annotation: = cosmos
+   :value: 'cosmos'
 
    
 
 .. py:data:: password
-   :annotation: = cosmos
+   :value: 'cosmos'
 
    
 
 .. py:data:: sslkeyfile
-   :annotation: = testcerts/fakeserver.key
+   :value: 'testcerts/fakeserver.key'
 
    
 
 .. py:data:: ch
-   :annotation: = 34
+   :value: 34
 
    
 
 .. py:data:: ch2
-   :annotation: = 60
+   :value: 60
 
    
 
@@ -115,7 +115,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

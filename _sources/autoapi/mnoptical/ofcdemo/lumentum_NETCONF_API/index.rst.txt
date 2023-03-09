@@ -48,12 +48,12 @@ Attributes
 
 
 .. py:data:: USERNAME
-   :annotation: = superuser
+   :value: 'superuser'
 
    
 
 .. py:data:: PASSWORD
-   :annotation: = Sup%9User
+   :value: 'Sup%9User'
 
    
 
@@ -72,7 +72,6 @@ Attributes
 
 
    .. py:attribute:: connections
-      
 
       
 

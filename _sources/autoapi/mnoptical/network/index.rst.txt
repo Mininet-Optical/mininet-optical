@@ -44,7 +44,7 @@ Classes
       :return: added Amplifier
 
 
-   .. py:method:: add_link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None)
+   .. py:method:: add_link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None, **params)
 
       Add a uni-directional link
       :param src_node: source node in link
@@ -53,6 +53,7 @@ Classes
       :param dst_in_port: dst_node input port
       :param boost_amp: optional amplifier object for boost_amplification
       :param spans:
+      :param **params: optional keyword parameters for fiber/span (eg. srs_model, wd_loss etc.)
       :return: created and added link
 
 

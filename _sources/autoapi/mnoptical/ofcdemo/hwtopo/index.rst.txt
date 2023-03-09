@@ -46,23 +46,21 @@ Attributes
 
 
 .. py:data:: netconfPortBase
-   :annotation: = 1830
+   :value: 1830
 
    
 
-.. py:class:: Lumentum(name, *args, netconfPort=None, **kwargs)
+.. py:class:: Lumentum
 
    Bases: :py:obj:`mnoptical.ofcdemo.lroadm.LROADM`
 
    Add default netconf username and password
 
    .. py:attribute:: username
-      
 
       
 
    .. py:attribute:: password
-      
 
       
 
@@ -113,7 +111,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

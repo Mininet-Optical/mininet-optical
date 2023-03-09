@@ -69,7 +69,7 @@ Attributes
 
 
 .. py:data:: ListenPortBase
-   :annotation: = 6653
+   :value: 6653
 
    
 
@@ -80,7 +80,6 @@ Attributes
    Local proxy for OpenFlow switch configuration using ovs-ofctl
 
    .. py:attribute:: listenPort
-      
 
       
 

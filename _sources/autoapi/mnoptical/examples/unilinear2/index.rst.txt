@@ -81,22 +81,22 @@ Attributes
    2-degree unidirectional ROADMs.
 
    .. py:attribute:: eastin
-      :annotation: = 1
+      :value: 1
 
       
 
    .. py:attribute:: eastout
-      :annotation: = 2
+      :value: 2
 
       
 
    .. py:attribute:: westin
-      :annotation: = 3
+      :value: 3
 
       
 
    .. py:attribute:: westout
-      :annotation: = 4
+      :value: 4
 
       
 
@@ -156,7 +156,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

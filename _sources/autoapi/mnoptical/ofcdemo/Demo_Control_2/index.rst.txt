@@ -91,172 +91,153 @@ Attributes
 
 
 .. py:data:: m
-   :annotation: = 0.001
+   :value: 0.001
 
    
 
 .. py:data:: Controller_Lum
-   
 
    
 
 .. py:data:: Controller_Mininet
-   
 
    
 
 .. py:data:: NUM_WAV
-   :annotation: = 90
+   :value: 90
 
    
 
 .. py:data:: LINK_CAP
-   :annotation: = 200
+   :value: 200
 
    
 
 .. py:data:: DOWN_LINK_CAP
-   :annotation: = 100
+   :value: 100
 
    
 
 .. py:data:: CPRI_CAP
-   :annotation: = 25
+   :value: 25
 
    
 
 .. py:data:: NETLINKS
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: GRAPH
-   
 
    
 
 .. py:data:: NODES
-   
 
    
 
 .. py:data:: NETLINK_INFO
-   
 
    
 
 .. py:data:: TRAFFIC_INFO
-   
 
    
 
 .. py:data:: LIGHTPATH_INFO
-   
 
    
 
 .. py:data:: SRC_DST_TO_LIGHTPATH
-   
 
    
 
 .. py:data:: PATH_CH_TO_LIGHTPATH
-   
 
    
 
 .. py:data:: TRAFFIC_ID
-   :annotation: = 0
+   :value: 0
 
    
 
 .. py:data:: LIGHTPATH_ID
-   :annotation: = 0
+   :value: 0
 
    
 
 .. py:data:: NUM_NODE
-   :annotation: = 4
+   :value: 4
 
    
 
 .. py:data:: NAME_ROADM
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: UP_TRAF_TIME_LIST
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: UP_TRAF_ID_SET
-   
 
    
 
 .. py:data:: UP_LIGHTPATH_TIME_LIST
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: UP_LIGHTPATH_ID_SET
-   
 
    
 
 .. py:data:: ALL_CHANNELS
-   
 
    
 
 .. py:data:: RU_ROADMS
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: DU_ROADMS
-   
 
    
 
 .. py:data:: ROADM_TRAF
-   
 
    
 
 .. py:data:: name_roadms
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: name_terminals
-   :annotation: = []
+   :value: []
 
    
 
 .. py:data:: ROADM_TO_TERMINAL
-   
 
    
 
 .. py:data:: TERMINAL_TO_ROADM
-   
 
    
 
 .. py:data:: ROADM_TO_ID
-   
 
    
 
 .. py:data:: TERMINAL_TO_ID
-   
 
    
 
 .. py:data:: node
-   
 
    
 

@@ -179,7 +179,7 @@ Functions
    Handler with quiet logging
 
    .. py:attribute:: quiet
-      :annotation: = True
+      :value: True
 
       
 
@@ -199,7 +199,6 @@ Functions
    Simple REST server
 
    .. py:attribute:: net
-      
 
       
 

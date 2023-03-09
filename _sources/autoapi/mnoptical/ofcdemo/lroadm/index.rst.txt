@@ -36,17 +36,17 @@ Attributes
 
 
 .. py:data:: username
-   :annotation: = admin
+   :value: 'admin'
 
    
 
 .. py:data:: password
-   :annotation: = admin
+   :value: 'admin'
 
    
 
 .. py:data:: NetconfPortBase
-   :annotation: = 1830
+   :value: 1830
 
    
 
@@ -57,12 +57,12 @@ Attributes
    Lumentum-like ROADM with a netconf port
 
    .. py:attribute:: username
-      :annotation: = admin
+      :value: 'admin'
 
       
 
    .. py:attribute:: password
-      :annotation: = admin
+      :value: 'admin'
 
       
 

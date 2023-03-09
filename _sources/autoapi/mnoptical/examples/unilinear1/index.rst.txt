@@ -89,12 +89,12 @@ Attributes
    unidirectional ROADMs in opposite directions.
 
    .. py:attribute:: linein
-      :annotation: = 1
+      :value: 1
 
       
 
    .. py:attribute:: lineout
-      :annotation: = 2
+      :value: 2
 
       
 
@@ -148,7 +148,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

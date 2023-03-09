@@ -29,19 +29,20 @@ Attributes
 
 
 .. py:data:: m
-   :annotation: = 0.001
+   :value: 0.001
 
    
 
-.. py:function:: Span(km, amp=None)
+.. py:function:: Span(km, amp=None, **params)
 
    Return a fiber segment of length km with a compensating amp
+   :param **params: optional keyword parameters for fiber/span (eg. srs_model, wd_loss etc.)
 
 
-.. py:function:: build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_ok=False, debugger=True, wdg_id=None)
+.. py:function:: build_spans(net, r1, r2, span_no, span_length, port_no=-1, amp=False, last_ok=False, debugger=True, wdg_id=None, **params)
 
 
-.. py:function:: build_link(net, r1, r2, span_no, span_length, debugger=True, wdg_id=None)
+.. py:function:: build_link(net, r1, r2, span_no, span_length, debugger=True, wdg_id=None, **params)
 
 
 .. py:function:: add_amp(net, node_name=None, type=None, gain_dB=None, debugger=True, wdg_id=None)

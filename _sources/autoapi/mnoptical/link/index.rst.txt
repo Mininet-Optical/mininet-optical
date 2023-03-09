@@ -12,6 +12,10 @@ Classes
 
 .. autoapisummary::
 
+   mnoptical.link.SRS_Effect_Model
+   mnoptical.link.Zirngibl_General_Model
+   mnoptical.link.Sylvestre_SRS_Model
+   mnoptical.link.Bigo_SRS_Model
    mnoptical.link.Link
    mnoptical.link.Span
 
@@ -27,17 +31,55 @@ Attributes
 
 
 .. py:data:: SpanTuple
-   
 
    
 
-.. py:class:: Link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, srs_effect=False, spans=None, debugger=False)
+.. py:class:: SRS_Effect_Model(span)
+
+   Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
+   wavelength division multiplexed transmission systems, 1998. - Equation 10.
+   - Most accurate for uniform loading cases.
+
+
+.. py:class:: Zirngibl_General_Model(span)
+
+   The general form of the SRS model as proposed by M. Zirngibl in
+   Analytical model of Raman gain effects in massive wavelength division
+   multiplexed transmission systems, 1998." - Equation 7
+   - Most accurate for non-uniform loading cases.
+
+
+.. py:class:: Sylvestre_SRS_Model(span)
+
+   SRS model proposed in 'Raman-Induced Power Tilt in Arbitrarily
+   Large Wavelength-Division-MUltiplexed Systems' by T. Sylvestre et al., 2005
+   - Equation 6
+
+
+.. py:class:: Bigo_SRS_Model(span)
+
+   SRS model proposed in the paper tilted:
+   'Experimental Investigation of Stimulated Raman Scattering
+   Limitation on WDM Transmission Over Various Types of Fiber
+   Infrastructures' by S.Bigo et al., 1999 - Equation 1
+   - Simplified form of the srs_effect_model() function
+
+
+.. py:class:: Link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None, debugger=False, **params)
 
    Bases: :py:obj:`object`
 
    A Link refers to the connection between two network nodes (i.e., transceiver-ROADM or
    ROADM-ROADM). In the future we must enable network-element-node to controller-node
    connectivity.
+
+   .. py:attribute:: srs_models
+
+      
+
+   .. py:attribute:: srs_model
+
+      
 
    .. py:method:: length()
 
@@ -89,17 +131,17 @@ Attributes
 
 
 
-.. py:class:: Span(fibre_type='SMF', length=20.0, debugger=False)
+.. py:class:: Span(fibre_type='SMF', length=20.0, debugger=False, **params)
 
    Bases: :py:obj:`object`
 
    .. py:attribute:: ids
-      :annotation: = 1
+      :value: 1
 
       
 
    .. py:attribute:: anonymous
-      :annotation: = True
+      :value: True
 
       
 
@@ -114,7 +156,16 @@ Attributes
    .. py:method:: reset()
 
 
-   .. py:method:: attenuation()
+   .. py:method:: get_fibre_spectral_attenuation()
+
+      Retrieve the WDL of the single mode fibre
+      :return: WDL of the SMF
+
+
+   .. py:method:: attenuation(signal_index=1)
+
+      Returns the attenuation value for each wavelength by the signal's index
+      :param signal_index:
 
 
    .. py:method:: beta2(ref_wavelength=1.55e-06)
@@ -153,12 +204,6 @@ Attributes
 
 
    .. py:method:: propagate(optical_signals=None, is_last_port=False, safe_switch=False)
-
-
-   .. py:method:: srs_effect_model()
-
-      Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
-      wavelength division multiplexed transmission systems, 1998. - Equations 7,8.
 
 
    .. py:method:: output_nonlinear_noise()

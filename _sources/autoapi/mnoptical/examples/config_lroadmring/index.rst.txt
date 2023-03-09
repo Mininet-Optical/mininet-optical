@@ -82,7 +82,7 @@ Attributes
 
 
 .. py:data:: N
-   :annotation: = 4
+   :value: 4
 
    
 

@@ -39,17 +39,17 @@ Attributes
    Bases: :py:obj:`object`
 
    .. py:attribute:: input_port_base
-      :annotation: = 0
+      :value: 0
 
       
 
    .. py:attribute:: output_port_base
-      :annotation: = 0
+      :value: 0
 
       
 
    .. py:attribute:: debugger
-      :annotation: = True
+      :value: True
 
       
 
@@ -240,12 +240,12 @@ Attributes
    Bases: :py:obj:`object`
 
    .. py:attribute:: spectrum_band_init_nm
-      :annotation: = 1567.132556194459
+      :value: 1567.132556194459
 
       
 
    .. py:attribute:: spectrum_band_init_H
-      :annotation: = 191300000000000.0
+      :value: 191300000000000.0
 
       
 
@@ -288,7 +288,6 @@ Attributes
 
 
 .. py:data:: SwitchRule
-   
 
    
 
@@ -685,7 +684,6 @@ Attributes
    Routines for Signal tracing and debugging
 
    .. py:attribute:: pathEntry
-      
 
       
 

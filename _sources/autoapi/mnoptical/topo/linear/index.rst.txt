@@ -37,7 +37,7 @@ Attributes
 
 
 .. py:data:: m
-   :annotation: = 0.001
+   :value: 0.001
 
    
 

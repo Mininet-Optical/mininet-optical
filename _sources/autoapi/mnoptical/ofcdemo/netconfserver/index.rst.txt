@@ -57,42 +57,39 @@ Attributes
 
 
 .. py:data:: linein
-   :annotation: = 5101
+   :value: 5101
 
    
 
 .. py:data:: lineout
-   :annotation: = 4201
+   :value: 4201
 
    
 
 .. py:data:: EdfaNsmap
-   
 
    
 
 .. py:data:: ConnNsmap
-   
 
    
 
 .. py:data:: nsmap
-   
 
    
 
 .. py:data:: SSLKeyFileDefault
-   :annotation: = fakeserver.key
+   :value: 'fakeserver.key'
 
    
 
 .. py:data:: NetconfPortBase
-   :annotation: = 1830
+   :value: 1830
 
    
 
 .. py:data:: Debug
-   :annotation: = False
+   :value: False
 
    
 
@@ -107,7 +104,6 @@ Attributes
 
 
 .. py:data:: configNs
-   
 
    
 

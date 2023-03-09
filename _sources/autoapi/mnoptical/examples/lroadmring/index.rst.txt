@@ -43,17 +43,17 @@ Attributes
 
 
 .. py:data:: username
-   :annotation: = admin
+   :value: 'admin'
 
    
 
 .. py:data:: password
-   :annotation: = admin
+   :value: 'admin'
 
    
 
 .. py:data:: sslkeyfile
-   :annotation: = testcerts/fakeserver.key
+   :value: 'testcerts/fakeserver.key'
 
    
 
@@ -67,27 +67,27 @@ Attributes
    links are bidirectional.
 
    .. py:attribute:: ethbase
-      :annotation: = 0
+      :value: 0
 
       
 
    .. py:attribute:: hostport
-      :annotation: = 200
+      :value: 200
 
       
 
    .. py:attribute:: txbase
-      :annotation: = 100
+      :value: 100
 
       
 
    .. py:attribute:: rxbase
-      :annotation: = 200
+      :value: 200
 
       
 
    .. py:attribute:: listenPortBase
-      :annotation: = 6653
+      :value: 6653
 
       
 
@@ -135,7 +135,6 @@ Attributes
 
 
 .. py:data:: topo
-   
 
    
 

@@ -10,9 +10,6 @@
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="#" />
@@ -61,6 +58,7 @@
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
  
 </div>
 <h2 id="_">_</h2>
@@ -253,6 +251,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Span.beta2">beta2() (mnoptical.link.Span method)</a>
+</li>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Bigo_SRS_Model">Bigo_SRS_Model (class in mnoptical.link)</a>
 </li>
       <li><a href="autoapi/mnoptical/dataplane/index.html#mnoptical.dataplane.Terminal.block">block() (mnoptical.dataplane.Terminal method)</a>
 </li>
@@ -538,12 +538,8 @@
 </li>
       <li><a href="autoapi/mnoptical/ofcdemo/netconfserver/index.html#mnoptical.ofcdemo.netconfserver.debug">debug() (in module mnoptical.ofcdemo.netconfserver)</a>
 </li>
-      <li><a href="autoapi/mnoptical/examples/sigcommtutorial/index.html#mnoptical.examples.sigcommtutorial.debugger">debugger (in module mnoptical.examples.sigcommtutorial)</a>
-
-      <ul>
-        <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.Node.debugger">(mnoptical.node.Node attribute)</a>
+      <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.Node.debugger">debugger (mnoptical.node.Node attribute)</a>
 </li>
-      </ul></li>
       <li><a href="autoapi/mnoptical/dataplane/index.html#mnoptical.dataplane.SwitchBase.defaultDpid">defaultDpid() (mnoptical.dataplane.SwitchBase method)</a>
 </li>
       <li><a href="autoapi/mnoptical/ofcdemo/netconfserver/index.html#mnoptical.ofcdemo.netconfserver.NetconfAgent.delete_connection_dn">delete_connection_dn() (mnoptical.ofcdemo.netconfserver.NetconfAgent method)</a>
@@ -793,6 +789,8 @@
       <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.Monitor.get_dict_osnr">get_dict_osnr() (mnoptical.node.Monitor method)</a>
 </li>
       <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.Monitor.get_dict_power">get_dict_power() (mnoptical.node.Monitor method)</a>
+</li>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Span.get_fibre_spectral_attenuation">get_fibre_spectral_attenuation() (mnoptical.link.Span method)</a>
 </li>
       <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.Monitor.get_gosnr">get_gosnr() (mnoptical.node.Monitor method)</a>
 </li>
@@ -2323,8 +2321,6 @@
         <li><a href="autoapi/mnoptical/topo/linear/index.html#mnoptical.topo.linear.Span">(in module mnoptical.topo.linear)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="autoapi/mnoptical/ofcdemo/demolib/index.html#mnoptical.ofcdemo.demolib.LinearRoadmTopo.spans">spans() (mnoptical.ofcdemo.demolib.LinearRoadmTopo method)</a>
 
       <ul>
@@ -2333,6 +2329,8 @@
         <li><a href="autoapi/mnoptical/ofcdemo/demolib_2021/index.html#mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo.spans">(mnoptical.ofcdemo.demolib_2021.LinearRoadmTopo method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="autoapi/mnoptical/ofcdemo/demolib/index.html#mnoptical.ofcdemo.demolib.SpanSpec">SpanSpec (in module mnoptical.ofcdemo.demolib)</a>
 
       <ul>
@@ -2359,7 +2357,11 @@
         <li><a href="autoapi/mnoptical/ofcdemo/Demo_Control_2/index.html#mnoptical.ofcdemo.Demo_Control_2.SRC_DST_TO_LIGHTPATH">(in module mnoptical.ofcdemo.Demo_Control_2)</a>
 </li>
       </ul></li>
-      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Span.srs_effect_model">srs_effect_model() (mnoptical.link.Span method)</a>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.SRS_Effect_Model">SRS_Effect_Model (class in mnoptical.link)</a>
+</li>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Link.srs_model">srs_model (mnoptical.link.Link attribute)</a>
+</li>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Link.srs_models">srs_models (mnoptical.link.Link attribute)</a>
 </li>
       <li><a href="autoapi/mnoptical/examples/cosmostutorial/index.html#mnoptical.examples.cosmostutorial.sslkeyfile">sslkeyfile (in module mnoptical.examples.cosmostutorial)</a>
 
@@ -2398,6 +2400,8 @@
       <li><a href="autoapi/mnoptical/ofcdemo/fakecontroller/index.html#mnoptical.ofcdemo.fakecontroller.SwitchProxy">SwitchProxy (class in mnoptical.ofcdemo.fakecontroller)</a>
 </li>
       <li><a href="autoapi/mnoptical/node/index.html#mnoptical.node.SwitchRule">SwitchRule (in module mnoptical.node)</a>
+</li>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Sylvestre_SRS_Model">Sylvestre_SRS_Model (class in mnoptical.link)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2740,6 +2744,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="autoapi/mnoptical/link/index.html#mnoptical.link.Zirngibl_General_Model">Zirngibl_General_Model (class in mnoptical.link)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 
 
           </div>
@@ -2793,8 +2805,8 @@
       &copy;2022, Mininet-Optical Project.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

@@ -81,22 +81,22 @@ Attributes
 
 
 .. py:data:: km
-   :annotation: = 1.0
+   :value: 1.0
 
    
 
 .. py:data:: m
-   :annotation: = 0.001
+   :value: 0.001
 
    
 
 .. py:data:: dBm
-   :annotation: = 1.0
+   :value: 1.0
 
    
 
 .. py:data:: dB
-   :annotation: = 1.0
+   :value: 1.0
 
    
 
@@ -107,7 +107,7 @@ Attributes
    Add monitors to network
 
    .. py:attribute:: monitors
-      :annotation: = []
+      :value: []
 
       
 
@@ -148,7 +148,6 @@ Attributes
 
 
 .. py:data:: Mininet
-   
 
    
 
@@ -157,17 +156,16 @@ Attributes
    A hacked PhyMonitor that can stand in for a node
 
    .. py:attribute:: waiting
-      :annotation: = False
+      :value: False
 
       
 
    .. py:attribute:: execed
-      :annotation: = True
+      :value: True
 
       
 
    .. py:attribute:: intfs
-      
 
       
 
@@ -203,12 +201,11 @@ Attributes
    Base class for optical devices
 
    .. py:attribute:: modelClass
-      
 
       
 
    .. py:attribute:: dpidBase
-      :annotation: = 4096
+      :value: 4096
 
       
 
@@ -246,17 +243,15 @@ Attributes
    and some ethernet ports that can connect to them.
 
    .. py:attribute:: model
-      
 
       
 
    .. py:attribute:: modelClass
-      
 
       
 
    .. py:attribute:: blockCookie
-      :annotation: = 195952365
+      :value: 195952365
 
       
 
@@ -333,12 +328,10 @@ Attributes
    Currently uses VLAN field for channel/lambda index.
 
    .. py:attribute:: model
-      
 
       
 
    .. py:attribute:: modelClass
-      
 
       
 
@@ -517,12 +510,10 @@ Attributes
    of fiber spans and amplfiers.
 
    .. py:attribute:: phyLink1
-      
 
       
 
    .. py:attribute:: phyLink2
-      
 
       
 
@@ -548,7 +539,6 @@ Attributes
 
 
 .. py:data:: UniLink
-   
 
    
 
@@ -559,12 +549,10 @@ Attributes
    A bidirectional PhyAmplifier pair.
 
    .. py:attribute:: phyAmp1
-      
 
       
 
    .. py:attribute:: phyAmp2
-      
 
       
 
@@ -583,12 +571,12 @@ Attributes
    physical plane.
 
    .. py:attribute:: ADD
-      :annotation: = 4100
+      :value: 4100
 
       
 
    .. py:attribute:: LINEOUT
-      :annotation: = 4201
+      :value: 4201
 
       
 

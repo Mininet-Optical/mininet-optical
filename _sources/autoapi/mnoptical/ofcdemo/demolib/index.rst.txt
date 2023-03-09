@@ -50,7 +50,7 @@ Attributes
 
 
 .. py:data:: ListenPortBase
-   :annotation: = 6653
+   :value: 6653
 
    
 
@@ -61,7 +61,7 @@ Attributes
    Extended CLI with optical network commands
 
    .. py:attribute:: prompt
-      :annotation: = mininet-optical> 
+      :value: 'mininet-optical> '
 
       
 
@@ -190,7 +190,6 @@ Attributes
 
 
 .. py:data:: CLI
-   
 
    
 
@@ -212,12 +211,10 @@ Attributes
 
 
 .. py:data:: SpanSpec
-   
 
    
 
 .. py:data:: AmpSpec
-   
 
    
 
@@ -312,7 +309,6 @@ Attributes
 
 
 .. py:data:: net
-   
 
    
 

@@ -32,7 +32,7 @@ Attributes
 
 
 .. py:data:: NetconfPortBase
-   :annotation: = 1830
+   :value: 1830
 
    
 

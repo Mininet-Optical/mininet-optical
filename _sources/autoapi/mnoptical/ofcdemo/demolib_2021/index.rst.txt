@@ -49,12 +49,11 @@ Attributes
 
 
 .. py:data:: ListenPortBase
-   :annotation: = 6653
+   :value: 6653
 
    
 
 .. py:data:: CLI
-   
 
    
 
@@ -76,12 +75,10 @@ Attributes
 
 
 .. py:data:: SpanSpec
-   
 
    
 
 .. py:data:: AmpSpec
-   
 
    
 
@@ -170,7 +167,6 @@ Attributes
 
 
 .. py:data:: net
-   
 
    
 

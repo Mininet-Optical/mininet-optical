@@ -8,12 +8,10 @@ Module Contents
 ---------------
 
 .. py:data:: ripple_functions
-   
 
    
 
 .. py:data:: fibre_spectral_attenuation
-   
 
    
 

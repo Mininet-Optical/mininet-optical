@@ -56,57 +56,55 @@ Attributes
 
 
 .. py:data:: c
-   :annotation: = 299792458.0
+   :value: 299792458.0
 
    
 
 .. py:data:: nm
-   :annotation: = 1e-09
+   :value: 1e-09
 
    
 
 .. py:data:: cm
-   :annotation: = 0.01
+   :value: 0.01
 
    
 
 .. py:data:: um
-   :annotation: = 1e-06
+   :value: 1e-06
 
    
 
 .. py:data:: km
-   :annotation: = 1000.0
+   :value: 1000.0
 
    
 
 .. py:data:: THz
-   :annotation: = 1000000000000.0
+   :value: 1000000000000.0
 
    
 
 .. py:data:: mW
-   :annotation: = 0.001
+   :value: 0.001
 
    
 
 .. py:data:: W
-   :annotation: = 1.0
+   :value: 1.0
 
    
 
 .. py:data:: ps
-   :annotation: = 1e-12
+   :value: 1e-12
 
    
 
 .. py:data:: pi
-   
 
    
 
 .. py:data:: h
-   
 
    
 
