@@ -33,7 +33,7 @@ def build_link(net, r1, r2):
         net.spans.append(span)
 
     # link object
-    net.add_link(r1, r2, spans=spans)
+    net.add_link(r1, r2, spans=spans, srs_model=None)
 
 class LinearTopology:
 

@@ -8,10 +8,11 @@ from mnoptical.topo.helper_funcs import *
 class LinearTopology:
 
     @staticmethod
-    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False, wdg_id=None):
+    def build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False, wdg_id=None, **params):
         """
         :param op: operational power in dBm
         :param non: number of nodes (integer)
+        :param **params: optional keyword parameters for fiber/span (eg. srs_model, wd_loss etc.)
         :return: Network object
         """
         # Create an optical-network object
@@ -45,12 +46,12 @@ class LinearTopology:
         last_roadm = roadms[-1]
         for port_no, tr in enumerate(tx.transceivers, start=1):
             # connect tx to first roadm
-            net.add_link(tx, first_roadm, src_out_port=tr.id, dst_in_port=port_no, spans=[Span(0 * m)])
+            net.add_link(tx, first_roadm, src_out_port=tr.id, dst_in_port=port_no, spans=[Span(0 * m)], **params)
         for port_no, tr in enumerate(rx.transceivers, start=1):
             # connect last roadm to rx
             net, spans = build_spans(net, last_roadm, rx, span_no, span_length_km,
-                                     port_no, amp=True, last_ok=True, wdg_id=wdg_id)
-            net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=spans)
+                                     port_no, amp=True, last_ok=True, wdg_id=wdg_id, **params)
+            net.add_link(last_roadm, rx, src_out_port=port_no, dst_in_port=tr.id, spans=spans, **params)
 
         # connect hops
         if hop_no > 1:
@@ -58,6 +59,6 @@ class LinearTopology:
                 # Iterate through the number of nodes linearly connected
                 r1 = name_to_roadm['r' + str(i + 1)]
                 r2 = name_to_roadm['r' + str(i + 2)]
-                build_link(net, r1, r2, span_no, span_length_km, wdg_id=wdg_id)
+                build_link(net, r1, r2, span_no, span_length_km, wdg_id=wdg_id, **params)
 
         return net
