@@ -602,6 +602,27 @@ class OpticalSignal(object):
 
 SwitchRule = namedtuple('SwitchRule', 'in_port out_port signal_indices')
 
+class QuantumSignal(OpticalSignal):
+    
+    def __init__(self, index, channel_spacing_H,
+                 channel_spacing_nm, modulation_format,
+                 symbol_rate, bits_per_symbol,spectrum_band_init_nm,spectrum_band_init_H, spatial_mode,
+                 power=0, ase_noise=0, nli_noise=0 ):
+        
+        self.spectrum_band_init_H = spectrum_band_init_H
+        self.spectrum_band_init_nm = spectrum_band_init_nm
+        self.spatial_mode = spatial_mode
+        self.BSM = None
+
+        super.__init__(self, index, channel_spacing_H,
+                 channel_spacing_nm, modulation_format,
+                 symbol_rate, bits_per_symbol,
+                 power=0, ase_noise=0, nli_noise=0)
+    def BSM(self):
+        #TODO
+        self.BSM = None
+        
+        
 
 class Roadm(Node):
     """
@@ -1698,6 +1719,93 @@ class Monitor(Node):
     def __repr__(self):
         return "<name: %s, component: %s, mode: %s>" % (
             self.name, self.component, self.mode)
+    def get_fidelity(self,quantum_signal):
+        return fidelity
+    def get_entanglement_rate(self,quantum_signal):
+        return entanglement_rate
+
+class EntanglementSource(Node):
+    def __init__(self, name, center_wavelength, peak_power, ave_power, repition_rate, pulse_width, number_bins, bin_width, monitor_mode = None):
+        super().__init__(self,name)
+        self.center_wavelength = center_wavelength
+        self.peak_power = peak_power
+        self.ave_power = ave_power
+        self.repition_rate = repition_rate
+        self.pulse_width = pulse_width
+        self.number_bins = number_bins
+        self.bin_width = bin_width
+
+        if monitor_mode:
+            self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+
+        # Connectivity attributes
+        self.out_port1 = None
+        self.out_port2 = None
+    def turn_on(self, is_last_port=False, safe_switch=False):
+        #generate bell singals and bell state measurments
+        quantum1 = QuantumSignal.__init__()
+        quantum2 = QuantumSignal.__init__()
+        quantum1.BSM()
+        quantum2.BSM()
+
+        link = self.port_to_link_out[self.ports_out[0]]
+        link.include_optical_signal_in(quantum1)
+        link.propagate()
+
+        link = self.port_to_link_out[self.ports_out[1]]
+        link.include_optical_signal_in(quantum2)
+        link.propagate()
+
+class ModeConverter(Node):
+    def __init__(self, name, conversion_effiency, monitor_mode=None):
+        Node.__init__(self, name)
+        self.conversion_effiency = conversion_effiency
+        if monitor_mode:
+            self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+
+        # Connectivity attributes
+        self.prev_component = None
+        self.next_component = None
+        self.link = None
+    def propagate(self, optical_signals, is_last_port=False, safe_switch=False):
+        #TODO add conversion effiency and power calculations
+        component = self.next_component
+        for optical_signal in optical_signals:
+            if component:
+                state = optical_signal.loc_out_to_state[self]
+                power_out = state['power']
+                ase_noise_out = state['ase_noise']
+                nli_noise_out = state['nli_noise']
+                component.include_optical_signal_in(
+                        optical_signal, power=power_out,
+                        ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+        component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
+
+class QuantumMemory(Node):
+    def __init__(self, name, resonance_wavelength, coherence_time =None, monitor_mode=None):
+        Node.__init__(self, name)
+        self.resonance_wavelength = resonance_wavelength
+        self.coherence_time = coherence_time
+        if monitor_mode:
+            self.monitor = Monitor(name + "-monitor", component=self, mode=monitor_mode)
+
+        # Connectivity attributes
+        self.prev_component = None
+        self.next_component = None
+        self.link = None
+    def propagate(self, optical_signals, is_last_port=False, safe_switch=False):
+        #TODO add conversion effiency and power calculations
+        component = self.next_component
+        for optical_signal in optical_signals:
+            if component:
+                state = optical_signal.loc_out_to_state[self]
+                power_out = state['power']
+                ase_noise_out = state['ase_noise']
+                nli_noise_out = state['nli_noise']
+                component.include_optical_signal_in(
+                        optical_signal, power=power_out,
+                        ase_noise=ase_noise_out, nli_noise=nli_noise_out)
+        component.propagate(is_last_port=is_last_port, safe_switch=safe_switch)
 
 
 
