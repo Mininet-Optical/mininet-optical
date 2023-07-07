@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   test:
     name: Mininet-Optical Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
 
       - name: apt update
@@ -18,7 +18,12 @@ jobs:
 
       - name: Check out source code
         uses: actions/checkout@v2
-            
+
+      - name: Workaround for broken actions crypto package
+        run: |
+             pip3 install --upgrade pyOpenSSL
+             sudo pip3 install --upgrade pyOpenSSL
+
       - name: Install Mininet-Optical dependencies (besides Mininet)
         run:  make depend
 
@@ -44,4 +49,3 @@ jobs:
 
       - name: Run OFC Demo Tests
         run: PYTHONPATH= make demotest
-        
