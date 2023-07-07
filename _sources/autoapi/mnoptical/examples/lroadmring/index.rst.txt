@@ -59,6 +59,7 @@ Attributes
 
 .. py:class:: LumentumBase(*args, **kwargs)
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Simple ring topology using Lumentum-link ROADM model
@@ -115,6 +116,7 @@ Attributes
 
 
 .. py:class:: LumentumRing(*args, **kwargs)
+
 
    Bases: :py:obj:`LumentumBase`
 

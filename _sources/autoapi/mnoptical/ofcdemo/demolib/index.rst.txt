@@ -56,6 +56,7 @@ Attributes
 
 .. py:class:: OpticalCLI
 
+
    Bases: :py:obj:`mininet.cli.CLI`
 
    Extended CLI with optical network commands
@@ -195,6 +196,7 @@ Attributes
 
 .. py:class:: OpticalTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Topo with convenience methods for optical links
@@ -224,6 +226,7 @@ Attributes
 
 
 .. py:class:: LinearRoadmTopo
+
 
    Bases: :py:obj:`OpticalTopo`
 
@@ -275,6 +278,7 @@ Attributes
 
 
 .. py:class:: DemoTopo
+
 
    Bases: :py:obj:`LinearRoadmTopo`
 

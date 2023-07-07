@@ -52,6 +52,7 @@ Attributes
 
 .. py:class:: LROADM(name, *args, netconfPort=None, **kwargs)
 
+
    Bases: :py:obj:`mnoptical.dataplane.ROADM`
 
    Lumentum-like ROADM with a netconf port

@@ -114,6 +114,7 @@ Attributes
 
 .. py:class:: NetconfAgent(roadm, port=None, username=None, password=None, sslkeyfile=SSLKeyFileDefault)
 
+
    Netconf agent for single (Lumentum-like) ROADM
 
    .. py:method:: nc_append_capabilities(caps)
@@ -179,6 +180,7 @@ Attributes
 
 
 .. py:class:: NetconfServer(net, **params)
+
 
    Collection of Netconf agents for Mininet-Optical network
 

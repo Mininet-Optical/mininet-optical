@@ -19,6 +19,7 @@ Classes
 
 .. py:class:: RingTopology
 
+
    .. py:method:: build()
       :staticmethod:
 

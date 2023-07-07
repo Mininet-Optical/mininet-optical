@@ -86,6 +86,7 @@ Attributes
 
 .. py:class:: TutorialTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    SIGCOMM22 mini-tutorial topology:

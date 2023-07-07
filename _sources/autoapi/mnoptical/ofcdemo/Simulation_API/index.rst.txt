@@ -19,6 +19,7 @@ Classes
 
 .. py:class:: Mininet_Optical_Simu_API
 
+
    Bases: :py:obj:`object`
 
    .. py:method:: ROADM_installSwitchRule(node, ruleID, inport, outport, channelID)

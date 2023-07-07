@@ -66,6 +66,7 @@ Attributes
 
 .. py:class:: LinearTopology
 
+
    .. py:method:: build(op=0, non=3, bidirectional=False)
       :staticmethod:
 

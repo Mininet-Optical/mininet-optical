@@ -19,6 +19,7 @@ Classes
 
 .. py:class:: LinearTopology
 
+
    .. py:method:: build(power_dBm=0, span_length_km=3, span_no=1, hop_no=1, signal_no=10, debugger=False, wdg_id=None, **params)
       :staticmethod:
 

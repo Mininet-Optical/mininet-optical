@@ -42,6 +42,7 @@ Attributes
 
 .. py:class:: xmltodict
 
+
    .. py:method:: parse(xml, **kwargs)
       :staticmethod:
 
@@ -59,10 +60,13 @@ Attributes
 
 .. py:class:: Lumentum(IP_addr, username=USERNAME, password=PASSWORD)
 
+
    .. py:class:: WSSConnection(module, connection_id, operation, blocked, input_port, output_port, start_freq, end_freq, attenuation, name)
 
 
+
    .. py:class:: WSSConnectionStatus(module, connection_id, operation, blocked, input_port, output_port, start_freq, end_freq, attenuation, name, input_power, output_power, ne, chassis, card)
+
 
       Bases: :py:obj:`Lumentum.WSSConnection`
 
@@ -130,6 +134,7 @@ Attributes
 
 
 .. py:class:: Lumentum_NETCONF
+
 
    .. py:method:: _ConfigWSS(node_ip, status, conn_id, module_id, input_port=None, output_port=None, start_freq=None, end_freq=None, attenuation=None, block=None, name=None)
 

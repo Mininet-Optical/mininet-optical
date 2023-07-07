@@ -56,6 +56,7 @@ Attributes
 
 .. py:class:: OpticalTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Topo with convenience methods for optical networks
@@ -82,6 +83,7 @@ Attributes
 
 
 .. py:class:: UniLinearTopo
+
 
    Bases: :py:obj:`OpticalTopo`
 
@@ -133,6 +135,7 @@ Attributes
 
 
 .. py:class:: CLI
+
 
    Bases: :py:obj:`mnoptical.ofcdemo.demolib.OpticalCLI`
 

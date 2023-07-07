@@ -102,6 +102,7 @@ Attributes
 
 .. py:class:: OpticalNet
 
+
    Bases: :py:obj:`mininet.net.Mininet`
 
    Add monitors to network
@@ -153,6 +154,7 @@ Attributes
 
 .. py:class:: Monitor(name, monitor)
 
+
    A hacked PhyMonitor that can stand in for a node
 
    .. py:attribute:: waiting
@@ -196,6 +198,7 @@ Attributes
 
 .. py:class:: SwitchBase(name, dpid=None, listenPort=None, inNamespace=False, isSwitch=True, batch=False, **phyParams)
 
+
    Bases: :py:obj:`mininet.node.OVSSwitch`
 
    Base class for optical devices
@@ -236,6 +239,7 @@ Attributes
 
 
 .. py:class:: Terminal(*args, transceivers=None, **kwargs)
+
 
    Bases: :py:obj:`SwitchBase`
 
@@ -318,6 +322,7 @@ Attributes
 
 
 .. py:class:: ROADM(name, **kwargs)
+
 
    Bases: :py:obj:`SwitchBase`
 
@@ -419,6 +424,7 @@ Attributes
 
 .. py:class:: SimpleROADM(name, **kwargs)
 
+
    Bases: :py:obj:`ROADM`
 
    2-degree ROADM with simplified API.
@@ -444,6 +450,7 @@ Attributes
 
 .. py:class:: OpticalIntf
 
+
    Bases: :py:obj:`mininet.link.TCIntf`
 
    A bidirectional Optical Interface
@@ -460,6 +467,7 @@ Attributes
 
 
 .. py:class:: OpticalIn
+
 
    Bases: :py:obj:`OpticalIntf`
 
@@ -478,6 +486,7 @@ Attributes
 
 .. py:class:: OpticalOut
 
+
    Bases: :py:obj:`OpticalIntf`
 
    A unidirectional  optical output interface
@@ -494,6 +503,7 @@ Attributes
 
 
 .. py:class:: OpticalLink(src, dst, port1=None, port2=None, boost=None, boost1=None, boost2=None, spans=None, bidirectional=True, **kwargs)
+
 
    Bases: :py:obj:`mininet.link.Link`
 
@@ -544,6 +554,7 @@ Attributes
 
 .. py:class:: AmplifierPair(name, *args, **kwargs)
 
+
    Bases: :py:obj:`object`
 
    A bidirectional PhyAmplifier pair.
@@ -558,6 +569,7 @@ Attributes
 
 
 .. py:class:: CombSource(name, *args, power={1: 0 * dBm}, **kwargs)
+
 
    Bases: :py:obj:`ROADM`
 
@@ -618,6 +630,7 @@ Attributes
 
 
 .. py:class:: TwoTransceiverTopo
+
 
    Bases: :py:obj:`mininet.topo.Topo`
 

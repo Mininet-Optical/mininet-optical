@@ -19,6 +19,7 @@ Classes
 
 .. py:class:: DeutscheTelekom
 
+
    .. py:method:: build(op=-2)
       :staticmethod:
 

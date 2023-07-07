@@ -54,6 +54,7 @@ Attributes
 
 .. py:class:: SimpleLinkTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Simple link topology:

@@ -48,6 +48,7 @@ Attributes
 
 .. py:class:: UniRingTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Parametrized unidirectional ROADM ring network
@@ -99,6 +100,7 @@ Attributes
 
 
 .. py:class:: CLI
+
 
    Bases: :py:obj:`mnoptical.ofcdemo.demolib.OpticalCLI`
 

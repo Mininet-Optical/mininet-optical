@@ -50,6 +50,7 @@ Attributes
 
 .. py:class:: MultiROADMTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    .. py:method:: build(operational_power=0 * dB)

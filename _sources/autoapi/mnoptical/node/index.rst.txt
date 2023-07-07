@@ -36,6 +36,7 @@ Attributes
 
 .. py:class:: Node(name, debugger=None)
 
+
    Bases: :py:obj:`object`
 
    .. py:attribute:: input_port_base
@@ -98,6 +99,7 @@ Attributes
 
 
 .. py:class:: LineTerminal(name, transceivers=None, monitor_mode='out', debugger=False)
+
 
    Bases: :py:obj:`Node`
 
@@ -215,6 +217,7 @@ Attributes
 
 .. py:class:: Transceiver(tr_id, name, operation_power=0, channel_spacing_nm=0.4 * 1e-09, channel_spacing_H=50000000000.0, bandwidth=2.99792458 * 1000000000.0, modulation_format='16QAM', bits_per_symbol=4.0, symbol_rate=32000000000.0, rx_threshold_dB=20.0)
 
+
    Bases: :py:obj:`object`
 
    .. py:method:: assoc_optical_signal(optical_signal)
@@ -236,6 +239,7 @@ Attributes
 
 
 .. py:class:: OpticalSignal(index, channel_spacing_H, channel_spacing_nm, modulation_format, symbol_rate, bits_per_symbol, power=0, ase_noise=0, nli_noise=0)
+
 
    Bases: :py:obj:`object`
 
@@ -292,6 +296,7 @@ Attributes
    
 
 .. py:class:: Roadm(name, insertion_loss_dB=17, reference_power_dBm=0, preamp=None, boost=None, monitor_mode=None, debugger=False)
+
 
    Bases: :py:obj:`Node`
 
@@ -486,6 +491,7 @@ Attributes
 
 .. py:class:: Amplifier(name, amplifier_type='EDFA', target_gain=17.6, noise_figure=(5.5, 91), noise_figure_function=None, bandwidth=32000000000.0, wdg_id='linear', preamp=False, boost=False, monitor_mode=None, debugger=False)
 
+
    Bases: :py:obj:`Node`
 
    .. py:method:: reset()
@@ -576,6 +582,7 @@ Attributes
 
 .. py:class:: Attenuator(name, loss=1, noise_figure=(0.0, 91), monitor='in')
 
+
    Bases: :py:obj:`Amplifier`
 
    .. py:method:: attenuation(optical_signal)
@@ -589,6 +596,7 @@ Attributes
 
 
 .. py:class:: Monitor(name, component, mode='out')
+
 
    Bases: :py:obj:`Node`
 
@@ -681,6 +689,7 @@ Attributes
 
 .. py:class:: SignalTracing
 
+
    Routines for Signal tracing and debugging
 
    .. py:attribute:: pathEntry
@@ -718,6 +727,7 @@ Attributes
 
 
 .. py:class:: NodeAuditing
+
 
    WIP: Auditing class with propagation checks
 

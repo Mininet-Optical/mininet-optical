@@ -44,6 +44,7 @@ Attributes
 
 .. py:class:: SixROADMTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    Six ROADMs ring topology with 6 transceivers at each Terminal.

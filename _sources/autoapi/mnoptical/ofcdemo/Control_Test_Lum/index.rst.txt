@@ -85,6 +85,7 @@ Attributes
 
 .. py:class:: Lumentum_Control_NETCONF
 
+
    Bases: :py:obj:`object`
 
    .. py:method:: installPath(path, lightpathID, channel)

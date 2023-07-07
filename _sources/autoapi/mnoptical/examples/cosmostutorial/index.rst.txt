@@ -75,6 +75,7 @@ Attributes
 
 .. py:class:: TutorialTopo
 
+
    Bases: :py:obj:`mininet.topo.Topo`
 
    COSM-IC mini-tutorial topology:

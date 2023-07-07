@@ -45,6 +45,7 @@ Functions
 
 .. py:class:: Mininet_Control_REST
 
+
    Bases: :py:obj:`object`
 
    .. py:method:: getOSNR()

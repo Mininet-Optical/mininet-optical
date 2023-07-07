@@ -19,6 +19,7 @@ Classes
 
 .. py:class:: Network
 
+
    Bases: :py:obj:`object`
 
    .. py:method:: add_lt(name, transceivers=None, **params)

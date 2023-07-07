@@ -58,6 +58,7 @@ Attributes
 
 .. py:class:: Proxy
 
+
    Bases: :py:obj:`object`
 
    Base proxy class
@@ -75,6 +76,7 @@ Attributes
 
 .. py:class:: OFSwitchProxy(name, ip='127.0.0.1', port=None)
 
+
    Bases: :py:obj:`Proxy`
 
    Local proxy for OpenFlow switch configuration using ovs-ofctl
@@ -91,6 +93,7 @@ Attributes
 
 .. py:class:: RESTProxy(name=None, baseURL='http://localhost:8080/')
 
+
    Bases: :py:obj:`Proxy`
 
    Proxy for REST API objects/calls
@@ -102,6 +105,7 @@ Attributes
 
 
 .. py:class:: NodeProxy(name=None, baseURL='http://localhost:8080/')
+
 
    Bases: :py:obj:`RESTProxy`
 
@@ -115,6 +119,7 @@ Attributes
 
 .. py:class:: SwitchProxy(name=None, baseURL='http://localhost:8080/')
 
+
    Bases: :py:obj:`NodeProxy`
 
    Base class for switching node proxies
@@ -126,6 +131,7 @@ Attributes
 
 
 .. py:class:: TerminalProxy(name=None, baseURL='http://localhost:8080/')
+
 
    Bases: :py:obj:`SwitchProxy`
 
@@ -144,6 +150,7 @@ Attributes
 
 
 .. py:class:: ROADMProxy(name=None, baseURL='http://localhost:8080/')
+
 
    Bases: :py:obj:`SwitchProxy`
 

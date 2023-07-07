@@ -50,7 +50,8 @@ Attributes
 
    
 
-.. py:class:: Lumentum
+.. py:class:: Lumentum(name, *args, netconfPort=None, **kwargs)
+
 
    Bases: :py:obj:`mnoptical.ofcdemo.lroadm.LROADM`
 
@@ -67,12 +68,14 @@ Attributes
 
 .. py:class:: MUX(name, **kwargs)
 
+
    Bases: :py:obj:`mnoptical.dataplane.ROADM`
 
    A MUX is just the mux part of a roadm
 
 
 .. py:class:: LumentumLinear
+
 
    Bases: :py:obj:`mininet.topo.Topo`
 

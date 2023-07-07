@@ -36,12 +36,14 @@ Attributes
 
 .. py:class:: SRS_Effect_Model(span)
 
+
    Computation taken from : M. Zirngibl Analytical model of Raman gain effects in massive
    wavelength division multiplexed transmission systems, 1998. - Equation 10.
    - Most accurate for uniform loading cases.
 
 
 .. py:class:: Zirngibl_General_Model(span)
+
 
    The general form of the SRS model as proposed by M. Zirngibl in
    Analytical model of Raman gain effects in massive wavelength division
@@ -51,12 +53,14 @@ Attributes
 
 .. py:class:: Sylvestre_SRS_Model(span)
 
+
    SRS model proposed in 'Raman-Induced Power Tilt in Arbitrarily
    Large Wavelength-Division-MUltiplexed Systems' by T. Sylvestre et al., 2005
    - Equation 6
 
 
 .. py:class:: Bigo_SRS_Model(span)
+
 
    SRS model proposed in the paper tilted:
    'Experimental Investigation of Stimulated Raman Scattering
@@ -66,6 +70,7 @@ Attributes
 
 
 .. py:class:: Link(src_node, dst_node, src_out_port=-1, dst_in_port=-1, boost_amp=None, spans=None, debugger=False, **params)
+
 
    Bases: :py:obj:`object`
 
@@ -132,6 +137,7 @@ Attributes
 
 
 .. py:class:: Span(fibre_type='SMF', length=20.0, debugger=False, **params)
+
 
    Bases: :py:obj:`object`
 
