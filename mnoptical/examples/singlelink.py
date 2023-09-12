@@ -47,7 +47,7 @@ class SingleLinkTopo(Topo):
         h1, h2 = self.addHost('h1'), self.addHost('h2')
         s1, s2 = self.addSwitch('s1'), self.addSwitch('s2')
         # Optical network elements
-        params = {'transceivers': [('tx1',0*dBm,'C')],
+        params = {'transceivers': [('tx1',0*dBm,'C'), ('tx2' ,0*dBm, 'C')],
                   'monitor_mode': 'in'}
         t1 = self.addSwitch('t1', cls=Terminal, **params)
         t2 = self.addSwitch('t2', cls=Terminal, **params)
@@ -60,7 +60,7 @@ class SingleLinkTopo(Topo):
         boost = ('boost', {'target_gain':3.0*dB})
         amp1 = ('amp1', {'target_gain': 25*.22*dB})
         amp2 = ('amp2', {'target_gain': 25*.22*dB})
-        spans = [25*km, amp1, 25*km, amp2]
+        spans = [25*km]
         self.addLink(t1, t2, cls=OpticalLink, port1=2, port2=2,
                      boost=boost, spans=spans)
 
