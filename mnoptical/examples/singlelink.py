@@ -18,6 +18,7 @@ mn=localhost:8080; t1=$mn; t2=$mn
 curl "$t1/connect?node=t1&ethPort=1&wdmPort=2&channel=1'
 curl "$t2/connect?node=t2&ethPort=1&wdmPort=2&channel=1'
 curl "$t1/turn_on?node=t1'
+bbbbbbb
 curl "$t2/turn_on?node=t2'
 """
 
