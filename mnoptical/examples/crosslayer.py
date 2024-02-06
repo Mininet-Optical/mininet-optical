@@ -86,31 +86,31 @@ class TutorialTopo( Topo ):
 
         # IRELAND - OpenIreland Testbed
         # ROADM 1. Lumentum 2 is connected to Transponder
-        rdm1lum1ie = self.addSwitch('rdm1lum1ie', netconfPort=NC+1, insertion_loss_dB=10, **ropts)
-        rdm1lum2ie = self.addSwitch('rdm1lum2ie', netconfPort=NC+2, insertion_loss_dB=10, **ropts)
-        rdm1lum3ie = self.addSwitch('rdm1lum3ie', netconfPort=NC+3, insertion_loss_dB=10, **ropts)
+        r1l1ie = self.addSwitch('r1l1ie', netconfPort=NC+1, insertion_loss_dB=10, **ropts)
+        r1l2ie = self.addSwitch('r1l2ie', netconfPort=NC+2, insertion_loss_dB=10, **ropts)
+        r1l3ie = self.addSwitch('r1l3ie', netconfPort=NC+3, insertion_loss_dB=10, **ropts)
 
         # ROADM 2
-        rdm2lum4ie = self.addSwitch('rdm2lum4ie', netconfPort=NC+4, insertion_loss_dB=10, **ropts)
-        rdm2lum5ie = self.addSwitch('rdm2lum5ie', netconfPort=NC+5, insertion_loss_dB=10, **ropts)
+        r2l4ie = self.addSwitch('r2l4ie', netconfPort=NC+4, insertion_loss_dB=10, **ropts)
+        r2l5ie = self.addSwitch('r2l5ie', netconfPort=NC+5, insertion_loss_dB=10, **ropts)
 
         # ROADM 3
-        rdm3lum6ie = self.addSwitch('rdm3lum6ie', netconfPort=NC+6, insertion_loss_dB=10, **ropts)
-        rdm3lum7ie = self.addSwitch('rdm3lum7ie', netconfPort=NC+7, insertion_loss_dB=10, **ropts)
+        r3l6ie = self.addSwitch('r3l6ie', netconfPort=NC+6, insertion_loss_dB=10, **ropts)
+        r3l7ie = self.addSwitch('r3l7ie', netconfPort=NC+7, insertion_loss_dB=10, **ropts)
 
         # US - COSMOS Testbed
         # ROADM 1. Lumentum 2 is connected to Transponder
-        rdm1lum1us = self.addSwitch('rdm1lum1us', netconfPort=NC+1, insertion_loss_dB=10, **ropts)
-        rdm1lum2us = self.addSwitch('rdm1lum2us', netconfPort=NC+2, insertion_loss_dB=10, **ropts)
-        rdm1lum3us = self.addSwitch('rdm1lum3us', netconfPort=NC+3, insertion_loss_dB=10, **ropts)
+        r1l1us = self.addSwitch('r1l1us', netconfPort=NC+11, insertion_loss_dB=10, **ropts)
+        r1l2us = self.addSwitch('r1l2us', netconfPort=NC+12, insertion_loss_dB=10, **ropts)
+        r1l3us = self.addSwitch('r1l3us', netconfPort=NC+13, insertion_loss_dB=10, **ropts)
 
         # ROADM 2
-        rdm2lum4us = self.addSwitch('rdm2lum4us', netconfPort=NC+4, insertion_loss_dB=10, **ropts)
-        rdm2lum5us = self.addSwitch('rdm2lum5us', netconfPort=NC+5, insertion_loss_dB=10, **ropts)
+        r2l4us = self.addSwitch('r2l4us', netconfPort=NC+14, insertion_loss_dB=10, **ropts)
+        r2l5us = self.addSwitch('r2l5us', netconfPort=NC+15, insertion_loss_dB=10, **ropts)
 
         # ROADM 3
-        rdm3lum6us = self.addSwitch('rdm3lum6us', netconfPort=NC+6, insertion_loss_dB=10, **ropts)
-        rdm3lum7us = self.addSwitch('rdm3lum7us', netconfPort=NC+7, insertion_loss_dB=10, **ropts)
+        r3l6us = self.addSwitch('r3l6us', netconfPort=NC+16, insertion_loss_dB=10, **ropts)
+        r3l7us = self.addSwitch('r3l7us', netconfPort=NC+17, insertion_loss_dB=10, **ropts)
 
 
         # Transponder
@@ -131,47 +131,58 @@ class TutorialTopo( Topo ):
         crossatl2 = self.addHost('crossatl2')
         servermmw = self.addHost('srv_us_mmw')
 
+        # Polatis switch
+        polatisie = self.addSwitch('polatisie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
+                                                          ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
+                                                          ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
+                                                          ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
+                                                          ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
+        polatisus = self.addSwitch('polatisus', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
+                                                          ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
+                                                          ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
+                                                          ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
+                                                          ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
         # Inter-ROADM links
         # 50km between rdm1-rdm2, 25kn between rdm2-rdm3 and rdm1-rdm3.
         # Default fiber length is 1m if not specified
 
         # IRELAND
-        self.wdmLink(rdm1lum1ie, rdm2lum4ie, LINEOUT, LINEIN,
+        self.wdmLink(r1l1ie, r2l4ie, LINEOUT, LINEIN,
             spans=[0.0*m,
                 ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                 50.0*km,
                 ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
             delay='33us')
 
-        self.wdmLink(rdm2lum5ie, rdm1lum3ie, LINEOUT, LINEIN,
+        self.wdmLink(r2l5ie, r1l3ie, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             50.0*km,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm2lum4ie, rdm3lum6ie, LINEOUT, LINEIN,
+        self.wdmLink(r2l4ie, r3l6ie, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             1.0*m,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm3lum6ie, rdm2lum5ie, LINEOUT, LINEIN,
+        self.wdmLink(r3l6ie, r2l5ie, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             1.0*m,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm3lum7ie, rdm1lum1ie, LINEOUT, LINEIN,
+        self.wdmLink(r3l7ie, r1l1ie, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             25.0*km,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm1lum3ie, rdm3lum7ie, LINEOUT, LINEIN,
+        self.wdmLink(r1l3ie, r3l7ie, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             25.0*km,
@@ -179,42 +190,42 @@ class TutorialTopo( Topo ):
                      delay='33us')
 
         # US
-        self.wdmLink(rdm1lum1us, rdm2lum4us, LINEOUT, LINEIN,
+        self.wdmLink(r1l1us, r2l4us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             50.0*km,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm2lum5us, rdm1lum3us, LINEOUT, LINEIN,
+        self.wdmLink(r2l5us, r1l3us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             50.0*km,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm2lum4us, rdm3lum6us, LINEOUT, LINEIN,
+        self.wdmLink(r2l4us, r3l6us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             1.0*m,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm3lum6us, rdm2lum5us, LINEOUT, LINEIN,
+        self.wdmLink(r3l6us, r2l5us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             1.0*m,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm3lum7us, rdm1lum1us, LINEOUT, LINEIN,
+        self.wdmLink(r3l7us, r1l1us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             25.0*km,
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
-        self.wdmLink(rdm1lum3us, rdm3lum7us, LINEOUT, LINEIN,
+        self.wdmLink(r1l3us, r3l7us, LINEOUT, LINEIN,
                      spans=[0.0*m,
                             ('boost', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'}),
                             25.0*km,
@@ -222,18 +233,45 @@ class TutorialTopo( Topo ):
                      delay='33us')
 
 
-        # Passthrough rdm links
+        # Passthrough rdm links - connected to the Polatis switch
         # IRELAND
-        self.wdmLink(rdm1lum2ie, rdm1lum1ie, DROP+1, ADD+1)
-        self.wdmLink(rdm2lum4ie, rdm2lum4ie, DROP+1, ADD+1)
-        self.wdmLink(rdm3lum6ie, rdm3lum7ie, DROP+1, ADD+1)
-        self.wdmLink(rdm1lum1ie, rdm1lum2ie, DROP+1, ADD+1)
+        self.wdmLink(r1l1ie, polatisie, DROP+1, 1)
+        self.wdmLink(r1l2ie, polatisie, DROP+1, 2)
+        self.wdmLink(r1l3ie, polatisie, DROP+1, 3)
+        self.wdmLink(polatisie, r1l1ie, 11, ADD+1)
+        self.wdmLink(polatisie, r1l2ie, 12, ADD+1)
+        self.wdmLink(polatisie, r1l3ie, 13, ADD+1)
+        self.wdmLink(r2l4ie, polatisie, DROP+1, 4)
+        self.wdmLink(r2l5ie, polatisie, DROP+1, 5)
+        self.wdmLink(polatisie, r2l4ie, 14, ADD+1)
+        self.wdmLink(polatisie, r2l5ie, 15, ADD+1)
+        self.wdmLink(r3l6ie, polatisie, DROP+1, 6)
+        self.wdmLink(r3l7ie, polatisie, DROP+1, 7)
+        self.wdmLink(polatisie, r3l6ie, 16, ADD+1)
+        self.wdmLink(polatisie, r3l7ie, 17, ADD+1)
+        #self.wdmLink(r2l4ie, r2l4ie, DROP+1, ADD+1) # Same source and destination doesn't work
+        #self.wdmLink(r3l6ie, r3l7ie, DROP+1, ADD+1)
+        #self.wdmLink(r1l1ie, r1l2ie, DROP+1, ADD+1)
 
         # US
-        self.wdmLink(rdm1lum2us, rdm1lum1us, DROP+1, ADD+1)
-        self.wdmLink(rdm2lum4us, rdm2lum4us, DROP+1, ADD+1)
-        self.wdmLink(rdm3lum6us, rdm3lum7us, DROP+1, ADD+1)
-        self.wdmLink(rdm1lum1us, rdm1lum2us, DROP+1, ADD+1)
+        self.wdmLink(r1l1us, polatisus, DROP+1, 1)
+        self.wdmLink(r1l2us, polatisus, DROP+1, 2)
+        self.wdmLink(r1l3us, polatisus, DROP+1, 3)
+        self.wdmLink(polatisus, r1l1us, 11, ADD+1)
+        self.wdmLink(polatisus, r1l2us, 12, ADD+1)
+        self.wdmLink(polatisus, r1l3us, 13, ADD+1)
+        self.wdmLink(r2l4us, polatisus, DROP+1, 4)
+        self.wdmLink(r2l5us, polatisus, DROP+1, 5)
+        self.wdmLink(polatisus, r2l4us, 14, ADD+1)
+        self.wdmLink(polatisus, r2l5us, 15, ADD+1)
+        self.wdmLink(r3l6us, polatisus, DROP+1, 6)
+        self.wdmLink(r3l7us, polatisus, DROP+1, 7)
+        self.wdmLink(polatisus, r3l6us, 16, ADD+1)
+        self.wdmLink(polatisus, r3l7us, 17, ADD+1)
+        #self.wdmLink(r1l2us, r1l1us, DROP+1, ADD+1)
+        #self.wdmLink(r2l4us, r2l4us, DROP+1, ADD+1) # Same source and destination doesn't work
+        #self.wdmLink(r3l6us, r3l7us, DROP+1, ADD+1)
+        #self.wdmLink(r1l1us, r1l2us, DROP+1, ADD+1)
 
         # Sub-millisecond delays won't be accurate (due to scheduler timing
         # granularity and running in a VM) but this will add observable
@@ -241,11 +279,11 @@ class TutorialTopo( Topo ):
 
         # ROADM add/drop 2 <-> Txp transceiver links
         # IRELAND
-        self.wdmLink(teraie, rdm1lum2ie, 1, LINEIN)
-        self.wdmLink(rdm1lum2ie, teraie, LINEOUT, 2)
+        self.wdmLink(teraie, r1l2ie, 1, LINEIN)
+        self.wdmLink(r1l2ie, teraie, LINEOUT, 2)
         # US
-        self.wdmLink(teraus, rdm1lum2us, 1, LINEIN)
-        self.wdmLink(rdm1lum2us, teraus, LINEOUT, 2)
+        self.wdmLink(teraus, r1l2us, 1, LINEIN)
+        self.wdmLink(r1l2us, teraus, LINEOUT, 2)
 
         # Comb Source links to rdm1co1 and rdm2co1
         #self.wdmLink(comb1, rdm1co1, CombSource.LINEOUT, ADD+1)
@@ -274,7 +312,7 @@ if __name__ == '__main__':
     netconfServer = NetconfServer(
         net, username=username, password=password, sslkeyfile=sslkeyfile)
     netconfServer.start()
-    plotNet(net, outfile='tutorial.png', directed=True,
+    plotNet(net, outfile='ofc24_topo.png', directed=True,
             layout='dot', colorMap={LROADM: 'red'},
             linksPerPair=1)
     if 'test' in argv:
