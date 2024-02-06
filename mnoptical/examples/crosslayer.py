@@ -116,20 +116,20 @@ class TutorialTopo( Topo ):
         # Transponder
         topts = dict(cls=Terminal, monitor_mode='in')
         # IRELAND
-        teraie = self.addSwitch('tera_ie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB)], **topts)
+        teraie = self.addSwitch('teraie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB)], **topts)
         # US
-        teraus = self.addSwitch('tera_us', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB)], **topts)
+        teraus = self.addSwitch('teraus', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB)], **topts)
 
         # Comb Sources (if needed)
         #comb1 = self.addSwitch('comb1', cls=CombSource, power=comb1_power, monitor_mode='out')
         #comb2 = self.addSwitch('comb2', cls=CombSource, power=comb2_power, monitor_mode='out')
 
         # Servers
-        serverie = self.addHost('srv_ie')
-        serverus = self.addHost('srv_us')
+        serverie = self.addHost('serverie')
+        serverus = self.addHost('serverus')
         crossatl1 = self.addHost('crossatl1')
         crossatl2 = self.addHost('crossatl2')
-        servermmw = self.addHost('srv_us_mmw')
+        servermmw = self.addHost('servermmw')
 
         # Polatis switch
         polatisie = self.addSwitch('polatisie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
