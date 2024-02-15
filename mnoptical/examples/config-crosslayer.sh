@@ -34,23 +34,23 @@ polatisus=localhost:8080
 # Helper script for sending commands to servers
 m=../mininet/util/m
 
-# Helper function: send gratuitous arps from all servers
-arp () {
-    echo '*** Sending gratuitous ARPs'
-    $m serverie arping -c 1 -U -I serverie-eth0 192.168.1.1
-    $m serverie arping -c 1 -U -I serverie-eth1 192.168.1.1
-    $m serverus arping -c 1 -U -I serverus-eth0 192.168.1.2
-    $m serverus arping -c 1 -U -I serverus-eth1 192.168.1.2
-    $m crossatl1 arping -c 1 -U -I crossatl1-eth0 192.168.1.3
-    $m crossatl1 arping -c 1 -U -I crossatl1-eth1 192.168.1.3
-    $m crossatl2 arping -c 1 -U -I crossatl2-eth0 192.168.1.3
-    $m crossatl2 arping -c 1 -U -I crossatl2-eth1 192.168.1.3
-    $m crossatl2 arping -c 1 -U -I crossatl2-eth2 192.168.1.3
-    $m servermmw arping -c 1 -U -I servermmw-eth0 192.168.1.4
-}
+## Helper function: send gratuitous arps from all servers
+#arp () {
+#    echo '*** Sending gratuitous ARPs'
+#    $m serverie arping -c 1 -U -I serverie-eth0 192.168.1.1
+#    $m serverie arping -c 1 -U -I serverie-eth1 192.168.1.1
+#    $m serverus arping -c 1 -U -I serverus-eth0 192.168.1.2
+#    $m serverus arping -c 1 -U -I serverus-eth1 192.168.1.2
+#    $m crossatl1 arping -c 1 -U -I crossatl1-eth0 192.168.1.3
+#    $m crossatl1 arping -c 1 -U -I crossatl1-eth1 192.168.1.3
+#    $m crossatl2 arping -c 1 -U -I crossatl2-eth0 192.168.1.3
+#    $m crossatl2 arping -c 1 -U -I crossatl2-eth1 192.168.1.3
+#    $m crossatl2 arping -c 1 -U -I crossatl2-eth2 192.168.1.3
+#    $m servermmw arping -c 1 -U -I servermmw-eth0 192.168.1.4
+#}
 
 # Reset ROADM configurations
-reset() {
+#reset() {
     echo '*** Resetting ROADMs IE'
     curl "$r1l1ie/reset?node=r1l1ie"
     curl "$r1l2ie/reset?node=r1l2ie"
@@ -68,11 +68,15 @@ reset() {
     curl "$r2l5us/reset?node=r2l5us"
     curl "$r3l6us/reset?node=r3l6us"
     curl "$r3l7us/reset?node=r3l7us"
-}
+
+    echo '*** Resetting Polatis'
+    curl "$r1l1us/reset?node=polatisie"
+    curl "$r1l1us/reset?node=polatisus"
+#}
 
 # ROADM scenario 1 - REST version
 
-connect1rest() {
+#connect1rest() {
     echo '*** Installing ROADM configuration IE (REST)'
 
     curl "$r1l1ie/connect?node=r1l1ie&port1=4101&port2=4201&channels=61"
@@ -110,7 +114,7 @@ connect1rest() {
     curl "$r3l7us/connect?node=r3l7us&port1=4101&port2=4201&channels=61"
     curl "$r3l6us/connect?node=r3l6us&port1=5101&port2=5201&channels=61"
     curl "$r3l7us/connect?node=r3l7us&port1=5101&port2=5201&channels=61"
-}
+#}
 
 
 # ROADM configuration 1: srv1_co1<->srv1_lg1 connection - NETCONF version
@@ -136,34 +140,59 @@ r3l7us_netconf=localhost:1847
 
 # Configure Transponders and transceivers (bidirectional connections)
 echo '*** Configuring Tera transponders and transceivers'
-curl "$teraie/connect?node=teraie&ethPort=1&wdmPort=1&channel=61"
-curl "$teraie/connect?node=teraie&ethPort=1&wdmPort=2&channel=61"
-curl "$teraus/connect?node=teraus&ethPort=1&wdmPort=1&channel=61"
-curl "$teraus/connect?node=teraus&ethPort=1&wdmPort=2&channel=61"
+curl "$teraie/connect?node=teraie&ethPort=3&wdmPort=1&channel=61"
+curl "$teraie/connect?node=teraie&ethPort=3&wdmPort=2&channel=61"
+curl "$teraus/connect?node=teraus&ethPort=3&wdmPort=1&channel=61"
+curl "$teraus/connect?node=teraus&ethPort=3&wdmPort=2&channel=61"
 
+# scenario 1:
+scenario1(){
 
-curl "$polatisie/connect?node=polatisie&wdmPort=2&wdmPort=11&channel=61"
-curl "$polatisie/connect?node=polatisie&wdmPort=5&wdmPort=14&channel=61"
-curl "$polatisie/connect?node=polatisie&wdmPort=6&wdmPort=17&channel=61"
+  curl "$polatisie/connect?node=polatisie&port1=2&port2=11&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=5&port2=14&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=6&port2=17&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=1&port2=12&channels=61"
 
+  curl "$polatisus/connect?node=polatisus&port1=2&port2=11&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=5&port2=14&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=6&port2=17&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=1&port2=12&channels=61"
+}
+
+# scenario 2:
+scenario2() {
+
+  curl "$polatisie/connect?node=polatisie&port1=2&port2=13&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=4&port2=15&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=7&port2=16&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=3&port2=12&channels=61"
+
+  curl "$polatisus/connect?node=polatisus&port1=2&port2=13&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=4&port2=15&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=7&port2=16&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=3&port2=12&channels=61"
+}
+
+scenario1
 
 curl "$teraie/turn_on?node=teraie"
 curl "$teraus/turn_on?node=teraus"
-
     
 # Configure server interfaces (using 'm' command)
-echo '*** Configuring servers \n'
-$m serverie ifconfig serverie-eth0 192.168.1.1/24
-$m serverus ifconfig serverus-eth0 192.168.1.2/24
-$m crossatl1 ifconfig crossatl1-eth1 192.168.1.3/24
-$m crossatl2 ifconfig crossatl2-eth1 192.168.1.4/24
-$m  servermmw ifconfig  servermmw-eth1 192.168.1.5/24
+#echo '*** Configuring servers \n'
+#$m serverie ifconfig serverie-eth0 192.168.1.0/24
+#$m serverie ifconfig serverie-eth1 192.168.1.1/24
+#$m serverus ifconfig serverus-eth0 192.168.2.0/24
+#$m serverus ifconfig serverus-eth1 192.168.2.1/24
+#$m crossatl1 ifconfig crossatl1-eth1 192.168.1.3/24
+#$m crossatl2 ifconfig crossatl2-eth1 192.168.1.4/24
+#$m  servermmw ifconfig servermmw-eth1 192.168.1.5/24
 
-echo '*** Configuration'
-connect1rest
-
-
+#echo '*** Configuration'
+#reset
+#connect1rest
 
 
 echo '*** Done.'
+
 

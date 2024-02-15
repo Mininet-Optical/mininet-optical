@@ -8,7 +8,7 @@ This is for the tutorial at:
 """
 
 from mnoptical.dataplane import (
-    UniLink, Terminal, OpticalNet as Mininet, CombSource,
+    UniLink, Terminal, ROADM, OpticalNet as Mininet, CombSource,
     km, m, dB, dBm )
 
 from mnoptical.node import Amplifier, Node, Transceiver
@@ -131,17 +131,19 @@ class TutorialTopo( Topo ):
         crossatl2 = self.addHost('crossatl2')
         servermmw = self.addHost('servermmw')
 
-        # Polatis switch
-        polatisie = self.addSwitch('polatisie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
-                                                          ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
-                                                          ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
-                                                          ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
-                                                          ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
-        polatisus = self.addSwitch('polatisus', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
-                                                          ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
-                                                          ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
-                                                          ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
-                                                          ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
+        # Polatis switch - ROADM node try
+        polatisie = self.addSwitch('polatisie', cls=ROADM, insertion_loss_dB=0.5, monitor_mode='in')
+        polatisus = self.addSwitch('polatisus', cls=ROADM, insertion_loss_dB=0.5, monitor_mode='in')
+        #polatisie = self.addSwitch('polatisie', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
+        #                                                  ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
+        #                                                  ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
+        #                                                  ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
+        #                                                  ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
+        #polatisus = self.addSwitch('polatisus', transceivers=[('tx1', -1.5*dB), ('tx2', -1.5*dB), ('tx3', -1.5*dB),
+        #                                                  ('tx4', -1.5*dB), ('tx5', -1.5*dB), ('tx6', -1.5*dB),
+        #                                                  ('tx7', -1.5*dB), ('tx11', -1.5*dB), ('tx12', -1.5*dB),
+        #                                                  ('tx13', -1.5*dB), ('tx14', -1.5*dB), ('tx15', -1.5*dB),
+        #                                                  ('tx16', -1.5*dB), ('tx17', -1.5*dB)], **topts)
         # Inter-ROADM links
         # 50km between rdm1-rdm2, 25kn between rdm2-rdm3 and rdm1-rdm3.
         # Default fiber length is 1m if not specified
@@ -232,6 +234,7 @@ class TutorialTopo( Topo ):
                             ('preamp', {'target_gain': 18.0*dB, 'wdg_id': 'wdg1', 'monitor_mode': 'out'})],
                      delay='33us')
 
+        # Polatis - Roadms links
 
         # Passthrough rdm links - connected to the Polatis switch
         # IRELAND
@@ -241,8 +244,8 @@ class TutorialTopo( Topo ):
         self.wdmLink(polatisie, r1l1ie, 11, ADD+1)
         self.wdmLink(polatisie, r1l2ie, 12, ADD+1)
         self.wdmLink(polatisie, r1l3ie, 13, ADD+1)
-        self.wdmLink(r2l4ie, polatisie, DROP+1, 4)
-        self.wdmLink(r2l5ie, polatisie, DROP+1, 5)
+        self.wdmLink(r2l4ie, polatisie, DROP+1, 5)
+        self.wdmLink(r2l5ie, polatisie, DROP+1, 4)
         self.wdmLink(polatisie, r2l4ie, 14, ADD+1)
         self.wdmLink(polatisie, r2l5ie, 15, ADD+1)
         self.wdmLink(r3l6ie, polatisie, DROP+1, 6)
@@ -260,8 +263,8 @@ class TutorialTopo( Topo ):
         self.wdmLink(polatisus, r1l1us, 11, ADD+1)
         self.wdmLink(polatisus, r1l2us, 12, ADD+1)
         self.wdmLink(polatisus, r1l3us, 13, ADD+1)
-        self.wdmLink(r2l4us, polatisus, DROP+1, 4)
-        self.wdmLink(r2l5us, polatisus, DROP+1, 5)
+        self.wdmLink(r2l4us, polatisus, DROP+1, 5)
+        self.wdmLink(r2l5us, polatisus, DROP+1, 4)
         self.wdmLink(polatisus, r2l4us, 14, ADD+1)
         self.wdmLink(polatisus, r2l5us, 15, ADD+1)
         self.wdmLink(r3l6us, polatisus, DROP+1, 6)
