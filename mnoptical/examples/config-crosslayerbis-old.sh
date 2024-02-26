@@ -9,16 +9,20 @@ testdir=$(dirname $0)
 # REST ports for network components
 r1l1ie=localhost:8080
 r1l2ie=localhost:8080
-r2l3ie=localhost:8080
+r1l3ie=localhost:8080
 r2l4ie=localhost:8080
-r3l5ie=localhost:8080
+r2l5ie=localhost:8080
+r2l8ie=localhost:8080
 r3l6ie=localhost:8080
+r3l7ie=localhost:8080
 r1l1us=localhost:8080
 r1l2us=localhost:8080
-r2l3us=localhost:8080
+r1l3us=localhost:8080
 r2l4us=localhost:8080
-r3l5us=localhost:8080
+r2l5us=localhost:8080
+r2l8us=localhost:8080
 r3l6us=localhost:8080
+r3l7us=localhost:8080
 teraie1=localhost:8080
 teraus1=localhost:8080
 teraie2=localhost:8080
@@ -35,22 +39,26 @@ m=../mininet/util/m
 echo '*** Resetting ROADMs IE'
 curl "$r1l1ie/reset?node=r1l1ie"
 curl "$r1l2ie/reset?node=r1l2ie"
-curl "$r2l3ie/reset?node=r2l3ie"
+curl "$r1l3ie/reset?node=r1l3ie"
 curl "$r2l4ie/reset?node=r2l4ie"
-curl "$r3l5ie/reset?node=r3l5ie"
+curl "$r2l5ie/reset?node=r2l5ie"
+curl "$r2l8ie/reset?node=r2l8ie"
 curl "$r3l6ie/reset?node=r3l6ie"
+curl "$r3l7ie/reset?node=r3l7ie"
 
 echo '*** Resetting ROADMs US'
 curl "$r1l1us/reset?node=r1l1us"
 curl "$r1l2us/reset?node=r1l2us"
-curl "$r2l3us/reset?node=r2l3us"
+curl "$r1l3us/reset?node=r1l3us"
 curl "$r2l4us/reset?node=r2l4us"
-curl "$r3l5us/reset?node=r3l5us"
+curl "$r2l5us/reset?node=r2l5us"
+curl "$r2l8us/reset?node=r2l8us"
 curl "$r3l6us/reset?node=r3l6us"
+curl "$r3l7us/reset?node=r3l7us"
 
 echo '*** Resetting Polatis'
-curl "$polatisie/reset?node=polatisie"
-curl "$polatisus/reset?node=polatisus"
+curl "$r1l1us/reset?node=polatisie"
+curl "$r1l1us/reset?node=polatisus"
 
 
 # ROADM scenario 1 - REST version
@@ -60,35 +68,43 @@ echo '*** Installing ROADM configuration IE (REST)'
 
 curl "$r1l1ie/connect?node=r1l1ie&port1=4101&port2=4201&channels=61"
 curl "$r1l2ie/connect?node=r1l2ie&port1=4101&port2=4201&channels=61"
+curl "$r1l3ie/connect?node=r1l3ie&port1=4101&port2=4201&channels=61"
 curl "$r1l1ie/connect?node=r1l1ie&port1=5101&port2=5201&channels=61"
 curl "$r1l2ie/connect?node=r1l2ie&port1=5101&port2=5201&channels=61"
+curl "$r1l3ie/connect?node=r1l3ie&port1=5101&port2=5201&channels=61"
 
-curl "$r2l3ie/connect?node=r2l3ie&port1=4101&port2=4201&channels=61"
 curl "$r2l4ie/connect?node=r2l4ie&port1=4101&port2=4201&channels=61"
-curl "$r2l3ie/connect?node=r2l3ie&port1=5101&port2=5201&channels=61"
+curl "$r2l5ie/connect?node=r2l5ie&port1=4101&port2=4201&channels=61"
 curl "$r2l4ie/connect?node=r2l4ie&port1=5101&port2=5201&channels=61"
+curl "$r2l5ie/connect?node=r2l5ie&port1=5101&port2=5201&channels=61"
+curl "$r2l8ie/connect?node=r2l8ie&port1=4101&port2=4201&channels=61"
+curl "$r2l8ie/connect?node=r2l8ie&port1=5101&port2=5201&channels=61"
 
-curl "$r3l5ie/connect?node=r3l5ie&port1=4101&port2=4201&channels=61"
 curl "$r3l6ie/connect?node=r3l6ie&port1=4101&port2=4201&channels=61"
-curl "$r3l5ie/connect?node=r3l5ie&port1=5101&port2=5201&channels=61"
+curl "$r3l7ie/connect?node=r3l7ie&port1=4101&port2=4201&channels=61"
 curl "$r3l6ie/connect?node=r3l6ie&port1=5101&port2=5201&channels=61"
+curl "$r3l7ie/connect?node=r3l7ie&port1=5101&port2=5201&channels=61"
 
 echo '*** Installing ROADM configuration US (REST)'
 
 curl "$r1l1us/connect?node=r1l1us&port1=4101&port2=4201&channels=61"
 curl "$r1l2us/connect?node=r1l2us&port1=4101&port2=4201&channels=61"
+curl "$r1l3us/connect?node=r1l3us&port1=4101&port2=4201&channels=61"
 curl "$r1l1us/connect?node=r1l1us&port1=5101&port2=5201&channels=61"
 curl "$r1l2us/connect?node=r1l2us&port1=5101&port2=5201&channels=61"
+curl "$r1l3us/connect?node=r1l3us&port1=5101&port2=5201&channels=61"
 
-curl "$r2l3us/connect?node=r2l3us&port1=4101&port2=4201&channels=61"
 curl "$r2l4us/connect?node=r2l4us&port1=4101&port2=4201&channels=61"
-curl "$r2l3us/connect?node=r2l3us&port1=5101&port2=5201&channels=61"
+curl "$r2l5us/connect?node=r2l5us&port1=4101&port2=4201&channels=61"
 curl "$r2l4us/connect?node=r2l4us&port1=5101&port2=5201&channels=61"
+curl "$r2l5us/connect?node=r2l5us&port1=5101&port2=5201&channels=61"
+curl "$r2l8us/connect?node=r2l8us&port1=4101&port2=4201&channels=61"
+curl "$r2l8us/connect?node=r2l8us&port1=5101&port2=5201&channels=61"
 
-curl "$r3l5us/connect?node=r3l5us&port1=4101&port2=4201&channels=61"
 curl "$r3l6us/connect?node=r3l6us&port1=4101&port2=4201&channels=61"
-curl "$r3l5us/connect?node=r3l5us&port1=5101&port2=5201&channels=61"
+curl "$r3l7us/connect?node=r3l7us&port1=4101&port2=4201&channels=61"
 curl "$r3l6us/connect?node=r3l6us&port1=5101&port2=5201&channels=61"
+curl "$r3l7us/connect?node=r3l7us&port1=5101&port2=5201&channels=61"
 
 
 # Netconf part:
@@ -128,30 +144,30 @@ curl "$teraus2/connect?node=teraus2&ethPort=4&wdmPort=2&channel=61"
 # scenario 1:
 scenario1(){
 
-  curl "$polatisie/connect?node=polatisie&port1=1&port2=3&channels=61"
-  curl "$polatisie/connect?node=polatisie&port1=8&port2=16&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=2&port2=11&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=5&port2=18&channels=61"
 
-  curl "$polatisus/connect?node=polatisus&port1=1&port2=2&channels=61"
-  curl "$polatisus/connect?node=polatisus&port1=8&port2=16&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=2&port2=11&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=5&port2=18&channels=61"
 
 }
 
 # scenario 2:
 scenario2() {
 
-  curl "$polatisie/connect?node=polatisie&port1=1&port2=6&channels=61"
-  curl "$polatisie/connect?node=polatisie&port1=12&port2=14&channels=61"
-  curl "$polatisie/connect?node=polatisie&port1=9&port2=16&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=2&port2=13&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=7&port2=16&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=4&port2=18&channels=61"
 
-  curl "$polatisus/connect?node=polatisus&port1=1&port2=6&channels=61"
-  curl "$polatisus/connect?node=polatisus&port1=12&port2=14&channels=61"
-  curl "$polatisus/connect?node=polatisus&port1=9&port2=16&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=2&port2=13&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=7&port2=16&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=4&port2=18&channels=61"
 
 }
 
 echo '*** Set up scenario'
 
-scenario2
+scenario1
 
 echo '*** Turning on transponders'
 
