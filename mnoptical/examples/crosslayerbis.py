@@ -16,10 +16,12 @@ from mnoptical.rest import RestServer
 from mnoptical.ofcdemo.netconfserver import NetconfServer
 from mnoptical.ofcdemo.lroadm import LROADM, NetconfPortBase
 from mnoptical.examples.singleroadm import plotNet
+from mnoptical.click import ClickUserSwitch
 
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.node import OVSSwitch
+from mininet.link import TCLink
 
 from sys import argv
 from subprocess import run
@@ -123,18 +125,26 @@ class TutorialTopo( Topo ):
         #comb2 = self.addSwitch('comb2', cls=CombSource, power=comb2_power, monitor_mode='out')
 
         # Servers
-        s1 = self.addSwitch('s1', cls=OVSSwitch)
+        #s1 = self.addSwitch('s1', cls=ClickUserSwitch,
+        #                    config_file='/home/julieraulin/Documents/mininet-optical/mnoptical/switch.click',
+        #                    link=TCLink, log_file='s1.log', parameters=dict(HOST='s1-eth0', NETWORK='s1-eth1'))
+        #s2 = self.addSwitch('s2', cls=ClickUserSwitch,
+        #                    config_file='/home/julieraulin/Documents/mininet-optical/mnoptical/switch.click',
+        #                    link=TCLink, log_file='s2.log', parameters=dict(HOST='s2-eth0', NETWORK='s2-eth1'))
+        s1 = self.addSwitch('s1', cls=OVSSwitch) #cls=OVSSwitch
         s2 = self.addSwitch('s2', cls=OVSSwitch)
-        satl1 = self.addSwitch('satl1')
-        satl2 = self.addSwitch('satl2')
+        satl1 = self.addSwitch('satl1', cls=OVSSwitch)
+        satl2 = self.addSwitch('satl2', cls=OVSSwitch)
 
+        # controller for switches
+        #c0 = self.addController( 'c0' )
         # Hosts
         h1 = self.addHost('h1')
         h2 = self.addHost('h2')
 
         # Polatis switch - ROADM node try
-        polatisie = self.addSwitch('polatisie', cls=ROADM, insertion_loss_dB=0.5, monitor_mode='in')
-        polatisus = self.addSwitch('polatisus', cls=ROADM, insertion_loss_dB=0.5, monitor_mode='in')
+        polatisie = self.addSwitch('polatisie', cls=ROADM, insertion_loss_dB=1.5, monitor_mode='in')
+        polatisus = self.addSwitch('polatisus', cls=ROADM, insertion_loss_dB=1.5, monitor_mode='in')
 
         # Inter-ROADM links
         # 25km between rdm1-rdm2, 25km between rdm1-rdm3 and 25km+EDFA+25km+EDFA+25km for rdm2-rdm3.
@@ -302,13 +312,14 @@ class TutorialTopo( Topo ):
         #self.wdmLink(comb2, rdm2co1, CombSource.LINEOUT, ADD+1)
 
         # Ethernet links
-        self.addLink(h1, s1, port1=0, port2=0)
+        self.addLink(h1, s1, port1=0, port2=2)
         self.addLink(s1, teraie1, port1=1, port2=1)
         self.addLink(teraie2, satl1, port1=1, port2=1)
-        self.addLink(satl1, satl2, port1=0, port2=0)
+        self.addLink(satl1, satl2, port1=2, port2=2, bw=10000, delay='5ms', loss=0)
         self.addLink(satl2, teraus1, port1=1, port2=1)
         self.addLink(teraus2, s2, port1=1, port2=1)
-        self.addLink(s2, h2, port1=0, port2=0)
+        self.addLink(s2, h2, port1=2, port2=0)
+
 
 
 if __name__ == '__main__':

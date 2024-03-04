@@ -29,7 +29,6 @@ polatisus=localhost:8080
 # Helper script for sending commands to servers
 m=../mininet/util/m
 
-
 # Reset ROADM configurations
 
 echo '*** Resetting ROADMs IE'
@@ -116,14 +115,19 @@ curl "$r3l6us/connect?node=r3l6us&port1=5101&port2=5201&channels=61"
 
 # Configure Transponders and transceivers (bidirectional connections)
 echo '*** Configuring Tera transponders and transceivers'
-curl "$teraie1/connect?node=teraie1&ethPort=1&wdmPort=2&channel=61"
-curl "$teraie1/connect?node=teraie1&ethPort=4&wdmPort=3&channel=61"
-curl "$teraie2/connect?node=teraie2&ethPort=1&wdmPort=3&channel=61"
-curl "$teraie2/connect?node=teraie2&ethPort=4&wdmPort=2&channel=61"
-curl "$teraus1/connect?node=teraus1&ethPort=1&wdmPort=2&channel=61"
-curl "$teraus1/connect?node=teraus1&ethPort=4&wdmPort=3&channel=61"
-curl "$teraus2/connect?node=teraus2&ethPort=1&wdmPort=3&channel=61"
-curl "$teraus2/connect?node=teraus2&ethPort=4&wdmPort=2&channel=61"
+curl "$teraie1/connect?node=teraie1&ethPort=1&wdmPort=2&wdmInPort=3&channel=61"
+#curl "$teraie1/connect?node=teraie1&ethPort=1&wdmPort=2&channel=61"
+#curl "$teraie1/connect?node=teraie1&ethPort=4&wdmPort=3&channel=61"
+curl "$teraie2/connect?node=teraie2&ethPort=1&wdmPort=2&wdmInPort=3&channel=61"
+#curl "$swda_lg1/connect?node=swda-lg1&ethPort=2&wdmPort=290&wdmInPort=291&channel=61"
+#curl "$teraie2/connect?node=teraie2&ethPort=1&wdmPort=3&channel=61"
+#curl "$teraie2/connect?node=teraie2&ethPort=4&wdmPort=2&channel=61"
+curl "$teraus1/connect?node=teraus1&ethPort=1&wdmPort=2&wdmInPort=3&channel=61"
+#curl "$teraus1/connect?node=teraus1&ethPort=1&wdmPort=2&channel=61"
+#curl "$teraus1/connect?node=teraus1&ethPort=4&wdmPort=3&channel=61"
+#curl "$teraus2/connect?node=teraus2&ethPort=1&wdmPort=3&channel=61"
+#curl "$teraus2/connect?node=teraus2&ethPort=4&wdmPort=2&channel=61"
+curl "$teraus2/connect?node=teraus2&ethPort=1&wdmPort=2&wdmInPort=3&channel=61"
 
 # scenario 1:
 scenario1(){
@@ -131,9 +135,15 @@ scenario1(){
   curl "$polatisie/connect?node=polatisie&port1=1&port2=3&channels=61"
   curl "$polatisie/connect?node=polatisie&port1=8&port2=16&channels=61"
 
-  curl "$polatisus/connect?node=polatisus&port1=1&port2=2&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=1&port2=3&channels=61"
   curl "$polatisus/connect?node=polatisus&port1=8&port2=16&channels=61"
 
+  # way back
+  curl "$polatisie/connect?node=polatisie&port1=15&port2=7&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=4&port2=2&channels=61"
+
+  curl "$polatisus/connect?node=polatisus&port1=15&port2=7&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=4&port2=2&channels=61"
 }
 
 # scenario 2:
@@ -147,11 +157,15 @@ scenario2() {
   curl "$polatisus/connect?node=polatisus&port1=12&port2=14&channels=61"
   curl "$polatisus/connect?node=polatisus&port1=9&port2=16&channels=61"
 
+  # Way back
+  curl "$polatisie/connect?node=polatisie&port1=15&port2=10&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=13&port2=11&channels=61"
+  curl "$polatisie/connect?node=polatisie&port1=5&port2=2&channels=61"
+
+  curl "$polatisus/connect?node=polatisus&port1=15&port2=10&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=12&port2=11&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=5&port2=2&channels=61"
 }
-
-echo '*** Set up scenario'
-
-scenario2
 
 echo '*** Turning on transponders'
 
@@ -160,12 +174,55 @@ curl "$teraus1/turn_on?node=teraus1"
 curl "$teraie2/turn_on?node=teraie2"
 curl "$teraus2/turn_on?node=teraus2"
 
+# Helper function: send gratuitous arps from all servers
+arp () {
+    echo '*** Sending gratuitous ARPs'
+    $m h1 arping -c 1 -U -I h1-eth0 10.0.0.1
+    $m h2 arping -c 1 -U -I h2-eth0 10.0.0.2
+}
+
+echo '*** Configuring servers \n'
+$m h1 ifconfig h1-eth0 10.0.0.1/24
+$m h2 ifconfig h2-eth0 10.0.0.2/24
+
+test() {
+    arp
+    echo '*** h1 pinging h2'
+    $m h1 ping -c3 10.0.0.2
+}
+
+
+echo '*** Base test before configuration'
+echo -n 'press return to test base configuration> '
+read line
+test
+
+echo '*** Test configuration 1'
+echo -n 'press return to configure and test scenario path 1> '
+read line
+scenario1
+test
+
+#echo '*** Set up scenario'
+
 
 "* Monitoring signals at endpoints"
 for tname in teraie1 teraie2 teraus1 teraus2; do
     url=${!tname}
     echo "* $tname"
     curl "$url/monitor?monitor=$tname-monitor"
+done
+
+for rname in r1l1ie r1l2ie r2l3ie r2l4ie r3l5ie r3l6ie; do
+    url=${!rname}
+    echo "* $rname"
+    curl "$url/monitor?monitor=$rname-monitor"
+done
+
+for pname in polatisie; do
+    url=${!pname}
+    echo "* $pname"
+    curl "$url/monitor?monitor=$pname-monitor"
 done
 
 echo '*** Done.'
