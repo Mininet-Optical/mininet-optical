@@ -20,8 +20,9 @@ from mnoptical.click import ClickUserSwitch
 
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
-from mininet.node import OVSSwitch
+from mininet.node import OVSSwitch, RemoteController, UserSwitch
 from mininet.link import TCLink
+#from mininet.cli import CLI
 
 from sys import argv
 from subprocess import run
@@ -50,6 +51,24 @@ comb2_power = {10:-16, 11:-15.8, 12:-15.7, 13:-15.6, 14:-15.6, 15:-15.8, 16:-15.
 
 # No debugging messages by default
 Node.debugger = False
+
+
+class CustomClickSwitch(UserSwitch):
+    def __init__(self, name, config_file=None, log_file=None, **opts):
+        super(CustomClickSwitch, self).__init__(name, **opts)
+        self.configFile = config_file
+        self.logFile = log_file
+
+    def start(self, controllers):
+        cmd = "click "
+        if self.configFile:
+            cmd += f"{self.configFile} "
+        if self.logFile:
+            cmd += f"> {self.logFile} 2>&1 "
+        self.cmd(cmd + "&")
+
+    def stop(self):
+        self.cmd("kill %click")
 
 ### Tutorial Topology
 
@@ -135,6 +154,11 @@ class TutorialTopo( Topo ):
         s2 = self.addSwitch('s2', cls=OVSSwitch)
         satl1 = self.addSwitch('satl1', cls=OVSSwitch)
         satl2 = self.addSwitch('satl2', cls=OVSSwitch)
+
+        # CLICK router
+        cs1 = self.addSwitch('cs1', cls=ClickUserSwitch,
+                             config_file='/home/julieraulin/Documents/mininet-optical/mnoptical/switch.click',
+                             log_file='/tmp/cs1.log')
 
         # controller for switches
         #c0 = self.addController( 'c0' )
@@ -315,11 +339,14 @@ class TutorialTopo( Topo ):
         self.addLink(h1, s1, port1=0, port2=2)
         self.addLink(s1, teraie1, port1=1, port2=1)
         self.addLink(teraie2, satl1, port1=1, port2=1)
-        self.addLink(satl1, satl2, port1=2, port2=2, bw=10000, delay='5ms', loss=0)
+        self.addLink(satl1, satl2, port1=2, port2=2, bw=10000, delay='25ms', loss=0)
         self.addLink(satl2, teraus1, port1=1, port2=1)
         self.addLink(teraus2, s2, port1=1, port2=1)
         self.addLink(s2, h2, port1=2, port2=0)
 
+        # Click links
+        self.addLink(s1, cs1, port1=3, port2=1)
+        self.addLink(s2, cs1, port1=3, port2=2)
 
 
 if __name__ == '__main__':
@@ -328,7 +355,7 @@ if __name__ == '__main__':
     if 'clean' in argv: exit( 0 )
     if 'test' not in argv: argv.append('cli')
     topo = TutorialTopo()
-    net = Mininet(topo=topo, controller=None)
+    net = Mininet(topo=topo, controller=None) #controller=RemoteController
     restServer = RestServer(net)
     net.start()
     restServer.start()

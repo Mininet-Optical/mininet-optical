@@ -163,7 +163,7 @@ scenario2() {
   curl "$polatisie/connect?node=polatisie&port1=5&port2=2&channels=61"
 
   curl "$polatisus/connect?node=polatisus&port1=15&port2=10&channels=61"
-  curl "$polatisus/connect?node=polatisus&port1=12&port2=11&channels=61"
+  curl "$polatisus/connect?node=polatisus&port1=13&port2=11&channels=61"
   curl "$polatisus/connect?node=polatisus&port1=5&port2=2&channels=61"
 }
 
@@ -200,30 +200,50 @@ test
 echo '*** Test configuration 1'
 echo -n 'press return to configure and test scenario path 1> '
 read line
-scenario1
+scenario2
 test
 
-#echo '*** Set up scenario'
-
-
-"* Monitoring signals at endpoints"
+echo "* Monitoring signals at endpoints for path1"
 for tname in teraie1 teraie2 teraus1 teraus2; do
     url=${!tname}
     echo "* $tname"
     curl "$url/monitor?monitor=$tname-monitor"
 done
 
-for rname in r1l1ie r1l2ie r2l3ie r2l4ie r3l5ie r3l6ie; do
-    url=${!rname}
-    echo "* $rname"
-    curl "$url/monitor?monitor=$rname-monitor"
+echo '*** Test configuration 2'
+echo -n 'press return to configure and test scenario path 2> '
+read line
+scenario2
+test
+#echo '*** Set up scenario'
+
+echo '*** Turning on transponders'
+
+curl "$teraie1/turn_on?node=teraie1"
+curl "$teraus1/turn_on?node=teraus1"
+curl "$teraie2/turn_on?node=teraie2"
+curl "$teraus2/turn_on?node=teraus2"
+
+echo"* Monitoring signals at endpoints for path2"
+for tname in teraie1 teraie2 teraus1 teraus2; do
+    url=${!tname}
+    echo "* $tname"
+    curl "$url/monitor?monitor=$tname-monitor"
 done
 
-for pname in polatisie; do
-    url=${!pname}
-    echo "* $pname"
-    curl "$url/monitor?monitor=$pname-monitor"
-done
+#echo "* Monitoring signals at ROADMs"
+#for rname in r1l1ie r1l2ie r2l3ie r2l4ie r3l5ie r3l6ie; do
+#    url=${!rname}
+#    echo "* $rname"
+#    curl "$url/monitor?monitor=$rname-monitor"
+#done
+#
+#echo "* Monitoring signals at Polatis"
+#for pname in polatisie; do
+#    url=${!pname}
+#    echo "* $pname"
+#    curl "$url/monitor?monitor=$pname-monitor"
+#done
 
 echo '*** Done.'
 
