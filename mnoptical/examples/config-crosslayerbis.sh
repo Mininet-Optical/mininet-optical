@@ -52,6 +52,12 @@ curl "$polatisie/reset?node=polatisie"
 curl "$polatisus/reset?node=polatisus"
 
 
+reset() {
+  echo '*** Resetting Polatis'
+  curl "$polatisie/reset?node=polatisie"
+  curl "$polatisus/reset?node=polatisus"
+}
+
 # ROADM scenario 1 - REST version
 
 
@@ -200,7 +206,7 @@ test
 echo '*** Test configuration 1'
 echo -n 'press return to configure and test scenario path 1> '
 read line
-scenario2
+scenario1
 test
 
 echo "* Monitoring signals at endpoints for path1"
