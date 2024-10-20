@@ -366,25 +366,76 @@ class Terminal( SwitchBase ):
 
     def restConnectHandler( self, query ):
         "REST connect handler"
-        ethPort = int( query.ethPort )
         wdmPort = int( query.wdmPort )
-        channel, power, wdmInPort = None, None, None
-        if query.wdmInPort:
+        ethPort = inChannel = channel = power = wdmInPort = None
+        if query.ethPort != '':
+            ethPort = int( query.ethPort )
+        else:
             wdmInPort = int( query.wdmInPort )
-        if query.channel:
+        if query.channel != '':
             channel = int( query.channel )
+        if query.inChannel != '':
+            inChannel = int( query.inChannel )
         if query.power:
             power = float( query.power )
-        self.connect( ethPort, wdmPort,
-                      channel=channel, power=power,
-                      wdmInPort=wdmInPort)
+        if ethPort is not None:
+            self.connect( ethPort, wdmPort,
+                          inChannel=inChannel, channel=channel,
+                          power=power, wdmInPort=wdmInPort)
+        else:
+            self.hairpin( wdmInPort, wdmPort, inChannel=inChannel,
+                          channel=channel, power=power )
         return 'OK'
 
-    def connect( self, ethPort, wdmPort, channel=None, power=None,
-                wdmInPort=None ):
+    def hairpin( self, wdmInPort, wdmPort, inChannel=None,
+                 channel=None, power=None):
+        """O/E/O hairpin prototype
+          wdmInPort: WDM input port number
+          wdmPort: WDM output port number
+          inChannel: input channel
+          channel: output channel
+          power: output power (optional)"""
+        # Update physical model
+        txnum = self.txnum( wdmPort )
+        tx = self.model.transceivers[ txnum ]
+        self.configTx( txNum=txnum, channel=channel, power=power )
+        wdmIntf = self.intfs[ wdmPort ]
+        self.model.assoc_tx_to_channel( tx, channel, out_port=wdmPort )
+        if wdmIntf.isInput():
+            self.model.assoc_rx_to_channel( tx, channel, wdmPort)
+        rxnum = self.txnum( wdmInPort )
+        rx = self.model.transceivers[ rxnum ]
+        wdmInIntf = self.intfs[ wdmInPort ]
+        self.model.assoc_rx_to_channel( rx, inChannel, wdmInPort )
+        if wdmIntf.isOutput():
+            self.model.assoc_tx_to_channel( rx, inChannel, wdmInPort )
+        # Remove old flows if any
+        self.dpctl( 'del-flows', 'in_port=%d' % wdmInPort )
+        self.dpctl( 'del-flows', 'out_port=%d' % wdmPort )
+        # Hairpin and tag outbound packets
+        outbound = ( 'priority=100,' +
+                     'in_port=%d,' % wdmInPort +
+                     'actions=mod_vlan_vid=%d,' % channel +
+                     'output:%d' % wdmPort )
+        reverse = ( 'priority=100,' +
+                     'in_port=%d,' % wdmPort +
+                     'actions=mod_vlan_vid=%d,' % inChannel +
+                     'output:%d' % wdmInPort )
+        if wdmIntf.isOutput() and wdmInIntf.isInput():
+            self.dpctl( 'add-flow', outbound )
+        if wdmIntf.isInput() and wdmInIntf.isOutput():
+            self.dpctl( 'add-flow', reverse )
+
+    def connect( self, ethPort=None, wdmPort=None, inChannel=None,
+                 channel=None, power=None, wdmInPort=None ):
         """Connect an ethPort to transceiver tx on port wdmPort
            ethPort: ethernet port number
-           wdmPort: WDM port number"""
+           inChannel: channel for wdmInPort (O/E/O hairpinning only)
+           channel: output channel for wdmPort
+           wdmPort: WDM port number
+           wdmInPort: wdm Input port if different from wdmPort"""
+        if ethPort is None:
+            return self.hairpin( wdmInPort, wdmPort, inChannel, channel, power )
         # Update physical model
         tx = self.txnum( wdmPort )
         transceiver = self.model.transceivers[ tx ]
@@ -864,7 +915,7 @@ class CombSource(ROADM):
         """power: in form of dict {ch: power} where
            ch: channels to transmit
            power: tx power"""
-           
+
         self.power = power
         super().__init__(name, *args, **kwargs)
         self.addTerminal()
