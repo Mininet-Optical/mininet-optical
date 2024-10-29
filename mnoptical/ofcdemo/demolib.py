@@ -381,23 +381,26 @@ class LinearRoadmTopo( OpticalTopo ):
         transceivers = [
             ('t%d' %t, 0*dBm, 'C') for t in range(1, txCount+1) ]
         terminal = self.addSwitch(
-            't%d' % p, cls=Terminal, transceivers=transceivers )
-        roadm = self.addSwitch( 'r%d' % p,  cls=ROADM )
+            't%d' % p, cls=Terminal, transceivers=transceivers, monitor_mode='in' )
+        roadm = self.addSwitch( 'r%d' % p,  cls=ROADM, monitor_mode='in' )
         # Local links
-        for port in range( 1, txCount+1 ):
+        for port in range( 1, txCount+1 ): #txCount-5
             self.ethLink( router, terminal, port1=port, port2=port )
         self.ethLink( router, host, port1=txCount + 1 )
         for port in range( 1, txCount+1 ):
             self.wdmLink( terminal, roadm, port1=txCount+port, port2=port )
+        #self.ethLink(terminal, terminal, port1=75, port2=76)
+        #self.ethLink(terminal, terminal, port1=77, port2=78)
+        #self.ethLink(terminal, terminal, port1=79, port2=80)
         # Return ROADM so we can link it to other POPs as needed
         return roadm
 
-    def spans( self, spanLength=50*km, spanCount=4 ):
+    def spans( self, spanLength=50*km, spanCount=1 ): #4
         """Return a list of span specifiers (length, (amp, params))
            the compensation amplifiers are named prefix-ampN"""
         entries = [ spanSpec( length=spanLength, amp='amp%d' % i,
                               target_gain=spanLength/km * .22 * dB,
-                              monitor_mode='out' )
+                              monitor_mode='in' )
                     for i in range(1, spanCount+1) ]
         return sum( [ list(entry) for entry in entries ], [] )
 
@@ -541,6 +544,75 @@ class DemoTopo( LinearRoadmTopo ):
             # print(src,dst)
             self.addPopLink( src, dst )
 
+
+class DemoTopobis( LinearRoadmTopo ):
+    """OFC Demo Topology
+
+       This network consists of a ring of six POPs
+       with two cross-connections.
+
+             POP2 -- POP4
+            /  |      |  \
+           /   |      |   \
+       POP1    |      |    POP6
+           \   |      |   /
+            \  |      |  /
+             POP3 -- POP5
+
+       All of the links are bidirectional.
+
+      Each POP consists of a host, router, optical terminal, and ROADM:
+
+       h1 - s1 - t1 - r1
+       h2 - s2 - t2 - r2
+       etc.
+    """
+
+    # Link helper function
+    def addPopLink( self, src, dst ):
+        "Construct a link of four 50km fiber spans"
+        boost = ( 'boost', dict(target_gain=17.0*dB) )
+        spans = self.spans( spanLength=50*km, spanCount=2 )
+        self.wdmLink( src, dst, boost=boost, spans=spans )
+
+    def build( self, n=9, txCount=5 ):
+        "Add POPs and connect them in a ring with some cross-connects"
+
+        # Build POPs
+        roadms = {p: self.buildPop( p, txCount=txCount ) for p in range( 1, n+1 ) }
+        print(roadms)
+
+        # ROADM ring
+        # odd = list( range( 1, n+1, 2 ) )
+        # even = list( range( 2, n+1, 2) )
+        # ring = odd + even[::-1]
+
+        # print(ring)
+        # Ring links
+        # for i in range( len( ring ) ):
+        #     src, dst = roadms[ring[i]], roadms[ring[i-1]]
+        #     self.addPopLink( src, dst )
+        for i in range(1, len(roadms)):
+            src, dst = roadms[i], roadms[i+1]
+            self.addPopLink( src, dst )
+
+        self.addPopLink( roadms[2], roadms[8])
+        self.addPopLink( roadms[1], roadms[7])
+        self.addPopLink( roadms[6], roadms[9])
+        self.addPopLink( roadms[4], roadms[9])
+
+        # t3 = net.get( 't3' )
+        # self.ethLink(t3, t3, port1=75, port2=76)
+        # self.ethLink(t3, t3, port1=77, port2=78)
+        # self.ethLink(t3, t3, port1=79, port2=80)
+        # Cross links
+        # for i in even[:-1]:
+        #     src, dst = roadms[i], roadms[i+1]
+        #     # print(src,dst)
+        #     self.addPopLink( src, dst )
+
+        #JR: add an extra cross link
+        #self.addPopLink( roadms[2], roadms[5])
 
 if __name__ == '__main__':
 

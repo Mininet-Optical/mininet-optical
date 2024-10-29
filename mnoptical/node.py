@@ -349,7 +349,10 @@ class LineTerminal(Node):
         """Propagate signals to the link that the transceivers point to
         Note: This configuration does not support connecting LT to multiple ROADMs
         """
-        for signal_count, out_port in enumerate(self.tx_to_channel, start=1):
+        #for signal_count, out_port in enumerate(self.tx_to_channel, start=1):
+        i=0 #JR
+        for out_port in self.tx_to_channel.keys():
+            i+=1
             optical_signal = self.tx_to_channel[out_port]['optical_signal']
             transceiver = self.tx_to_channel[out_port]['transceiver']
             transceiver.optical_signal.reset(component=self)
@@ -360,8 +363,8 @@ class LineTerminal(Node):
             # pass signal info to link
             link = self.port_to_link_out[out_port]
             link.include_optical_signal_in(optical_signal)
-
-            if signal_count == self.optical_signals_out:
+            #if signal_count == self.optical_signals_out: #JR
+            if i == len(self.tx_to_channel):
                 link.propagate(is_last_port=True, safe_switch=safe_switch)
             else:
                 link.propagate()
@@ -445,7 +448,7 @@ class Transceiver(object):
     def __init__(self, tr_id, name, operation_power=0,
                  channel_spacing_nm=0.4 * 1e-9, channel_spacing_H=50e9,
                  bandwidth=2.99792458 * 1e9, modulation_format='16QAM',
-                 bits_per_symbol=4.0, symbol_rate=32.0e9, rx_threshold_dB=20.0):
+                 bits_per_symbol=4.0, symbol_rate=32.0e9, rx_threshold_dB=15.0):
         """
         :param name: human readable ID
         :param operation_power: operation power in dB
@@ -762,7 +765,6 @@ class Roadm(Node):
                 self.rule_id_to_node_in[in_port, signal_index] = src_node
         else:
             self.switch_table[in_port, signal_indices] = out_port
-
             self.node_to_rule_id_in[src_node].append((in_port, signal_indices))
             self.rule_id_to_node_in[in_port, signal_indices] = src_node
         self.switch(in_port, src_node)
@@ -878,7 +880,6 @@ class Roadm(Node):
                 if rule_id[0] == in_port and rule_id[1] == optical_signal.index:
                     # found a match of in_port and signal index (switch_table key)
                     switch_rule = True
-
                     # keep track of which signals would be switched at this out port
                     port_to_optical_signal_out.setdefault(out_port, [])
                     port_to_optical_signal_out[out_port].append(optical_signal)
@@ -1048,6 +1049,7 @@ class Roadm(Node):
             carriers_att[optical_signal.index] = abs_to_db(total_power * 1e3) - \
                                                  self.target_output_power_dBm[optical_signal.index]
         exceeding_att = -min(list(filter(lambda x: x < 0, carriers_att.values())), default=0)
+
         for k, x in carriers_att.items():
             carriers_att[k] = db_to_abs(x + exceeding_att)
 

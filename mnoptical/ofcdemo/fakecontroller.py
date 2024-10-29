@@ -92,11 +92,11 @@ class SwitchProxy( NodeProxy ):
 
 class TerminalProxy( SwitchProxy ):
     "Local proxy for Terminal/transceiver configuration via REST"
-
-    def connect( self, ethPort, wdmPort, channel=None, power=None ):
+    def connect( self, ethPort=None, wdmPort=None, inChannel=None,
+                 channel=None, power=None, wdmInPort=None ):
         "Configure terminal/transceiver"
-        params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort,
-                       channel=channel, power=power)
+        params = dict( node=self.name, ethPort=ethPort, wdmPort=wdmPort, inChannel=inChannel,
+                       channel=channel, power=power, wdmInPort=wdmInPort)
         # print('connect', params)
         r = self.get( 'connect', params=params )
         # print( r )
@@ -134,6 +134,16 @@ class ROADMProxy( SwitchProxy ):
         params = dict(node=self.name)
         # print('reset', params)
         r = self.get('reset', params=params)
+        return r
+
+    def disconnect( self, port1, port2, channels, action='remove' ):
+        "Remove rules ROADM"
+        channels = ','.join( str(channel) for channel in channels)
+        params = dict(
+            node=self.name, port1=port1, port2=port2, channels=channels, action=action )
+        # print('connect', params)
+        r = self.get( 'disconnect', params=params)
+        # print( r )
         return r
 
 
