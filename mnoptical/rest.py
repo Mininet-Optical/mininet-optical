@@ -5,7 +5,7 @@ rest.py: Simple REST-based SDN control plane for mininet-optical
 """
 
 from wsgiref.simple_server import make_server, WSGIRequestHandler
-from bottle import route, get, post, request, default_app, abort
+from bottle import route, get, post, request, response, default_app, abort
 from threading import Thread
 
 from mnoptical.dataplane import SwitchBase, Terminal, ROADM, OpticalLink
@@ -54,6 +54,14 @@ def net():
     return RestServer.net
 
 
+def runtime():
+    "Return runtime manager if attached to the network"
+    manager = getattr(RestServer.net, 'runtime_lightpath_manager', None)
+    if manager is None:
+        abort(404, "Runtime lightpath manager not configured")
+    return manager
+
+
 @get( '/nodes' )
 def nodes():
     "Return list of nodes"
@@ -78,6 +86,48 @@ def monitors():
 def monitor():
     "Return information for monitor"
     return monitorHandler( 'restMonitor' )
+
+
+@get('/topology/graph')
+def topology_graph():
+    "Return enriched runtime topology graph"
+    return runtime().topology_graph()
+
+
+@get('/topology/ports')
+def topology_ports():
+    "Return static port and endpoint metadata"
+    return runtime().topology_ports()
+
+
+@get('/optical/state')
+def optical_state():
+    "Return runtime lightpath state"
+    return runtime().optical_state()
+
+
+@post('/optical/lightpaths/install')
+def install_lightpath():
+    "Install a lightpath from a JSON body"
+    payload = request.json or {}
+    result = runtime().install_lightpath(payload)
+    response.status = 200 if result.get('status') == 'installed' else 409
+    return result
+
+
+@post('/optical/lightpaths/remove')
+def remove_lightpath():
+    "Remove a lightpath from a JSON body"
+    payload = request.json or {}
+    result = runtime().remove_lightpath(payload)
+    response.status = 200 if result.get('removed') else 404
+    return result
+
+
+@get('/telemetry/links')
+def telemetry_links():
+    "Return runtime telemetry summaries"
+    return dict(links=runtime().telemetry_links())
 
 
 def opticalLinks():
